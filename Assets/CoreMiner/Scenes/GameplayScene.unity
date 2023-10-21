@@ -504,7 +504,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 50
+  orthographic size: 5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -549,7 +549,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 100
   zoomSpeed: 100
-  minZoom: 50
+  minZoom: 5
   maxZoom: 200
   edgeOffset: 10
   LockMove: 1
@@ -716,8 +716,8 @@ MonoBehaviour:
   _centerPointFrame: {x: 0, y: 0}
   ChunkWidth: 64
   ChunkHeight: 64
-  worldSize: 1
-  lastChunkFrame: {x: 0, y: 0}
+  WorldSize: 1
+  lastChunkISOFrame: {x: 0, y: 0}
   Octaves: 6
   Frequency: 0.02
   Lacunarity: 2

@@ -12,8 +12,8 @@ namespace CoreMiner
     {
         [Header("Chunk Settings")]
         public CoreMiner.Utilities.Grid<Tile> ChunkData;
-        public int FrameX;
-        public int FrameY;
+        public float FrameX;
+        public float FrameY;
         public int IsometricFrameX;
         public int IsometricFrameY;
         [SerializeField] private int _width;
@@ -47,16 +47,28 @@ namespace CoreMiner
             ShowMinMaxHeightMapLog();
         }
 
-        public void Init(int frameX, int frameY, int _width, int height, float cellSize)
+
+        private void Update()
+        {
+            if(Vector2.Distance(Camera.main.transform.position, transform.position) > 200f)
+            {
+                WorldGeneration.Instance.ActiveChunks.Remove(this);
+                gameObject.SetActive(false);
+            }
+        }
+
+        public void Init(float frameX, float frameY, int isometricFrameX, int isometricFrameY, int _width, int height, float cellSize)
         {
             this.FrameX = frameX;
             this.FrameY = frameY;
+            this.IsometricFrameX = isometricFrameX; 
+            this.IsometricFrameY = isometricFrameY;
             this._width = _width;
             this._height = height;
             ChunkData = new Grid<Tile>(_width, height, cellSize);
         }
 
-        public void LoadHeightMap(float[,] heightValues)
+        public void LoadHeightMap(float[,] heightValues, float minHeight, float maxHeight)
         {
             System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
             stopwatch.Start();
@@ -67,8 +79,8 @@ namespace CoreMiner
                 for (int y = 0; y < _height; y++)
                 {
                     float value = heightValues[x, y];
-                    if (value > _maxHeight) _maxHeight = value;
-                    if (value < _minHeight) _minHeight = value;
+                    //if (value > _maxHeight) _maxHeight = value;
+                    //if (value < _minHeight) _minHeight = value;
 
                     Tile tile = new Tile(x, y);
                     tile.HeightValue = value;
@@ -82,7 +94,7 @@ namespace CoreMiner
                 {
                     float value = ChunkData.GetValue(x, y).HeightValue;
                     //normalize our value between 0 and 1
-                    value = (value - _minHeight) / (_maxHeight - _minHeight);
+                    value = (value - minHeight) / (maxHeight - minHeight);
 
                     Tile t = new Tile(x, y);
                     t.HeightValue = value;
