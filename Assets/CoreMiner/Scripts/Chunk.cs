@@ -6,41 +6,40 @@ using CoreMiner.Utilities.NoiseGeneration;
 using LibNoise.Generator;
 using System.Threading.Tasks;
 
-namespace CoreMiner.WorldGen
+namespace CoreMiner
 {
     public class Chunk : MonoBehaviour
     {
-        public Vector3Int ChunkPosition;
-        public Vector3Int WorldPosition;
-
-        public Grid<CoreMiner.WorldGen.Tile> ChunkData;
+        [Header("Chunk Settings")]
+        public CoreMiner.Utilities.Grid<Tile> ChunkData;
+        public int FrameX;
+        public int FrameY;
+        public int IsometricFrameX;
+        public int IsometricFrameY;
         [SerializeField] private int _width;
         [SerializeField] private int _height;
         [SerializeField] private int _cellSize;
 
-        public Tilemap TileMap;
-        public CustomTileBase GroundTile;
-
-        [Header("Noise Settings")]
-        public int Octaves = 6;
-        public double Frequency = 0.02f;
-        public double Lacunarity = 2.0f;
-        public double Persistence = 0.5f;
-        public int Seed = 7;
-        private ModuleBase _heightNoise;
-
+        // Min and Max Height used for normalize noise value in range [0-1]
         private float _minHeight = float.MaxValue;
         private float _maxHeight = float.MinValue;
 
+        [Header("Tilemap visualization")]
+        public Tilemap TileMap;
 
         [Header("Debug")]
         public bool ShowMinMax = true;
 
+
+
         private async void Start()
         {
-            Init(_width, _height, _cellSize, Vector3.zero);
+            return;
+            //Init(FrameX, FrameY, _width, _height, _cellSize);
+
+
             //LoadHeightMap();
-            await LoadHeightMapAsync();
+            //await LoadHeightMapAsync();
             LoadTiles();
 
 
@@ -48,26 +47,26 @@ namespace CoreMiner.WorldGen
             ShowMinMaxHeightMapLog();
         }
 
-        public void Init(int _width, int height, float cellSize, Vector3 offset)
+        public void Init(int frameX, int frameY, int _width, int height, float cellSize)
         {
+            this.FrameX = frameX;
+            this.FrameY = frameY;
             this._width = _width;
             this._height = height;
-            ChunkData = new Utilities.Grid<CoreMiner.WorldGen.Tile>(_width, height, cellSize, offset);
+            ChunkData = new Grid<Tile>(_width, height, cellSize);
         }
 
-
-        private void LoadHeightMap()
+        public void LoadHeightMap(float[,] heightValues)
         {
             System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
             stopwatch.Start();
-            _heightNoise = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, QualityMode.High);
+
 
             for (int x = 0; x < _width; x++)
             {
                 for (int y = 0; y < _height; y++)
                 {
-                    float value = (float)_heightNoise.GetValue(x, y, 0);
-
+                    float value = heightValues[x, y];
                     if (value > _maxHeight) _maxHeight = value;
                     if (value < _minHeight) _minHeight = value;
 
@@ -85,70 +84,80 @@ namespace CoreMiner.WorldGen
                     //normalize our value between 0 and 1
                     value = (value - _minHeight) / (_maxHeight - _minHeight);
 
-                    Tile t = new Tile(x,y);           
+                    Tile t = new Tile(x, y);
                     t.HeightValue = value;
-                    ChunkData.SetValue(x, y, t);                  
+                    ChunkData.SetValue(x, y, t);
                 }
             }
 
             stopwatch.Stop();
-            Debug.Log($"Load Chunk Data: {stopwatch.ElapsedMilliseconds / 1000f} s");
+            //Debug.Log($"Load Chunk Data: {stopwatch.ElapsedMilliseconds / 1000f} s");
         }
 
-        private async Task LoadHeightMapAsync()
+
+        public void LoadMap()
         {
-            System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
-            stopwatch.Start();
-            _heightNoise = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, QualityMode.High);
-
-
-            await Task.Run(() =>
-            {
-                Parallel.For(0, _width, x =>
-                {
-                    for (int y = 0; y < _height; y++)
-                    {
-                        float value = (float)_heightNoise.GetValue(x, y, 0);
-                        // Use a lock to sately update minHeight and maxHeight
-                        lock (this)
-                        {
-                            if (value > _maxHeight) _maxHeight = value;
-                            if (value < _minHeight) _minHeight = value;
-                        }
-
-                        Tile tile = new Tile(x, y);
-                        tile.HeightValue = value;
-                        ChunkData.SetValue(x, y, tile);
-                    }
-                });
-
-            });
-
-
-            // Normalize the height values
-            await Task.Run(() =>
-            {
-                Parallel.For(0, _width, x =>
-                {
-                    for (int y = 0; y < _height; y++)
-                    {
-                        float value = ChunkData.GetValue(x, y).HeightValue;
-                        //normalize our value between 0 and 1
-                        value = (value - _minHeight) / (_maxHeight - _minHeight);
-
-                        Tile t = new Tile(x, y);
-                        t.HeightValue = value;
-                        ChunkData.SetValue(x, y, t);              
-                    }
-                });
-
-            });
-
-            stopwatch.Stop();
-            Debug.Log($"Load Chunk Data: {stopwatch.ElapsedMilliseconds / 1000f} s");
+            //await LoadHeightMapAsync();
+            //LoadHeightMap();
+            LoadTiles();
         }
+        //private async Task LoadHeightMapAsync()
+        //{
+        //    System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+        //    stopwatch.Start();
+        //    _heightNoise = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, QualityMode.High);
 
-        private void LoadTiles()
+
+        //    await Task.Run(() =>
+        //    {
+        //        Parallel.For(0, _width, x =>
+        //        {
+        //            for (int y = 0; y < _height; y++)
+        //            {
+        //                float offsetX = x + FrameX * _width;
+        //                float offsetY = y + FrameY * _height;
+        //                //Debug.Log($"offset: {offsetX}\t{offsetY}\t{FrameX}\t{FrameY}");
+        //                float value = (float)_heightNoise.GetValue(-offsetX, offsetY, 0);
+        //                // Use a lock to sately update minHeight and maxHeight
+        //                lock (this)
+        //                {
+        //                    if (value > _maxHeight) _maxHeight = value;
+        //                    if (value < _minHeight) _minHeight = value;
+        //                }
+
+        //                Tile tile = new Tile(x, y);
+        //                tile.HeightValue = value;
+        //                ChunkData.SetValue(x, y, tile);
+        //            }
+        //        });
+
+        //    });
+
+
+        //    // Normalize the height values
+        //    await Task.Run(() =>
+        //    {
+        //        Parallel.For(0, _width, x =>
+        //        {
+        //            for (int y = 0; y < _height; y++)
+        //            {
+        //                float value = ChunkData.GetValue(x, y).HeightValue;
+        //                //normalize our value between 0 and 1
+        //                value = (value - _minHeight) / (_maxHeight - _minHeight);
+
+        //                Tile t = new Tile(x, y);
+        //                t.HeightValue = value;
+        //                ChunkData.SetValue(x, y, t);
+        //            }
+        //        });
+
+        //    });
+
+        //    stopwatch.Stop();
+        //    //Debug.Log($"Load Chunk Data: {stopwatch.ElapsedMilliseconds / 1000f} s");
+        //}
+
+        public void LoadTiles()
         {
             System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
             stopwatch.Start();
@@ -160,12 +169,21 @@ namespace CoreMiner.WorldGen
 
                     if (heightValue < 0.5f)
                     {
-                        TileMap.SetTile(new Vector3Int(x, y, 0), GroundTile);
+                        TileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DirtGrass));
+                        if (x == 0 && y == 0)
+                        {
+                            TileMap.SetColor(new Vector3Int(x, y, 0), Color.red);
+                        }
+
+                        if (x == _width - 1 && y == _height - 1)
+                        {
+                            TileMap.SetColor(new Vector3Int(x, y, 0), Color.blue);
+                        }
                     }
                 }
             }
             stopwatch.Stop();
-            Debug.Log($"Set tiles: {stopwatch.ElapsedMilliseconds / 1000f} s");
+            //Debug.Log($"Set tiles: {stopwatch.ElapsedMilliseconds / 1000f} s");
         }
 
 
@@ -176,8 +194,8 @@ namespace CoreMiner.WorldGen
         {
             if (ShowMinMax)
             {
-                Debug.Log($"Min: {_minHeight}");
-                Debug.Log($"Max: {_maxHeight}");
+                //Debug.Log($"Min: {_minHeight}");
+                //Debug.Log($"Max: {_maxHeight}");
             }
         }
         #endregion

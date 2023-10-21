@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
 using UnityEngine.Tilemaps;
 
-namespace CoreMiner.WorldGen
+namespace CoreMiner
 {
     [CreateAssetMenu(menuName = "CoreMiner/Tiles/CustomTile")]
     public class CustomTileBase : TileBase
     {
         [Header("Tile Settings")]
         public Sprite tileSprite;
+        public TileType Type;
         public Color tileColor = Color.white;
 
         public override void GetTileData(Vector3Int location, ITilemap tilemap, ref TileData tileData)

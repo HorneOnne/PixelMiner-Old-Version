@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: GroundTile
   m_EditorClassIdentifier: 
   tileSprite: {fileID: 163440026, guid: ff8a857268dcd4a4e8a4691c439720b1, type: 3}
+  Type: 1
   tileColor: {r: 1, g: 1, b: 1, a: 1}

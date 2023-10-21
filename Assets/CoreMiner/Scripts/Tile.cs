@@ -1,4 +1,4 @@
-﻿namespace CoreMiner.WorldGen
+﻿namespace CoreMiner
 {
     public class Tile
     {

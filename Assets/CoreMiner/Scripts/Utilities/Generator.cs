@@ -12,6 +12,8 @@ namespace CoreMiner.Utilities.NoiseGeneration
         public double Frequency = 1.25f;
         public double Lacunarity = 2.0f;
         public double Persistence = 0.5f;
+        public int Seed = 3;
+        public Vector2 Offset;
 
         // Noise Generator Module
         private ModuleBase _heightNoiseModule;
@@ -28,7 +30,7 @@ namespace CoreMiner.Utilities.NoiseGeneration
         private void Start()
         {
             _heightMapMeshRenderer = transform.Find("HeightTexture").GetComponent<MeshRenderer>();
-            _heightNoiseModule = new Perlin(Frequency, Lacunarity, Persistence, Octaves, 7, QualityMode.High);
+            _heightNoiseModule = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, QualityMode.High);
 
             GetData();
 
@@ -37,6 +39,7 @@ namespace CoreMiner.Utilities.NoiseGeneration
             _heightMapMeshRenderer.materials[0].mainTexture = TextureGenerator.GetTexture(Width, Height, _tiles);
             //_heightMapMeshRenderer.materials[0].mainTexture = GetTexture(_heightNoiseModule);
         }
+
 
 
         private Texture2D GetTexture(ModuleBase module)
@@ -53,7 +56,7 @@ namespace CoreMiner.Utilities.NoiseGeneration
             {
                 for (int y = 0; y < Height; y++)
                 {
-                    float value = (float)_heightNoiseModule.GetValue(x, y, 0);
+                    float value = (float)_heightNoiseModule.GetValue(Offset.x * Width + x, Offset.y * Height + y, 0);
 
                     if (value > _heightMapData.Max) _heightMapData.Max = value;
                     if (value < _heightMapData.Min) _heightMapData.Min = value;
@@ -92,12 +95,24 @@ namespace CoreMiner.Utilities.NoiseGeneration
         }
 
 
+
+        private float _updateFrequency = 0.2f;
+        private float _updateTimer = 0.0f;
         private void Update()
         {
+            if(Time.time - _updateTimer > _updateFrequency)
+            {
+                _updateTimer = Time.time;
+                GetData();
+                LoadTiles();
+                _heightMapMeshRenderer.materials[0].mainTexture = TextureGenerator.GetTexture(Width, Height, _tiles);
+            }
+
             if (Input.GetKeyDown(KeyCode.G))
             {
-                _heightNoiseModule = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Random.Range(0, int.MaxValue), QualityMode.High);
-                _heightMapMeshRenderer.materials[0].mainTexture = GetTexture(_heightNoiseModule);
+                GetData();
+                LoadTiles();
+                _heightMapMeshRenderer.materials[0].mainTexture = TextureGenerator.GetTexture(Width, Height, _tiles);
             }
         }
     }

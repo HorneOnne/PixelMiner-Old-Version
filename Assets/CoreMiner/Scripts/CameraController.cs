@@ -14,6 +14,9 @@ namespace CoreMiner.WorldGen
 
         public bool LockMove = false;
 
+        // Smooth zoom variables
+        private float targetZoom;
+        public float smoothZoomTime = 0.5f;
 
         private void Start()
         {
@@ -54,7 +57,10 @@ namespace CoreMiner.WorldGen
 
             // Camera zoom.
             float zoomInput = Input.GetAxis("Mouse ScrollWheel");
-            mainCamera.orthographicSize = Mathf.Clamp(mainCamera.orthographicSize - zoomInput * zoomSpeed, minZoom, maxZoom);
+            targetZoom = Mathf.Clamp(targetZoom - zoomInput * zoomSpeed, minZoom, maxZoom);
+
+            // Smoothly interpolate the camera size towards the target size.
+            mainCamera.orthographicSize = Mathf.Lerp(mainCamera.orthographicSize, targetZoom, Time.deltaTime / smoothZoomTime);
         }
     }
 }
