@@ -3,10 +3,10 @@ using UnityEngine;
 using LibNoise;
 using LibNoise.Generator;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace CoreMiner
 {
-
 
     public class WorldGeneration : MonoBehaviour
     {
@@ -14,17 +14,14 @@ namespace CoreMiner
 
         [SerializeField] private Chunk _chunkPrefab;
 
-        [SerializeField] private Vector2 _centerPoint;
-        [SerializeField] private Vector2Int _centerPointFrame;
+      
 
+        [Header("World Settings")]
         public int ChunkWidth = 16;      // Size of each chunk in tiles
         public int ChunkHeight = 16;      // Size of each chunk in tiles
         public int WorldSize = 1;       // Number of chunks in the world
-
-        private Dictionary<Vector2Int, Chunk> chunks;
-        [SerializeField] private Vector2Int lastChunkISOFrame;
-
         private float TileSize = 1.0f;
+
 
         [Header("Noise Settings")]
         public int Octaves = 6;
@@ -41,9 +38,14 @@ namespace CoreMiner
         // Min and Max Height used for normalize noise value in range [0-1]
         private float _minHeight = float.MaxValue;
         private float _maxHeight = float.MinValue;
-        public int Size = 32;
+        private Dictionary<Vector2Int, Chunk> chunks;      
         public HashSet<Chunk> ActiveChunks;
 
+
+        // Cached
+        private Vector2Int lastChunkISOFrame;
+        private Vector2 _centerPoint;
+        private Vector2Int _centerPointFrame;
 
         private void Awake()
         {
@@ -77,9 +79,14 @@ namespace CoreMiner
             }
         }
 
+        [ConsoleCommand("DebugTest")]
+        private void DebugTest()
+        {
+            Debug.Log($"CenterPOint: {_centerPoint}");
+        }
 
         // Load chunks around a given chunk position
-        private void LoadChunksAroundPosition(int isoFrameX, int isoFrameY, int offset = 1)
+        private async void LoadChunksAroundPosition(int isoFrameX, int isoFrameY, int offset = 1)
         {
             Debug.Log("LoadChunksAroundPositionl");
 
@@ -88,17 +95,18 @@ namespace CoreMiner
                 for (int y = isoFrameY - offset; y <= isoFrameY + offset; y++)
                 {
                     Vector2Int nbIsoFrame = new Vector2Int(x, y);
-                    if (chunks.ContainsKey(new Vector2Int(x, y)) == false)
+                    if (chunks.ContainsKey(nbIsoFrame) == false)
                     {
                         if (x == isoFrameX && y == isoFrameY)
                         {
                             // Center
                             // ......
                         }
-
-
-                        Chunk newChunk = AddNewChunk(x, y);
+                        Chunk newChunk =  await AddNewChunkAsync(x,y);
+                        //Chunk newChunk = AddNewChunk(x, y);
+                        chunks.Add(nbIsoFrame, newChunk);
                         ActiveChunks.Add(newChunk);
+                       
                     }
                     else
                     {
@@ -108,21 +116,7 @@ namespace CoreMiner
 
                 }
             }
-
-            int depth = 0;
-            List<Chunk> chunkList = ActiveChunks.ToList();
-            chunkList.Sort((v1, v2) =>
-            {
-                int xComparison = v1.IsometricFrameX.CompareTo(v2.IsometricFrameX);
-                return xComparison != 0 ? xComparison : v1.IsometricFrameY.CompareTo(v2.IsometricFrameY);
-            });
-
-            foreach (var chunk in chunkList)
-            {
-                chunk.transform.position = new Vector3(chunk.transform.position.x, 
-                                                       chunk.transform.position.y, 
-                                                       depth++);
-            }
+            SortActiveChunkByDepth();
         }
 
 
@@ -145,13 +139,29 @@ namespace CoreMiner
             return heightValues;
         }
 
-
-        private Vector3 FrameToWorldIsometricPosition(int frameX, int frameY)
+        private async Task<float[,]> GetHeightMapNoiseAsync(int frameX, int frameY) 
         {
-            return new Vector3(frameX * ChunkWidth / 2 * CELL_SIZE.x,
-                               frameY * ChunkHeight / 2 * CELL_SIZE.y,
-                               0 * CELL_SIZE.z);
+            float[,] heightValues = new float[ChunkWidth, ChunkHeight];
+            await Task.Run(() =>
+            {
+                Parallel.For(0, ChunkWidth, x =>
+                {
+                    for (int y = 0; y < ChunkHeight; y++)
+                    {
+                        float offsetX = frameX * ChunkWidth + x;
+                        float offsetY = frameY * ChunkHeight + y;
+                        heightValues[x, y] = (float)_heightNoise.GetValue(offsetX, offsetY, 0);
+
+                        if (heightValues[x, y] > _maxHeight) _maxHeight = heightValues[x, y];
+                        if (heightValues[x, y] < _minHeight) _minHeight = heightValues[x, y];
+                    }
+                });
+            });
+  
+            return heightValues;
         }
+
+
 
 
         private Chunk AddNewChunk(int isoFrameX, int isoFrameY)
@@ -164,12 +174,45 @@ namespace CoreMiner
             // Create new data
             float[,] heightValues = GetHeightMapNoise(isoFrameX, isoFrameY);
             newChunk.LoadHeightMap(heightValues, _minHeight, _maxHeight);
-            newChunk.LoadMap();
-
-            // Store chunk into dictionary
-            chunks.Add(new Vector2Int(isoFrameX, isoFrameY), newChunk);
-
+            newChunk.DrawChunkPerformance();
             return newChunk;
+        }
+
+        private async Task<Chunk> AddNewChunkAsync(int isoFrameX, int isoFrameY)
+        {
+            Debug.Log("AddNewChunkAsync");
+            Vector2 frame = IsometricUtilities.IsometricFrameToWorldFrame(isoFrameX, isoFrameY);
+            Vector3 worldPosition = IsometricUtilities.ConvertIsometricFrameToWorldPosition(isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
+            Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity);
+            newChunk.Init(frame.x, frame.y, isoFrameX, isoFrameY, ChunkWidth, ChunkHeight, TileSize);
+
+            // Create new data
+            float[,] heightValues = await GetHeightMapNoiseAsync(isoFrameX, isoFrameY);
+            await newChunk.LoadHeightMapAsync(heightValues, _minHeight, _maxHeight);
+            newChunk.DrawChunkPerformance();
+            return newChunk;
+        }
+
+
+        /// <summary>
+        /// Sort active chunks fix some isometric chunk has wrong order (Visualization).
+        /// </summary>
+        private void SortActiveChunkByDepth()
+        {
+            int depth = 0;
+            List<Chunk> chunkList = ActiveChunks.ToList();
+            chunkList.Sort((v1, v2) =>
+            {
+                int xComparison = v1.IsometricFrameX.CompareTo(v2.IsometricFrameX);
+                return xComparison != 0 ? xComparison : v1.IsometricFrameY.CompareTo(v2.IsometricFrameY);
+            });
+
+            foreach (var chunk in chunkList)
+            {
+                chunk.transform.position = new Vector3(chunk.transform.position.x,
+                                                       chunk.transform.position.y,
+                                                       depth++);
+            }
         }
     }
 }

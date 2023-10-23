@@ -186,4 +186,4 @@ MonoBehaviour:
   _height: 512
   _cellSize: 1
   TileMap: {fileID: 4790430563304142616}
-  ShowMinMax: 1
+  ChunkLoaded: 0
