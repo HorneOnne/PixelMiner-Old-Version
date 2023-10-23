@@ -18,15 +18,18 @@ namespace CoreMiner
         [SerializeField] private int _width;
         [SerializeField] private int _height;
         [SerializeField] private int _cellSize;
-        private float _updateFrequency = 0.2f;
+        private float _unloadChunkDistance = 200;
+        private float _updateFrequency = 1.0f;
         private float _updateTimer = 0.0f;
 
         [Header("Tilemap visualization")]
-        public Tilemap TileMap;
+        public Tilemap IsometricTileMap;
 
         public bool ChunkLoaded;
 
-        private void Start()
+
+
+        private void Awake()
         {
             ChunkLoaded = false;
         }
@@ -34,10 +37,15 @@ namespace CoreMiner
 
         private void Update()
         {
-            if (Vector2.Distance(Camera.main.transform.position, transform.position) > 200f && ChunkLoaded)
+            if (Time.time - _updateTimer > _updateFrequency)
             {
-                WorldGeneration.Instance.ActiveChunks.Remove(this);
-                gameObject.SetActive(false);
+                _updateTimer = Time.time;
+                if (Vector2.Distance(Camera.main.transform.position, transform.position) > _unloadChunkDistance && ChunkLoaded 
+                    && WorldGeneration.Instance.AutoUnloadChunk)
+                {
+                    WorldGeneration.Instance.ActiveChunks.Remove(this);
+                    gameObject.SetActive(false);
+                }
             }
         }
 
@@ -128,9 +136,33 @@ namespace CoreMiner
                 {
                     float heightValue = ChunkData.GetValue(x, y).HeightValue;
 
-                    if (heightValue < 0.5f)
+                    if (heightValue < WorldGeneration.Instance.DeepWater)
                     {
-                        TileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DirtGrass));
+                        IsometricTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DeepWater));
+                    }                  
+                    else if (heightValue < WorldGeneration.Instance.Water)
+                    {
+                        IsometricTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Sand)
+                    {
+                        IsometricTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Sand));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Grass)
+                    {
+                        IsometricTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DirtGrass));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Forest)
+                    {
+                        IsometricTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.ForestGrass));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Rock)
+                    {
+                        IsometricTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Rock));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Snow)
+                    {
+                        IsometricTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Snow));
                     }
                 }
             }
@@ -151,10 +183,35 @@ namespace CoreMiner
                 {
                     float heightValue = ChunkData.GetValue(x, y).HeightValue;
 
-                    if (heightValue < 0.5f)
+                    if (heightValue < WorldGeneration.Instance.DeepWater)
                     {
-                        TileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DirtGrass));
+                        IsometricTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DeepWater));
                     }
+                    else if (heightValue < WorldGeneration.Instance.Water)
+                    {
+                        IsometricTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Sand)
+                    {
+                        IsometricTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Sand));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Grass)
+                    {
+                        IsometricTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DirtGrass));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Forest)
+                    {
+                        IsometricTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.ForestGrass));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Rock)
+                    {
+                        IsometricTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Rock));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Snow)
+                    {
+                        IsometricTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Snow));
+                    }
+
                 }
 
                 if (PerformanceManager.Instance.HitFrameLimit())
@@ -167,8 +224,58 @@ namespace CoreMiner
 
         public void ClearChunkDraw()
         {
-            TileMap.ClearAllTiles();
+            IsometricTileMap.ClearAllTiles();
         }
+
+        public void UpdateNeighbors()
+        {
+            for (var x = 0; x < _width; x++)
+            {
+                for (var y = 0; y < _height; y++)
+                {
+                    Tile t = ChunkData.GetValue(x,y);
+
+                    t.Top = GetTop(t);
+                    t.Bottom = GetBottom(t);
+                    t.Left = GetLeft(t);
+                    t.Right = GetRight(t);
+                }
+            }
+        }
+
+
+        private Tile GetTop(Tile t)
+        {
+            return ChunkData.GetValue(t.FrameX, MathHelper.Mod(t.FrameY - 1, _height));
+        }
+        private Tile GetBottom(Tile t)
+        {
+            return ChunkData.GetValue(t.FrameX, MathHelper.Mod(t.FrameY + 1, _height));
+        }
+        private Tile GetLeft(Tile t)
+        {
+            return ChunkData.GetValue(MathHelper.Mod(t.FrameX - 1, _width), t.FrameY);
+        }
+        private Tile GetRight(Tile t)
+        {
+            return ChunkData.GetValue(MathHelper.Mod(t.FrameX + 1, _width), t.FrameY);
+        }
+
+        #region Utilities
+        // Function to convert world coordinates to tile coordinates
+        public Vector3Int WorldToTilePosition(Vector3 worldPosition)
+        {
+            Vector3Int tilePosition = IsometricTileMap.WorldToCell(worldPosition);
+            return tilePosition;
+        }
+
+        // Function to convert tile coordinates to world coordinates
+        public Vector3 TileToWorldPosition(Vector3Int tilePosition)
+        {
+            Vector3 worldPosition = IsometricTileMap.GetCellCenterWorld(tilePosition);
+            return worldPosition;
+        }
+        #endregion
     }
 }
 

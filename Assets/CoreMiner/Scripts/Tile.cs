@@ -5,19 +5,34 @@
         public TileType Type { get; set; }
         public float HeightValue { get; set; }
         public int FrameX, FrameY;
+
+        // Neighbors
+        public Tile Left;
+        public Tile Right;
+        public Tile Top;
+        public Tile Bottom;
+
         public Tile() { }
         public Tile(int x, int y) 
         {
             this.FrameX = x;
             this.FrameY = y;
         }
+
+
     }
 
     public enum TileType : ushort
     {
         Dirt,
         DirtGrass,
+        ForestGrass,
         Stone,
+        Water,
+        DeepWater,
+        Sand,
+        Rock,
+        Snow,
         Other
     }
 }

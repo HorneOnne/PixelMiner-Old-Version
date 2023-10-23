@@ -162,9 +162,9 @@ Grid:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8376937968143244371}
   m_Enabled: 1
-  m_CellSize: {x: 2, y: 1, z: 1}
+  m_CellSize: {x: 2, y: 1.1547, z: 1}
   m_CellGap: {x: 0, y: 0, z: 0}
-  m_CellLayout: 2
+  m_CellLayout: 3
   m_CellSwizzle: 0
 --- !u!114 &1287440298023199784
 MonoBehaviour:
@@ -185,5 +185,5 @@ MonoBehaviour:
   _width: 512
   _height: 512
   _cellSize: 1
-  TileMap: {fileID: 4790430563304142616}
+  IsometricTileMap: {fileID: 4790430563304142616}
   ChunkLoaded: 0

@@ -4,6 +4,7 @@ using LibNoise.Generator;
 
 namespace CoreMiner.Utilities.NoiseGeneration
 {
+
     public class Generator : MonoBehaviour
     {
         public int Width = 256;

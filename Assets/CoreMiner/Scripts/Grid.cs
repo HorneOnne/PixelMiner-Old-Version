@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 
 namespace CoreMiner.Utilities
 {
@@ -22,7 +21,7 @@ namespace CoreMiner.Utilities
 
             gridMap = new T[width, height];
 
-            bool showDebug = true;
+            bool showDebug = false;
             TextMesh[,] debugTextArray = new TextMesh[width, height];
             if (showDebug)
             {

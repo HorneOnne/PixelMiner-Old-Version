@@ -5,7 +5,7 @@ namespace CoreMiner
     public static class IsometricUtilities
     {
         public static float CELLSIZE_X = 2;
-        public static float CELLSIZE_Y = 1;
+        public static float CELLSIZE_Y = 1.1547f;
 
         public static Vector2 IsometricFrameToWorldFrame(int isoFrameX, int isoFrameY)
         {

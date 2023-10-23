@@ -37,24 +37,6 @@ namespace CoreMiner
             var texture = new Texture2D(width, height);
             EditorUtility.CopySerialized(customTile.tileSprite.texture, texture);
             return texture;
-
-            //Color[] pixels = customTile.tileSprite.texture.GetPixels(
-            //(int)customTile.tileSprite.textureRect.x,
-            //(int)customTile.tileSprite.textureRect.y,
-            //(int)customTile.tileSprite.textureRect.width,
-            //(int)customTile.tileSprite.textureRect.height);
-            //Texture2D texture = new Texture2D((int)customTile.tileSprite.textureRect.width, (int)customTile.tileSprite.textureRect.height);
-            ////texture.SetPixels(pixels);
-            ////texture.Apply();
-
-            //EditorUtility.CopySerialized(customTile.tileSprite.texture, texture);
-            //return texture;
-
-
-
-
-            return texture;
-
         }
     }
 }

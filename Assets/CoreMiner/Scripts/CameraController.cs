@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace CoreMiner.WorldGen
 {
@@ -12,7 +13,7 @@ namespace CoreMiner.WorldGen
 
         private Camera mainCamera;
 
-        public bool LockMove = false;
+        public bool LockMove = true;
 
         // Smooth zoom variables
         private float targetZoom;
@@ -21,16 +22,11 @@ namespace CoreMiner.WorldGen
         private void Start()
         {
             mainCamera = Camera.main; // Get the main camera in the scene.
+            targetZoom = mainCamera.orthographicSize;
         }
 
         private void Update()
         {
-            if(Input.GetKeyDown(KeyCode.Y))
-            {
-                LockMove = !LockMove; 
-            }
-
-
             if (LockMove == true) return;
             // Camera movement.
             Vector3 moveDirection = Vector3.zero;
@@ -62,6 +58,25 @@ namespace CoreMiner.WorldGen
             // Smoothly interpolate the camera size towards the target size.
             mainCamera.orthographicSize = Mathf.Lerp(mainCamera.orthographicSize, targetZoom, Time.deltaTime / smoothZoomTime);
         }
+
+#if DEV_CONSOLE
+        [ConsoleCommand("lock_camera", value: "0", debugOnlyCommand: true, info: "lock camera")]
+        private void LockCamera(int islock)
+        {
+            switch(islock)
+            {
+                case 0:
+                    LockMove = false;
+                    Debug.Log("Unlock camera");      
+                    break;
+                case 1:
+                    LockMove = true;
+                    Debug.Log("Lock camera");
+                    break;
+                default: break;
+            }
+        }
     }
+#endif
 }
 
