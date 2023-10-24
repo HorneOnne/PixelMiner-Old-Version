@@ -19,6 +19,10 @@
             this.FrameY = y;
         }
 
+        public bool HasNeighbors()
+        {
+            return Left != null && Right != null && Top != null && Bottom != null;
+        }
 
     }
 

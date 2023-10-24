@@ -17,13 +17,14 @@ namespace CoreMiner
 
         [SerializeField] private Chunk _chunkPrefab;
 
-
-
         [Header("World Settings")]
         public int ChunkWidth = 16;      // Size of each chunk in tiles
         public int ChunkHeight = 16;      // Size of each chunk in tiles
         public int WorldSize = 1;       // Number of chunks in the world
         private float TileSize = 1.0f;
+        // Min and Max Height used for normalize noise value in range [0-1]
+        private float _minHeight = float.MaxValue;
+        private float _maxHeight = float.MinValue;
 
 
         [Header("Noise Settings")]
@@ -43,17 +44,20 @@ namespace CoreMiner
         public float Rock = 0.9f;
         public float Snow = 1;
 
-        [Header("World Generation Properties")]
+
+        [Header("World Generation Utilities")]
         public bool AutoUnloadChunk = true;
         public bool ShowChunksBorder = false;
 
+
+        [Header("Tilemap")]
         public readonly Vector3 CELL_SIZE = new Vector3(2.0f, 1.1547f, 1.0f);
         public readonly Vector3 CELL_GAP = new Vector3(0.0f, 0.0f, 0.0f);
 
-        // Min and Max Height used for normalize noise value in range [0-1]
-        private float _minHeight = float.MaxValue;
-        private float _maxHeight = float.MinValue;
-        private Dictionary<Vector2Int, Chunk> chunks;      
+        
+
+        [Header("Data Cached")]
+        private Dictionary<Vector2Int, Chunk> _chunks;      
         public HashSet<Chunk> ActiveChunks;
 
 
@@ -74,7 +78,7 @@ namespace CoreMiner
         private void Start()
         {
             // Initialize the chunks dictionary
-            chunks = new Dictionary<Vector2Int, Chunk>();
+            _chunks = new Dictionary<Vector2Int, Chunk>();
             ActiveChunks = new HashSet<Chunk>();
 
             _centerPoint = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width / 2f, Screen.height / 2f));
@@ -97,19 +101,25 @@ namespace CoreMiner
                 lastChunkISOFrame = _centerPointFrame;
                 LoadChunksAroundPosition(_centerPointFrame.x, _centerPointFrame.y, offset: WorldSize);
             }
+
+            if (Input.GetKeyDown(KeyCode.G))
+            {
+                UpdateAllChunkNeighbors();
+                
+            }
         }
 
 
 
         // Load chunks around a given chunk position
-        private async void LoadChunksAroundPosition(int isoFrameX, int isoFrameY, int offset = 1)
+        private void LoadChunksAroundPosition(int isoFrameX, int isoFrameY, int offset = 1)
         {
             for (int x = isoFrameX - offset; x <= isoFrameX + offset; x++)
             {
                 for (int y = isoFrameY - offset; y <= isoFrameY + offset; y++)
                 {
                     Vector2Int nbIsoFrame = new Vector2Int(x, y);
-                    if (chunks.ContainsKey(nbIsoFrame) == false)
+                    if (_chunks.ContainsKey(nbIsoFrame) == false)
                     {
                         if (x == isoFrameX && y == isoFrameY)
                         {
@@ -117,17 +127,49 @@ namespace CoreMiner
                             // ......
                         }
 
-                        Chunk newChunk =  await AddNewChunkAsync(x,y);
-                        //Chunk newChunk = AddNewChunk(x, y);
-                        if(chunks.ContainsKey(nbIsoFrame) == false)
-                            chunks.Add(nbIsoFrame, newChunk);
+                        //Chunk newChunk =  await AddNewChunkAsync(x,y);
+                        Chunk newChunk = AddNewChunk(x, y);
+                        newChunk.DrawChunkPerformance();
+                        if (_chunks.ContainsKey(nbIsoFrame) == false)
+                            _chunks.Add(nbIsoFrame, newChunk);
                         ActiveChunks.Add(newChunk);
+
+
+                        Chunk nbAbove = GetChunkNeighborAbove(newChunk);
+                        Chunk nbBelow = GetChunkNeighborBelow(newChunk);
+                        Chunk nbLeft = GetChunkNeighborLeft(newChunk);
+                        Chunk nbRight = GetChunkNeighborRight(newChunk);
+                        newChunk.SetChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
+                        if (nbAbove != null)
+                        {
+                            AddFourDirectionNeighbors(nbAbove);
+                        }
+                        if (nbBelow != null)
+                        {
+                            AddFourDirectionNeighbors(nbBelow);
+                        }
+                        if (nbLeft != null)
+                        {
+                            AddFourDirectionNeighbors(nbLeft);
+                        }
+                        if (nbRight != null)
+                        {
+                            AddFourDirectionNeighbors(nbRight);
+                        }
+
+
+                        if (newChunk.HasNeighbors())
+                        {
+                            newChunk.UpdateAllTileNeighbors();
+                        }
                        
+                        newChunk.UpdateAllTileNeighbors();
+                        newChunk.PaintNeighborsColor();                       
                     }
                     else
                     {
-                        chunks[nbIsoFrame].gameObject.SetActive(true);
-                        ActiveChunks.Add(chunks[nbIsoFrame]);
+                        _chunks[nbIsoFrame].gameObject.SetActive(true);
+                        ActiveChunks.Add(_chunks[nbIsoFrame]);
                     }
 
                 }
@@ -198,7 +240,7 @@ namespace CoreMiner
             // Create new data
             float[,] heightValues = GetHeightMapNoise(isoFrameX, isoFrameY);
             newChunk.LoadHeightMap(heightValues, _minHeight, _maxHeight);
-            newChunk.DrawChunkPerformance();
+            newChunk.UpdateAllTileNeighbors();            
             return newChunk;
         }
 
@@ -211,7 +253,7 @@ namespace CoreMiner
 
             // Create new data
             float[,] heightValues = await GetHeightMapNoiseAsync(isoFrameX, isoFrameY);
-            await newChunk.LoadHeightMapAsync(heightValues, _minHeight, _maxHeight);
+            await newChunk.LoadHeightMapAsync(heightValues, _minHeight, _maxHeight);        
             newChunk.DrawChunkPerformance();
             return newChunk;
         }
@@ -248,8 +290,55 @@ namespace CoreMiner
         }
 
 
-    
+        private void AddFourDirectionNeighbors(Chunk chunk)
+        {
+            Chunk nbAbove = GetChunkNeighborAbove(chunk);
+            Chunk nbBelow = GetChunkNeighborBelow(chunk);
+            Chunk nbLeft = GetChunkNeighborLeft(chunk);
+            Chunk nbRight = GetChunkNeighborRight(chunk);
+            chunk.SetChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
+        }
 
+
+        private Chunk GetChunkNeighborAbove(Chunk chunk)
+        {
+            Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX, chunk.IsometricFrameY + 1);
+            return _chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
+        }
+        private Chunk GetChunkNeighborBelow(Chunk chunk)
+        {
+            Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX, chunk.IsometricFrameY - 1);
+            return _chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
+        }
+        private Chunk GetChunkNeighborLeft(Chunk chunk)
+        {
+            Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX - 1, chunk.IsometricFrameY);
+            return _chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
+        }
+        private Chunk GetChunkNeighborRight(Chunk chunk)
+        {
+            Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX + 1, chunk.IsometricFrameY);
+            return _chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
+        }
+
+
+        private void UpdateAllChunkNeighbors()
+        {
+            foreach(var chunk in _chunks.Values)
+            {
+                if(chunk.HasNeighbors() == false)
+                {
+                    Chunk nbAbove = GetChunkNeighborAbove(chunk);
+                    Chunk nbBelow = GetChunkNeighborBelow(chunk);
+                    Chunk nbLeft = GetChunkNeighborLeft(chunk);
+                    Chunk nbRight = GetChunkNeighborRight(chunk);
+                    chunk.SetChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
+                }
+
+                chunk.UpdateAllTileNeighbors();
+                chunk.PaintNeighborsColor();
+            }
+        }
 
 #if DEV_CONSOLE
         [ConsoleCommand("unload_chunk", value: "0")]
