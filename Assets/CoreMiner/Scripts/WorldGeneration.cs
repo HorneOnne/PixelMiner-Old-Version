@@ -4,8 +4,11 @@ using LibNoise;
 using LibNoise.Generator;
 using System.Linq;
 using System.Threading.Tasks;
-using System.ComponentModel;
+using CoreMiner.UI;
+using System.Collections;
 using CoreMiner.Utilities;
+using UnityEditor;
+using System.Threading;
 
 namespace CoreMiner
 {
@@ -20,11 +23,13 @@ namespace CoreMiner
         [Header("World Settings")]
         public int ChunkWidth = 16;      // Size of each chunk in tiles
         public int ChunkHeight = 16;      // Size of each chunk in tiles
+        public int InitWorldWidth = 3;       
+        public int InitWorldHeight = 3;       
         public int WorldSize = 1;       // Number of chunks in the world
         private float TileSize = 1.0f;
         // Min and Max Height used for normalize noise value in range [0-1]
-        private float _minHeight = float.MaxValue;
-        private float _maxHeight = float.MinValue;
+        public float MinHeightNoise { get; private set; } = float.MaxValue;
+        public float MaxHeightNoise { get; private set; } = float.MinValue;
 
 
         [Header("Noise Settings")]
@@ -54,10 +59,10 @@ namespace CoreMiner
         public readonly Vector3 CELL_SIZE = new Vector3(2.0f, 1.1547f, 1.0f);
         public readonly Vector3 CELL_GAP = new Vector3(0.0f, 0.0f, 0.0f);
 
-        
+
 
         [Header("Data Cached")]
-        private Dictionary<Vector2Int, Chunk> _chunks;      
+        private Dictionary<Vector2Int, Chunk> _chunks;
         public HashSet<Chunk> ActiveChunks;
 
 
@@ -65,6 +70,15 @@ namespace CoreMiner
         private Vector2Int lastChunkISOFrame;
         private Vector2 _centerPoint;
         private Vector2Int _centerPointFrame;
+
+
+
+        /*
+            World generation slider range.
+            0.0f -> 0.3f: Calculate noise range from specific seed.
+            0.3f -> 1.0f: Loading chunk data.
+         */
+
 
         private void Awake()
         {
@@ -86,7 +100,14 @@ namespace CoreMiner
 
             // Load chunks around the player's starting position
             lastChunkISOFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(_centerPoint, ChunkWidth, ChunkHeight);
-            LoadChunksAroundPosition(lastChunkISOFrame.x, lastChunkISOFrame.y, offset: WorldSize);
+
+            
+            // World Initialization
+            InitWorldAsync(lastChunkISOFrame.x, lastChunkISOFrame.y, widthInit: InitWorldWidth, heightInit: InitWorldHeight, ()=>
+            {
+                LoadChunksAroundPosition(lastChunkISOFrame.x, lastChunkISOFrame.y, offset: WorldSize);
+            });
+      
         }
 
         private float _updateFrequency = 0.2f;
@@ -101,14 +122,98 @@ namespace CoreMiner
                 lastChunkISOFrame = _centerPointFrame;
                 LoadChunksAroundPosition(_centerPointFrame.x, _centerPointFrame.y, offset: WorldSize);
             }
-
-            if (Input.GetKeyDown(KeyCode.G))
-            {
-                UpdateAllChunkNeighbors();
-                
-            }
         }
 
+
+        private async void InitWorldAsync(int initIsoFrameX, int initIsoFrameY,int widthInit, int heightInit, System.Action onFinished = null)
+        {        
+            UIGameManager.Instance.DisplayWorldGenCanvas(true);
+
+            await ComputeNoiseRangeAsync();
+
+
+            int totalIterations = (2 * widthInit + 1) * (2 * heightInit + 1);
+            int currentIteration = 0;
+            for (int x = initIsoFrameX - widthInit; x <= initIsoFrameX + widthInit; x++)
+            {
+                for (int y = initIsoFrameY - heightInit; y <= initIsoFrameY + heightInit; y++)
+                {
+                    Vector2Int nbIsoFrame = new Vector2Int(x, y);
+                    Chunk newChunk = await AddNewChunkAsync(x, y);
+                    _chunks.Add(nbIsoFrame, newChunk);
+                    newChunk.UnloadChunk();
+
+                    // Update the slider value based on progress
+                    currentIteration++;
+                    float progress = (float)currentIteration / totalIterations;
+                    float mapProgress = MathHelper.Map(progress, 0f, 1f, 0.3f, 1.0f);
+                    UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);
+                }
+            }
+            await Task.Delay(100);
+
+            UIGameManager.Instance.DisplayWorldGenCanvas(false);           
+            onFinished?.Invoke();
+        }
+
+        public void ComputeNoiseRange()
+        {
+            int sampleCount = 1000000; // Number of noise samples to generate
+            double minValue = double.MaxValue;
+            double maxValue = double.MinValue;
+            System.Random rand = new System.Random(Seed);
+
+            for (int i = 0; i < sampleCount; i++)
+            {
+                double x = rand.Next(); // Replace this with your desired coordinate values
+                double y = rand.Next();
+                double noiseValue = _heightNoise.GetValue(x, y, 0); // Generate noise value
+
+                // Update min and max values
+                if (noiseValue < minValue)
+                    minValue = noiseValue;
+                if (noiseValue > maxValue)
+                    maxValue = noiseValue;
+            }
+        }
+        public async Task ComputeNoiseRangeAsync()
+        {
+            int sampleCount = 1000000; // Number of noise samples to generate
+            float minNoiseValue = float.MaxValue;
+            float maxNoiseValue = float.MinValue;
+            System.Random rand = new System.Random(Seed);
+
+            int progressCounter = sampleCount - 1;
+ 
+            await Task.Run(() =>
+            {
+                for (int i = 0; i < sampleCount; i++)
+                {
+                    double x = rand.Next();
+                    double y = rand.Next();
+                    float noiseValue = (float)_heightNoise.GetValue(x, y, 0); // Generate noise value
+
+                    // Update min and max values
+                    if (noiseValue < minNoiseValue)
+                        minNoiseValue = noiseValue;
+                    if (noiseValue > maxNoiseValue)
+                        maxNoiseValue = noiseValue;
+
+                    // 46655 = 6**6 - 1 (use & operator compare to improve performance)
+                    if ((i & 46655) == 0)
+                    {
+                        float progress = (float)i/ sampleCount;
+                        float mapProgress = MathHelper.Map(progress, 0f, 1f, 0.0f, 0.3f);     
+                        UnityMainThreadDispatcher.Instance().Enqueue(() => {
+                            UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);;
+                        });
+                    }
+                }
+            });
+
+            MinHeightNoise = minNoiseValue;
+            MaxHeightNoise = maxNoiseValue;
+        }
 
 
         // Load chunks around a given chunk position
@@ -129,12 +234,14 @@ namespace CoreMiner
 
                         //Chunk newChunk =  await AddNewChunkAsync(x,y);
                         Chunk newChunk = AddNewChunk(x, y);
-                        newChunk.DrawChunkPerformance();
+                        newChunk.DrawChunk();
+
+                        // Cached chunk data
                         if (_chunks.ContainsKey(nbIsoFrame) == false)
                             _chunks.Add(nbIsoFrame, newChunk);
                         ActiveChunks.Add(newChunk);
 
-
+                        // Find chunk neighbors
                         Chunk nbAbove = GetChunkNeighborAbove(newChunk);
                         Chunk nbBelow = GetChunkNeighborBelow(newChunk);
                         Chunk nbLeft = GetChunkNeighborLeft(newChunk);
@@ -142,44 +249,67 @@ namespace CoreMiner
                         newChunk.SetChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
                         if (nbAbove != null)
                         {
-                            AddFourDirectionNeighbors(nbAbove);
+                            if(nbAbove.HasNeighbors() == false)
+                            {
+                                AddChunkFourDirectionNeighbors(nbAbove);
+                                //nbAbove.UpdateAllTileNeighbors();
+                                nbAbove.UpdateEdgeOfChunkTileNeighbors();
+                                nbAbove.PaintNeighborsColor();
+                            }  
                         }
                         if (nbBelow != null)
                         {
-                            AddFourDirectionNeighbors(nbBelow);
+                            if (nbBelow.HasNeighbors() == false)
+                            {
+                                AddChunkFourDirectionNeighbors(nbBelow);
+                                //nbBelow.UpdateAllTileNeighbors();
+                                nbBelow.UpdateEdgeOfChunkTileNeighbors();
+                                nbBelow.PaintNeighborsColor();
+                            }                          
                         }
                         if (nbLeft != null)
                         {
-                            AddFourDirectionNeighbors(nbLeft);
+                            if(nbLeft.HasNeighbors() == false)
+                            {
+                                AddChunkFourDirectionNeighbors(nbLeft);
+                                //nbLeft.UpdateAllTileNeighbors();
+                                nbLeft.UpdateEdgeOfChunkTileNeighbors();
+                                nbLeft.PaintNeighborsColor();
+                            }           
                         }
                         if (nbRight != null)
                         {
-                            AddFourDirectionNeighbors(nbRight);
+                            if(nbRight.HasNeighbors() == false)
+                            {
+                                AddChunkFourDirectionNeighbors(nbRight);
+                                //nbRight.UpdateAllTileNeighbors();
+                                nbRight.UpdateEdgeOfChunkTileNeighbors();
+                                nbRight.PaintNeighborsColor();
+                            }                         
                         }
 
 
-                        if (newChunk.HasNeighbors())
-                        {
-                            newChunk.UpdateAllTileNeighbors();
-                        }
-                       
                         newChunk.UpdateAllTileNeighbors();
-                        newChunk.PaintNeighborsColor();                       
+                        newChunk.PaintNeighborsColor();
                     }
                     else
                     {
                         _chunks[nbIsoFrame].gameObject.SetActive(true);
                         ActiveChunks.Add(_chunks[nbIsoFrame]);
+                        if (_chunks[nbIsoFrame].ChunkHasDrawn == false)
+                        {
+                            _chunks[nbIsoFrame].DrawChunk();
+                        }
                     }
 
                 }
             }
 
-            if(ShowChunksBorder == false)
+            if (ShowChunksBorder == false)
             {
                 SortActiveChunkByDepth();
             }
-            
+
         }
 
 
@@ -195,14 +325,14 @@ namespace CoreMiner
                     float offsetY = frameY * ChunkHeight + y;
                     heightValues[x, y] = (float)_heightNoise.GetValue(offsetX, offsetY, 0);
 
-                    if (heightValues[x, y] > _maxHeight) _maxHeight = heightValues[x, y];
-                    if (heightValues[x, y] < _minHeight) _minHeight = heightValues[x, y];            
+                    if (heightValues[x, y] > MaxHeightNoise) MaxHeightNoise = heightValues[x, y];
+                    if (heightValues[x, y] < MinHeightNoise) MinHeightNoise = heightValues[x, y];
                 }
             }
             return heightValues;
         }
 
-        private async Task<float[,]> GetHeightMapNoiseAsync(int frameX, int frameY) 
+        private async Task<float[,]> GetHeightMapNoiseAsync(int frameX, int frameY)
         {
             float[,] heightValues = new float[ChunkWidth, ChunkHeight];
             await Task.Run(() =>
@@ -215,15 +345,15 @@ namespace CoreMiner
                         float offsetY = frameY * ChunkHeight + y;
                         heightValues[x, y] = (float)_heightNoise.GetValue(offsetX, offsetY, 0);
 
-                        lock(lockObject)
+                        lock (lockObject)
                         {
-                            if (heightValues[x, y] > _maxHeight) _maxHeight = heightValues[x, y];
-                            if (heightValues[x, y] < _minHeight) _minHeight = heightValues[x, y];
-                        }                     
+                            if (heightValues[x, y] > MaxHeightNoise) MaxHeightNoise = heightValues[x, y];
+                            if (heightValues[x, y] < MinHeightNoise) MinHeightNoise = heightValues[x, y];
+                        }
                     }
                 });
             });
-  
+
             return heightValues;
         }
 
@@ -239,8 +369,7 @@ namespace CoreMiner
 
             // Create new data
             float[,] heightValues = GetHeightMapNoise(isoFrameX, isoFrameY);
-            newChunk.LoadHeightMap(heightValues, _minHeight, _maxHeight);
-            newChunk.UpdateAllTileNeighbors();            
+            newChunk.LoadHeightMap(heightValues);
             return newChunk;
         }
 
@@ -253,8 +382,7 @@ namespace CoreMiner
 
             // Create new data
             float[,] heightValues = await GetHeightMapNoiseAsync(isoFrameX, isoFrameY);
-            await newChunk.LoadHeightMapAsync(heightValues, _minHeight, _maxHeight);        
-            newChunk.DrawChunkPerformance();
+            await newChunk.LoadHeightMapAsync(heightValues);          
             return newChunk;
         }
 
@@ -290,7 +418,7 @@ namespace CoreMiner
         }
 
 
-        private void AddFourDirectionNeighbors(Chunk chunk)
+        private void AddChunkFourDirectionNeighbors(Chunk chunk)
         {
             Chunk nbAbove = GetChunkNeighborAbove(chunk);
             Chunk nbBelow = GetChunkNeighborBelow(chunk);
@@ -322,23 +450,6 @@ namespace CoreMiner
         }
 
 
-        private void UpdateAllChunkNeighbors()
-        {
-            foreach(var chunk in _chunks.Values)
-            {
-                if(chunk.HasNeighbors() == false)
-                {
-                    Chunk nbAbove = GetChunkNeighborAbove(chunk);
-                    Chunk nbBelow = GetChunkNeighborBelow(chunk);
-                    Chunk nbLeft = GetChunkNeighborLeft(chunk);
-                    Chunk nbRight = GetChunkNeighborRight(chunk);
-                    chunk.SetChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
-                }
-
-                chunk.UpdateAllTileNeighbors();
-                chunk.PaintNeighborsColor();
-            }
-        }
 
 #if DEV_CONSOLE
         [ConsoleCommand("unload_chunk", value: "0")]
@@ -346,7 +457,7 @@ namespace CoreMiner
         {
             // 0: Disable automatic unloadchunk
             // 1: Enable automatic unloadchunk
-            switch(index)
+            switch (index)
             {
                 case 0:
                     AutoUnloadChunk = false;

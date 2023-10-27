@@ -11,10 +11,10 @@ namespace CoreMiner
     {
         [Header("Chunk Settings")]
         public CoreMiner.Utilities.Grid<Tile> ChunkData;
-        public float FrameX;
-        public float FrameY;
-        public int IsometricFrameX;
-        public int IsometricFrameY;
+        public float FrameX;    // Used for calculate world position
+        public float FrameY;    // Used for calculate world position
+        public int IsometricFrameX; // Used for calculate world generation
+        public int IsometricFrameY; // Used for calculate world generation
         [SerializeField] private int _width;
         [SerializeField] private int _height;
         [SerializeField] private int _cellSize;
@@ -33,12 +33,12 @@ namespace CoreMiner
         [Header("Tilemap visualization")]
         public Tilemap IsometricTileMap;
 
-        public bool ChunkLoaded;
+        public bool ChunkHasDrawn;
 
 
         private void Awake()
         {
-            ChunkLoaded = false;
+            ChunkHasDrawn = false;
         }
 
 
@@ -48,7 +48,8 @@ namespace CoreMiner
             if (Time.time - _updateTimer > _updateFrequency)
             {
                 _updateTimer = Time.time;
-                if (Vector2.Distance(Camera.main.transform.position, transform.position) > _unloadChunkDistance && ChunkLoaded 
+                if (Vector2.Distance(Camera.main.transform.position, transform.position) > _unloadChunkDistance 
+                    && ChunkHasDrawn 
                     && WorldGeneration.Instance.AutoUnloadChunk)
                 {
                     WorldGeneration.Instance.ActiveChunks.Remove(this);
@@ -109,8 +110,16 @@ namespace CoreMiner
             ChunkData = new Grid<Tile>(_width, height, cellSize);
         }
 
-        public void LoadHeightMap(float[,] heightValues, float minHeight, float maxHeight)
+        public void UnloadChunk()
         {
+            gameObject.SetActive(false);
+        }
+
+
+        public void LoadHeightMap(float[,] heightValues)
+        {
+            float minHeightNoise = WorldGeneration.Instance.MinHeightNoise;
+            float maxHeightNoise = WorldGeneration.Instance.MaxHeightNoise;
             for (int x = 0; x < _width; x++)
             {
                 for (int y = 0; y < _height; y++)
@@ -128,7 +137,7 @@ namespace CoreMiner
                 {
                     float value = ChunkData.GetValue(x, y).HeightValue;
                     //normalize our value between 0 and 1
-                    value = (value - minHeight) / (maxHeight - minHeight);
+                    value = (value - minHeightNoise) / (maxHeightNoise - minHeightNoise);
 
                     Tile t = new Tile(x, y);
                     t.HeightValue = value;
@@ -139,8 +148,12 @@ namespace CoreMiner
 
 
 
-        public async Task LoadHeightMapAsync(float[,] heightValues, float minHeight, float maxHeight)
+
+        public async Task LoadHeightMapAsync(float[,] heightValues)
         {
+            float minHeightNoise = WorldGeneration.Instance.MinHeightNoise;
+            float maxHeightNoise = WorldGeneration.Instance.MaxHeightNoise;
+
             await Task.Run(() =>
             {
                 Parallel.For(0, _width, x =>
@@ -166,7 +179,7 @@ namespace CoreMiner
                     {
                         float value = ChunkData.GetValue(x, y).HeightValue;
                         //normalize our value between 0 and 1
-                        value = (value - minHeight) / (maxHeight - minHeight);
+                        value = (value - minHeightNoise) / (maxHeightNoise - minHeightNoise);
 
                         Tile t = new Tile(x, y);
                         t.HeightValue = value;
@@ -219,12 +232,13 @@ namespace CoreMiner
                     }
                 }
             }
-            ChunkLoaded = true;
+            ChunkHasDrawn = true;
         }
 
 
         public void PaintNeighborsColor()
         {
+            return;
             for (var x = 0; x < _width; x++)
             {
                 for (var y = 0; y < _height; y++)
@@ -232,7 +246,6 @@ namespace CoreMiner
                     Tile t = ChunkData.GetValue(x, y);
                     if(t.HasNeighbors())
                     {
-                        IsometricTileMap.SetTileFlags(new Vector3Int(t.FrameX, t.FrameY), TileFlags.None);
                         IsometricTileMap.SetColor(new Vector3Int(t.FrameX, t.FrameY), Color.red);
                     }
                 }
@@ -240,11 +253,11 @@ namespace CoreMiner
 
         }
 
-        public void DrawChunkPerformance()
+        public void DrawChunkPerformance(System.Action onFinished = null)
         {
-            StartCoroutine(DrawChunkCoroutine());
+            StartCoroutine(DrawChunkCoroutine(onFinished));
         }
-        private IEnumerator DrawChunkCoroutine()
+        private IEnumerator DrawChunkCoroutine(System.Action onFinished)
         {
             for (int x = 0; x < _width; x++)
             {
@@ -288,7 +301,8 @@ namespace CoreMiner
                     yield return null;
                 }
             }
-            ChunkLoaded = true;
+            ChunkHasDrawn = true;
+            onFinished?.Invoke();
         }
 
         public void ClearChunkDraw()
@@ -312,17 +326,54 @@ namespace CoreMiner
 
         public void UpdateAllTileNeighbors()
         {
+            Debug.Log("UpdateAllTileNeighbors");
             for (var x = 0; x < _width; x++)
             {
                 for (var y = 0; y < _height; y++)
                 {
-                    Tile t = ChunkData.GetValue(x,y);
+                    Tile t = ChunkData.GetValue(x, y);
 
                     t.Top = GetTop(t);
                     t.Bottom = GetBottom(t);
                     t.Left = GetLeft(t);
                     t.Right = GetRight(t);
                 }
+            }
+        }
+        public void UpdateEdgeOfChunkTileNeighbors()
+        {
+            Debug.Log("UpdateEdgeTileNeighbors");
+
+            // Loop through the first and last rows
+            for (int col = 0; col < _width; col++)
+            {
+                Tile t1 = ChunkData.GetValue(0, col);
+                t1.Top = GetTop(t1);
+                t1.Bottom = GetBottom(t1);
+                t1.Left = GetLeft(t1);
+                t1.Right = GetRight(t1);
+
+                Tile t2 = ChunkData.GetValue(_height-1, col);
+                t2.Top = GetTop(t2);
+                t2.Bottom = GetBottom(t2);
+                t2.Left = GetLeft(t2);
+                t2.Right = GetRight(t2);
+            }
+
+            // Loop through the first and last columns (excluding corners)
+            for (int row = 1; row < _height - 1; row++)
+            {
+                Tile t1 = ChunkData.GetValue(row, 0);
+                t1.Top = GetTop(t1);
+                t1.Bottom = GetBottom(t1);
+                t1.Left = GetLeft(t1);
+                t1.Right = GetRight(t1);
+
+                Tile t2 = ChunkData.GetValue(row, _width - 1);
+                t2.Top = GetTop(t2);
+                t2.Bottom = GetBottom(t2);
+                t2.Left = GetLeft(t2);
+                t2.Right = GetRight(t2);
             }
         }
 
@@ -393,6 +444,7 @@ namespace CoreMiner
             return null; // Handle the case where the index is out of range.
         }
 
+  
 
         #region Utilities
         // Function to convert world coordinates to tile coordinates

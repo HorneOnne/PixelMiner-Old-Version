@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 namespace CoreMiner.Utilities
 {
@@ -42,6 +43,22 @@ namespace CoreMiner.Utilities
         {
             int r = x % m;
             return r < 0 ? r + m : r;
+        }
+
+
+        /// <summary>
+        /// Maps a value from one range to another.
+        /// </summary>
+        /// <param name="value">The value to be mapped.</param>
+        /// <param name="fromMin">The minimum value of the source range.</param>
+        /// <param name="fromMax">The maximum value of the source range.</param>
+        /// <param name="toMin">The minimum value of the target range.</param>
+        /// <param name="toMax">The maximum value of the target range.</param>
+        /// <returns>The mapped value within the target range.</returns>
+        public static float Map(float value, float fromMin, float fromMax, float toMin, float toMax)
+        {
+            value = Mathf.Clamp(value, fromMin, fromMax);
+            return (value - fromMin) / (fromMax - fromMin) * (toMax - toMin) + toMin;
         }
 
     }
