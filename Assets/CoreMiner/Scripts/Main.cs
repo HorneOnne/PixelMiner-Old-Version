@@ -9,8 +9,10 @@ namespace CoreMiner
     {
         public static Main Instance { get; private set; }
 
-        public List<CustomTileBase> tileBaseList = new List<CustomTileBase>();
-        private Dictionary<TileType, CustomTileBase> tileBaseDict = new Dictionary<TileType, CustomTileBase>();
+        public List<CustomTileBase> TileBaseList = new List<CustomTileBase>();
+        public List<CustomAnimatedTileBase> AnimatedTileBaseList = new List<CustomAnimatedTileBase>();
+        private Dictionary<TileType, CustomTileBase> _tileBaseDict = new Dictionary<TileType, CustomTileBase>();
+        private Dictionary<TileType, CustomAnimatedTileBase> _animatedTileBaseDict = new Dictionary<TileType, CustomAnimatedTileBase>();
 
         private void Awake()
         {
@@ -25,16 +27,30 @@ namespace CoreMiner
 
         private void LoadTileBaseDictionary()
         {  
-            foreach(var tilebase in tileBaseList)
+            foreach(var tilebase in TileBaseList)
             {
-                tileBaseDict.Add(tilebase.Type, tilebase);
+                _tileBaseDict.Add(tilebase.Type, tilebase);
+            }
+
+            foreach (var animatedTile in AnimatedTileBaseList)
+            {
+                _animatedTileBaseDict.Add(animatedTile.Type, animatedTile);
             }
         }
 
         public TileBase GetTileBase(TileType tileType)
         {
-            return tileBaseDict[tileType];
+            if(_tileBaseDict.ContainsKey(tileType))
+            {
+                return _tileBaseDict[tileType];
+            }
+            if (_animatedTileBaseDict.ContainsKey(tileType))
+            {
+                return _animatedTileBaseDict[tileType];
+            }
+            return null;
         }
+
     }
 }
 

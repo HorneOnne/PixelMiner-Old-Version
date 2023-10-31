@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2afa9b7117ab0a41b97fb52eda6d998, type: 3}
   m_Name: DirtGrass
   m_EditorClassIdentifier: 
-  tileSprite: {fileID: 960381618, guid: ff8a857268dcd4a4e8a4691c439720b1, type: 3}
+  tileSprite: {fileID: 659899385, guid: f8a50d2e719497246820e2f22b8ae397, type: 3}
   Type: 1
   tileColor: {r: 1, g: 1, b: 1, a: 1}

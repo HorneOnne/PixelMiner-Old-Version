@@ -50,3 +50,9 @@ TagManager:
   - name: MG_Objects
     uniqueID: 58505
     locked: 0
+  - name: Heatmap
+    uniqueID: 1202900419
+    locked: 0
+  - name: Player
+    uniqueID: 3256896741
+    locked: 0
