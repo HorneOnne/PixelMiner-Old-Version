@@ -21,10 +21,9 @@ namespace CoreMiner
         [Header("World Settings")]
         public int ChunkWidth = 16;      // Size of each chunk in tiles
         public int ChunkHeight = 16;      // Size of each chunk in tiles
-        public int InitWorldWidth = 3;       
-        public int InitWorldHeight = 3;       
+        public int InitWorldWidth = 3;
+        public int InitWorldHeight = 3;
         public int WorldSize = 1;       // Number of chunks in the world
-        private float TileSize = 1.0f;
         private int _calculateNoiseRangeCount = 500000;
 
 
@@ -54,6 +53,7 @@ namespace CoreMiner
         [Header("World Generation Utilities")]
         public bool AutoUnloadChunk = true;
         public bool ShowChunksBorder = false;
+        public bool ShowTilegroupMaps = false;
 
 
         [Header("Tilemap")]
@@ -101,13 +101,13 @@ namespace CoreMiner
             // Load chunks around the player's starting position
             lastChunkISOFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(_centerPoint, ChunkWidth, ChunkHeight);
 
-            
+
             // World Initialization
-            InitWorldAsync(lastChunkISOFrame.x, lastChunkISOFrame.y, widthInit: InitWorldWidth, heightInit: InitWorldHeight, ()=>
+            InitWorldAsync(lastChunkISOFrame.x, lastChunkISOFrame.y, widthInit: InitWorldWidth, heightInit: InitWorldHeight, () =>
             {
                 LoadChunksAroundPosition(lastChunkISOFrame.x, lastChunkISOFrame.y, offset: WorldSize);
             });
-      
+
         }
 
         private void Update()
@@ -123,8 +123,8 @@ namespace CoreMiner
         }
 
 
-        private async void InitWorldAsync(int initIsoFrameX, int initIsoFrameY,int widthInit, int heightInit, System.Action onFinished = null)
-        {        
+        private async void InitWorldAsync(int initIsoFrameX, int initIsoFrameY, int widthInit, int heightInit, System.Action onFinished = null)
+        {
             UIGameManager.Instance.DisplayWorldGenCanvas(true);
 
             await ComputeNoiseRangeAsync();
@@ -143,6 +143,7 @@ namespace CoreMiner
                     _chunks.Add(nbIsoFrame, newChunk);
                     newChunk.UnloadChunk();
 
+
                     // Update the slider value based on progress
                     currentIteration++;
                     float progress = (float)currentIteration / totalIterations;
@@ -152,7 +153,7 @@ namespace CoreMiner
             }
             await Task.Delay(100);
 
-            UIGameManager.Instance.DisplayWorldGenCanvas(false);           
+            UIGameManager.Instance.DisplayWorldGenCanvas(false);
             onFinished?.Invoke();
         }
 
@@ -177,7 +178,7 @@ namespace CoreMiner
             }
         }
 
- 
+
         public async Task ComputeNoiseRangeAsync()
         {
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
@@ -205,10 +206,11 @@ namespace CoreMiner
                     // 46655 = 6**6 - 1 (use & operator compare to improve performance)
                     if ((i & 46655) == 0)
                     {
-                        float progress = (float)i/ _calculateNoiseRangeCount;
-                        float mapProgress = MathHelper.Map(progress, 0f, 1f, 0.0f, 0.3f);     
-                        UnityMainThreadDispatcher.Instance().Enqueue(() => {
-                            UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);;
+                        float progress = (float)i / _calculateNoiseRangeCount;
+                        float mapProgress = MathHelper.Map(progress, 0f, 1f, 0.0f, 0.3f);
+                        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                        {
+                            UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress); ;
                         });
                     }
                 }
@@ -221,8 +223,8 @@ namespace CoreMiner
             sw.Stop();
             Debug.Log($"Compute noise time: {sw.ElapsedMilliseconds / 1000f} s");
         }
-        
-        
+
+
 
         // Load chunks around a given chunk position
         private async void LoadChunksAroundPosition(int isoFrameX, int isoFrameY, int offset = 1)
@@ -233,7 +235,7 @@ namespace CoreMiner
                 {
                     Vector2Int nbIsoFrame = new Vector2Int(x, y);
                     if (_chunks.ContainsKey(nbIsoFrame) == false)
-                    {                       
+                    {
                         //Chunk newChunk =  await AddNewChunkAsync(x,y);
                         Chunk newChunk = AddNewChunk(x, y);
                         //newChunk.DrawChunk();
@@ -243,11 +245,6 @@ namespace CoreMiner
                         {
                             // Center
                             // ......
-                            //newChunk.SetDrawRenderMode(UnityEngine.Tilemaps.TilemapRenderer.Mode.Individual);
-                        }
-                        else
-                        {
-                            //newChunk.SetDrawRenderMode(UnityEngine.Tilemaps.TilemapRenderer.Mode.Chunk);
                         }
 
 
@@ -256,52 +253,15 @@ namespace CoreMiner
                             _chunks.Add(nbIsoFrame, newChunk);
                         ActiveChunks.Add(newChunk);
 
-                        // Find chunk neighbors
-                        Chunk nbAbove = GetChunkNeighborAbove(newChunk);
-                        Chunk nbBelow = GetChunkNeighborBelow(newChunk);
-                        Chunk nbLeft = GetChunkNeighborLeft(newChunk);
-                        Chunk nbRight = GetChunkNeighborRight(newChunk);
-                        newChunk.SetChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
-                        if (nbAbove != null)
-                        {
-                            if(nbAbove.HasNeighbors() == false)
-                            {
-                                AddChunkFourDirectionNeighbors(nbAbove);
-                                nbAbove.UpdateEdgeOfChunkTileNeighbors();
-                                nbAbove.PaintNeighborsColor();
-                            }  
-                        }
-                        if (nbBelow != null)
-                        {
-                            if (nbBelow.HasNeighbors() == false)
-                            {
-                                AddChunkFourDirectionNeighbors(nbBelow);
-                                nbBelow.UpdateEdgeOfChunkTileNeighbors();
-                                nbBelow.PaintNeighborsColor();
-                            }                          
-                        }
-                        if (nbLeft != null)
-                        {
-                            if(nbLeft.HasNeighbors() == false)
-                            {
-                                AddChunkFourDirectionNeighbors(nbLeft);
-                                nbLeft.UpdateEdgeOfChunkTileNeighbors();
-                                nbLeft.PaintNeighborsColor();
-                            }           
-                        }
-                        if (nbRight != null)
-                        {
-                            if(nbRight.HasNeighbors() == false)
-                            {
-                                AddChunkFourDirectionNeighbors(nbRight);
-                                nbRight.UpdateEdgeOfChunkTileNeighbors();
-                                nbRight.PaintNeighborsColor();
-                            }                         
-                        }
+                        _chunks[nbIsoFrame].LoadChunk();
 
+                        UpdateChunkTileNeighbors(newChunk);
 
-                        newChunk.UpdateAllTileNeighbors();
-                        newChunk.PaintNeighborsColor();
+                        //if (newChunk.HasNeighbors())
+                        //{                          
+                        //    FloodFill(_chunks[nbIsoFrame]);
+                        //    _chunks[nbIsoFrame].PaintTilegroupMap();
+                        //}                   
                     }
                     else
                     {
@@ -309,21 +269,24 @@ namespace CoreMiner
                         {
                             // Center
                             // ......
-                            //_chunks[nbIsoFrame].SetDrawRenderMode(UnityEngine.Tilemaps.TilemapRenderer.Mode.Individual);
-                        }
-                        else
-                        {
-                            //_chunks[nbIsoFrame].SetDrawRenderMode(UnityEngine.Tilemaps.TilemapRenderer.Mode.Chunk);
                         }
 
-
-                        _chunks[nbIsoFrame].gameObject.SetActive(true);
+                        _chunks[nbIsoFrame].LoadChunk();
                         ActiveChunks.Add(_chunks[nbIsoFrame]);
+               
                         if (_chunks[nbIsoFrame].ChunkHasDrawn == false)
                         {
                             //_chunks[nbIsoFrame].DrawChunk();
-                            await _chunks[nbIsoFrame].DrawChunkAsync();
+                            await _chunks[nbIsoFrame].DrawChunkAsync();                         
                         }
+
+                        UpdateChunkTileNeighbors(_chunks[nbIsoFrame]);
+
+                        //if (_chunks[nbIsoFrame].HasNeighbors())
+                        //{
+                        //    FloodFill(_chunks[nbIsoFrame]);
+                        //    _chunks[nbIsoFrame].PaintTilegroupMap();                           
+                        //}
                     }
 
                 }
@@ -333,7 +296,6 @@ namespace CoreMiner
             {
                 SortActiveChunkByDepth();
             }
-
         }
 
 
@@ -381,7 +343,7 @@ namespace CoreMiner
             Vector2 frame = IsometricUtilities.IsometricFrameToWorldFrame(isoFrameX, isoFrameY);
             Vector3 worldPosition = IsometricUtilities.ConvertIsometricFrameToWorldPosition(isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
             Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity);
-            newChunk.Init(frame.x, frame.y, isoFrameX, isoFrameY, ChunkWidth, ChunkHeight, TileSize);
+            newChunk.Init(frame.x, frame.y, isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
 
             // Create new data
             float[,] heightValues = GetHeightMapNoise(isoFrameX, isoFrameY);
@@ -394,11 +356,11 @@ namespace CoreMiner
             Vector2 frame = IsometricUtilities.IsometricFrameToWorldFrame(isoFrameX, isoFrameY);
             Vector3 worldPosition = IsometricUtilities.ConvertIsometricFrameToWorldPosition(isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
             Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity);
-            newChunk.Init(frame.x, frame.y, isoFrameX, isoFrameY, ChunkWidth, ChunkHeight, TileSize);
+            newChunk.Init(frame.x, frame.y, isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
 
             // Create new data
             float[,] heightValues = await GetHeightMapNoiseAsync(isoFrameX, isoFrameY);
-            await newChunk.LoadHeightMapAsync(heightValues);          
+            await newChunk.LoadHeightMapAsync(heightValues);
             return newChunk;
         }
 
@@ -440,7 +402,7 @@ namespace CoreMiner
             Chunk nbBelow = GetChunkNeighborBelow(chunk);
             Chunk nbLeft = GetChunkNeighborLeft(chunk);
             Chunk nbRight = GetChunkNeighborRight(chunk);
-            chunk.SetChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
+            chunk.SetTwoSidesChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
         }
 
 
@@ -464,9 +426,91 @@ namespace CoreMiner
             Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX + 1, chunk.IsometricFrameY);
             return _chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
         }
+        private Chunk GetChunkNeighbor(Vector2Int offset, Chunk chunk)
+        {
+            Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX + offset.x, chunk.IsometricFrameY + offset.y);
+            return _chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
+        }
 
 
-    
+        private void UpdateChunkTileNeighbors(Chunk chunk)
+        {
+            if (chunk.HasNeighbors()) return;
+
+            // Find chunk neighbors
+            Chunk nbAbove = GetChunkNeighborAbove(chunk);
+            Chunk nbBelow = GetChunkNeighborBelow(chunk);
+            Chunk nbLeft = GetChunkNeighborLeft(chunk);
+            Chunk nbRight = GetChunkNeighborRight(chunk);
+            chunk.SetTwoSidesChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
+
+            if (chunk.HasNeighbors())
+            {
+                chunk.UpdateAllTileNeighbors();
+                chunk.PaintNeighborsColor();
+            }
+            if (nbAbove != null && nbAbove.HasNeighbors())
+            {
+                nbAbove.UpdateAllTileNeighbors();
+                nbAbove.PaintNeighborsColor();
+            }
+            if (nbBelow != null && nbBelow.HasNeighbors())
+            {
+                nbBelow.UpdateAllTileNeighbors();
+                nbBelow.PaintNeighborsColor();
+            }
+            if (nbLeft != null && nbLeft.HasNeighbors())
+            {
+                nbLeft.UpdateAllTileNeighbors();
+                nbLeft.PaintNeighborsColor();
+            }
+            if (nbRight != null && nbRight.HasNeighbors())
+            {
+                nbRight.UpdateAllTileNeighbors();
+                nbRight.PaintNeighborsColor();
+            }
+
+
+
+            return;
+            if (nbAbove != null)
+            {
+                if (nbAbove.HasNeighbors() == false)
+                {
+                    AddChunkFourDirectionNeighbors(nbAbove);
+                    nbAbove.UpdateEdgeOfChunkTileNeighbors();
+                    nbAbove.PaintNeighborsColor();
+                }
+            }
+            if (nbBelow != null)
+            {
+                if (nbBelow.HasNeighbors() == false)
+                {
+                    AddChunkFourDirectionNeighbors(nbBelow);
+                    nbBelow.UpdateEdgeOfChunkTileNeighbors();
+                    nbBelow.PaintNeighborsColor();
+                }
+            }
+            if (nbLeft != null)
+            {
+                if (nbLeft.HasNeighbors() == false)
+                {
+                    AddChunkFourDirectionNeighbors(nbLeft);
+                    nbLeft.UpdateEdgeOfChunkTileNeighbors();
+                    nbLeft.PaintNeighborsColor();
+                }
+            }
+            if (nbRight != null)
+            {
+                if (nbRight.HasNeighbors() == false)
+                {
+                    AddChunkFourDirectionNeighbors(nbRight);
+                    nbRight.UpdateEdgeOfChunkTileNeighbors();
+                    nbRight.PaintNeighborsColor();
+                }
+            }                  
+        }
+
         public Chunk GetChunkFromWorldPosition(Vector2 mousePosition)
         {
             var frame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(mousePosition,
@@ -477,6 +521,99 @@ namespace CoreMiner
                 return _chunks[frame];
             }
             return null;
+        }
+
+        private void FloodFill(Chunk chunk)
+        {
+            Stack<Tile> stack = new Stack<Tile>();
+
+            for (int x = 0; x < ChunkWidth; x++)
+            {
+                for (int y = 0; y < ChunkHeight; y++)
+                {
+                    Tile t = chunk.ChunkData.GetValue(x, y);
+
+                    // Tile already flood filled, skip
+                    if (t.FloodFilled)
+                        continue;
+
+                    // Land
+                    if (t.Collidable)
+                    {
+                        TileGroup group = new TileGroup();
+                        group.Type = TileGroupType.Land;
+                        stack.Push(t);
+
+                        while (stack.Count > 0)
+                        {
+                            FloodFill(stack.Pop(), ref group, ref stack);
+                        }
+
+                        if (group.Tiles.Count > 0)
+                        {
+                            chunk.Lands.Add(group);
+                        }
+                    }
+                    else // Water
+                    {
+                        TileGroup group = new TileGroup();
+                        group.Type = TileGroupType.Water;
+                        stack.Push(t);
+
+                        while (stack.Count > 0)
+                        {
+                            FloodFill(stack.Pop(), ref group, ref stack);
+                        }
+
+                        if (group.Tiles.Count > 0)
+                        {
+                            chunk.Waters.Add(group);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void FloodFill(Tile tile, ref TileGroup tiles, ref Stack<Tile> stack)
+        {
+            // Validate
+            if (tile.FloodFilled)
+                return;
+            if (tiles.Type == TileGroupType.Land && tile.Collidable == false)
+                return;
+            if (tiles.Type == TileGroupType.Water && tile.Collidable)
+                return;
+
+
+            // Add to TileGroup
+            tiles.Tiles.Add(tile);
+            tile.FloodFilled = true;
+
+            // FloodFill into neighbors
+            Tile nb = tile.Top;
+
+            if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
+            {
+                stack.Push(nb);
+            }
+
+            nb = tile.Bottom;
+            if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
+            {
+                stack.Push(nb);
+            }
+
+            nb = tile.Left;
+            if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
+            {
+                stack.Push(nb);
+            }
+
+            nb = tile.Right;
+            if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
+            {
+                stack.Push(nb);
+            }
         }
 
 
@@ -512,6 +649,28 @@ namespace CoreMiner
         {
             ShowChunksBorder = false;
             SortActiveChunkByDepth(inverse: false);
+        }
+
+
+
+        [ConsoleCommand("show_tilegroup_map")]
+        private void ShowTilegroupMap()
+        {
+            ShowTilegroupMaps = true;
+            foreach (var chunk in ActiveChunks)
+            {
+                chunk.LoadChunk();
+            }
+        }
+
+        [ConsoleCommand("hide_tilegroup_map")]
+        private void HideTilegroupMap()
+        {
+            ShowTilegroupMaps = false;
+            foreach (var chunk in ActiveChunks)
+            {
+                chunk.LoadChunk();
+            }
         }
 #endif
     }

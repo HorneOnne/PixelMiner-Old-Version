@@ -3,7 +3,8 @@ using CoreMiner.Utilities;
 using UnityEngine.Tilemaps;
 using System.Collections;
 using System.Threading.Tasks;
-using System.Threading;
+using System.Collections.Generic;
+using UnityEngine.UIElements;
 
 namespace CoreMiner
 {
@@ -17,7 +18,6 @@ namespace CoreMiner
         public int IsometricFrameY; // Used for calculate world generation
         [SerializeField] private int _width;
         [SerializeField] private int _height;
-        [SerializeField] private int _cellSize;
         private float _unloadChunkDistance = 200;
         private float _updateFrequency = 1.0f;
         private float _updateTimer = 0.0f;
@@ -33,11 +33,16 @@ namespace CoreMiner
         [Header("Tilemap visualization")]
         public Tilemap LandTileMap;
         public Tilemap WaterTileMap;
-        public Tilemap HeatTilemap;
+        public Tilemap HeatMap;
+        public Tilemap TilegroupMap;
         public Grid Grid;
 
+        public bool HasFourNeighbors;
         public bool ChunkHasDrawn;
 
+
+        public List<TileGroup> Waters = new List<TileGroup>();
+        public List<TileGroup> Lands = new List<TileGroup>();
 
         private void Awake()
         {
@@ -61,7 +66,7 @@ namespace CoreMiner
             }
         }
 
-        public void Init(float frameX, float frameY, int isometricFrameX, int isometricFrameY, int _width, int height, float cellSize)
+        public void Init(float frameX, float frameY, int isometricFrameX, int isometricFrameY, int _width, int height)
         {
             this.FrameX = frameX;
             this.FrameY = frameY;
@@ -69,7 +74,22 @@ namespace CoreMiner
             this.IsometricFrameY = isometricFrameY;
             this._width = _width;
             this._height = height;
-            ChunkData = new Grid<Tile>(_width, height, cellSize);
+            ChunkData = new Grid<Tile>(_width, height, 1.0f);
+        }
+
+
+
+        public void LoadChunk()
+        {
+            gameObject.SetActive(true);
+            if(WorldGeneration.Instance.ShowTilegroupMaps)
+            {
+                TilegroupMap.GetComponent<TilemapRenderer>().enabled = true;
+            }
+            else
+            {
+                TilegroupMap.GetComponent<TilemapRenderer>().enabled = false;
+            }
         }
 
         public void UnloadChunk()
@@ -177,6 +197,7 @@ namespace CoreMiner
         {
             TileBase[] landTiles = new TileBase[_width * _height];
             TileBase[] waterTiles = new TileBase[_width * _height];
+            TileBase[] tilegroupTiles = new TileBase[_width * _height];
             Vector3Int[] positionArray = new Vector3Int[_width * _height];
 
             await Task.Run(() =>
@@ -192,41 +213,65 @@ namespace CoreMiner
                         {
                             landTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Water);
                             waterTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Water);
+                            tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+
+                            ChunkData.GetValue(x, y).Collidable = false;                
                         }
                         else if (heightValue < WorldGeneration.Instance.Water)
                         {
                             landTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Water);
                             waterTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Water);
+                            tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+
+                            ChunkData.GetValue(x, y).Collidable = false;
                         }
                         else if (heightValue < WorldGeneration.Instance.Sand)
                         {
                             landTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Sand);
                             waterTiles[x + _width * y] = null;
+                            tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+
+                            ChunkData.GetValue(x, y).Collidable = true;
                         }
                         else if (heightValue < WorldGeneration.Instance.Grass)
                         {
                             landTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.DirtGrass);
                             waterTiles[x + _width * y] = null;
+                            tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+
+                            ChunkData.GetValue(x, y).Collidable = true;
                         }
                         else if (heightValue < WorldGeneration.Instance.Forest)
                         {
                             landTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.ForestGrass);
                             waterTiles[x + _width * y] = null;
+                            tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+
+                            ChunkData.GetValue(x, y).Collidable = true;
                         }
                         else if (heightValue < WorldGeneration.Instance.Rock)
                         {
                             landTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Rock);
                             waterTiles[x + _width * y] = null;
+                            tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+
+                            ChunkData.GetValue(x, y).Collidable = true;
                         }
                         else if (heightValue < WorldGeneration.Instance.Snow)
                         {
                             landTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Snow);
                             waterTiles[x + _width * y] = null;
+                            tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+
+                            ChunkData.GetValue(x, y).Collidable = true;
                         }
                         else
                         {
                             landTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Snow);
                             waterTiles[x + _width * y] = null;
+                            tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+
+                            ChunkData.GetValue(x, y).Collidable = true;
                         }
                     }
                 });
@@ -235,13 +280,14 @@ namespace CoreMiner
 
             LandTileMap.SetTiles(positionArray, landTiles);
             //WaterTileMap.SetTiles(positionArray, waterTiles);
+            TilegroupMap.SetTiles(positionArray, tilegroupTiles);
             ChunkHasDrawn = true;
         }
 
 
         public void PaintNeighborsColor()
         {
-            return;
+            //return;
             for (var x = 0; x < _width; x++)
             {
                 for (var y = 0; y < _height; y++)
@@ -253,7 +299,27 @@ namespace CoreMiner
                     }
                 }
             }
+        }
 
+        public void PaintTilegroupMap()
+        {
+            foreach(var group in Waters)
+            {
+                foreach(var tile in group.Tiles)
+                {
+                    Vector3Int tileFrame = new Vector3Int(tile.FrameX, tile.FrameY, 0);
+                    TilegroupMap.SetColor(tileFrame, Color.blue);
+                }
+            }
+
+            foreach (var group in Lands)
+            {
+                foreach (var tile in group.Tiles)
+                {
+                    Vector3Int tileFrame = new Vector3Int(tile.FrameX, tile.FrameY, 0);
+                    TilegroupMap.SetColor(tileFrame, Color.green);
+                }
+            }
         }
 
         public void DrawChunkPerformance(System.Action onFinished = null)
@@ -314,15 +380,34 @@ namespace CoreMiner
         }
 
 
-        public void SetChunkNeighbors(Chunk left, Chunk right, Chunk top, Chunk bottom)
+        public void SetTwoSidesChunkNeighbors(Chunk left, Chunk right, Chunk top, Chunk bottom)
         {
             this.Left = left;
             this.Right = right;
             this.Top = top;
             this.Bottom = bottom;
+
+            if(left != null)
+            {
+                left.Right = this;
+            }
+            if(right != null)
+            {
+                right.Left = this;
+            }
+            if(top != null)
+            {
+                top.Bottom = this;
+            }
+            if(bottom != null)
+            {
+                bottom.Top = this;
+            }
+            HasFourNeighbors = Left != null && Right != null && Top != null && Bottom != null;
         }
         public bool HasNeighbors()
         {
+            HasFourNeighbors = Left != null && Right != null && Top != null && Bottom != null;
             return Left != null && Right != null && Top != null && Bottom != null;
         }
 
@@ -448,6 +533,7 @@ namespace CoreMiner
         }
 
 
+
         public void SetTile(Vector2 worldPosition, TileBase tileBase)
         {
             Vector3Int cellPosition = Grid.WorldToCell(worldPosition);
@@ -459,6 +545,8 @@ namespace CoreMiner
         {
             LandTileMap.GetComponent<TilemapRenderer>().mode = mode;
         }
+
+
 
         #region Utilities
         // Function to convert world coordinates to tile coordinates

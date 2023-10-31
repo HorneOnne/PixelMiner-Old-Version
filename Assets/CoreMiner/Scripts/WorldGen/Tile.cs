@@ -1,5 +1,6 @@
 ﻿namespace CoreMiner
 {
+    [System.Serializable]
     public class Tile
     {
         public TileType Type { get; set; }
