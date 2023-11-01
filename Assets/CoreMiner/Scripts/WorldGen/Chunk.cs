@@ -82,7 +82,7 @@ namespace CoreMiner
         public void LoadChunk()
         {
             gameObject.SetActive(true);
-            if(WorldGeneration.Instance.ShowTilegroupMaps)
+            if (WorldGeneration.Instance.ShowTilegroupMaps)
             {
                 TilegroupMap.GetComponent<TilemapRenderer>().enabled = true;
             }
@@ -111,7 +111,7 @@ namespace CoreMiner
                     float normalizeValue = (value - minHeightNoise) / (maxHeightNoise - minHeightNoise);
                     Tile tile = new Tile(x, y);
                     tile.HeightValue = normalizeValue;
-                    ChunkData.SetValue(x, y, tile);
+                    ChunkData.SetValue(x, y, tile);                
                 }
             }
         }
@@ -215,7 +215,7 @@ namespace CoreMiner
                             waterTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Water);
                             tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
 
-                            ChunkData.GetValue(x, y).Collidable = false;                
+                            ChunkData.GetValue(x, y).Collidable = false;
                         }
                         else if (heightValue < WorldGeneration.Instance.Water)
                         {
@@ -303,9 +303,9 @@ namespace CoreMiner
 
         public void PaintTilegroupMap()
         {
-            foreach(var group in Waters)
+            foreach (var group in Waters)
             {
-                foreach(var tile in group.Tiles)
+                foreach (var tile in group.Tiles)
                 {
                     Vector3Int tileFrame = new Vector3Int(tile.FrameX, tile.FrameY, 0);
                     TilegroupMap.SetColor(tileFrame, Color.blue);
@@ -387,19 +387,19 @@ namespace CoreMiner
             this.Top = top;
             this.Bottom = bottom;
 
-            if(left != null)
+            if (left != null)
             {
                 left.Right = this;
             }
-            if(right != null)
+            if (right != null)
             {
                 right.Left = this;
             }
-            if(top != null)
+            if (top != null)
             {
                 top.Bottom = this;
             }
-            if(bottom != null)
+            if (bottom != null)
             {
                 bottom.Top = this;
             }
@@ -466,7 +466,8 @@ namespace CoreMiner
         }
 
 
-        private Tile GetTop(Tile t)
+        #region Find Tile Neighbors
+        public Tile GetTop(Tile t)
         {
             int newY = t.FrameY + 1;
 
@@ -483,7 +484,7 @@ namespace CoreMiner
             }
             return null; // Handle the case where the index is out of range.   
         }
-        private Tile GetBottom(Tile t)
+        public Tile GetBottom(Tile t)
         {
             int newY = t.FrameY - 1;
             if (newY >= 0 && newY < _height)
@@ -499,7 +500,7 @@ namespace CoreMiner
             }
             return null; // Handle the case where the index is out of range.
         }
-        private Tile GetLeft(Tile t)
+        public Tile GetLeft(Tile t)
         {
             int newX = t.FrameX - 1;
             if (newX >= 0 && newX < _width)
@@ -515,7 +516,7 @@ namespace CoreMiner
             }
             return null; // Handle the case where the index is out of range.
         }
-        private Tile GetRight(Tile t)
+        public Tile GetRight(Tile t)
         {
             int newX = t.FrameX + 1;
             if (newX >= 0 && newX < _width)
@@ -533,6 +534,44 @@ namespace CoreMiner
         }
 
 
+        public Tile GetTopWithinChunk(Tile t)
+        {
+            int newY = t.FrameY + 1;
+
+            if (newY >= 0 && newY < _height)
+            {
+                return ChunkData.GetValue(t.FrameX, newY);
+            }
+            return null; // Handle the case where the index is out of range.   
+        }
+        public Tile GetBottomWithinChunk(Tile t)
+        {
+            int newY = t.FrameY - 1;
+            if (newY >= 0 && newY < _height)
+            {
+                return ChunkData.GetValue(t.FrameX, newY);
+            }
+            return null; // Handle the case where the index is out of range.
+        }
+        public Tile GetLeftWithinChunk(Tile t)
+        {
+            int newX = t.FrameX - 1;
+            if (newX >= 0 && newX < _width)
+            {
+                return ChunkData.GetValue(newX, t.FrameY);
+            }
+            return null; // Handle the case where the index is out of range.
+        }
+        public Tile GetRightWithinChunk(Tile t)
+        {
+            int newX = t.FrameX + 1;
+            if (newX >= 0 && newX < _width)
+            {
+                return ChunkData.GetValue(newX, t.FrameY);
+            }
+            return null; // Handle the case where the index is out of range.
+        }
+        #endregion
 
         public void SetTile(Vector2 worldPosition, TileBase tileBase)
         {

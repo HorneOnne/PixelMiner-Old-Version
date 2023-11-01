@@ -21,6 +21,7 @@
         {
             this.FrameX = x;
             this.FrameY = y;
+            FloodFilled = false;
         }
 
         public bool HasNeighbors()

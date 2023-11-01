@@ -8,7 +8,6 @@ namespace CoreMiner
         public TileGroupType Type;
         public List<Tile> Tiles;
 
-     
         public TileGroup()
         {
             Tiles = new List<Tile>();

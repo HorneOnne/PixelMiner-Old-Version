@@ -258,10 +258,10 @@ namespace CoreMiner
                         UpdateChunkTileNeighbors(newChunk);
 
                         //if (newChunk.HasNeighbors())
-                        //{                          
+                        //{
                         //    FloodFill(_chunks[nbIsoFrame]);
                         //    _chunks[nbIsoFrame].PaintTilegroupMap();
-                        //}                   
+                        //}
                     }
                     else
                     {
@@ -285,7 +285,7 @@ namespace CoreMiner
                         //if (_chunks[nbIsoFrame].HasNeighbors())
                         //{
                         //    FloodFill(_chunks[nbIsoFrame]);
-                        //    _chunks[nbIsoFrame].PaintTilegroupMap();                           
+                        //    _chunks[nbIsoFrame].PaintTilegroupMap();
                         //}
                     }
 
@@ -426,12 +426,6 @@ namespace CoreMiner
             Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX + 1, chunk.IsometricFrameY);
             return _chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
         }
-        private Chunk GetChunkNeighbor(Vector2Int offset, Chunk chunk)
-        {
-            Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX + offset.x, chunk.IsometricFrameY + offset.y);
-            return _chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
-        }
-
 
         private void UpdateChunkTileNeighbors(Chunk chunk)
         {
@@ -448,67 +442,60 @@ namespace CoreMiner
             {
                 chunk.UpdateAllTileNeighbors();
                 chunk.PaintNeighborsColor();
+
+                if (chunk.Waters.Count == 0 && chunk.Lands.Count == 0)
+                {
+                    FloodFill(chunk);
+                    chunk.PaintTilegroupMap();
+                }
             }
+
             if (nbAbove != null && nbAbove.HasNeighbors())
             {
                 nbAbove.UpdateAllTileNeighbors();
                 nbAbove.PaintNeighborsColor();
+
+                if(nbAbove.Waters.Count == 0 && nbAbove.Lands.Count == 0)
+                {
+                    FloodFill(nbAbove);
+                    nbAbove.PaintTilegroupMap();
+                }           
             }
             if (nbBelow != null && nbBelow.HasNeighbors())
             {
                 nbBelow.UpdateAllTileNeighbors();
                 nbBelow.PaintNeighborsColor();
+
+                if (nbBelow.Waters.Count == 0 && nbBelow.Lands.Count == 0)
+                {
+                    FloodFill(nbBelow);
+                    nbBelow.PaintTilegroupMap();
+                }
+                    
             }
             if (nbLeft != null && nbLeft.HasNeighbors())
             {
                 nbLeft.UpdateAllTileNeighbors();
                 nbLeft.PaintNeighborsColor();
+
+                if (nbLeft.Waters.Count == 0 && nbLeft.Lands.Count == 0)
+                {
+                    FloodFill(nbLeft);
+                    nbLeft.PaintTilegroupMap();
+                }           
             }
             if (nbRight != null && nbRight.HasNeighbors())
             {
                 nbRight.UpdateAllTileNeighbors();
                 nbRight.PaintNeighborsColor();
-            }
 
-
-
-            return;
-            if (nbAbove != null)
-            {
-                if (nbAbove.HasNeighbors() == false)
+                if (nbRight.Waters.Count == 0 && nbRight.Lands.Count == 0)
                 {
-                    AddChunkFourDirectionNeighbors(nbAbove);
-                    nbAbove.UpdateEdgeOfChunkTileNeighbors();
-                    nbAbove.PaintNeighborsColor();
+                    FloodFill(nbRight);
+                    nbRight.PaintTilegroupMap();
                 }
-            }
-            if (nbBelow != null)
-            {
-                if (nbBelow.HasNeighbors() == false)
-                {
-                    AddChunkFourDirectionNeighbors(nbBelow);
-                    nbBelow.UpdateEdgeOfChunkTileNeighbors();
-                    nbBelow.PaintNeighborsColor();
-                }
-            }
-            if (nbLeft != null)
-            {
-                if (nbLeft.HasNeighbors() == false)
-                {
-                    AddChunkFourDirectionNeighbors(nbLeft);
-                    nbLeft.UpdateEdgeOfChunkTileNeighbors();
-                    nbLeft.PaintNeighborsColor();
-                }
-            }
-            if (nbRight != null)
-            {
-                if (nbRight.HasNeighbors() == false)
-                {
-                    AddChunkFourDirectionNeighbors(nbRight);
-                    nbRight.UpdateEdgeOfChunkTileNeighbors();
-                    nbRight.PaintNeighborsColor();
-                }
-            }                  
+                   
+            }              
         }
 
         public Chunk GetChunkFromWorldPosition(Vector2 mousePosition)
@@ -535,8 +522,10 @@ namespace CoreMiner
 
                     // Tile already flood filled, skip
                     if (t.FloodFilled)
+                    {
                         continue;
-
+                    }
+                       
                     // Land
                     if (t.Collidable)
                     {
@@ -546,7 +535,8 @@ namespace CoreMiner
 
                         while (stack.Count > 0)
                         {
-                            FloodFill(stack.Pop(), ref group, ref stack);
+                            Tile tile = stack.Pop();
+                            FloodFill(tile, ref group, ref stack, chunk);
                         }
 
                         if (group.Tiles.Count > 0)
@@ -562,7 +552,8 @@ namespace CoreMiner
 
                         while (stack.Count > 0)
                         {
-                            FloodFill(stack.Pop(), ref group, ref stack);
+                            Tile tile = stack.Pop();
+                            FloodFill(tile, ref group, ref stack, chunk);
                         }
 
                         if (group.Tiles.Count > 0)
@@ -574,7 +565,7 @@ namespace CoreMiner
             }
         }
 
-        private void FloodFill(Tile tile, ref TileGroup tiles, ref Stack<Tile> stack)
+        private void FloodFill(Tile tile, ref TileGroup tiles, ref Stack<Tile> stack, Chunk chunk)
         {
             // Validate
             if (tile.FloodFilled)
@@ -584,38 +575,37 @@ namespace CoreMiner
             if (tiles.Type == TileGroupType.Water && tile.Collidable)
                 return;
 
-
-            // Add to TileGroup
             tiles.Tiles.Add(tile);
             tile.FloodFilled = true;
 
+
             // FloodFill into neighbors
-            Tile nb = tile.Top;
-
+            Tile nb = chunk.GetTopWithinChunk(tile);
             if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
             {
                 stack.Push(nb);
             }
 
-            nb = tile.Bottom;
+            nb = chunk.GetBottomWithinChunk(tile);
             if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
             {
                 stack.Push(nb);
             }
 
-            nb = tile.Left;
+            nb = chunk.GetLeftWithinChunk(tile);
             if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
             {
                 stack.Push(nb);
             }
 
-            nb = tile.Right;
+            nb = chunk.GetRightWithinChunk(tile);
             if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
             {
                 stack.Push(nb);
             }
         }
 
+       
 
 #if DEV_CONSOLE
         [ConsoleCommand("unload_chunk", value: "0")]
