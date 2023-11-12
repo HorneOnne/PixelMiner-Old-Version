@@ -35,6 +35,7 @@ namespace CoreMiner
         public Tilemap WaterTileMap;
         public Tilemap HeatMap;
         public Tilemap TilegroupMap;
+        public Tilemap GradientMap;
         public Grid Grid;
 
         public bool HasFourNeighbors;
@@ -100,17 +101,12 @@ namespace CoreMiner
 
         public void LoadHeightMap(float[,] heightValues)
         {
-            float minHeightNoise = WorldGeneration.Instance.MinHeightNoise;
-            float maxHeightNoise = WorldGeneration.Instance.MaxHeightNoise;
-
             for (int x = 0; x < _width; x++)
             {
                 for (int y = 0; y < _height; y++)
                 {
-                    float value = heightValues[x, y];
-                    float normalizeValue = (value - minHeightNoise) / (maxHeightNoise - minHeightNoise);
                     Tile tile = new Tile(x, y);
-                    tile.HeightValue = normalizeValue;
+                    tile.HeightValue = heightValues[x, y]; ;
                     ChunkData.SetValue(x, y, tile);                
                 }
             }
@@ -121,23 +117,34 @@ namespace CoreMiner
 
         public async Task LoadHeightMapAsync(float[,] heightValues)
         {
-            float minHeightNoise = WorldGeneration.Instance.MinHeightNoise;
-            float maxHeightNoise = WorldGeneration.Instance.MaxHeightNoise;
-
             await Task.Run(() =>
             {
                 Parallel.For(0, _width, x =>
                 {
                     for (int y = 0; y < _height; y++)
                     {
-                        float value = heightValues[x, y];
-
-                        //normalize our value between 0 and 1
-                        float normalizeValue = (value - minHeightNoise) / (maxHeightNoise - minHeightNoise);
                         Tile tile = new Tile(x, y);
-                        tile.HeightValue = normalizeValue;
-
+                        tile.HeightValue = heightValues[x, y];
                         ChunkData.SetValue(x, y, tile);
+                    }
+                });
+
+            });
+        }
+        public async Task LoadGradientMapAsync(float[,] gradientValues)
+        {
+            await Task.Run(() =>
+            {
+                Parallel.For(0, _width, x =>
+                {
+                    for (int y = 0; y < _height; y++)
+                    {
+                        if(ChunkData.GetValue(x,y) == null)
+                        {
+                            Debug.LogError("ChunkData cannot be null. Please load Heightmap data first.");
+                            break;
+                        }
+                        ChunkData.GetValue(x,y).GradientValue = gradientValues[x, y];
                     }
                 });
 
@@ -198,6 +205,8 @@ namespace CoreMiner
             TileBase[] landTiles = new TileBase[_width * _height];
             TileBase[] waterTiles = new TileBase[_width * _height];
             TileBase[] tilegroupTiles = new TileBase[_width * _height];
+            TileBase[] gradientTiles = new TileBase[_width * _height];
+
             Vector3Int[] positionArray = new Vector3Int[_width * _height];
 
             await Task.Run(() =>
@@ -209,6 +218,9 @@ namespace CoreMiner
                         positionArray[x + _width * y] = new Vector3Int(x, y, 0);
 
                         float heightValue = ChunkData.GetValue(x, y).HeightValue;
+                        float gradientValue = ChunkData.GetValue(x, y).GradientValue;
+
+                        // Height
                         if (heightValue < WorldGeneration.Instance.DeepWater)
                         {
                             landTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Water);
@@ -273,21 +285,50 @@ namespace CoreMiner
 
                             ChunkData.GetValue(x, y).Collidable = true;
                         }
+
+                        // Gradient
+                        if(gradientValue < WorldGeneration.Instance.ColdestValue) 
+                        {
+                            gradientTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                        }
+                        else if (gradientValue < WorldGeneration.Instance.ColderValue)
+                        {
+                            gradientTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                        }
+                        else if (gradientValue < WorldGeneration.Instance.ColdValue)
+                        {
+                            gradientTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                        }
+                        else if (gradientValue < WorldGeneration.Instance.WarmValue)
+                        {
+                            gradientTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                        }
+                        else if (gradientValue < WorldGeneration.Instance.WarmerValue)
+                        {
+                            gradientTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                        }
+                        else
+                        {
+                            gradientTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                        }
                     }
                 });
             });
 
 
+
+
             LandTileMap.SetTiles(positionArray, landTiles);
             //WaterTileMap.SetTiles(positionArray, waterTiles);
             TilegroupMap.SetTiles(positionArray, tilegroupTiles);
+            GradientMap.SetTiles(positionArray, gradientTiles);
             ChunkHasDrawn = true;
         }
 
 
         public void PaintNeighborsColor()
         {
-            //return;
+            return;
             for (var x = 0; x < _width; x++)
             {
                 for (var y = 0; y < _height; y++)
@@ -318,6 +359,18 @@ namespace CoreMiner
                 {
                     Vector3Int tileFrame = new Vector3Int(tile.FrameX, tile.FrameY, 0);
                     TilegroupMap.SetColor(tileFrame, Color.green);
+                }
+            }
+        }
+
+        public void PaintGradientMap()
+        {
+            for (var x = 0; x < _width; x++)
+            {
+                for (var y = 0; y < _height; y++)
+                {
+                    Tile t = ChunkData.GetValue(x, y);
+                    GradientMap.SetColor(new Vector3Int(t.FrameX, t.FrameY), WorldGeneration.Instance.GetGradientColor(t.GradientValue));
                 }
             }
         }

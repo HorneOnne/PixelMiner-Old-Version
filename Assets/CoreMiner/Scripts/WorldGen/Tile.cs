@@ -5,6 +5,8 @@
     {
         public TileType Type { get; set; }
         public float HeightValue { get; set; }
+        public float GradientValue { get; set; }
+        public float HeatValue { get; set; }
         public int FrameX, FrameY;
 
         // Neighbors
@@ -44,6 +46,16 @@
         Snow,
         Heat = 999,
         Other
+    }
+
+    public enum HeatType
+    {
+        Coldest = 0,
+        Colder = 1,
+        Cold = 2,
+        Warm = 3,
+        Warmer = 4,
+        Warmest = 5
     }
 }
 

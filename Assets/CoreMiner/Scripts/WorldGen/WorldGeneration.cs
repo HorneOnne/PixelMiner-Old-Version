@@ -49,6 +49,24 @@ namespace CoreMiner
         public float Rock = 0.9f;
         public float Snow = 1;
 
+        [Header("Heat Map")]
+        public int HeatOctaves = 4;
+        public double HeatFrequency = 3.0;
+        public float ColdestValue = 0.05f;
+        public float ColderValue = 0.18f;
+        public float ColdValue = 0.4f;
+        public float WarmValue = 0.6f;
+        public float WarmerValue = 0.8f;
+        private float _gradientHeatmapSize = 64;
+        public static Color ColdestColor = new Color(0, 1, 1, 1);
+        public static Color ColderColor = new Color(170 / 255f, 1, 1, 1);
+        public static Color ColdColor = new Color(0, 229 / 255f, 133 / 255f, 1);
+        public static Color WarmColor = new Color(1, 1, 100 / 255f, 1);
+        public static Color WarmerColor = new Color(1, 100 / 255f, 0, 1);
+        public static Color WarmestColor = new Color(241 / 255f, 12 / 255f, 0, 1);
+
+
+
 
         [Header("World Generation Utilities")]
         public bool AutoUnloadChunk = true;
@@ -256,12 +274,6 @@ namespace CoreMiner
                         _chunks[nbIsoFrame].LoadChunk();
 
                         UpdateChunkTileNeighbors(newChunk);
-
-                        //if (newChunk.HasNeighbors())
-                        //{
-                        //    FloodFill(_chunks[nbIsoFrame]);
-                        //    _chunks[nbIsoFrame].PaintTilegroupMap();
-                        //}
                     }
                     else
                     {
@@ -273,20 +285,15 @@ namespace CoreMiner
 
                         _chunks[nbIsoFrame].LoadChunk();
                         ActiveChunks.Add(_chunks[nbIsoFrame]);
-               
+
                         if (_chunks[nbIsoFrame].ChunkHasDrawn == false)
                         {
                             //_chunks[nbIsoFrame].DrawChunk();
-                            await _chunks[nbIsoFrame].DrawChunkAsync();                         
+                            await _chunks[nbIsoFrame].DrawChunkAsync();
+                            _chunks[nbIsoFrame].PaintGradientMap();
                         }
 
                         UpdateChunkTileNeighbors(_chunks[nbIsoFrame]);
-
-                        //if (_chunks[nbIsoFrame].HasNeighbors())
-                        //{
-                        //    FloodFill(_chunks[nbIsoFrame]);
-                        //    _chunks[nbIsoFrame].PaintTilegroupMap();
-                        //}
                     }
 
                 }
@@ -316,9 +323,11 @@ namespace CoreMiner
         }
 
 
-        private async Task<float[,]> GetHeightMapNoiseAsync(int frameX, int frameY)
+
+        private async Task<float[,]> GetHeightMapNoiseAsyc(int frameX, int frameY)
         {
             float[,] heightValues = new float[ChunkWidth, ChunkHeight];
+
             await Task.Run(() =>
             {
                 Parallel.For(0, ChunkWidth, x =>
@@ -327,12 +336,49 @@ namespace CoreMiner
                     {
                         float offsetX = frameX * ChunkWidth + x;
                         float offsetY = frameY * ChunkHeight + y;
-                        heightValues[x, y] = (float)_heightNoise.GetValue(offsetX, offsetY, 0);
+                        float heightValue = (float)_heightNoise.GetValue(offsetX, offsetY, 0);
+                        float normalizeHeightValue = (heightValue - MinHeightNoise) / (MaxHeightNoise - MinHeightNoise);
+                        heightValues[x, y] = normalizeHeightValue;
                     }
                 });
             });
 
             return heightValues;
+        }
+
+        private async Task<float[,]> GetGradientMapAsync(int frameX, int frameY)
+        {
+            float[,] heatData = new float[ChunkWidth, ChunkHeight];
+            frameX = -frameX;
+            frameY = -frameY;
+
+            await Task.Run(() =>
+            {
+                int gradientFrameX = (int)(frameX * ChunkWidth / _gradientHeatmapSize);
+                int gradientFrameY = -Mathf.CeilToInt(frameY * ChunkHeight / _gradientHeatmapSize);
+
+                // Calculate the center of the texture with the offset
+                Vector2 gradientOffset = new Vector2(gradientFrameX * _gradientHeatmapSize, gradientFrameY * _gradientHeatmapSize);
+                Vector2 gradientCenterOffset = gradientOffset + new Vector2(frameX * ChunkWidth, frameY * ChunkHeight);
+
+
+                for (int x = 0; x < ChunkWidth; x++)
+                {
+                    for (int y = 0; y < ChunkHeight; y++)
+                    {
+                        Vector2 center = new Vector2(Mathf.FloorToInt(x / _gradientHeatmapSize), Mathf.FloorToInt(y / _gradientHeatmapSize)) * new Vector2(_gradientHeatmapSize, _gradientHeatmapSize) + new Vector2(_gradientHeatmapSize / 2f, _gradientHeatmapSize / 2f);
+                        Vector2 centerWithOffset = center + gradientCenterOffset;
+
+          
+                        float distance = Mathf.Abs(y - centerWithOffset.y);
+                        float normalizedDistance = Mathf.Clamp01(distance / (_gradientHeatmapSize / 2f));
+                        heatData[x, y] = normalizedDistance;
+                    }
+                }
+
+            });
+
+            return heatData;
         }
 
 
@@ -359,8 +405,11 @@ namespace CoreMiner
             newChunk.Init(frame.x, frame.y, isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
 
             // Create new data
-            float[,] heightValues = await GetHeightMapNoiseAsync(isoFrameX, isoFrameY);
+            float[,] heightValues = await GetHeightMapNoiseAsyc(isoFrameX, isoFrameY);
+            float[,] gradientValues = await GetGradientMapAsync(isoFrameX, isoFrameY);
+
             await newChunk.LoadHeightMapAsync(heightValues);
+            await newChunk.LoadGradientMapAsync(gradientValues);
             return newChunk;
         }
 
@@ -455,11 +504,11 @@ namespace CoreMiner
                 nbAbove.UpdateAllTileNeighbors();
                 nbAbove.PaintNeighborsColor();
 
-                if(nbAbove.Waters.Count == 0 && nbAbove.Lands.Count == 0)
+                if (nbAbove.Waters.Count == 0 && nbAbove.Lands.Count == 0)
                 {
                     FloodFill(nbAbove);
                     nbAbove.PaintTilegroupMap();
-                }           
+                }
             }
             if (nbBelow != null && nbBelow.HasNeighbors())
             {
@@ -471,7 +520,7 @@ namespace CoreMiner
                     FloodFill(nbBelow);
                     nbBelow.PaintTilegroupMap();
                 }
-                    
+
             }
             if (nbLeft != null && nbLeft.HasNeighbors())
             {
@@ -482,7 +531,7 @@ namespace CoreMiner
                 {
                     FloodFill(nbLeft);
                     nbLeft.PaintTilegroupMap();
-                }           
+                }
             }
             if (nbRight != null && nbRight.HasNeighbors())
             {
@@ -494,8 +543,8 @@ namespace CoreMiner
                     FloodFill(nbRight);
                     nbRight.PaintTilegroupMap();
                 }
-                   
-            }              
+
+            }
         }
 
         public Chunk GetChunkFromWorldPosition(Vector2 mousePosition)
@@ -525,7 +574,7 @@ namespace CoreMiner
                     {
                         continue;
                     }
-                       
+
                     // Land
                     if (t.Collidable)
                     {
@@ -605,7 +654,45 @@ namespace CoreMiner
             }
         }
 
-       
+        #region Utilities
+        public Color GetGradientColor(float heatValue)
+        {
+            // predefine heat value threshold
+            float ColdestValue = 0.05f;
+            float ColderValue = 0.18f;
+            float ColdValue = 0.4f;
+            float WarmValue = 0.6f;
+            float WarmerValue = 0.8f;
+
+
+            if (heatValue < ColdestValue)
+            {
+                return ColdestColor;
+            }
+            else if (heatValue < ColderValue)
+            {
+                return ColderColor;
+            }
+            else if (heatValue < ColdValue)
+            {
+                return ColdColor;
+            }
+            else if (heatValue < WarmValue)
+            {
+                return WarmColor;
+            }
+            else if (heatValue < WarmerValue)
+            {
+                return WarmerColor;
+            }
+            else
+            {
+                return WarmestColor;
+            }
+        }
+        #endregion
+
+
 
 #if DEV_CONSOLE
         [ConsoleCommand("unload_chunk", value: "0")]

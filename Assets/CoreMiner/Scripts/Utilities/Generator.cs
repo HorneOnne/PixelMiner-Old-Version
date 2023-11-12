@@ -16,6 +16,9 @@ namespace CoreMiner.Utilities.NoiseGeneration
         public int Seed = 3;
         public Vector2 Offset;
 
+
+
+
         // Noise Generator Module
         private ModuleBase _heightNoiseModule;
 
@@ -37,8 +40,10 @@ namespace CoreMiner.Utilities.NoiseGeneration
 
             LoadTiles();
 
-            _heightMapMeshRenderer.materials[0].mainTexture = TextureGenerator.GetTexture(Width, Height, _tiles);
-            //_heightMapMeshRenderer.materials[0].mainTexture = GetTexture(_heightNoiseModule);
+            //_heightMapMeshRenderer.materials[0].mainTexture = TextureGenerator.GetTexture(Width, Height, _tiles);
+            
+            //_heightMapMeshRenderer.materials[0].mainTexture = TextureGenerator.GenerateNoiseGradient(Width, Height);
+            _heightMapMeshRenderer.materials[0].mainTexture = TextureGenerator.GenerateNoiseGradient(Width, Height, Offset.x, Offset.y);
         }
 
 
@@ -89,32 +94,10 @@ namespace CoreMiner.Utilities.NoiseGeneration
 
                 }
             }
-
-
-            Debug.Log(_heightMapData.Min);
-            Debug.Log(_heightMapData.Max);
         }
 
 
 
-        private float _updateFrequency = 0.2f;
-        private float _updateTimer = 0.0f;
-        private void Update()
-        {
-            if(Time.time - _updateTimer > _updateFrequency)
-            {
-                _updateTimer = Time.time;
-                GetData();
-                LoadTiles();
-                _heightMapMeshRenderer.materials[0].mainTexture = TextureGenerator.GetTexture(Width, Height, _tiles);
-            }
-
-            if (Input.GetKeyDown(KeyCode.G))
-            {
-                GetData();
-                LoadTiles();
-                _heightMapMeshRenderer.materials[0].mainTexture = TextureGenerator.GetTexture(Width, Height, _tiles);
-            }
-        }
+    
     }
 }

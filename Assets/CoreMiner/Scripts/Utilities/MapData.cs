@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace CoreMiner.Utilities.NoiseGeneration
 {
-    public class MapData : MonoBehaviour
+    public class MapData
     {
         public float[,] Data;
         public float Min { get; set; }
