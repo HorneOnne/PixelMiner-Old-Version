@@ -476,8 +476,10 @@ namespace CoreMiner
             float[,] heightValues = await GetHeightMapNoiseAsyc(isoFrameX, isoFrameY);
             float[,] heatValues = await GetHeatMapAysnc(isoFrameX, isoFrameY);
 
-            await newChunk.LoadHeightMapAsync(heightValues);
-            await newChunk.LoadGradientMapAsync(heatValues);
+            //await newChunk.LoadHeightMapDataAsync(heightValues);
+            //await newChunk.LoadHeatMapDataAsync(heatValues);
+            await newChunk.LoadHeightAndHeatMap(heightValues, heatValues);
+
             return newChunk;
         }
 

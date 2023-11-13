@@ -2074,9 +2074,9 @@ MonoBehaviour:
   _chunkPrefab: {fileID: 1287440298023199784, guid: 3f439708f29b6f14dbf4933564e81924, type: 3}
   ChunkWidth: 32
   ChunkHeight: 32
-  InitWorldWidth: 8
-  InitWorldHeight: 8
-  WorldSize: 8
+  InitWorldWidth: 4
+  InitWorldHeight: 4
+  WorldSize: 4
   Octaves: 6
   Frequency: 0.013
   Lacunarity: 2
@@ -3207,7 +3207,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6577536551770996436, guid: b5fbf8417053cf343a54a8bfb1069a55, type: 3}
       propertyPath: playButtonTime
-      value: 638355011816087766
+      value: 638355060491870183
       objectReference: {fileID: 0}
     - target: {fileID: 6588897239180729126, guid: b5fbf8417053cf343a54a8bfb1069a55, type: 3}
       propertyPath: m_AnchorMax.y

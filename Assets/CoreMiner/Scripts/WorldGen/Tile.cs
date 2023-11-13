@@ -4,8 +4,9 @@
     public class Tile
     {
         public TileType Type { get; set; }
+        public HeightType HeightType { get; set; }
+        public HeatType HeatType { get; set; }
         public float HeightValue { get; set; }
-        public float GradientValue { get; set; }
         public float HeatValue { get; set; }
         public int FrameX, FrameY;
 
@@ -46,6 +47,19 @@
         Snow,
         Heat = 999,
         Other
+    }
+
+    public enum HeightType
+    {
+        DeepWater = 1,
+        ShallowWater = 2,
+        Shore = 3,
+        Sand = 4,
+        Grass = 5,
+        Forest = 6,
+        Rock = 7,
+        Snow = 8,
+        River = 9,
     }
 
     public enum HeatType
