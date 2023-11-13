@@ -8,6 +8,7 @@ using CoreMiner.UI;
 using System.Collections;
 using CoreMiner.Utilities;
 using System.Threading;
+using LibNoise.Operator;
 
 namespace CoreMiner
 {
@@ -29,8 +30,7 @@ namespace CoreMiner
 
         // Min and Max Height used for normalize noise value in range [0-1]
         public float MinHeightNoise { get; private set; } = float.MaxValue;
-        public float MaxHeightNoise { get; private set; } = float.MinValue;
-
+        public float MaxHeightNoise { get; private set; } = float.MinValue; 
 
         [Header("Noise Settings")]
         public int Octaves = 6;
@@ -38,7 +38,7 @@ namespace CoreMiner
         public double Lacunarity = 2.0f;
         public double Persistence = 0.5f;
         public int Seed = 7;
-        private ModuleBase _heightNoise;
+        private ModuleBase _heightModule;
 
         [Header("Height Threshold")]
         public float DeepWater = 0.2f;
@@ -50,20 +50,28 @@ namespace CoreMiner
         public float Snow = 1;
 
         [Header("Heat Map")]
-        public int HeatOctaves = 4;
-        public double HeatFrequency = 3.0;
-        public float ColdestValue = 0.05f;
-        public float ColderValue = 0.18f;
+        [Range(0f, 1f)]
+        public float HeatMapBlendFactor = 0.5f;
+        // Heat Gradient
+        public float ColdestValue = 0.1f;
+        public float ColderValue = 0.2f;
         public float ColdValue = 0.4f;
         public float WarmValue = 0.6f;
         public float WarmerValue = 0.8f;
-        private float _gradientHeatmapSize = 64;
+        private float _gradientHeatmapSize = 256;
         public static Color ColdestColor = new Color(0, 1, 1, 1);
         public static Color ColderColor = new Color(170 / 255f, 1, 1, 1);
         public static Color ColdColor = new Color(0, 229 / 255f, 133 / 255f, 1);
         public static Color WarmColor = new Color(1, 1, 100 / 255f, 1);
         public static Color WarmerColor = new Color(1, 100 / 255f, 0, 1);
         public static Color WarmestColor = new Color(241 / 255f, 12 / 255f, 0, 1);
+        // Heat Fratal
+        public int HeatOctaves = 4;
+        public double HeatFrequency = 0.02;
+        public double HeatLacunarity = 2.0f;
+        public double HeatPersistence = 0.5f;
+        public int HeatSeed = 7;
+        private ModuleBase _heatModule;
 
 
 
@@ -114,7 +122,8 @@ namespace CoreMiner
             ActiveChunks = new HashSet<Chunk>();
 
             _centerPoint = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width / 2f, Screen.height / 2f));
-            _heightNoise = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, QualityMode.High);
+            _heightModule = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, QualityMode.High);
+            _heatModule = new Perlin(HeatFrequency, HeatLacunarity, HeatPersistence, HeatOctaves, HeatSeed, QualityMode.High);
 
             // Load chunks around the player's starting position
             lastChunkISOFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(_centerPoint, ChunkWidth, ChunkHeight);
@@ -186,7 +195,7 @@ namespace CoreMiner
             {
                 double x = rand.Next(); // Replace this with your desired coordinate values
                 double y = rand.Next();
-                double noiseValue = _heightNoise.GetValue(x, y, 0); // Generate noise value
+                double noiseValue = _heightModule.GetValue(x, y, 0); // Generate noise value
 
                 // Update min and max values
                 if (noiseValue < minValue)
@@ -213,7 +222,7 @@ namespace CoreMiner
                 {
                     double x = rand.Next();
                     double y = rand.Next();
-                    float noiseValue = (float)_heightNoise.GetValue(x, y, 0); // Generate noise value
+                    float noiseValue = (float)_heightModule.GetValue(x, y, 0); // Generate noise value
 
                     // Update min and max values
                     if (noiseValue < minNoiseValue)
@@ -307,16 +316,16 @@ namespace CoreMiner
 
 
 
-        private float[,] GetHeightMapNoise(int frameX, int frameY)
+        private float[,] GetHeightMapNoise(int isoFrameX, int isoFrameY)
         {
             float[,] heightValues = new float[ChunkWidth, ChunkHeight];
             for (int x = 0; x < ChunkWidth; x++)
             {
                 for (int y = 0; y < ChunkHeight; y++)
                 {
-                    float offsetX = frameX * ChunkWidth + x;
-                    float offsetY = frameY * ChunkHeight + y;
-                    heightValues[x, y] = (float)_heightNoise.GetValue(offsetX, offsetY, 0);
+                    float offsetX = isoFrameX * ChunkWidth + x;
+                    float offsetY = isoFrameY * ChunkHeight + y;
+                    heightValues[x, y] = (float)_heightModule.GetValue(offsetX, offsetY, 0);
                 }
             }
             return heightValues;
@@ -324,7 +333,7 @@ namespace CoreMiner
 
 
 
-        private async Task<float[,]> GetHeightMapNoiseAsyc(int frameX, int frameY)
+        private async Task<float[,]> GetHeightMapNoiseAsyc(int isoFrameX, int isoFrameY)
         {
             float[,] heightValues = new float[ChunkWidth, ChunkHeight];
 
@@ -334,9 +343,9 @@ namespace CoreMiner
                 {
                     for (int y = 0; y < ChunkHeight; y++)
                     {
-                        float offsetX = frameX * ChunkWidth + x;
-                        float offsetY = frameY * ChunkHeight + y;
-                        float heightValue = (float)_heightNoise.GetValue(offsetX, offsetY, 0);
+                        float offsetX = isoFrameX * ChunkWidth + x;
+                        float offsetY = isoFrameY * ChunkHeight + y;
+                        float heightValue = (float)_heightModule.GetValue(offsetX, offsetY, 0);
                         float normalizeHeightValue = (heightValue - MinHeightNoise) / (MaxHeightNoise - MinHeightNoise);
                         heightValues[x, y] = normalizeHeightValue;
                     }
@@ -346,20 +355,23 @@ namespace CoreMiner
             return heightValues;
         }
 
-        private async Task<float[,]> GetGradientMapAsync(int frameX, int frameY)
+
+        public float MinHeatValue = float.MaxValue;
+        public float MaxHeatValue = float.MinValue;
+        private async Task<float[,]> GetGradientMapAsync(int isoFrameX, int isoFrameY)
         {
-            float[,] heatData = new float[ChunkWidth, ChunkHeight];
-            frameX = -frameX;
-            frameY = -frameY;
+            float[,] gradientData = new float[ChunkWidth, ChunkHeight];
+            isoFrameX = -isoFrameX;
+            isoFrameY = -isoFrameY;
 
             await Task.Run(() =>
             {
-                int gradientFrameX = (int)(frameX * ChunkWidth / _gradientHeatmapSize);
-                int gradientFrameY = -Mathf.CeilToInt(frameY * ChunkHeight / _gradientHeatmapSize);
+                int gradientFrameX = (int)(isoFrameX * ChunkWidth / _gradientHeatmapSize);
+                int gradientFrameY = -Mathf.CeilToInt(isoFrameY * ChunkHeight / _gradientHeatmapSize);
 
                 // Calculate the center of the texture with the offset
                 Vector2 gradientOffset = new Vector2(gradientFrameX * _gradientHeatmapSize, gradientFrameY * _gradientHeatmapSize);
-                Vector2 gradientCenterOffset = gradientOffset + new Vector2(frameX * ChunkWidth, frameY * ChunkHeight);
+                Vector2 gradientCenterOffset = gradientOffset + new Vector2(isoFrameX * ChunkWidth, isoFrameY * ChunkHeight);
 
 
                 for (int x = 0; x < ChunkWidth; x++)
@@ -369,19 +381,49 @@ namespace CoreMiner
                         Vector2 center = new Vector2(Mathf.FloorToInt(x / _gradientHeatmapSize), Mathf.FloorToInt(y / _gradientHeatmapSize)) * new Vector2(_gradientHeatmapSize, _gradientHeatmapSize) + new Vector2(_gradientHeatmapSize / 2f, _gradientHeatmapSize / 2f);
                         Vector2 centerWithOffset = center + gradientCenterOffset;
 
-          
                         float distance = Mathf.Abs(y - centerWithOffset.y);
-                        float normalizedDistance = Mathf.Clamp01(distance / (_gradientHeatmapSize / 2f));
-                        heatData[x, y] = normalizedDistance;
+                        float normalizedDistance = 1.0f - Mathf.Clamp01(distance / (_gradientHeatmapSize / 2f));
+                        gradientData[x, y] = normalizedDistance;
                     }
                 }
-
             });
 
-            return heatData;
+
+            return gradientData;
         }
+        private async Task<float[,]> GetFractalHeatMapAsync(int isoFrameX, int isoFrameY)
+        {
+            float[,] fractalNoiseData = new float[ChunkWidth, ChunkHeight];
+  
+            await Task.Run(() =>
+            {
+                for (int x = 0; x < ChunkWidth; x++)
+                {
+                    for (int y = 0; y < ChunkHeight; y++)
+                    {
+                        float offsetX = isoFrameX * ChunkWidth + x;
+                        float offsetY = isoFrameY * ChunkHeight + y;
+                        float heatValue = (float)_heatModule.GetValue(offsetX, offsetY, 0);
+                        float normalizeHeatValue = (heatValue - MinHeightNoise) / (MaxHeightNoise - MinHeightNoise);
+
+                        fractalNoiseData[x, y] = normalizeHeatValue;
+                    }
+                }
+            });
 
 
+            return fractalNoiseData;
+        }
+        private async Task<float[,]> GetHeatMapAysnc(int isoFrameX, int isoFrameY)
+        {
+            /*
+             * Heatmap created by blend gradient map and fractal noise map.
+             */
+            float[,] gradientValues = await GetGradientMapAsync(isoFrameX, isoFrameY);
+            float[,] fractalNoiseValues = await GetFractalHeatMapAsync(isoFrameX, isoFrameY);
+            float[,] heatValues = BlendMapData(gradientValues, fractalNoiseValues, HeatMapBlendFactor);
+            return heatValues;
+        }
 
 
         private Chunk AddNewChunk(int isoFrameX, int isoFrameY)
@@ -406,10 +448,10 @@ namespace CoreMiner
 
             // Create new data
             float[,] heightValues = await GetHeightMapNoiseAsyc(isoFrameX, isoFrameY);
-            float[,] gradientValues = await GetGradientMapAsync(isoFrameX, isoFrameY);
+            float[,] heatValues = await GetHeatMapAysnc(isoFrameX, isoFrameY);
 
             await newChunk.LoadHeightMapAsync(heightValues);
-            await newChunk.LoadGradientMapAsync(gradientValues);
+            await newChunk.LoadGradientMapAsync(heatValues);
             return newChunk;
         }
 
@@ -689,6 +731,25 @@ namespace CoreMiner
             {
                 return WarmestColor;
             }
+        }
+
+
+        public float[,] BlendMapData(float[,] data01, float[,] data02, float blendFactor)
+        {
+            int width = data01.GetLength(0);
+            int height = data02.GetLength(1);
+
+            float[,] blendedData = new float[width, height];
+
+            for (int x = 0; x < width; x++)
+            {
+                for(int y = 0; y < height; y++)
+                {
+                    blendedData[x,y] = Mathf.Lerp(data01[x,y], data02[x,y], blendFactor);
+                }
+            }
+
+            return blendedData;
         }
         #endregion
 

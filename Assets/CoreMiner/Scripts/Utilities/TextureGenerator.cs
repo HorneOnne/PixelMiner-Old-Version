@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using LibNoise;
 using LibNoise.Generator;
+using LibNoise.Operator;
+using UnityEditor;
 
 namespace CoreMiner.Utilities.NoiseGeneration
 {
@@ -173,11 +175,18 @@ namespace CoreMiner.Utilities.NoiseGeneration
         }
 
 
-        public static int HeatWidth = 128;
-        public static int HeatHeight = 128;
+        public static int HeatWidth = 256;
+        public static int HeatHeight = 256;
+        public static int HeatOctaves = 4;
+        public static double HeatFrequency = 0.025;
+        public static double HeatLacunarity = 2.0f;
+        public static double HeatPersistence = 0.5f;
+        public static int HeatSeed = 7;
+        private static ModuleBase _heatModule;
         public static float[,] GenerateGradientNoiseOffset(int width, int height, float offsetX = 0, float offsetY = 0, int chunkFrameX = 0, int chunkFrameY = 0)
         {
             float[,] heatData = new float[width, height];
+            
 
             // Calculate the center of the texture with the offset
             Vector2 center =  new Vector2(chunkFrameX * HeatWidth, chunkFrameY * HeatHeight) +  new Vector2(HeatWidth / 2f, HeatHeight / 2f);
@@ -200,6 +209,8 @@ namespace CoreMiner.Utilities.NoiseGeneration
         public static float[,] GenerateGradientNoiseOffsetInfinite(int width, int height, float frameX = 0, float frameY = 0)
         {
             float[,] heatData = new float[width, height];
+            _heatModule = new Perlin(HeatFrequency, HeatLacunarity, HeatPersistence, HeatOctaves, HeatSeed, QualityMode.Medium);
+            ScaleBias scaleBiasModule = new ScaleBias(0.5f, 0.5f, _heatModule);
 
             int chunkFrameX = (int)(frameX * width / HeatWidth);
             int chunkFrameY = -Mathf.CeilToInt(frameY * height / HeatHeight);
@@ -207,22 +218,37 @@ namespace CoreMiner.Utilities.NoiseGeneration
             // Calculate the center of the texture with the offset
             Vector2 chunkOffset = new Vector2(chunkFrameX * HeatWidth, chunkFrameY * HeatHeight);
             Vector2 centerOffset = chunkOffset + new Vector2(frameX * width, frameY * height);
-  
 
+            float min = float.MaxValue;
+            float max = float.MinValue;
 
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
                 {
-                    Vector2 center = new Vector2(Mathf.FloorToInt(x / HeatWidth),Mathf.FloorToInt(y / HeatHeight)) * new Vector2(HeatWidth, HeatHeight) + new Vector2(HeatWidth / 2f, HeatHeight / 2f);
+                    Vector2 center = new Vector2(Mathf.FloorToInt(x / HeatWidth), Mathf.FloorToInt(y / HeatHeight)) * new Vector2(HeatWidth, HeatHeight) + new Vector2(HeatWidth / 2f, HeatHeight / 2f);
                     Vector2 centerWithOffset = center + centerOffset;
 
                     float distance = Mathf.Abs(y - centerWithOffset.y);
-                    float normalizedDistance = Mathf.Clamp01(distance / (HeatWidth / 2f));
+                    float normalizedDistance = 1.0f - Mathf.Clamp01(distance / (HeatWidth / 2f));
                     heatData[x, y] = normalizedDistance;
+
+                    //heatData[x, y] = ((float)scaleBiasModule.GetValue(x, 0, y));
+                    heatData[x, y] = ((float)scaleBiasModule.GetValue(x, 0, y) + 1.0f) * 0.5f * normalizedDistance;
+
+                    if (min > heatData[x, y])
+                    {
+                        min = heatData[x, y];
+                    }
+                    if (max < heatData[x, y])
+                    {
+                        max = heatData[x, y];
+                    }
                 }
             }
 
+            Debug.Log($"Min: {min}");
+            Debug.Log($"Max: {max}");
             return heatData;
         }
     }

@@ -284,8 +284,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ca9cf0c4e7605a4a9d49224e9f72da7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Width: 32
-  Height: 32
+  Width: 256
+  Height: 256
   Octaves: 6
   Frequency: 0.02
   Lacunarity: 2
@@ -470,7 +470,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &213821257
 Transform:
   m_ObjectHideFlags: 0
@@ -1453,7 +1453,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &978556205
 Transform:
   m_ObjectHideFlags: 0
@@ -1960,7 +1960,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1419446248
 Transform:
   m_ObjectHideFlags: 0
@@ -2074,9 +2074,9 @@ MonoBehaviour:
   _chunkPrefab: {fileID: 1287440298023199784, guid: 3f439708f29b6f14dbf4933564e81924, type: 3}
   ChunkWidth: 32
   ChunkHeight: 32
-  InitWorldWidth: 1
-  InitWorldHeight: 1
-  WorldSize: 1
+  InitWorldWidth: 4
+  InitWorldHeight: 4
+  WorldSize: 4
   Octaves: 6
   Frequency: 0.013
   Lacunarity: 2
@@ -2089,16 +2089,21 @@ MonoBehaviour:
   Forest: 0.8
   Rock: 0.9
   Snow: 1
-  HeatOctaves: 4
-  HeatFrequency: 3
   ColdestValue: 0.05
   ColderValue: 0.18
   ColdValue: 0.4
   WarmValue: 0.6
   WarmerValue: 0.8
+  HeatOctaves: 4
+  HeatFrequency: 0.5
+  HeatLacunarity: 2
+  HeatPersistence: 0.5
+  HeatSeed: 7
   AutoUnloadChunk: 0
-  ShowChunksBorder: 0
+  ShowChunksBorder: 1
   ShowTilegroupMaps: 0
+  MinHeatValue: 3.4028235e+38
+  MaxHeatValue: -3.4028235e+38
 --- !u!4 &1497941757
 Transform:
   m_ObjectHideFlags: 0
@@ -3201,7 +3206,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6577536551770996436, guid: b5fbf8417053cf343a54a8bfb1069a55, type: 3}
       propertyPath: playButtonTime
-      value: 638354194960103421
+      value: 638354966454663930
       objectReference: {fileID: 0}
     - target: {fileID: 6588897239180729126, guid: b5fbf8417053cf343a54a8bfb1069a55, type: 3}
       propertyPath: m_AnchorMax.y
@@ -3620,7 +3625,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1606847515
 Transform:
   m_ObjectHideFlags: 0
@@ -3924,7 +3929,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1943194142
 Transform:
   m_ObjectHideFlags: 0
