@@ -2074,9 +2074,9 @@ MonoBehaviour:
   _chunkPrefab: {fileID: 1287440298023199784, guid: 3f439708f29b6f14dbf4933564e81924, type: 3}
   ChunkWidth: 32
   ChunkHeight: 32
-  InitWorldWidth: 4
-  InitWorldHeight: 4
-  WorldSize: 4
+  InitWorldWidth: 8
+  InitWorldHeight: 8
+  WorldSize: 8
   Octaves: 6
   Frequency: 0.013
   Lacunarity: 2
@@ -2089,13 +2089,14 @@ MonoBehaviour:
   Forest: 0.8
   Rock: 0.9
   Snow: 1
+  HeatMapBlendFactor: 0.5
   ColdestValue: 0.05
   ColderValue: 0.18
   ColdValue: 0.4
   WarmValue: 0.6
   WarmerValue: 0.8
   HeatOctaves: 4
-  HeatFrequency: 0.5
+  HeatFrequency: 0.02
   HeatLacunarity: 2
   HeatPersistence: 0.5
   HeatSeed: 7
@@ -3206,7 +3207,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6577536551770996436, guid: b5fbf8417053cf343a54a8bfb1069a55, type: 3}
       propertyPath: playButtonTime
-      value: 638354966454663930
+      value: 638355011816087766
       objectReference: {fileID: 0}
     - target: {fileID: 6588897239180729126, guid: b5fbf8417053cf343a54a8bfb1069a55, type: 3}
       propertyPath: m_AnchorMax.y

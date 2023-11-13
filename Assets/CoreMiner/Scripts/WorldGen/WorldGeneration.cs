@@ -30,7 +30,7 @@ namespace CoreMiner
 
         // Min and Max Height used for normalize noise value in range [0-1]
         public float MinHeightNoise { get; private set; } = float.MaxValue;
-        public float MaxHeightNoise { get; private set; } = float.MinValue; 
+        public float MaxHeightNoise { get; private set; } = float.MinValue;
 
         [Header("Noise Settings")]
         public int Octaves = 6;
@@ -360,6 +360,7 @@ namespace CoreMiner
         public float MaxHeatValue = float.MinValue;
         private async Task<float[,]> GetGradientMapAsync(int isoFrameX, int isoFrameY)
         {
+            //Debug.Log("GetGradientMapAsync Start");
             float[,] gradientData = new float[ChunkWidth, ChunkHeight];
             isoFrameX = -isoFrameX;
             isoFrameY = -isoFrameY;
@@ -388,13 +389,15 @@ namespace CoreMiner
                 }
             });
 
-
+            //Debug.Log("GetGradientMapAsync Finish");
             return gradientData;
         }
         private async Task<float[,]> GetFractalHeatMapAsync(int isoFrameX, int isoFrameY)
         {
+            //Debug.Log("GetFractalHeatMapAsync Start");
+
             float[,] fractalNoiseData = new float[ChunkWidth, ChunkHeight];
-  
+
             await Task.Run(() =>
             {
                 for (int x = 0; x < ChunkWidth; x++)
@@ -411,7 +414,7 @@ namespace CoreMiner
                 }
             });
 
-
+            //Debug.Log("GetFractalHeatMapAsync Finish");
             return fractalNoiseData;
         }
         private async Task<float[,]> GetHeatMapAysnc(int isoFrameX, int isoFrameY)
@@ -419,13 +422,36 @@ namespace CoreMiner
             /*
              * Heatmap created by blend gradient map and fractal noise map.
              */
-            float[,] gradientValues = await GetGradientMapAsync(isoFrameX, isoFrameY);
-            float[,] fractalNoiseValues = await GetFractalHeatMapAsync(isoFrameX, isoFrameY);
+
+            // Sequence way
+            // ===========
+            //float[,] gradientValues = await GetGradientMapAsync(isoFrameX, isoFrameY);
+            //float[,] fractalNoiseValues = await GetFractalHeatMapAsync(isoFrameX, isoFrameY);
+            //float[,] heatValues = BlendMapData(gradientValues, fractalNoiseValues, HeatMapBlendFactor);
+
+
+            // Simultaneous way
+            // ===============
+            Task<float[,]> gradientTask = GetGradientMapAsync(isoFrameX, isoFrameY);
+            Task<float[,]> fractalNoiseTask = GetFractalHeatMapAsync(isoFrameX, isoFrameY);
+
+            // Await for both tasks to complete
+            await Task.WhenAll(gradientTask, fractalNoiseTask);
+            float[,] gradientValues = gradientTask.Result;
+            float[,] fractalNoiseValues = fractalNoiseTask.Result;
+
+            // Blend the maps
             float[,] heatValues = BlendMapData(gradientValues, fractalNoiseValues, HeatMapBlendFactor);
             return heatValues;
         }
 
 
+        /// <summary>
+        /// Obsolete (Need update).
+        /// </summary>
+        /// <param name="isoFrameX"></param>
+        /// <param name="isoFrameY"></param>
+        /// <returns></returns>
         private Chunk AddNewChunk(int isoFrameX, int isoFrameY)
         {
             Vector2 frame = IsometricUtilities.IsometricFrameToWorldFrame(isoFrameX, isoFrameY);
@@ -743,9 +769,9 @@ namespace CoreMiner
 
             for (int x = 0; x < width; x++)
             {
-                for(int y = 0; y < height; y++)
+                for (int y = 0; y < height; y++)
                 {
-                    blendedData[x,y] = Mathf.Lerp(data01[x,y], data02[x,y], blendFactor);
+                    blendedData[x, y] = Mathf.Lerp(data01[x, y], data02[x, y], blendFactor);
                 }
             }
 
