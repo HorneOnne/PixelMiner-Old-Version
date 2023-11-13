@@ -114,25 +114,7 @@ namespace CoreMiner
         }
 
 
-        /// <summary>
-        /// Obsolete, use LoadHeightMapAsync instead.
-        /// </summary>
-        /// <param name="heightValues"></param>
-        public void LoadHeightMap(float[,] heightValues)
-        {
-            for (int x = 0; x < _width; x++)
-            {
-                for (int y = 0; y < _height; y++)
-                {
-                    Tile tile = new Tile(x, y);
-                    tile.HeightValue = heightValues[x, y];
-                    ChunkData.SetValue(x, y, tile);        
-                }
-            }
-        }
-
-
-
+        
 
         public async Task LoadHeightMapDataAsync(float[,] heightValues)
         {
@@ -228,7 +210,8 @@ namespace CoreMiner
         }
 
         /// <summary>
-        /// Ajdust height map based on heatmap.
+        /// Load heightmap and heatmap simulteneously and
+        /// ajdust heatmap based on heightmap.(The higher you go, the lower the temperature)
         /// </summary>
         /// <param name="heightValues"></param>
         /// <returns></returns>
@@ -270,56 +253,7 @@ namespace CoreMiner
         }
 
 
-        /// <summary>
-        /// Obsolete.
-        /// </summary>
-        public void DrawChunk()
-        {
-            for (int x = 0; x < _width; x++)
-            {
-                for (int y = 0; y < _height; y++)
-                {
-                    float heightValue = ChunkData.GetValue(x, y).HeightValue;
-
-                    if (heightValue < WorldGeneration.Instance.DeepWater)
-                    {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DeepWater));
-                        WaterTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Water)
-                    {
-                        //LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
-                        WaterTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Sand)
-                    {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Sand));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Grass)
-                    {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DirtGrass));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Forest)
-                    {
-                        //LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
-                        WaterTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.ForestGrass));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Rock)
-                    {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Rock));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Snow)
-                    {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Snow));
-                    }
-                    else
-                    {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Snow));
-                    }
-                }
-            }
-            ChunkHasDrawn = true;
-        }
+        
 
         public async Task DrawChunkAsync()
         {
@@ -476,67 +410,7 @@ namespace CoreMiner
         }
 
 
-        /// <summary>
-        /// Obsolete.
-        /// </summary>
-        /// <param name="onFinished"></param>
-        public void DrawChunkPerformance(System.Action onFinished = null)
-        {
-            StartCoroutine(DrawChunkCoroutine(onFinished));
-        }
-
-        /// <summary>
-        /// Obsolete.
-        /// </summary>
-        /// <param name="onFinished"></param>
-        /// <returns></returns>
-        private IEnumerator DrawChunkCoroutine(System.Action onFinished)
-        {
-            for (int x = 0; x < _width; x++)
-            {
-                for (int y = 0; y < _height; y++)
-                {
-                    float heightValue = ChunkData.GetValue(x, y).HeightValue;
-
-                    if (heightValue < WorldGeneration.Instance.DeepWater)
-                    {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DeepWater));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Water)
-                    {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Sand)
-                    {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Sand));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Grass)
-                    {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DirtGrass));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Forest)
-                    {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.ForestGrass));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Rock)
-                    {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Rock));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Snow)
-                    {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Snow));
-                    }
-
-                }
-
-                if (PerformanceManager.Instance.HitFrameLimit())
-                {
-                    yield return null;
-                }
-            }
-            ChunkHasDrawn = true;
-            onFinished?.Invoke();
-        }
+        
 
         public void ClearChunkDraw()
         {
@@ -748,6 +622,139 @@ namespace CoreMiner
         {
             LandTileMap.GetComponent<TilemapRenderer>().mode = mode;
         }
+
+
+        #region Obsolete method.
+        /// <summary>
+        /// Obsolete.
+        /// </summary>
+        public void DrawChunk()
+        {
+            for (int x = 0; x < _width; x++)
+            {
+                for (int y = 0; y < _height; y++)
+                {
+                    float heightValue = ChunkData.GetValue(x, y).HeightValue;
+
+                    if (heightValue < WorldGeneration.Instance.DeepWater)
+                    {
+                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DeepWater));
+                        WaterTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Water)
+                    {
+                        //LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
+                        WaterTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Sand)
+                    {
+                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Sand));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Grass)
+                    {
+                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DirtGrass));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Forest)
+                    {
+                        //LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
+                        WaterTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.ForestGrass));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Rock)
+                    {
+                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Rock));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Snow)
+                    {
+                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Snow));
+                    }
+                    else
+                    {
+                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Snow));
+                    }
+                }
+            }
+            ChunkHasDrawn = true;
+        }
+
+        /// <summary>
+        /// Obsolete, use LoadHeightMapAsync instead.
+        /// </summary>
+        /// <param name="heightValues"></param>
+        public void LoadHeightMap(float[,] heightValues)
+        {
+            for (int x = 0; x < _width; x++)
+            {
+                for (int y = 0; y < _height; y++)
+                {
+                    Tile tile = new Tile(x, y);
+                    tile.HeightValue = heightValues[x, y];
+                    ChunkData.SetValue(x, y, tile);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Obsolete.
+        /// </summary>
+        /// <param name="onFinished"></param>
+        public void DrawChunkPerformance(System.Action onFinished = null)
+        {
+            StartCoroutine(DrawChunkCoroutine(onFinished));
+        }
+
+        /// <summary>
+        /// Obsolete.
+        /// </summary>
+        /// <param name="onFinished"></param>
+        /// <returns></returns>
+        private IEnumerator DrawChunkCoroutine(System.Action onFinished)
+        {
+            for (int x = 0; x < _width; x++)
+            {
+                for (int y = 0; y < _height; y++)
+                {
+                    float heightValue = ChunkData.GetValue(x, y).HeightValue;
+
+                    if (heightValue < WorldGeneration.Instance.DeepWater)
+                    {
+                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DeepWater));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Water)
+                    {
+                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Sand)
+                    {
+                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Sand));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Grass)
+                    {
+                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DirtGrass));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Forest)
+                    {
+                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.ForestGrass));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Rock)
+                    {
+                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Rock));
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Snow)
+                    {
+                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Snow));
+                    }
+
+                }
+
+                if (PerformanceManager.Instance.HitFrameLimit())
+                {
+                    yield return null;
+                }
+            }
+            ChunkHasDrawn = true;
+            onFinished?.Invoke();
+        }
+        #endregion
 
 
 

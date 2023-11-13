@@ -184,26 +184,6 @@ namespace CoreMiner
             onFinished?.Invoke();
         }
 
-        public void ComputeNoiseRange()
-        {
-            int sampleCount = 1000000; // Number of noise samples to generate
-            double minValue = double.MaxValue;
-            double maxValue = double.MinValue;
-            System.Random rand = new System.Random(Seed);
-
-            for (int i = 0; i < sampleCount; i++)
-            {
-                double x = rand.Next(); // Replace this with your desired coordinate values
-                double y = rand.Next();
-                double noiseValue = _heightModule.GetValue(x, y, 0); // Generate noise value
-
-                // Update min and max values
-                if (noiseValue < minValue)
-                    minValue = noiseValue;
-                if (noiseValue > maxValue)
-                    maxValue = noiseValue;
-            }
-        }
 
 
         public async Task ComputeNoiseRangeAsync()
@@ -315,24 +295,7 @@ namespace CoreMiner
         }
 
 
-
-        private float[,] GetHeightMapNoise(int isoFrameX, int isoFrameY)
-        {
-            float[,] heightValues = new float[ChunkWidth, ChunkHeight];
-            for (int x = 0; x < ChunkWidth; x++)
-            {
-                for (int y = 0; y < ChunkHeight; y++)
-                {
-                    float offsetX = isoFrameX * ChunkWidth + x;
-                    float offsetY = isoFrameY * ChunkHeight + y;
-                    heightValues[x, y] = (float)_heightModule.GetValue(offsetX, offsetY, 0);
-                }
-            }
-            return heightValues;
-        }
-
-
-
+        
         private async Task<float[,]> GetHeightMapNoiseAsyc(int isoFrameX, int isoFrameY)
         {
             float[,] heightValues = new float[ChunkWidth, ChunkHeight];
@@ -446,24 +409,7 @@ namespace CoreMiner
         }
 
 
-        /// <summary>
-        /// Obsolete (Need update).
-        /// </summary>
-        /// <param name="isoFrameX"></param>
-        /// <param name="isoFrameY"></param>
-        /// <returns></returns>
-        private Chunk AddNewChunk(int isoFrameX, int isoFrameY)
-        {
-            Vector2 frame = IsometricUtilities.IsometricFrameToWorldFrame(isoFrameX, isoFrameY);
-            Vector3 worldPosition = IsometricUtilities.ConvertIsometricFrameToWorldPosition(isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
-            Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity);
-            newChunk.Init(frame.x, frame.y, isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
-
-            // Create new data
-            float[,] heightValues = GetHeightMapNoise(isoFrameX, isoFrameY);
-            newChunk.LoadHeightMap(heightValues);
-            return newChunk;
-        }
+        
 
         private async Task<Chunk> AddNewChunkAsync(int isoFrameX, int isoFrameY)
         {
@@ -839,6 +785,50 @@ namespace CoreMiner
             }
         }
 #endif
+
+        #region Obsolete
+        /// <summary>
+        /// Obsolete (Need update).
+        /// </summary>
+        /// <param name="isoFrameX"></param>
+        /// <param name="isoFrameY"></param>
+        /// <returns></returns>
+        private Chunk AddNewChunk(int isoFrameX, int isoFrameY)
+        {
+            Vector2 frame = IsometricUtilities.IsometricFrameToWorldFrame(isoFrameX, isoFrameY);
+            Vector3 worldPosition = IsometricUtilities.ConvertIsometricFrameToWorldPosition(isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
+            Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity);
+            newChunk.Init(frame.x, frame.y, isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
+
+            // Create new data
+            float[,] heightValues = GetHeightMapNoise(isoFrameX, isoFrameY);
+            newChunk.LoadHeightMap(heightValues);
+            return newChunk;
+        }
+
+        /// <summary>
+        /// Obsolete
+        /// </summary>
+        /// <param name="isoFrameX"></param>
+        /// <param name="isoFrameY"></param>
+        /// <returns></returns>
+        private float[,] GetHeightMapNoise(int isoFrameX, int isoFrameY)
+        {
+            float[,] heightValues = new float[ChunkWidth, ChunkHeight];
+            for (int x = 0; x < ChunkWidth; x++)
+            {
+                for (int y = 0; y < ChunkHeight; y++)
+                {
+                    float offsetX = isoFrameX * ChunkWidth + x;
+                    float offsetY = isoFrameY * ChunkHeight + y;
+                    heightValues[x, y] = (float)_heightModule.GetValue(offsetX, offsetY, 0);
+                }
+            }
+            return heightValues;
+        }
+
+
+        #endregion
     }
 }
 
