@@ -308,7 +308,7 @@ namespace CoreMiner
         }
         #endregion Compute Noise Range
 
-
+        #region Init, Add, Remove Chunk
         private async void InitWorldAsync(int initIsoFrameX, int initIsoFrameY, int widthInit, int heightInit, System.Action onFinished = null)
         {
             UIGameManager.Instance.DisplayWorldGenCanvas(true);
@@ -343,12 +343,40 @@ namespace CoreMiner
             UIGameManager.Instance.DisplayWorldGenCanvas(false);
             onFinished?.Invoke();
         }
+        private async Task<Chunk> AddNewChunkAsync(int isoFrameX, int isoFrameY)
+        {
+            Vector2 frame = IsometricUtilities.IsometricFrameToWorldFrame(isoFrameX, isoFrameY);
+            Vector3 worldPosition = IsometricUtilities.ConvertIsometricFrameToWorldPosition(isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
+            Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity);
+            newChunk.Init(frame.x, frame.y, isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
 
+            // Create new data
+            float[,] heightValues = await GetHeightMapNoiseAsyc(isoFrameX, isoFrameY);
+            float[,] heatValues = await GetHeatMapDataAysnc(isoFrameX, isoFrameY);
+            float[,] moisetureValues = await GetMoistureMapDataAsync(isoFrameX, isoFrameY);
 
+            if (InitWorldWithHeatmap)
+            {
+                //await newChunk.LoadHeightMapDataAsync(heightValues);
+                //await newChunk.LoadHeatMapDataAsync(heatValues);
+                await newChunk.LoadHeightAndHeatMap(heightValues, heatValues);
+            }
+            else
+            {
+                await newChunk.LoadHeightMapDataAsync(heightValues);
+            }
 
+            if (InitWorldWithMoisturemap)
+            {
+                await newChunk.LoadMoistureMapDataAsync(moisetureValues);
+            }
+            else
+            {
 
+            }
 
-
+            return newChunk;
+        }
 
         // Load chunks around a given chunk position
         private async void LoadChunksAroundPosition(int isoFrameX, int isoFrameY, int offsetWidth = 1, int offsetHeight = 1)
@@ -415,9 +443,10 @@ namespace CoreMiner
                 SortActiveChunkByDepth();
             }
         }
+        #endregion
 
 
-
+        #region Generate noise map data.
         private async Task<float[,]> GetHeightMapNoiseAsyc(int isoFrameX, int isoFrameY)
         {
             float[,] heightValues = new float[ChunkWidth, ChunkHeight];
@@ -439,8 +468,6 @@ namespace CoreMiner
 
             return heightValues;
         }
-
-
         private async Task<float[,]> GetGradientMapAsync(int isoFrameX, int isoFrameY)
         {
             //Debug.Log("GetGradientMapAsync Start");
@@ -527,8 +554,6 @@ namespace CoreMiner
             float[,] heatValues = WorldGenUtilities.BlendMapData(gradientValues, fractalNoiseValues, HeatMapBlendFactor);
             return heatValues;
         }
-
-  
         private async Task<float[,]> GetMoistureMapDataAsync(int isoFrameX, int isoFrameY)
         {
             float[,] moistureData = new float[ChunkWidth, ChunkHeight];
@@ -551,75 +576,20 @@ namespace CoreMiner
 
             return moistureData;
         }
+        #endregion
 
 
-        private async Task<Chunk> AddNewChunkAsync(int isoFrameX, int isoFrameY)
-        {
-            Vector2 frame = IsometricUtilities.IsometricFrameToWorldFrame(isoFrameX, isoFrameY);
-            Vector3 worldPosition = IsometricUtilities.ConvertIsometricFrameToWorldPosition(isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
-            Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity);
-            newChunk.Init(frame.x, frame.y, isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
 
-            // Create new data
-            float[,] heightValues = await GetHeightMapNoiseAsyc(isoFrameX, isoFrameY);
-            float[,] heatValues = await GetHeatMapDataAysnc(isoFrameX, isoFrameY);
-            float[,] moisetureValues = await GetMoistureMapDataAsync(isoFrameX, isoFrameY);
-
-            if (InitWorldWithHeatmap)
-            {
-                //await newChunk.LoadHeightMapDataAsync(heightValues);
-                //await newChunk.LoadHeatMapDataAsync(heatValues);
-                await newChunk.LoadHeightAndHeatMap(heightValues, heatValues);
-            }
-            else
-            {
-                await newChunk.LoadHeightMapDataAsync(heightValues);
-            }
-
-            if (InitWorldWithMoisturemap)
-            {
-                await newChunk.LoadMoistureMapDataAsync(moisetureValues);
-            }
-            else
-            {
-
-            }
-
-            return newChunk;
-        }
+        #region River
 
 
-        /// <summary>
-        /// Sort active chunks fix some isometric chunk has wrong order (Visualization).
-        /// </summary>
-        private void SortActiveChunkByDepth(bool inverse = false)
-        {
-            int depth = 0;
-            List<Chunk> chunkList = ActiveChunks.ToList();
-
-            chunkList.Sort((v1, v2) =>
-            {
-                int xComparison = v1.IsometricFrameX.CompareTo(v2.IsometricFrameX);
-                int yComparison = v1.IsometricFrameY.CompareTo(v2.IsometricFrameY);
-
-                if (inverse)
-                {
-                    xComparison = -xComparison; // Reverse xComparison if 'inverse' is true
-                    yComparison = -yComparison; // Reverse yComparison if 'inverse' is true
-                }
-
-                return xComparison != 0 ? xComparison : yComparison;
-            });
-
-            foreach (var chunk in chunkList)
-            {
-                chunk.transform.position = new Vector3(chunk.transform.position.x,
-                    chunk.transform.position.y,
-                    depth++);
-            }
-        }
+        #endregion
 
 
+
+       
+
+        #region Neighbors
         private void AddChunkFourDirectionNeighbors(Chunk chunk)
         {
             Chunk nbAbove = GetChunkNeighborAbove(chunk);
@@ -628,8 +598,6 @@ namespace CoreMiner
             Chunk nbRight = GetChunkNeighborRight(chunk);
             chunk.SetTwoSidesChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
         }
-
-
         private Chunk GetChunkNeighborAbove(Chunk chunk)
         {
             Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX, chunk.IsometricFrameY + 1);
@@ -650,7 +618,6 @@ namespace CoreMiner
             Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX + 1, chunk.IsometricFrameY);
             return _chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
         }
-
         private void UpdateChunkTileNeighbors(Chunk chunk)
         {
             if (chunk.HasNeighbors()) return;
@@ -731,19 +698,12 @@ namespace CoreMiner
 
             }
         }
+        #endregion
 
-        public Chunk GetChunkFromWorldPosition(Vector2 mousePosition)
-        {
-            var frame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(mousePosition,
-                                                                               ChunkWidth,
-                                                                               ChunkHeight);
-            if (_chunks.ContainsKey(frame))
-            {
-                return _chunks[frame];
-            }
-            return null;
-        }
 
+        
+
+        #region Grid Algorithm
         private void FloodFill(Chunk chunk)
         {
             Stack<Tile> stack = new Stack<Tile>();
@@ -798,7 +758,6 @@ namespace CoreMiner
                 }
             }
         }
-
         private void FloodFill(Tile tile, ref TileGroup tiles, ref Stack<Tile> stack, Chunk chunk)
         {
             // Validate
@@ -838,6 +797,8 @@ namespace CoreMiner
                 stack.Push(nb);
             }
         }
+        #endregion
+
 
         #region Utilities
         public Color GetGradientColor(float heatValue)
@@ -873,6 +834,47 @@ namespace CoreMiner
             else
             {
                 return WarmestColor;
+            }
+        }
+        public Chunk GetChunkFromWorldPosition(Vector2 mousePosition)
+        {
+            var frame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(mousePosition,
+                                                                               ChunkWidth,
+                                                                               ChunkHeight);
+            if (_chunks.ContainsKey(frame))
+            {
+                return _chunks[frame];
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Sort active chunks fix some isometric chunk has wrong order (Visualization).
+        /// </summary>
+        private void SortActiveChunkByDepth(bool inverse = false)
+        {
+            int depth = 0;
+            List<Chunk> chunkList = ActiveChunks.ToList();
+
+            chunkList.Sort((v1, v2) =>
+            {
+                int xComparison = v1.IsometricFrameX.CompareTo(v2.IsometricFrameX);
+                int yComparison = v1.IsometricFrameY.CompareTo(v2.IsometricFrameY);
+
+                if (inverse)
+                {
+                    xComparison = -xComparison; // Reverse xComparison if 'inverse' is true
+                    yComparison = -yComparison; // Reverse yComparison if 'inverse' is true
+                }
+
+                return xComparison != 0 ? xComparison : yComparison;
+            });
+
+            foreach (var chunk in chunkList)
+            {
+                chunk.transform.position = new Vector3(chunk.transform.position.x,
+                    chunk.transform.position.y,
+                    depth++);
             }
         }
         #endregion
