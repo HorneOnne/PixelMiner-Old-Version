@@ -26,8 +26,10 @@ namespace CoreMiner
         public int InitWorldWidth = 3;
         public int InitWorldHeight = 3;
         public int LoadChunkOffsetWidth = 1;      
-        public int LoadChunkOffsetHeight = 1;     
-        private int _calculateNoiseRangeCount = 500000;
+        public int LoadChunkOffsetHeight = 1;
+        // Compute noise range sample count.
+        private int _calculateNoiseRangeSampleMultiplier = 15;  // 50 times. 50 * 100000 = 5 mil times.
+        private int _calculateNoiseRangeCount = 1000000;    // 1 mil times.
 
 
         // Min and Max Height used for normalize noise value in range [0-1]
@@ -71,7 +73,6 @@ namespace CoreMiner
 
 
         [Header("Moisture Map")]
-        private ModuleBase _moistureModule;
         public int MoistureOctaves = 4;
         public double MoistureFrequency = 0.03;
         public double MoistureLacunarity = 2.0f;
@@ -82,7 +83,7 @@ namespace CoreMiner
         public float WetValue = 0.6f;
         public float WetterValue = 0.8f;
         public float WettestValue = 0.9f;
-       
+        private ModuleBase _moistureModule;
 
         [Header("World Generation Utilities")]
         public bool AutoUnloadChunk = true;
@@ -183,51 +184,14 @@ namespace CoreMiner
         }
 
 
-        private async void InitWorldAsync(int initIsoFrameX, int initIsoFrameY, int widthInit, int heightInit, System.Action onFinished = null)
-        {
-            UIGameManager.Instance.DisplayWorldGenCanvas(true);
-
-            await ComputeNoiseRangeAsync();
-
-            Debug.Log($"min: {MinHeightNoise}");
-            Debug.Log($"max: {MaxHeightNoise}");
-
-            int totalIterations = (2 * widthInit + 1) * (2 * heightInit + 1);
-            int currentIteration = 0;
-            for (int x = initIsoFrameX - widthInit; x <= initIsoFrameX + widthInit; x++)
-            {
-                for (int y = initIsoFrameY - heightInit; y <= initIsoFrameY + heightInit; y++)
-                {
-                    Vector2Int nbIsoFrame = new Vector2Int(x, y);
-                    Chunk newChunk = await AddNewChunkAsync(x, y);
-                    _chunks.Add(nbIsoFrame, newChunk);
-                    newChunk.UnloadChunk();
-
-
-                    // Update the slider value based on progress
-                    currentIteration++;
-                    float progress = (float)currentIteration / totalIterations;
-                    float mapProgress = MathHelper.Map(progress, 0f, 1f, 0.3f, 1.0f);
-                    UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);
-                }
-            }
-            await Task.Delay(100);
-
-            UIGameManager.Instance.DisplayWorldGenCanvas(false);
-            onFinished?.Invoke();
-        }
-
-
-
-        public async Task ComputeNoiseRangeAsync()
+        #region Compute noise range [min, max] when start
+        public async Task ComputeNoiseRangeAsyncInSequence()
         {
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
             float minNoiseValue = float.MaxValue;
             float maxNoiseValue = float.MinValue;
             System.Random rand = new System.Random(Seed);
-
-            int progressCounter = _calculateNoiseRangeCount - 1;
 
             await Task.Run(() =>
             {
@@ -250,7 +214,7 @@ namespace CoreMiner
                         float mapProgress = MathHelper.Map(progress, 0f, 1f, 0.0f, 0.3f);
                         UnityMainThreadDispatcher.Instance().Enqueue(() =>
                         {
-                            UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress); ;
+                            UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);
                         });
                     }
                 }
@@ -263,6 +227,126 @@ namespace CoreMiner
             sw.Stop();
             Debug.Log($"Compute noise time: {sw.ElapsedMilliseconds / 1000f} s");
         }
+
+        public async Task ComputeNoiseRangeAsyncParallel()
+        {
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+            float minNoiseValue = float.MaxValue;
+            float maxNoiseValue = float.MinValue;
+
+            UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(0);
+
+            Task<MinMax>[] tasks = new Task<MinMax>[_calculateNoiseRangeSampleMultiplier];
+            for (int i = 0; i < tasks.Length; i++)
+            {
+                int newSeed = WorldGenUtilities.GenerateNewSeed(Seed + i);
+                bool updateLoadingUI = i == 0 ? true : false;
+                tasks[i] = ComputeNoiseRangeAsync(newSeed, updateLoadingUI);
+            }
+            await Task.WhenAll(tasks);
+
+            for (int i = 0; i < tasks.Length; i++)
+            {
+                float minValue = tasks[i].Result.MinValue;
+                float maxValue = tasks[i].Result.MaxValue;
+
+                if (minNoiseValue > minValue)
+                    minNoiseValue = minValue;
+                if (maxNoiseValue < maxValue)
+                    maxNoiseValue = maxValue;
+            }
+            MinHeightNoise = minNoiseValue;
+            MaxHeightNoise = maxNoiseValue;
+
+            sw.Stop();
+            Debug.Log($"Compute noise time: {sw.ElapsedMilliseconds / 1000f} s");
+        }
+
+        struct MinMax
+        {
+            public float MinValue;
+            public float MaxValue;
+        }
+        private async Task<MinMax> ComputeNoiseRangeAsync(int seed, bool updateLoadingUI = false)
+        {
+            MinMax minMax = new MinMax()
+            {
+                MinValue = float.MaxValue,
+                MaxValue = float.MinValue
+            };
+            System.Random rand = new System.Random(seed);
+            int sampleCount = 100000;
+
+            await Task.Run(() =>
+            {
+                for (int i = 0; i < sampleCount; i++)
+                {
+                    double x = rand.Next();
+                    double y = rand.Next();
+                    float noiseValue = (float)_heightModule.GetValue(x, y, 0); // Generate noise value
+
+                    // Update min and max values
+                    if (noiseValue < minMax.MinValue)
+                        minMax.MinValue = noiseValue;
+                    if (noiseValue > minMax.MaxValue)
+                        minMax.MaxValue = noiseValue;
+
+                    if (updateLoadingUI && (i & 3124) == 0)
+                    {
+                        float progress = (float)i / sampleCount;
+                        float mapProgress = MathHelper.Map(progress, 0f, 1f, 0.0f, 0.1f);
+                        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                        {
+                            UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress); ;
+                        });
+                    }
+                }
+            });
+
+            return minMax;
+        }
+        #endregion Compute Noise Range
+
+
+        private async void InitWorldAsync(int initIsoFrameX, int initIsoFrameY, int widthInit, int heightInit, System.Action onFinished = null)
+        {
+            UIGameManager.Instance.DisplayWorldGenCanvas(true);
+
+            //await ComputeNoiseRangeAsyncInSequence();
+            await ComputeNoiseRangeAsyncParallel();
+
+            Debug.Log($"min: {MinHeightNoise}");
+            Debug.Log($"max: {MaxHeightNoise}");
+
+            int totalIterations = (2 * widthInit + 1) * (2 * heightInit + 1);
+            int currentIteration = 0;
+            for (int x = initIsoFrameX - widthInit; x <= initIsoFrameX + widthInit; x++)
+            {
+                for (int y = initIsoFrameY - heightInit; y <= initIsoFrameY + heightInit; y++)
+                {
+                    Vector2Int nbIsoFrame = new Vector2Int(x, y);
+                    Chunk newChunk = await AddNewChunkAsync(x, y);
+                    _chunks.Add(nbIsoFrame, newChunk);
+                    newChunk.UnloadChunk();
+
+
+                    // Update the slider value based on progress
+                    currentIteration++;
+                    float progress = (float)currentIteration / totalIterations;
+                    float mapProgress = MathHelper.Map(progress, 0f, 1f, 0.1f, 1.0f);
+                    UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);
+                }
+            }
+            await Task.Delay(100);
+
+            UIGameManager.Instance.DisplayWorldGenCanvas(false);
+            onFinished?.Invoke();
+        }
+
+
+
+       
 
 
 
@@ -411,7 +495,7 @@ namespace CoreMiner
             //Debug.Log("GetFractalHeatMapAsync Finish");
             return fractalNoiseData;
         }
-        private async Task<float[,]> GetHeatMapAysnc(int isoFrameX, int isoFrameY)
+        private async Task<float[,]> GetHeatMapDataAysnc(int isoFrameX, int isoFrameY)
         {
             /*
              * Heatmap created by blend gradient map and fractal noise map.
@@ -435,11 +519,32 @@ namespace CoreMiner
             float[,] fractalNoiseValues = fractalNoiseTask.Result;
 
             // Blend the maps
-            float[,] heatValues = BlendMapData(gradientValues, fractalNoiseValues, HeatMapBlendFactor);
+            float[,] heatValues = WorldGenUtilities.BlendMapData(gradientValues, fractalNoiseValues, HeatMapBlendFactor);
             return heatValues;
         }
 
+        private async Task<float[,]> GetMoistureMapDataAsync(int isoFrameX, int isoFrameY)
+        {
+            float[,] moistureData = new float[ChunkWidth, ChunkHeight];
 
+            await Task.Run(() =>
+            {
+                for (int x = 0; x < ChunkWidth; x++)
+                {
+                    for (int y = 0; y < ChunkHeight; y++)
+                    {
+                        float offsetX = isoFrameX * ChunkWidth + x;
+                        float offsetY = isoFrameY * ChunkHeight + y;
+                        float heatValue = (float)_heatModule.GetValue(offsetX, 0, offsetY);
+                        float normalizeHeatValue = (heatValue - MinHeightNoise) / (MaxHeightNoise - MinHeightNoise);
+
+                        moistureData[x, y] = normalizeHeatValue;
+                    }
+                }
+            });
+
+            return moistureData;
+        }
         
 
         private async Task<Chunk> AddNewChunkAsync(int isoFrameX, int isoFrameY)
@@ -451,7 +556,7 @@ namespace CoreMiner
 
             // Create new data
             float[,] heightValues = await GetHeightMapNoiseAsyc(isoFrameX, isoFrameY);
-            float[,] heatValues = await GetHeatMapAysnc(isoFrameX, isoFrameY);
+            float[,] heatValues = await GetHeatMapDataAysnc(isoFrameX, isoFrameY);
 
             if (InitWorldWithHeatmap)
             {
@@ -753,25 +858,6 @@ namespace CoreMiner
             {
                 return WarmestColor;
             }
-        }
-
-
-        public float[,] BlendMapData(float[,] data01, float[,] data02, float blendFactor)
-        {
-            int width = data01.GetLength(0);
-            int height = data02.GetLength(1);
-
-            float[,] blendedData = new float[width, height];
-
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    blendedData[x, y] = Mathf.Lerp(data01[x, y], data02[x, y], blendFactor);
-                }
-            }
-
-            return blendedData;
         }
         #endregion
 
