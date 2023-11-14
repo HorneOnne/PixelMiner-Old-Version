@@ -22,9 +22,11 @@ namespace CoreMiner
         [Header("World Settings")]
         public int ChunkWidth = 16;      // Size of each chunk in tiles
         public int ChunkHeight = 16;      // Size of each chunk in tiles
+        [Space(5)]
         public int InitWorldWidth = 3;
         public int InitWorldHeight = 3;
-        public int WorldSize = 1;       // Number of chunks in the world
+        public int LoadChunkOffsetWidth = 1;      
+        public int LoadChunkOffsetHeight = 1;     
         private int _calculateNoiseRangeCount = 500000;
 
 
@@ -52,34 +54,43 @@ namespace CoreMiner
         [Header("Heat Map")]
         [Range(0f, 1f)]
         public float HeatMapBlendFactor = 0.5f;
-        // Heat Gradient
+        private float _gradientHeatmapSize = 256;
+        private ModuleBase _heatModule;
+        // Heatmap Gradient
         public float ColdestValue = 0.1f;
         public float ColderValue = 0.2f;
         public float ColdValue = 0.4f;
         public float WarmValue = 0.6f;
         public float WarmerValue = 0.8f;
-        private float _gradientHeatmapSize = 256;
-        public static Color ColdestColor = new Color(0, 1, 1, 1);
-        public static Color ColderColor = new Color(170 / 255f, 1, 1, 1);
-        public static Color ColdColor = new Color(0, 229 / 255f, 133 / 255f, 1);
-        public static Color WarmColor = new Color(1, 1, 100 / 255f, 1);
-        public static Color WarmerColor = new Color(1, 100 / 255f, 0, 1);
-        public static Color WarmestColor = new Color(241 / 255f, 12 / 255f, 0, 1);
-        // Heat Fratal
+        // Heatmap fratal
         public int HeatOctaves = 4;
         public double HeatFrequency = 0.02;
         public double HeatLacunarity = 2.0f;
         public double HeatPersistence = 0.5f;
-        public int HeatSeed = 7;
-        private ModuleBase _heatModule;
 
 
 
+        [Header("Moisture Map")]
+        private ModuleBase _moistureModule;
+        public int MoistureOctaves = 4;
+        public double MoistureFrequency = 0.03;
+        public double MoistureLacunarity = 2.0f;
+        public double MoisturePersistence = 0.5f;
+        [Space(5)]
+        public float DryerValue = 0.27f;
+        public float DryValue = 0.4f;
+        public float WetValue = 0.6f;
+        public float WetterValue = 0.8f;
+        public float WettestValue = 0.9f;
+       
 
         [Header("World Generation Utilities")]
         public bool AutoUnloadChunk = true;
         public bool ShowChunksBorder = false;
         public bool ShowTilegroupMaps = false;
+        public bool InitWorldWithHeatmap = false;
+        public bool InitWorldWithMoisturemap = false;
+        public bool PaintTileNeighbors = false;
 
 
         [Header("Tilemap")]
@@ -91,6 +102,25 @@ namespace CoreMiner
         [Header("Data Cached")]
         private Dictionary<Vector2Int, Chunk> _chunks;
         public HashSet<Chunk> ActiveChunks;
+
+        [Header("Color")]
+        // Height
+        // Heat
+        public static Color ColdestColor = new Color(0, 1, 1, 1);
+        public static Color ColderColor = new Color(170 / 255f, 1, 1, 1);
+        public static Color ColdColor = new Color(0, 229 / 255f, 133 / 255f, 1);
+        public static Color WarmColor = new Color(1, 1, 100 / 255f, 1);
+        public static Color WarmerColor = new Color(1, 100 / 255f, 0, 1);
+        public static Color WarmestColor = new Color(241 / 255f, 12 / 255f, 0, 1);
+
+        // Moisture
+        public static Color Dryest = new Color(255 / 255f, 139 / 255f, 17 / 255f, 1);
+        public static Color Dryer = new Color(245 / 255f, 245 / 255f, 23 / 255f, 1);
+        public static Color Dry = new Color(80 / 255f, 255 / 255f, 0 / 255f, 1);
+        public static Color Wet = new Color(85 / 255f, 255 / 255f, 255 / 255f, 1);
+        public static Color Wetter = new Color(20 / 255f, 70 / 255f, 255 / 255f, 1);
+        public static Color Wettest = new Color(0 / 255f, 0 / 255f, 100 / 255f, 1);
+
 
 
         // Cached
@@ -122,8 +152,11 @@ namespace CoreMiner
             ActiveChunks = new HashSet<Chunk>();
 
             _centerPoint = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width / 2f, Screen.height / 2f));
+
+            // Init noise module
             _heightModule = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, QualityMode.High);
-            _heatModule = new Perlin(HeatFrequency, HeatLacunarity, HeatPersistence, HeatOctaves, HeatSeed, QualityMode.High);
+            _heatModule = new Perlin(HeatFrequency, HeatLacunarity, HeatPersistence, HeatOctaves, Seed, QualityMode.High);
+            _moistureModule = new Perlin(MoistureFrequency, MoistureLacunarity, MoisturePersistence, MoistureOctaves, Seed, QualityMode.High);
 
             // Load chunks around the player's starting position
             lastChunkISOFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(_centerPoint, ChunkWidth, ChunkHeight);
@@ -132,7 +165,7 @@ namespace CoreMiner
             // World Initialization
             InitWorldAsync(lastChunkISOFrame.x, lastChunkISOFrame.y, widthInit: InitWorldWidth, heightInit: InitWorldHeight, () =>
             {
-                LoadChunksAroundPosition(lastChunkISOFrame.x, lastChunkISOFrame.y, offset: WorldSize);
+                LoadChunksAroundPosition(lastChunkISOFrame.x, lastChunkISOFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
             });
 
         }
@@ -145,7 +178,7 @@ namespace CoreMiner
             if (_centerPointFrame != lastChunkISOFrame)
             {
                 lastChunkISOFrame = _centerPointFrame;
-                LoadChunksAroundPosition(_centerPointFrame.x, _centerPointFrame.y, offset: WorldSize);
+                LoadChunksAroundPosition(_centerPointFrame.x, _centerPointFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
             }
         }
 
@@ -234,11 +267,11 @@ namespace CoreMiner
 
 
         // Load chunks around a given chunk position
-        private async void LoadChunksAroundPosition(int isoFrameX, int isoFrameY, int offset = 1)
+        private async void LoadChunksAroundPosition(int isoFrameX, int isoFrameY, int offsetWidth = 1, int offsetHeight = 1)
         {
-            for (int x = isoFrameX - offset; x <= isoFrameX + offset; x++)
+            for (int x = isoFrameX - offsetWidth; x <= isoFrameX + offsetWidth; x++)
             {
-                for (int y = isoFrameY - offset; y <= isoFrameY + offset; y++)
+                for (int y = isoFrameY - offsetHeight; y <= isoFrameY + offsetHeight; y++)
                 {
                     Vector2Int nbIsoFrame = new Vector2Int(x, y);
                     if (_chunks.ContainsKey(nbIsoFrame) == false)
@@ -319,8 +352,6 @@ namespace CoreMiner
         }
 
 
-        public float MinHeatValue = float.MaxValue;
-        public float MaxHeatValue = float.MinValue;
         private async Task<float[,]> GetGradientMapAsync(int isoFrameX, int isoFrameY)
         {
             //Debug.Log("GetGradientMapAsync Start");
@@ -422,10 +453,17 @@ namespace CoreMiner
             float[,] heightValues = await GetHeightMapNoiseAsyc(isoFrameX, isoFrameY);
             float[,] heatValues = await GetHeatMapAysnc(isoFrameX, isoFrameY);
 
-            //await newChunk.LoadHeightMapDataAsync(heightValues);
-            //await newChunk.LoadHeatMapDataAsync(heatValues);
-            await newChunk.LoadHeightAndHeatMap(heightValues, heatValues);
-
+            if (InitWorldWithHeatmap)
+            {
+                //await newChunk.LoadHeightMapDataAsync(heightValues);
+                //await newChunk.LoadHeatMapDataAsync(heatValues);
+                await newChunk.LoadHeightAndHeatMap(heightValues, heatValues);
+            }
+            else
+            {
+                await newChunk.LoadHeightMapDataAsync(heightValues);
+            }
+           
             return newChunk;
         }
 
@@ -506,7 +544,9 @@ namespace CoreMiner
             if (chunk.HasNeighbors())
             {
                 chunk.UpdateAllTileNeighbors();
-                chunk.PaintNeighborsColor();
+
+                if(PaintTileNeighbors)
+                    chunk.PaintNeighborsColor();
 
                 if (chunk.Waters.Count == 0 && chunk.Lands.Count == 0)
                 {
@@ -518,7 +558,9 @@ namespace CoreMiner
             if (nbAbove != null && nbAbove.HasNeighbors())
             {
                 nbAbove.UpdateAllTileNeighbors();
-                nbAbove.PaintNeighborsColor();
+
+                if(PaintTileNeighbors)
+                    nbAbove.PaintNeighborsColor();
 
                 if (nbAbove.Waters.Count == 0 && nbAbove.Lands.Count == 0)
                 {
@@ -529,7 +571,9 @@ namespace CoreMiner
             if (nbBelow != null && nbBelow.HasNeighbors())
             {
                 nbBelow.UpdateAllTileNeighbors();
-                nbBelow.PaintNeighborsColor();
+
+                if(PaintTileNeighbors)
+                    nbBelow.PaintNeighborsColor();
 
                 if (nbBelow.Waters.Count == 0 && nbBelow.Lands.Count == 0)
                 {
@@ -541,7 +585,9 @@ namespace CoreMiner
             if (nbLeft != null && nbLeft.HasNeighbors())
             {
                 nbLeft.UpdateAllTileNeighbors();
-                nbLeft.PaintNeighborsColor();
+
+                if(PaintTileNeighbors)
+                    nbLeft.PaintNeighborsColor();
 
                 if (nbLeft.Waters.Count == 0 && nbLeft.Lands.Count == 0)
                 {
@@ -552,7 +598,9 @@ namespace CoreMiner
             if (nbRight != null && nbRight.HasNeighbors())
             {
                 nbRight.UpdateAllTileNeighbors();
-                nbRight.PaintNeighborsColor();
+
+                if(PaintTileNeighbors)
+                    nbRight.PaintNeighborsColor();
 
                 if (nbRight.Waters.Count == 0 && nbRight.Lands.Count == 0)
                 {

@@ -32,11 +32,11 @@ namespace CoreMiner
 
 
         [Header("Tilemap visualization")]
-        public Tilemap LandTileMap;
-        public Tilemap WaterTileMap;
-        public Tilemap HeatMap;
-        public Tilemap TilegroupMap;
-        public Tilemap GradientMap;
+        public Tilemap LandTilemap;
+        public Tilemap WaterTilemap;
+        public Tilemap Tilegroupmap;
+        public Tilemap HeatTilemap;
+        public Tilemap MoistureTilemap;
         public Grid Grid;
 
         public bool HasFourNeighbors;
@@ -100,11 +100,11 @@ namespace CoreMiner
             gameObject.SetActive(true);
             if (WorldGeneration.Instance.ShowTilegroupMaps)
             {
-                TilegroupMap.GetComponent<TilemapRenderer>().enabled = true;
+                Tilegroupmap.GetComponent<TilemapRenderer>().enabled = true;
             }
             else
             {
-                TilegroupMap.GetComponent<TilemapRenderer>().enabled = false;
+                Tilegroupmap.GetComponent<TilemapRenderer>().enabled = false;
             }
         }
 
@@ -116,7 +116,7 @@ namespace CoreMiner
 
         
 
-        public async Task LoadHeightMapDataAsync(float[,] heightValues)
+        public async Task LoadHeightMapDataAsync(float[,] heightValues, bool updateHeightType = true)
         {
             await Task.Run(() =>
             {
@@ -127,47 +127,16 @@ namespace CoreMiner
                         Tile tile = ChunkData.GetValue(x, y);
                         tile.HeightValue = heightValues[x, y];
 
-                        if (tile.HeightValue < WorldGeneration.Instance.DeepWater)
+                        if(updateHeightType)
                         {
-                            tile.HeightType = HeightType.DeepWater;
-                            tile.Collidable = false;
-                        }
-                        else if (tile.HeightValue < WorldGeneration.Instance.Water)
-                        {
-                            tile.HeightType = HeightType.ShallowWater;
-                            tile.Collidable = false;
-                        }
-                        else if (tile.HeightValue < WorldGeneration.Instance.Sand)
-                        {
-                            tile.HeightType = HeightType.Sand;
-                            tile.Collidable = true;
-                        }
-                        else if (tile.HeightValue < WorldGeneration.Instance.Grass)
-                        {
-                            tile.HeightType = HeightType.Grass;
-                            tile.Collidable = true;
-                        }
-                        else if (tile.HeightValue < WorldGeneration.Instance.Forest)
-                        {
-                            tile.HeightType = HeightType.Forest;
-                            tile.Collidable = true;
-                        }
-                        else if (tile.HeightValue < WorldGeneration.Instance.Rock)
-                        {
-                            tile.HeightType = HeightType.Rock;
-                            tile.Collidable = true;
-                        }
-                        else
-                        {
-                            tile.HeightType = HeightType.Snow;
-                            tile.Collidable = true;
-                        }
+                            UpdateHeightType(tile);
+                        }                 
                     }
                 });
 
             });
         }
-        public async Task LoadHeatMapDataAsync(float[,] heatValues)
+        public async Task LoadHeatMapDataAsync(float[,] heatValues, bool updateHeatType = true)
         {
             await Task.Run(() =>
             {
@@ -178,31 +147,10 @@ namespace CoreMiner
                         Tile tile = ChunkData.GetValue(x, y);
                         tile.HeatValue = heatValues[x, y];
 
-
-                        if (tile.HeatValue < WorldGeneration.Instance.ColdestValue)
+                        if(updateHeatType)
                         {
-                            tile.HeatType = HeatType.Coldest;
-                        }
-                        else if (tile.HeatValue < WorldGeneration.Instance.ColderValue)
-                        {
-                            tile.HeatType = HeatType.Colder;
-                        }
-                        else if (tile.HeatValue < WorldGeneration.Instance.ColdValue)
-                        {
-                            tile.HeatType = HeatType.Cold;
-                        }
-                        else if (tile.HeatValue < WorldGeneration.Instance.WarmValue)
-                        {
-                            tile.HeatType = HeatType.Warm;
-                        }
-                        else if (tile.HeatValue < WorldGeneration.Instance.WarmerValue)
-                        {
-                            tile.HeatType = HeatType.Warmer;
-                        }
-                        else
-                        {
-                            tile.HeatType = HeatType.Warmest;
-                        }
+                            UpdateHeatType(tile);
+                        }    
                     }
                 });
 
@@ -217,8 +165,8 @@ namespace CoreMiner
         /// <returns></returns>
         public async Task LoadHeightAndHeatMap(float[,] heightValues, float[,] heatValues)
         {
-            Task loadHeightMapDataTask = LoadHeightMapDataAsync(heightValues);
-            Task loadHeatMapDataTask = LoadHeatMapDataAsync(heatValues);
+            Task loadHeightMapDataTask = LoadHeightMapDataAsync(heightValues, updateHeightType: true);
+            Task loadHeatMapDataTask = LoadHeatMapDataAsync(heatValues, updateHeatType: false); // updateHeatType = false because we will update it after adjust by heightmap.
 
             await Task.WhenAll(loadHeatMapDataTask, loadHeightMapDataTask);
 
@@ -229,31 +177,99 @@ namespace CoreMiner
                 {
                     for (int y = 0; y < _height; y++)
                     {
-                        Tile t = ChunkData.GetValue(x, y);
+                        Tile tile = ChunkData.GetValue(x, y);
 
-                        if (t.HeightType == HeightType.Forest)
+                        if (tile.HeightType == HeightType.Forest)
                         {
-                            t.HeatValue -= 0.1f * t.HeightValue;
+                            tile.HeatValue -= 0.1f * tile.HeightValue;
                         }
-                        else if (t.HeightType == HeightType.Rock)
+                        else if (tile.HeightType == HeightType.Rock)
                         {
-                            t.HeatValue -= 0.25f * t.HeightValue;
+                            tile.HeatValue -= 0.25f * tile.HeightValue;
                         }
-                        else if (t.HeightType == HeightType.Snow)
+                        else if (tile.HeightType == HeightType.Snow)
                         {
-                            t.HeatValue -= 0.4f * t.HeightValue;
+                            tile.HeatValue -= 0.4f * tile.HeightValue;
                         }
                         else
                         {
-                            t.HeatValue += 0.01f * t.HeightValue;
+                            tile.HeatValue += 0.01f * tile.HeightValue;
                         }
+
+                        UpdateHeatType(tile);
                     }
                 }
             });   
         }
 
 
-        
+        private void UpdateHeightType(Tile tile)
+        {
+            if (tile.HeightValue < WorldGeneration.Instance.DeepWater)
+            {
+                tile.HeightType = HeightType.DeepWater;
+                tile.Collidable = false;
+            }
+            else if (tile.HeightValue < WorldGeneration.Instance.Water)
+            {
+                tile.HeightType = HeightType.ShallowWater;
+                tile.Collidable = false;
+            }
+            else if (tile.HeightValue < WorldGeneration.Instance.Sand)
+            {
+                tile.HeightType = HeightType.Sand;
+                tile.Collidable = true;
+            }
+            else if (tile.HeightValue < WorldGeneration.Instance.Grass)
+            {
+                tile.HeightType = HeightType.Grass;
+                tile.Collidable = true;
+            }
+            else if (tile.HeightValue < WorldGeneration.Instance.Forest)
+            {
+                tile.HeightType = HeightType.Forest;
+                tile.Collidable = true;
+            }
+            else if (tile.HeightValue < WorldGeneration.Instance.Rock)
+            {
+                tile.HeightType = HeightType.Rock;
+                tile.Collidable = true;
+            }
+            else
+            {
+                tile.HeightType = HeightType.Snow;
+                tile.Collidable = true;
+            }
+        }
+
+        private void UpdateHeatType(Tile tile)
+        {
+            // Adjust heat type when heat value has changed.
+            if (tile.HeatValue < WorldGeneration.Instance.ColdestValue)
+            {
+                tile.HeatType = HeatType.Coldest;
+            }
+            else if (tile.HeatValue < WorldGeneration.Instance.ColderValue)
+            {
+                tile.HeatType = HeatType.Colder;
+            }
+            else if (tile.HeatValue < WorldGeneration.Instance.ColdValue)
+            {
+                tile.HeatType = HeatType.Cold;
+            }
+            else if (tile.HeatValue < WorldGeneration.Instance.WarmValue)
+            {
+                tile.HeatType = HeatType.Warm;
+            }
+            else if (tile.HeatValue < WorldGeneration.Instance.WarmerValue)
+            {
+                tile.HeatType = HeatType.Warmer;
+            }
+            else
+            {
+                tile.HeatType = HeatType.Warmest;
+            }
+        }
 
         public async Task DrawChunkAsync()
         {
@@ -352,10 +368,29 @@ namespace CoreMiner
 
 
 
-            LandTileMap.SetTiles(positionArray, landTiles);
+            LandTilemap.SetTiles(positionArray, landTiles);
             //WaterTileMap.SetTiles(positionArray, waterTiles);
-            TilegroupMap.SetTiles(positionArray, tilegroupTiles);
-            GradientMap.SetTiles(positionArray, gradientTiles);
+            Tilegroupmap.SetTiles(positionArray, tilegroupTiles);
+
+            if(WorldGeneration.Instance.InitWorldWithHeatmap)
+            {
+                HeatTilemap.SetTiles(positionArray, gradientTiles);
+                HeatTilemap.gameObject.SetActive(true);
+            }
+            else
+            {
+                HeatTilemap.gameObject.SetActive(false);
+            }
+
+            if(WorldGeneration.Instance.InitWorldWithMoisturemap)
+            {
+                MoistureTilemap.gameObject.SetActive(true);
+            }
+            else
+            {
+                MoistureTilemap.gameObject.SetActive(false);
+            }
+            
             ChunkHasDrawn = true;
         }
 
@@ -370,7 +405,7 @@ namespace CoreMiner
                     Tile t = ChunkData.GetValue(x, y);
                     if (t.HasNeighbors())
                     {
-                        LandTileMap.SetColor(new Vector3Int(t.FrameX, t.FrameY), Color.red);
+                        LandTilemap.SetColor(new Vector3Int(t.FrameX, t.FrameY), Color.red);
                     }
                 }
             }
@@ -383,7 +418,7 @@ namespace CoreMiner
                 foreach (var tile in group.Tiles)
                 {
                     Vector3Int tileFrame = new Vector3Int(tile.FrameX, tile.FrameY, 0);
-                    TilegroupMap.SetColor(tileFrame, Color.blue);
+                    Tilegroupmap.SetColor(tileFrame, Color.blue);
                 }
             }
 
@@ -392,7 +427,7 @@ namespace CoreMiner
                 foreach (var tile in group.Tiles)
                 {
                     Vector3Int tileFrame = new Vector3Int(tile.FrameX, tile.FrameY, 0);
-                    TilegroupMap.SetColor(tileFrame, Color.green);
+                    Tilegroupmap.SetColor(tileFrame, Color.green);
                 }
             }
         }
@@ -404,7 +439,7 @@ namespace CoreMiner
                 for (var y = 0; y < _height; y++)
                 {
                     Tile t = ChunkData.GetValue(x, y);
-                    GradientMap.SetColor(new Vector3Int(t.FrameX, t.FrameY), WorldGeneration.Instance.GetGradientColor(t.HeatValue));
+                    HeatTilemap.SetColor(new Vector3Int(t.FrameX, t.FrameY), WorldGeneration.Instance.GetGradientColor(t.HeatValue));
                 }
             }
         }
@@ -414,7 +449,7 @@ namespace CoreMiner
 
         public void ClearChunkDraw()
         {
-            LandTileMap.ClearAllTiles();
+            LandTilemap.ClearAllTiles();
         }
 
 
@@ -615,12 +650,12 @@ namespace CoreMiner
         {
             Vector3Int cellPosition = Grid.WorldToCell(worldPosition);
             cellPosition.z = 0;
-            LandTileMap.SetTile(cellPosition, tileBase);
+            LandTilemap.SetTile(cellPosition, tileBase);
         }
 
         public void SetDrawRenderMode(TilemapRenderer.Mode mode)
         {
-            LandTileMap.GetComponent<TilemapRenderer>().mode = mode;
+            LandTilemap.GetComponent<TilemapRenderer>().mode = mode;
         }
 
 
@@ -638,38 +673,38 @@ namespace CoreMiner
 
                     if (heightValue < WorldGeneration.Instance.DeepWater)
                     {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DeepWater));
-                        WaterTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
+                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DeepWater));
+                        WaterTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
                     }
                     else if (heightValue < WorldGeneration.Instance.Water)
                     {
                         //LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
-                        WaterTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
+                        WaterTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
                     }
                     else if (heightValue < WorldGeneration.Instance.Sand)
                     {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Sand));
+                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Sand));
                     }
                     else if (heightValue < WorldGeneration.Instance.Grass)
                     {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DirtGrass));
+                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DirtGrass));
                     }
                     else if (heightValue < WorldGeneration.Instance.Forest)
                     {
                         //LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
-                        WaterTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.ForestGrass));
+                        WaterTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.ForestGrass));
                     }
                     else if (heightValue < WorldGeneration.Instance.Rock)
                     {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Rock));
+                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Rock));
                     }
                     else if (heightValue < WorldGeneration.Instance.Snow)
                     {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Snow));
+                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Snow));
                     }
                     else
                     {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Snow));
+                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Snow));
                     }
                 }
             }
@@ -717,31 +752,31 @@ namespace CoreMiner
 
                     if (heightValue < WorldGeneration.Instance.DeepWater)
                     {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DeepWater));
+                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DeepWater));
                     }
                     else if (heightValue < WorldGeneration.Instance.Water)
                     {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
+                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
                     }
                     else if (heightValue < WorldGeneration.Instance.Sand)
                     {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Sand));
+                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Sand));
                     }
                     else if (heightValue < WorldGeneration.Instance.Grass)
                     {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DirtGrass));
+                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DirtGrass));
                     }
                     else if (heightValue < WorldGeneration.Instance.Forest)
                     {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.ForestGrass));
+                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.ForestGrass));
                     }
                     else if (heightValue < WorldGeneration.Instance.Rock)
                     {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Rock));
+                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Rock));
                     }
                     else if (heightValue < WorldGeneration.Instance.Snow)
                     {
-                        LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Snow));
+                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Snow));
                     }
 
                 }
@@ -762,14 +797,14 @@ namespace CoreMiner
         // Function to convert world coordinates to tile coordinates
         public Vector3Int WorldToTilePosition(Vector3 worldPosition)
         {
-            Vector3Int tilePosition = LandTileMap.WorldToCell(worldPosition);
+            Vector3Int tilePosition = LandTilemap.WorldToCell(worldPosition);
             return tilePosition;
         }
 
         // Function to convert tile coordinates to world coordinates
         public Vector3 TileToWorldPosition(Vector3Int tilePosition)
         {
-            Vector3 worldPosition = LandTileMap.GetCellCenterWorld(tilePosition);
+            Vector3 worldPosition = LandTilemap.GetCellCenterWorld(tilePosition);
             return worldPosition;
         }
         #endregion

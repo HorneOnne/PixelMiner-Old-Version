@@ -43,7 +43,7 @@ namespace CoreMiner
 
         public void SetChunkColor(Chunk chunk, Color color)
         {
-            chunk.LandTileMap.color = color;
+            chunk.LandTilemap.color = color;
         }
 
 
