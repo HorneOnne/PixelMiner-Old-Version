@@ -170,7 +170,6 @@ namespace CoreMiner
 
             await Task.WhenAll(loadHeatMapDataTask, loadHeightMapDataTask);
 
-            // Ajdust Heatmap by height.
             await Task.Run(() =>
             {
                 for (int x = 0; x < _width; x++)
@@ -179,6 +178,8 @@ namespace CoreMiner
                     {
                         Tile tile = ChunkData.GetValue(x, y);
 
+
+                        // Ajdust Heat map based on height.
                         if (tile.HeightType == HeightType.Forest)
                         {
                             tile.HeatValue -= 0.1f * tile.HeightValue;
@@ -201,6 +202,49 @@ namespace CoreMiner
                 }
             });   
         }
+
+      
+        public async Task LoadMoistureMapDataAsync(float[,] moisetureValues, bool updateMoistureType = true)
+        {
+            await Task.Run(() =>
+            {
+                Parallel.For(0, _width, x =>
+                {
+                    for (int y = 0; y < _height; y++)
+                    {
+                        Tile tile = ChunkData.GetValue(x, y);
+                        tile.MoistureValue = moisetureValues[x, y];
+
+
+                        // Ajdust moisture based on height
+                        if (tile.HeightType == HeightType.DeepWater)
+                        {
+                            tile.MoistureValue += 8f * tile.HeightValue;
+                        }
+                        else if (tile.HeightType == HeightType.ShallowWater)
+                        {
+                            tile.MoistureValue += 3f * tile.HeightValue;
+                        }
+                        else if (tile.HeightType == HeightType.Shore)
+                        {
+                            tile.MoistureValue += 1f * tile.HeightValue;
+                        }
+                        else if (tile.HeightType == HeightType.Sand)
+                        {
+                            tile.MoistureValue += 0.2f * tile.HeightValue;
+                        }
+
+
+                        if (updateMoistureType)
+                        {
+                            UpdateMoistureType(tile);
+                        }
+                    }
+                });
+
+            });
+        }
+
 
 
         private void UpdateHeightType(Tile tile)
@@ -271,12 +315,42 @@ namespace CoreMiner
             }
         }
 
+        private void UpdateMoistureType(Tile tile)
+        {
+            if (tile.MoistureValue < WorldGeneration.Instance.DryerValue)
+            {
+                tile.MoistureType = MoistureType.Dryest;
+            }
+            else if(tile.MoistureValue < WorldGeneration.Instance.DryValue)
+            {
+                tile.MoistureType = MoistureType.Dryer;
+            }
+            else if (tile.MoistureValue < WorldGeneration.Instance.WetValue)
+            {
+                tile.MoistureType = MoistureType.Dry;
+            }
+            else if (tile.MoistureValue < WorldGeneration.Instance.WetterValue)
+            {
+                tile.MoistureType = MoistureType.Wet;
+            }
+            else if (tile.MoistureValue < WorldGeneration.Instance.WettestValue)
+            {
+                tile.MoistureType = MoistureType.Wetter;
+            }
+            else 
+            {
+                tile.MoistureType = MoistureType.Wettest;
+            }
+        }
+
+
         public async Task DrawChunkAsync()
         {
             TileBase[] landTiles = new TileBase[_width * _height];
             TileBase[] waterTiles = new TileBase[_width * _height];
             TileBase[] tilegroupTiles = new TileBase[_width * _height];
-            TileBase[] gradientTiles = new TileBase[_width * _height];
+            TileBase[] heatTiles = new TileBase[_width * _height];
+            TileBase[] moistureTiles = new TileBase[_width * _height];
 
             Vector3Int[] positionArray = new Vector3Int[_width * _height];
 
@@ -290,7 +364,7 @@ namespace CoreMiner
 
                         HeightType heightType = ChunkData.GetValue(x, y).HeightType;
                         HeatType heatType = ChunkData.GetValue(x, y).HeatType;
-                        float gradientValue = ChunkData.GetValue(x, y).HeatValue;
+                        MoistureType moistureType = ChunkData.GetValue(x, y).MoistureType;
 
                         // Height
                         switch(heightType)
@@ -298,42 +372,42 @@ namespace CoreMiner
                             case HeightType.DeepWater:
                                 landTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Water);
                                 waterTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Water);
-                                tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                                tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
                                 break;
                             case HeightType.ShallowWater:
                                 landTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Water);
                                 waterTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Water);
-                                tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                                tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
                                 break;
                             case HeightType.Sand:
                                 landTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Sand);
                                 waterTiles[x + _width * y] = null;
-                                tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                                tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
                                 break;
                             case HeightType.Grass:
                                 landTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.DirtGrass);
                                 waterTiles[x + _width * y] = null;
-                                tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                                tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
                                 break;
                             case HeightType.Forest:
                                 landTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.ForestGrass);
                                 waterTiles[x + _width * y] = null;
-                                tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                                tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
                                 break;
                             case HeightType.Rock:
                                 landTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Rock);
                                 waterTiles[x + _width * y] = null;
-                                tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                                tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
                                 break;
                             case HeightType.Snow:
                                 landTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Snow);
                                 waterTiles[x + _width * y] = null;
-                                tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                                tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
                                 break;
                             default:
                                 landTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Snow);
                                 waterTiles[x + _width * y] = null;
-                                tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                                tilegroupTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
                                 break;
                         }
                
@@ -343,22 +417,48 @@ namespace CoreMiner
                         switch(heatType)
                         {
                             case HeatType.Coldest:
-                                gradientTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                                heatTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
                                 break;
                             case HeatType.Colder:
-                                gradientTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                                heatTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
                                 break;
                             case HeatType.Cold:
-                                gradientTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                                heatTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
                                 break;
                             case HeatType.Warm:
-                                gradientTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                                heatTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
                                 break;
                             case HeatType.Warmer:
-                                gradientTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                                heatTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
                                 break;
                             case HeatType.Warmest:
-                                gradientTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Heat);
+                                heatTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                        }
+
+                        // Moisture
+                        switch (moistureType)
+                        {
+                            case MoistureType.Dryest:
+                                moistureTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case MoistureType.Dryer:
+                                moistureTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case MoistureType.Dry:
+                                moistureTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case MoistureType.Wet:
+                                moistureTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case MoistureType.Wetter:
+                                moistureTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case MoistureType.Wettest:
+                                moistureTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            default:
+                                moistureTiles[x + _width * y] = Main.Instance.GetTileBase(TileType.Color);
                                 break;
                         }
                     }
@@ -374,7 +474,7 @@ namespace CoreMiner
 
             if(WorldGeneration.Instance.InitWorldWithHeatmap)
             {
-                HeatTilemap.SetTiles(positionArray, gradientTiles);
+                HeatTilemap.SetTiles(positionArray, heatTiles);
                 HeatTilemap.gameObject.SetActive(true);
             }
             else
@@ -384,6 +484,7 @@ namespace CoreMiner
 
             if(WorldGeneration.Instance.InitWorldWithMoisturemap)
             {
+                MoistureTilemap.SetTiles(positionArray, moistureTiles);
                 MoistureTilemap.gameObject.SetActive(true);
             }
             else
@@ -432,7 +533,7 @@ namespace CoreMiner
             }
         }
 
-        public void PaintGradientMap()
+        public void PaintHeatMap()
         {
             for (var x = 0; x < _width; x++)
             {
@@ -444,7 +545,43 @@ namespace CoreMiner
             }
         }
 
+        public void PaintMoistureMap()
+        {
+            for(int x = 0; x < _width; x++)
+            {
+                for(int y = 0; y < _height; y++)
+                {
+                    Tile t = ChunkData.GetValue(x, y);
+                    Color color;
+                    switch(t.MoistureType)
+                    {
+                        case MoistureType.Dryest:
+                            color = WorldGeneration.Dryest;
+                            break;
+                        case MoistureType.Dryer:
+                            color = WorldGeneration.Dryer;
+                            break;
+                        case MoistureType.Dry:
+                            color = WorldGeneration.Dry;
+                            break;
+                        case MoistureType.Wet:
+                            color = WorldGeneration.Wet;
+                            break;
+                        case MoistureType.Wetter:
+                            color = WorldGeneration.Wetter;
+                            break;
+                        case MoistureType.Wettest:
+                            color = WorldGeneration.Wettest;
+                            break;
+                        default:
+                            color = WorldGeneration.Wettest;
+                            break;
+                    }
 
+                    MoistureTilemap.SetColor(new Vector3Int(t.FrameX, t.FrameY), color);
+                }
+            }
+        }
         
 
         public void ClearChunkDraw()

@@ -25,7 +25,7 @@ namespace CoreMiner
         [Space(5)]
         public int InitWorldWidth = 3;
         public int InitWorldHeight = 3;
-        public int LoadChunkOffsetWidth = 1;      
+        public int LoadChunkOffsetWidth = 1;
         public int LoadChunkOffsetHeight = 1;
         // Compute noise range sample count.
         private int _calculateNoiseRangeSampleMultiplier = 15;  // 50 times. 50 * 100000 = 5 mil times.
@@ -33,8 +33,8 @@ namespace CoreMiner
 
 
         // Min and Max Height used for normalize noise value in range [0-1]
-        public float MinHeightNoise { get; private set; } = float.MaxValue;
-        public float MaxHeightNoise { get; private set; } = float.MinValue;
+        public float MinWorldNoiseValue { get; private set; } = float.MaxValue;
+        public float MaxWorldNoiseValue { get; private set; } = float.MinValue;
 
         [Header("Noise Settings")]
         public int Octaves = 6;
@@ -78,11 +78,11 @@ namespace CoreMiner
         public double MoistureLacunarity = 2.0f;
         public double MoisturePersistence = 0.5f;
         [Space(5)]
-        public float DryerValue = 0.27f;
-        public float DryValue = 0.4f;
-        public float WetValue = 0.6f;
-        public float WetterValue = 0.8f;
-        public float WettestValue = 0.9f;
+        public float DryerValue = 0.22f;
+        public float DryValue = 0.35f;
+        public float WetValue = 0.55f;
+        public float WetterValue = 0.75f;
+        public float WettestValue = 0.85f;
         private ModuleBase _moistureModule;
 
         [Header("World Generation Utilities")]
@@ -221,8 +221,8 @@ namespace CoreMiner
             });
 
 
-            MinHeightNoise = minNoiseValue;
-            MaxHeightNoise = maxNoiseValue;
+            MinWorldNoiseValue = minNoiseValue;
+            MaxWorldNoiseValue = maxNoiseValue;
 
             sw.Stop();
             Debug.Log($"Compute noise time: {sw.ElapsedMilliseconds / 1000f} s");
@@ -256,8 +256,8 @@ namespace CoreMiner
                 if (maxNoiseValue < maxValue)
                     maxNoiseValue = maxValue;
             }
-            MinHeightNoise = minNoiseValue;
-            MaxHeightNoise = maxNoiseValue;
+            MinWorldNoiseValue = minNoiseValue;
+            MaxWorldNoiseValue = maxNoiseValue;
 
             sw.Stop();
             Debug.Log($"Compute noise time: {sw.ElapsedMilliseconds / 1000f} s");
@@ -316,8 +316,8 @@ namespace CoreMiner
             //await ComputeNoiseRangeAsyncInSequence();
             await ComputeNoiseRangeAsyncParallel();
 
-            Debug.Log($"min: {MinHeightNoise}");
-            Debug.Log($"max: {MaxHeightNoise}");
+            Debug.Log($"min: {MinWorldNoiseValue}");
+            Debug.Log($"max: {MaxWorldNoiseValue}");
 
             int totalIterations = (2 * widthInit + 1) * (2 * heightInit + 1);
             int currentIteration = 0;
@@ -338,15 +338,15 @@ namespace CoreMiner
                     UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);
                 }
             }
-            await Task.Delay(100);
 
+            await Task.Delay(100);
             UIGameManager.Instance.DisplayWorldGenCanvas(false);
             onFinished?.Invoke();
         }
 
 
 
-       
+
 
 
 
@@ -396,7 +396,12 @@ namespace CoreMiner
                         {
                             //_chunks[nbIsoFrame].DrawChunk();
                             await _chunks[nbIsoFrame].DrawChunkAsync();
-                            _chunks[nbIsoFrame].PaintGradientMap();
+
+                            if (InitWorldWithHeatmap)
+                                _chunks[nbIsoFrame].PaintHeatMap();
+
+                            if (InitWorldWithMoisturemap)
+                                _chunks[nbIsoFrame].PaintMoistureMap();
                         }
 
                         UpdateChunkTileNeighbors(_chunks[nbIsoFrame]);
@@ -412,7 +417,7 @@ namespace CoreMiner
         }
 
 
-        
+
         private async Task<float[,]> GetHeightMapNoiseAsyc(int isoFrameX, int isoFrameY)
         {
             float[,] heightValues = new float[ChunkWidth, ChunkHeight];
@@ -426,7 +431,7 @@ namespace CoreMiner
                         float offsetX = isoFrameX * ChunkWidth + x;
                         float offsetY = isoFrameY * ChunkHeight + y;
                         float heightValue = (float)_heightModule.GetValue(offsetX, offsetY, 0);
-                        float normalizeHeightValue = (heightValue - MinHeightNoise) / (MaxHeightNoise - MinHeightNoise);
+                        float normalizeHeightValue = (heightValue - MinWorldNoiseValue) / (MaxWorldNoiseValue - MinWorldNoiseValue);
                         heightValues[x, y] = normalizeHeightValue;
                     }
                 });
@@ -485,7 +490,7 @@ namespace CoreMiner
                         float offsetX = isoFrameX * ChunkWidth + x;
                         float offsetY = isoFrameY * ChunkHeight + y;
                         float heatValue = (float)_heatModule.GetValue(offsetX, offsetY, 0);
-                        float normalizeHeatValue = (heatValue - MinHeightNoise) / (MaxHeightNoise - MinHeightNoise);
+                        float normalizeHeatValue = (heatValue - MinWorldNoiseValue) / (MaxWorldNoiseValue - MinWorldNoiseValue);
 
                         fractalNoiseData[x, y] = normalizeHeatValue;
                     }
@@ -523,6 +528,7 @@ namespace CoreMiner
             return heatValues;
         }
 
+  
         private async Task<float[,]> GetMoistureMapDataAsync(int isoFrameX, int isoFrameY)
         {
             float[,] moistureData = new float[ChunkWidth, ChunkHeight];
@@ -535,17 +541,17 @@ namespace CoreMiner
                     {
                         float offsetX = isoFrameX * ChunkWidth + x;
                         float offsetY = isoFrameY * ChunkHeight + y;
-                        float heatValue = (float)_heatModule.GetValue(offsetX, 0, offsetY);
-                        float normalizeHeatValue = (heatValue - MinHeightNoise) / (MaxHeightNoise - MinHeightNoise);
+                        float moisetureValue = (float)_moistureModule.GetValue(offsetX, 0, offsetY);
+                        float normalizeMoistureValue = (moisetureValue - MinWorldNoiseValue) / (MaxWorldNoiseValue - MinWorldNoiseValue);
 
-                        moistureData[x, y] = normalizeHeatValue;
+                        moistureData[x, y] = normalizeMoistureValue;
                     }
                 }
             });
 
             return moistureData;
         }
-        
+
 
         private async Task<Chunk> AddNewChunkAsync(int isoFrameX, int isoFrameY)
         {
@@ -557,6 +563,7 @@ namespace CoreMiner
             // Create new data
             float[,] heightValues = await GetHeightMapNoiseAsyc(isoFrameX, isoFrameY);
             float[,] heatValues = await GetHeatMapDataAysnc(isoFrameX, isoFrameY);
+            float[,] moisetureValues = await GetMoistureMapDataAsync(isoFrameX, isoFrameY);
 
             if (InitWorldWithHeatmap)
             {
@@ -568,7 +575,16 @@ namespace CoreMiner
             {
                 await newChunk.LoadHeightMapDataAsync(heightValues);
             }
-           
+
+            if (InitWorldWithMoisturemap)
+            {
+                await newChunk.LoadMoistureMapDataAsync(moisetureValues);
+            }
+            else
+            {
+
+            }
+
             return newChunk;
         }
 
@@ -650,7 +666,7 @@ namespace CoreMiner
             {
                 chunk.UpdateAllTileNeighbors();
 
-                if(PaintTileNeighbors)
+                if (PaintTileNeighbors)
                     chunk.PaintNeighborsColor();
 
                 if (chunk.Waters.Count == 0 && chunk.Lands.Count == 0)
@@ -664,7 +680,7 @@ namespace CoreMiner
             {
                 nbAbove.UpdateAllTileNeighbors();
 
-                if(PaintTileNeighbors)
+                if (PaintTileNeighbors)
                     nbAbove.PaintNeighborsColor();
 
                 if (nbAbove.Waters.Count == 0 && nbAbove.Lands.Count == 0)
@@ -677,7 +693,7 @@ namespace CoreMiner
             {
                 nbBelow.UpdateAllTileNeighbors();
 
-                if(PaintTileNeighbors)
+                if (PaintTileNeighbors)
                     nbBelow.PaintNeighborsColor();
 
                 if (nbBelow.Waters.Count == 0 && nbBelow.Lands.Count == 0)
@@ -691,7 +707,7 @@ namespace CoreMiner
             {
                 nbLeft.UpdateAllTileNeighbors();
 
-                if(PaintTileNeighbors)
+                if (PaintTileNeighbors)
                     nbLeft.PaintNeighborsColor();
 
                 if (nbLeft.Waters.Count == 0 && nbLeft.Lands.Count == 0)
@@ -704,7 +720,7 @@ namespace CoreMiner
             {
                 nbRight.UpdateAllTileNeighbors();
 
-                if(PaintTileNeighbors)
+                if (PaintTileNeighbors)
                     nbRight.PaintNeighborsColor();
 
                 if (nbRight.Waters.Count == 0 && nbRight.Lands.Count == 0)

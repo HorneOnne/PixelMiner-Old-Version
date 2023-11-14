@@ -22,7 +22,13 @@ namespace CoreMiner.Utilities.NoiseGeneration
         private static Color Warm = new Color(1, 1, 100 / 255f, 1);
         private static Color Warmer = new Color(1, 100 / 255f, 0, 1);
         private static Color Warmest = new Color(241 / 255f, 12 / 255f, 0, 1);
-        
+
+        private static Color Dryest = new Color(255 / 255f, 139 / 255f, 17 / 255f, 1);
+        private static Color Dryer = new Color(245 / 255f, 245 / 255f, 23 / 255f, 1);
+        private static Color Dry = new Color(80 / 255f, 255 / 255f, 0 / 255f, 1);
+        private static Color Wet = new Color(85 / 255f, 255 / 255f, 255 / 255f, 1);
+        private static Color Wetter = new Color(20 / 255f, 70 / 255f, 255 / 255f, 1);
+        private static Color Wettest = new Color(0 / 255f, 0 / 255f, 100 / 255f, 1);
 
         public static Texture2D GetTexture(int width, int height, Tile[,] tiles)
         {
@@ -135,7 +141,6 @@ namespace CoreMiner.Utilities.NoiseGeneration
         public static Texture2D GenerateNoiseGradient(int width, int height, float offsetX, float offsetY)
         {
             Texture2D gradientTexture = new Texture2D(width, height);
-            //float[,] heatData = GenerateGradientNoise(textureWidth, textureHeight);
             float[,] heatData = GenerateGradientNoiseOffsetInfinite(width, height,offsetX, offsetY);
 
             for (int x = 0; x < width; x++)
@@ -153,26 +158,52 @@ namespace CoreMiner.Utilities.NoiseGeneration
             return gradientTexture;
         }
 
-
-
-        public static float[,] GenerateGradientNoise(int textureWidth, int textureHeight)
+        public static Texture2D GenerateMoistureTexture(int width, int height)
         {
-            float[,] heatData = new float[textureWidth, textureHeight];
-            // Calculate the center of the texture
-            Vector2 center = new Vector2(textureWidth / 2f, textureHeight / 2f);
+            var texture = new Texture2D(width, height);
+            var pixels = new Color[width * height];
+            float[,] moistureData = GetMoistureValues(width, height);
 
-            for (int x = 0; x < textureWidth; x++)
+            for (int x = 0; x < width; x++)
             {
-                for (int y = 0; y < textureHeight; y++)
+                for (int y = 0; y < height; y++)
                 {
-                    float distance = Mathf.Abs(y - center.y);
-                    float normalizedDistance = Mathf.Clamp01(distance / (textureWidth / 2f));
-                    heatData[x, y] = normalizedDistance;
+                    float moistureValue = moistureData[x, y];
+                    if (moistureValue < DryerValue)
+                    {
+                        pixels[x + y * width] = Dryest;
+                    }
+                    else if (moistureValue < DryValue)
+                    {
+                        pixels[x + y * width] = Dryer;
+                    }
+                    else if (moistureValue < WetValue)
+                    {
+                        pixels[x + y * width] = Dry;
+                    }
+                    else if (moistureValue < WetterValue)
+                    {
+                        pixels[x + y * width] = Wet;
+                    }
+                    else if (moistureValue < WettestValue)
+                    {
+                        pixels[x + y * width] = Wetter;
+                    }
+                    else 
+                    {
+                        pixels[x + y * width] = Wettest;
+                    }
                 }
             }
 
-            return heatData;
+
+            texture.SetPixels(pixels);
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.Apply();
+            return texture;
         }
+
+
 
 
         public static int HeatWidth = 256;
@@ -250,6 +281,75 @@ namespace CoreMiner.Utilities.NoiseGeneration
             Debug.Log($"Min: {min}");
             Debug.Log($"Max: {max}");
             return heatData;
+        }
+
+
+        public static int MoistureOctaves = 4;
+        public static double MoistureFrequency = 0.025;
+        public static double MoistureLacunarity = 2.0f;
+        public static double MoisturePersistence = 0.5f;
+        public static int MoistureSeed = 7;
+        private static ModuleBase _moistureModule;
+        [Header("Moisture Map")]
+        private static float DryerValue = 0.27f;
+        private static float DryValue = 0.4f;
+        private static float WetValue = 0.6f;
+        private static float WetterValue = 0.8f;
+        private static float WettestValue = 0.9f;
+        public static float[,] GetMoistureValues(int width, int height)
+        {
+            float[,] moistureData = new float[width, height];
+            _moistureModule = new Perlin(MoistureFrequency, MoistureLacunarity, MoisturePersistence, MoistureOctaves, MoistureSeed, QualityMode.High);
+            ScaleBias scaleBiasModule = new ScaleBias(0.5f, 0.5f, _moistureModule);
+
+            float min = float.MaxValue;
+            float max = float.MinValue;
+
+            float min2 = float.MaxValue;
+            float max2 = float.MinValue;
+
+            for (var x = 0; x < width; x++)
+            {
+                for (var y = 0; y < height; y++)
+                {
+                    moistureData[x,y] = (float)_moistureModule.GetValue(x, 0, y);
+
+                    if (min > moistureData[x, y])
+                    {
+                        min = moistureData[x, y];
+                    }
+                    if (max < moistureData[x, y])
+                    {
+                        max = moistureData[x, y];
+                    }
+                }
+            }
+
+            for(int x = 0; x < width; x++)
+            {
+                for(int y = 0; y < height; y++)
+                {
+                    float normalizevalue = (moistureData[x,y] - min) / (max - min);
+                    moistureData[x, y] = normalizevalue;
+
+                    if (min2 > moistureData[x, y])
+                    {
+                        min2 = moistureData[x, y];
+                    }
+                    if (max2 < moistureData[x, y])
+                    {
+                        max2 = moistureData[x, y];
+                    }
+                }
+            }
+
+
+            Debug.Log($"Min: {min}");
+            Debug.Log($"Max: {max}");
+            Debug.Log($"Min2: {min2}");
+            Debug.Log($"Max2: {max2}");
+
+            return moistureData;
         }
     }
 }

@@ -42,8 +42,8 @@ namespace CoreMiner.Utilities.NoiseGeneration
 
             //_heightMapMeshRenderer.materials[0].mainTexture = TextureGenerator.GetTexture(Width, Height, _tiles);
             
-            //_heightMapMeshRenderer.materials[0].mainTexture = TextureGenerator.GenerateNoiseGradient(Width, Height);
-            _heightMapMeshRenderer.materials[0].mainTexture = TextureGenerator.GenerateNoiseGradient(Width, Height, Offset.x, Offset.y);
+            //_heightMapMeshRenderer.materials[0].mainTexture = TextureGenerator.GenerateNoiseGradient(Width, Height, Offset.x, Offset.y);
+            _heightMapMeshRenderer.materials[0].mainTexture = TextureGenerator.GenerateMoistureTexture(Width, Height);
         }
 
 

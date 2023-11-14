@@ -6,8 +6,10 @@
         public TileType Type { get; set; }
         public HeightType HeightType { get; set; }
         public HeatType HeatType { get; set; }
+        public MoistureType MoistureType { get; set; }
         public float HeightValue { get; set; }
         public float HeatValue { get; set; }
+        public float MoistureValue { get; set; }
         public int FrameX, FrameY;
 
         // Neighbors
@@ -45,11 +47,11 @@
         Sand,
         Rock,
         Snow,
-        Heat = 999,
+        Color = 999,
         Other
     }
 
-    public enum HeightType
+    public enum HeightType : byte
     {
         DeepWater = 1,
         ShallowWater = 2,
@@ -62,7 +64,7 @@
         River = 9,
     }
 
-    public enum HeatType
+    public enum HeatType : byte
     {
         Coldest = 0,
         Colder = 1,
@@ -70,6 +72,16 @@
         Warm = 3,
         Warmer = 4,
         Warmest = 5
+    }
+
+    public enum MoistureType : byte
+    {
+        Dryest = 0,
+        Dryer = 1,
+        Dry = 2,
+        Wet = 3,
+        Wetter = 4,
+        Wettest = 5,
     }
 }
 
