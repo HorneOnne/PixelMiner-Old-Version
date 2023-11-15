@@ -76,7 +76,7 @@ namespace CoreMiner.WorldGen
                 default: break;
             }
         }
-    }
 #endif
+    }
 }
 
