@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using QFSW;
+using QFSW.QC;
 
 namespace CoreMiner
 {
@@ -21,17 +23,20 @@ namespace CoreMiner
         private int _animIDVelocityX;
         private int _animIDVelocityY;
 
-
         void Start()
         {
             _input = GetComponent<InputHander>();
             _rb = GetComponent<Rigidbody2D>();
             _anim = GetComponent<Animator>();
-            AssignAnimationIDs();
+            AssignAnimationIDs();      
         }
 
         private void FixedUpdate()
         {
+            
+            Debug.Log(QuantumConsole.Instance.IsFocused);
+     
+
             Movement();
         }
 
