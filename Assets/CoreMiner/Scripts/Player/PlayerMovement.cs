@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using QFSW;
 using QFSW.QC;
 
 namespace CoreMiner
@@ -33,9 +32,7 @@ namespace CoreMiner
 
         private void FixedUpdate()
         {
-            
-            Debug.Log(QuantumConsole.Instance.IsFocused);
-     
+            if (QuantumConsole.Instance.IsActive) return;
 
             Movement();
         }
