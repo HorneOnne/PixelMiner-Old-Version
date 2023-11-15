@@ -21,7 +21,8 @@ namespace CoreMiner
 
         public void AddTile(Tile tile)
         {
-            
+            tile.SetRiverPath(this);
+            Tiles.Add(tile);
         }
     }
 

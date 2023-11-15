@@ -1607,12 +1607,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _chunkPrefab: {fileID: 1287440298023199784, guid: 3f439708f29b6f14dbf4933564e81924, type: 3}
+  <MinWorldNoiseValue>k__BackingField: 3.402823e+38
+  <MaxWorldNoiseValue>k__BackingField: -3.402823e+38
   ChunkWidth: 32
   ChunkHeight: 32
-  InitWorldWidth: 10
-  InitWorldHeight: 10
-  LoadChunkOffsetWidth: 10
-  LoadChunkOffsetHeight: 10
+  InitWorldWidth: 1
+  InitWorldHeight: 1
+  LoadChunkOffsetWidth: 1
+  LoadChunkOffsetHeight: 1
   Octaves: 6
   Frequency: 0.013
   Lacunarity: 2
@@ -1653,11 +1655,12 @@ MonoBehaviour:
   Rivers: []
   RiverGroups: []
   AutoUnloadChunk: 0
-  ShowChunksBorder: 1
+  ShowChunksBorder: 0
   ShowTilegroupMaps: 0
   InitWorldWithHeatmap: 0
   InitWorldWithMoisturemap: 0
   PaintTileNeighbors: 0
+  InitFastDrawChunk: 1
 --- !u!4 &1497941757
 Transform:
   m_ObjectHideFlags: 0
@@ -2760,7 +2763,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6577536551770996436, guid: b5fbf8417053cf343a54a8bfb1069a55, type: 3}
       propertyPath: playButtonTime
-      value: 638356753130720485
+      value: 638356945252208201
       objectReference: {fileID: 0}
     - target: {fileID: 6588897239180729126, guid: b5fbf8417053cf343a54a8bfb1069a55, type: 3}
       propertyPath: m_AnchorMax.y

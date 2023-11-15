@@ -9,6 +9,7 @@ using System.Collections;
 using CoreMiner.Utilities;
 using System.Threading;
 using LibNoise.Operator;
+using UnityEditor;
 
 namespace CoreMiner
 {
@@ -21,23 +22,24 @@ namespace CoreMiner
         #region Fileds and Variables
         [SerializeField] private Chunk _chunkPrefab;
 
+        // Min and Max Height used for normalize noise value in range [0-1]
+        [field: SerializeField] public float MinWorldNoiseValue { get; private set; } = float.MaxValue;
+        [field: SerializeField] public float MaxWorldNoiseValue { get; private set; } = float.MinValue;
 
         [Header("World Settings")]
-        public int ChunkWidth = 16;      // Size of each chunk in tiles
-        public int ChunkHeight = 16;      // Size of each chunk in tiles
+        public byte ChunkWidth = 16;      // Size of each chunk in tiles
+        public byte ChunkHeight = 16;      // Size of each chunk in tiles
         [Space(5)]
-        public int InitWorldWidth = 3;
-        public int InitWorldHeight = 3;
-        public int LoadChunkOffsetWidth = 1;
-        public int LoadChunkOffsetHeight = 1;
+        public byte InitWorldWidth = 3;
+        public byte InitWorldHeight = 3;
+        public byte LoadChunkOffsetWidth = 1;
+        public byte LoadChunkOffsetHeight = 1;
         // Compute noise range sample count.
-        private int _calculateNoiseRangeSampleMultiplier = 15;  // 50 times. 50 * 100000 = 5 mil times.
+        private byte _calculateNoiseRangeSampleMultiplier = 15;  // 50 times. 50 * 100000 = 5 mil times.
         private int _calculateNoiseRangeCount = 1000000;    // 1 mil times.
 
 
-        // Min and Max Height used for normalize noise value in range [0-1]
-        public float MinWorldNoiseValue { get; private set; } = float.MaxValue;
-        public float MaxWorldNoiseValue { get; private set; } = float.MinValue;
+
 
 
         [Header("Noise Settings")]
@@ -62,7 +64,7 @@ namespace CoreMiner
         [Header("Heat Map")]
         [Range(0f, 1f)]
         public float HeatMapBlendFactor = 0.5f;
-        private float _gradientHeatmapSize = 256;
+        private ushort _gradientHeatmapSize = 256;
         private ModuleBase _heatModule;
         // Heatmap Gradient
         public float ColdestValue = 0.1f;
@@ -111,6 +113,9 @@ namespace CoreMiner
         public bool InitWorldWithMoisturemap = false;
         public bool PaintTileNeighbors = false;
 
+        [Header("Performance Options")]
+        public bool InitFastDrawChunk;
+
 
         [Header("Tilemap")]
         public readonly Vector3 CELL_SIZE = new Vector3(2.0f, 1.0f, 1.0f);
@@ -146,6 +151,7 @@ namespace CoreMiner
         private Vector2Int lastChunkISOFrame;
         private Vector2 _centerPoint;
         private Vector2Int _centerPointFrame;
+
         #endregion
 
         /*
@@ -160,8 +166,16 @@ namespace CoreMiner
         {
             Instance = this;
 
+            // Set seed
+            UnityEngine.Random.InitState(Seed);
+
             IsometricUtilities.CELLSIZE_X = CELL_SIZE.x;
             IsometricUtilities.CELLSIZE_Y = CELL_SIZE.y;
+
+            MinWorldNoiseValue = float.MaxValue;
+            MaxWorldNoiseValue = float.MinValue;
+
+
         }
 
         private void Start()
@@ -184,7 +198,10 @@ namespace CoreMiner
             // World Initialization
             InitWorldAsyncInParallel(lastChunkISOFrame.x, lastChunkISOFrame.y, widthInit: InitWorldWidth, heightInit: InitWorldHeight, () =>
             {
-                LoadChunksAroundPosition(lastChunkISOFrame.x, lastChunkISOFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
+                if (InitFastDrawChunk)
+                    LoadChunksAroundPositionInParallel(lastChunkISOFrame.x, lastChunkISOFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
+                else
+                    LoadChunksAroundPositionInSequence(lastChunkISOFrame.x, lastChunkISOFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
             });
 
         }
@@ -197,7 +214,21 @@ namespace CoreMiner
             if (_centerPointFrame != lastChunkISOFrame)
             {
                 lastChunkISOFrame = _centerPointFrame;
-                LoadChunksAroundPosition(_centerPointFrame.x, _centerPointFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
+                LoadChunksAroundPositionInSequence(_centerPointFrame.x, _centerPointFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
+                //LoadChunksAroundPositionInParallel(_centerPointFrame.x, _centerPointFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
+            }
+
+            // Testing
+            // ======
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                Vector2Int isoFrame = new Vector2Int(0, 0);
+                Chunk chunk = GetChunk(isoFrame);
+                if (chunk != null)
+                {
+                    Debug.Log(chunk.AllTileHasNeighbors);
+                    GenerateRivers(isoFrameX: 0, isoFrameY: 0);
+                }
             }
         }
         #endregion
@@ -250,8 +281,6 @@ namespace CoreMiner
         }
         public async Task ComputeNoiseRangeAsyncInParallel()
         {
-            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-            sw.Start();
             float minNoiseValue = float.MaxValue;
             float maxNoiseValue = float.MinValue;
             int completedTaskCount = 0;
@@ -297,9 +326,6 @@ namespace CoreMiner
             }
             MinWorldNoiseValue = minNoiseValue;
             MaxWorldNoiseValue = maxNoiseValue;
-
-            sw.Stop();
-            Debug.Log($"Compute noise time: {sw.ElapsedMilliseconds / 1000f} s");
         }
         struct MinMax
         {
@@ -340,7 +366,7 @@ namespace CoreMiner
 
 
         #region Init Chunks
-        private async void InitWorldAsyncInSequence(int initIsoFrameX, int initIsoFrameY, int widthInit, int heightInit, System.Action onFinished = null)
+        private async void InitWorldAsyncInSequence(int initIsoFrameX, int initIsoFrameY, byte widthInit, byte heightInit, System.Action onFinished = null)
         {
             UIGameManager.Instance.DisplayWorldGenCanvas(true);
             //await ComputeNoiseRangeAsyncInSequence();
@@ -355,7 +381,7 @@ namespace CoreMiner
             {
                 for (int y = initIsoFrameY - heightInit; y <= initIsoFrameY + heightInit; y++)
                 {
-                    Chunk newChunk = await GenerateNewChunkAsync(x, y);
+                    Chunk newChunk = await GenerateNewChunkDataAsync(x, y);
                     AddNewChunk(newChunk);
                     newChunk.UnloadChunk();
 
@@ -372,49 +398,37 @@ namespace CoreMiner
             UIGameManager.Instance.DisplayWorldGenCanvas(false);
             onFinished?.Invoke();
         }
-        private async void InitWorldAsyncInParallel(int initIsoFrameX, int initIsoFrameY, int widthInit, int heightInit, System.Action onFinished = null)
+        private async void InitWorldAsyncInParallel(int initIsoFrameX, int initIsoFrameY, byte widthInit, byte heightInit, System.Action onFinished = null)
         {
             UIGameManager.Instance.DisplayWorldGenCanvas(true);
-            //await ComputeNoiseRangeAsyncInSequence();
             await ComputeNoiseRangeAsyncInParallel();
 
-            Debug.Log($"min: {MinWorldNoiseValue}");
-            Debug.Log($"max: {MaxWorldNoiseValue}");
-
             int completedTaskCount = 0;
-
             Task<Chunk>[] tasks = new Task<Chunk>[(widthInit * 2 + 1) * (heightInit * 2 + 1)];
-            List<Task> continuationTasks = new List<Task>();
 
             for (int x = initIsoFrameX - widthInit; x <= initIsoFrameX + widthInit; x++)
             {
                 for (int y = initIsoFrameY - heightInit; y <= initIsoFrameY + heightInit; y++)
                 {
                     int index = x - (initIsoFrameX - widthInit) + (y - (initIsoFrameY - heightInit)) * (2 * widthInit + 1);
-                    tasks[index] = GenerateNewChunkAsync(x, y);
+                    tasks[index] = GenerateNewChunkDataAsync(x, y);
 
-                    Task continuationTask = tasks[index].ContinueWith(task =>
+                    // Increment the completed tasks counter
+                    Interlocked.Increment(ref completedTaskCount);
+
+                    // Play Slider UI
+                    float progress = (float)completedTaskCount / tasks.Length;
+                    float mapProgress = MathHelper.Map(progress, 0f, 1f, 0.1f, 1.0f);
+                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
                     {
-                        // Increment the completed tasks counter
-                        Interlocked.Increment(ref completedTaskCount);
-
-                        // Play Slider UI
-                        float progress = (float)completedTaskCount / tasks.Length;
-                        float mapProgress = MathHelper.Map(progress, 0f, 1f, 0.1f, 1.0f);
-                        UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                        {
-                            UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);
-                        });
-                    }, TaskContinuationOptions.OnlyOnRanToCompletion);
-
-                    continuationTasks.Add(continuationTask);
+                        UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);
+                    });
                 }
             }
 
             await Task.WhenAll(tasks);
-            await Task.WhenAll(continuationTasks);
 
-            foreach(var task in tasks)
+            foreach (var task in tasks)
             {
                 Chunk newChunk = task.Result;
                 AddNewChunk(newChunk);
@@ -424,7 +438,7 @@ namespace CoreMiner
             UIGameManager.Instance.DisplayWorldGenCanvas(false);
             onFinished?.Invoke();
         }
-        private async Task<Chunk> GenerateNewChunkAsync(int isoFrameX, int isoFrameY)
+        private async Task<Chunk> GenerateNewChunkDataAsync(int isoFrameX, int isoFrameY)
         {
             Vector2 frame = IsometricUtilities.IsometricFrameToWorldFrame(isoFrameX, isoFrameY);
             Vector3 worldPosition = IsometricUtilities.ConvertIsometricFrameToWorldPosition(isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
@@ -432,7 +446,7 @@ namespace CoreMiner
             newChunk.Init(frame.x, frame.y, isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
 
             // Create new data
-            float[,] heightValues = await GetHeightMapDataAsycn(isoFrameX, isoFrameY);
+            float[,] heightValues = await GetHeightMapDataAsync(isoFrameX, isoFrameY);
             float[,] heatValues = await GetHeatMapDataAysnc(isoFrameX, isoFrameY);
             float[,] moisetureValues = await GetMoistureMapDataAsync(isoFrameX, isoFrameY);
 
@@ -457,7 +471,7 @@ namespace CoreMiner
             return newChunk;
         }
         // Load chunks around a given chunk position
-        private async void LoadChunksAroundPosition(int isoFrameX, int isoFrameY, int offsetWidth = 1, int offsetHeight = 1)
+        private async void LoadChunksAroundPositionInSequence(int isoFrameX, int isoFrameY, byte offsetWidth = 1, byte offsetHeight = 1)
         {
             for (int x = isoFrameX - offsetWidth; x <= isoFrameX + offsetWidth; x++)
             {
@@ -473,24 +487,110 @@ namespace CoreMiner
                             // ......
                         }
 
-                        Chunk newChunk =  await GenerateNewChunkAsync(x,y);
-                        await newChunk.DrawChunkAsync();
+                        Chunk newChunk = await GenerateNewChunkDataAsync(x, y);
+
+                        // Cached chunk data
+                        if (_chunks.ContainsKey(nbIsoFrame) == false)
+                            AddNewChunk(newChunk);
+                        ActiveChunks.Add(newChunk);
+
+
+                        if (newChunk.ChunkHasDrawn == false)
+                        {
+                            await newChunk.DrawChunkAsync();
+
+                            if (InitWorldWithHeatmap)
+                                newChunk.PaintHeatMap();
+                            if (InitWorldWithMoisturemap)
+                                newChunk.PaintMoistureMap();
+                        }
+
+
+                        // Update chunk tile neighbors
+                        if (!newChunk.HasNeighbors())
+                        {
+                            //UpdateChunkTileNeighbors(newChunk);
+                            UpdateChunkTileNeighborsAsync(newChunk);
+                        }
+                            
+
+
+                        _chunks[nbIsoFrame].LoadChunk();
+                    }
+                    else // Load chunk cached.
+                    {
+                        if (x == isoFrameX && y == isoFrameY)
+                        {
+                            // Center
+                            // ......
+                        }
+
+                        ActiveChunks.Add(_chunks[nbIsoFrame]);
+
+                        if (_chunks[nbIsoFrame].ChunkHasDrawn == false)
+                        {
+                            await _chunks[nbIsoFrame].DrawChunkAsync();
+
+                            if (InitWorldWithHeatmap)
+                                _chunks[nbIsoFrame].PaintHeatMap();
+                            if (InitWorldWithMoisturemap)
+                                _chunks[nbIsoFrame].PaintMoistureMap();
+                        }
+
+                        // Update chunk tile neighbors
+                        if (!_chunks[nbIsoFrame].HasNeighbors())
+                        {
+                            //UpdateChunkTileNeighbors(_chunks[nbIsoFrame]);
+                            UpdateChunkTileNeighborsAsync(_chunks[nbIsoFrame]);
+                        }
+                           
+                        _chunks[nbIsoFrame].LoadChunk();
+                    }
+                }
+            }
+
+            if (ShowChunksBorder)
+            {
+                SortActiveChunkByDepth();
+            }
+        }
+        private async void LoadChunksAroundPositionInParallel(int isoFrameX, int isoFrameY, byte offsetWidth = 1, byte offsetHeight = 1)
+        {
+            Task[] drawChunkTasks = new Task[(offsetWidth * 2 + 1) * (offsetHeight * 2 + 1)];
+
+            for (int x = isoFrameX - offsetWidth; x <= isoFrameX + offsetWidth; x++)
+            {
+                for (int y = isoFrameY - offsetHeight; y <= isoFrameY + offsetHeight; y++)
+                {
+                    int index = x - (isoFrameX - offsetWidth) + (y - (isoFrameY - offsetHeight)) * (2 * offsetWidth + 1);
+                    Vector2Int nbIsoFrame = new Vector2Int(x, y);
+                    Chunk chunk = GetChunk(nbIsoFrame);
+
+                    if (chunk == null)   // Create new chunk
+                    {
+                        if (x == isoFrameX && y == isoFrameY)
+                        {
+                            // Center
+                            // ......
+                        }
+
+                        Chunk newChunk = await GenerateNewChunkDataAsync(x, y);
+                        drawChunkTasks[index] = newChunk.DrawChunkAsync();
 
                         // Cached chunk data
                         if (_chunks.ContainsKey(nbIsoFrame) == false)
                         {
                             AddNewChunk(newChunk);
                         }
-                            
-                        ActiveChunks.Add(newChunk);
 
+                        ActiveChunks.Add(newChunk);
                         _chunks[nbIsoFrame].LoadChunk();
 
 
-                        if (!newChunk.HasNeighbors())
-                        {
-                            UpdateChunkTileNeighbors(newChunk);
-                        }         
+                        //if (!newChunk.HasNeighbors())
+                        //{
+                        //    UpdateChunkTileNeighbors(newChunk);
+                        //}
                     }
                     else // Load chunk cached.
                     {
@@ -505,26 +605,37 @@ namespace CoreMiner
 
                         if (_chunks[nbIsoFrame].ChunkHasDrawn == false)
                         {
-                            //_chunks[nbIsoFrame].DrawChunk();
-                            await _chunks[nbIsoFrame].DrawChunkAsync();
-
-                            if (InitWorldWithHeatmap)
-                                _chunks[nbIsoFrame].PaintHeatMap();
-
-                            if (InitWorldWithMoisturemap)
-                                _chunks[nbIsoFrame].PaintMoistureMap();
+                            drawChunkTasks[index] = _chunks[nbIsoFrame].DrawChunkAsync();
                         }
-
-                        if (!_chunks[nbIsoFrame].HasNeighbors())
+                        else
                         {
-                            UpdateChunkTileNeighbors(_chunks[nbIsoFrame]);
+                            drawChunkTasks[index] = Task.CompletedTask;
                         }
                     }
 
                 }
             }
 
-            if (ShowChunksBorder == false)
+            // When all chunk has drawn.
+            await Task.WhenAll(drawChunkTasks);
+
+
+            foreach (var chunk in _chunks.Values)
+            {
+                if (InitWorldWithHeatmap)
+                    chunk.PaintHeatMap();
+
+                if (InitWorldWithMoisturemap)
+                    chunk.PaintMoistureMap();
+
+                if (!chunk.HasNeighbors())
+                {
+                    UpdateChunkTileNeighbors(chunk);
+                }
+            }
+
+
+            if (ShowChunksBorder)
             {
                 SortActiveChunkByDepth();
             }
@@ -571,7 +682,7 @@ namespace CoreMiner
 
 
         #region Generate noise map data.
-        private async Task<float[,]> GetHeightMapDataAsycn(int isoFrameX, int isoFrameY)
+        private async Task<float[,]> GetHeightMapDataAsync(int isoFrameX, int isoFrameY)
         {
             float[,] heightValues = new float[ChunkWidth, ChunkHeight];
 
@@ -706,25 +817,49 @@ namespace CoreMiner
 
 
         #region River
+        /// <summary>
+        /// This method generates rivers on the map.
+        /// Output: Rivers are generated on the map, and the details are stored in the Rivers list.
+        /// </summary>
+        /// <param name="isoFrameX"></param>
+        /// <param name="isoFrameY"></param>
         private void GenerateRivers(int isoFrameX, int isoFrameY)
         {
+            /*
+             * Initialize variables, including the number of rivers (RiverCount) and an empty list to store river objects (Rivers).
+             * Use a loop to generate rivers until the desired number (RiverCount) is reached or the maximum attempts (MaxRiverAttempts) are made.
+             */
             int attempts = 0;
             int riverCount = RiverCount;
             Rivers = new List<River>();
 
             // Generate some rivers
-            while(riverCount > 0 && attempts < MaxRiverAttempts)
+            while (riverCount > 0 && attempts < MaxRiverAttempts)
             {
+                /*
+                 * Randomly select a tile on the map.
+                 * Check if the tile is collidable and doesn't already have a river.
+                 * If the tile's height is above a specified minimum (MinRiverHeight), start generating a river from that tile.
+                 * Create a new River object and determine the initial flow direction based on the tile's lowest neighbor.
+                 * Recursively find a path to water using the FindPathToWater() method.
+                 * Validate the generated river: If it doesn't meet certain criteria, remove it; otherwise, add it to the list of rivers.
+                 */
+
+                /*
+                 * Repeat until the desired number of rivers is generated or the maximum attempts are reached.
+                 */
+
                 // Get a random tile
                 int x = Random.Range(0, ChunkWidth);
                 int y = Random.Range(0, ChunkHeight);
+
                 Tile tile = _chunks[new Vector2Int(isoFrameX, isoFrameY)].ChunkData.GetValue(x, y);
 
                 // validate the tile
                 if (!tile.Collidable) continue;
                 if (tile.Rivers.Count > 0) continue;
 
-                if(tile.HeightValue > MinRiverHeight)
+                if (tile.HeightValue > MinRiverHeight)
                 {
                     // Tile is good to start from
                     River river = new River(riverCount);
@@ -733,14 +868,52 @@ namespace CoreMiner
                     river.CurrentDirection = tile.GetLowestNeighbors();
 
                     // Recursively find a path to water
+                    FindPathToWater(tile, river.CurrentDirection, ref river);
 
+                    // Validate the generated river
+                    if (river.TurnCount < MinRiverTurns || river.Tiles.Count < MinRiverLength || river.Insersections > MaxRiverIntersections)
+                    {
+                        // Validation failed - remove this river
+                        for (int i = 0; i < river.Tiles.Count; i++)
+                        {
+                            Tile t = river.Tiles[i];
+                            t.Rivers.Remove(river);
+                        }
+                    }
+                    else if (river.Tiles.Count >= MinRiverLength)
+                    {
+                        // Validation passed -- Add river to list
+                        Rivers.Add(river);
+                        tile.Rivers.Add(river);
+                        riverCount--;
+                    }
                 }
+                attempts++;
             }
         }
-
+        /// <summary>
+        /// This method is a recursive function that explores a path from a starting tile to water, determining the flow direction of a river.
+        /// Output: The river path is updated based on the flow direction.
+        /// </summary>
+        /// <param name="tile"></param>
+        /// <param name="direction"></param>
+        /// <param name="river"></param>
         private void FindPathToWater(Tile tile, Direction direction, ref River river)
         {
-            if (tile.Rivers.Contains(river)) 
+            /* 
+             * Check if the current tile is already part of the river. If yes, return to avoid infinite recursion.
+             * Check if there is already a river on the current tile; if yes, increment the intersection count.
+             * Add the current tile to the river's path.
+             * Get neighboring tiles (left, right, top, bottom).
+             * Query height values of neighbors and consider them in determining the flow direction.
+             * Override the flow direction if a significantly lower tile is found in a certain direction.
+             * Find the minimum height value among neighbors.
+             * Move to the next neighbor based on the minimum height value and update the river's turn count and direction accordingly.
+             * Recursively call FindPathToWater() for the selected neighbor.
+             */
+
+
+            if (tile.Rivers.Contains(river))
                 return;
 
             // Check if there is already a river on this tile.
@@ -755,6 +928,9 @@ namespace CoreMiner
             Tile topNb = tile.Top;
             Tile bottomNb = tile.Bottom;
 
+            if (!tile.HasNeighbors() || !leftNb.HasNeighbors() || !rightNb.HasNeighbors() || !topNb.HasNeighbors() || !bottomNb.HasNeighbors()) return;
+
+
             float leftValue = int.MaxValue;
             float rightValue = int.MaxValue;
             float topValue = int.MaxValue;
@@ -764,9 +940,9 @@ namespace CoreMiner
             if (leftNb.GetRiverNeighborCount(river) < 2 && !river.Tiles.Contains(leftNb))
                 leftValue = leftNb.HeightValue;
             if (rightNb.GetRiverNeighborCount(river) < 2 && !river.Tiles.Contains(rightNb))
-                rightValue = rightNb.HeightValue; 
+                rightValue = rightNb.HeightValue;
             if (topNb.GetRiverNeighborCount(river) < 2 && !river.Tiles.Contains(topNb))
-                topValue = topNb.HeightValue; 
+                topValue = topNb.HeightValue;
             if (bottomNb.GetRiverNeighborCount(river) < 2 && !river.Tiles.Contains(bottomNb))
                 bottomValue = bottomNb.HeightValue;
 
@@ -783,31 +959,31 @@ namespace CoreMiner
 
 
             // Override flow direction if a tile is significantly lower
-            if(direction == Direction.Left)
+            if (direction == Direction.Left)
             {
-                if(Mathf.Abs(rightValue - leftValue) < 0.1f)
+                if (Mathf.Abs(rightValue - leftValue) < 0.1f)
                 {
                     rightValue = int.MaxValue;
                 }
             }
-            if(direction == Direction.Right)
+            if (direction == Direction.Right)
             {
-                if(Mathf.Abs(rightValue - leftValue) < 0.1)
+                if (Mathf.Abs(rightValue - leftValue) < 0.1)
                 {
                     leftValue = int.MaxValue;
                 }
             }
-            if(direction == Direction.Top)
+            if (direction == Direction.Top)
             {
-                if(Mathf.Abs(topValue - bottomValue) < 0.1f)
+                if (Mathf.Abs(topValue - bottomValue) < 0.1f)
                 {
                     bottomValue = int.MaxValue;
                 }
             }
-            if(direction == Direction.Bottom)
+            if (direction == Direction.Bottom)
             {
                 if (Mathf.Abs(topValue - bottomValue) < 0.1f)
-                { 
+                {
                     topValue = int.MaxValue;
                 }
             }
@@ -823,11 +999,11 @@ namespace CoreMiner
                 return;
 
             // Move to next neighbor
-            if(min == leftValue)
+            if (min == leftValue)
             {
-                if(leftNb.Collidable)
+                if (leftNb.Collidable)
                 {
-                    if(river.CurrentDirection != Direction.Left)
+                    if (river.CurrentDirection != Direction.Left)
                     {
                         river.TurnCount++;
                         river.CurrentDirection = Direction.Left;
@@ -876,7 +1052,7 @@ namespace CoreMiner
 
 
 
-       
+
 
         #region Neighbors
         private void AddChunkFourDirectionNeighbors(Chunk chunk)
@@ -916,7 +1092,7 @@ namespace CoreMiner
             Chunk nbRight = GetChunkNeighborRight(chunk);
             chunk.SetTwoSidesChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
 
-            if (chunk.HasNeighbors())
+            if (chunk.HasNeighbors() && !chunk.AllTileHasNeighbors)
             {
                 chunk.UpdateAllTileNeighbors();
 
@@ -930,7 +1106,7 @@ namespace CoreMiner
                 }
             }
 
-            if (nbAbove != null && nbAbove.HasNeighbors())
+            if (nbAbove != null && nbAbove.HasNeighbors() && !nbAbove.AllTileHasNeighbors)
             {
                 nbAbove.UpdateAllTileNeighbors();
 
@@ -943,7 +1119,7 @@ namespace CoreMiner
                     nbAbove.PaintTilegroupMap();
                 }
             }
-            if (nbBelow != null && nbBelow.HasNeighbors())
+            if (nbBelow != null && nbBelow.HasNeighbors() && !nbBelow.AllTileHasNeighbors)
             {
                 nbBelow.UpdateAllTileNeighbors();
 
@@ -957,7 +1133,7 @@ namespace CoreMiner
                 }
 
             }
-            if (nbLeft != null && nbLeft.HasNeighbors())
+            if (nbLeft != null && nbLeft.HasNeighbors() && !nbLeft.AllTileHasNeighbors)
             {
                 nbLeft.UpdateAllTileNeighbors();
 
@@ -970,7 +1146,7 @@ namespace CoreMiner
                     nbLeft.PaintTilegroupMap();
                 }
             }
-            if (nbRight != null && nbRight.HasNeighbors())
+            if (nbRight != null && nbRight.HasNeighbors() && !nbRight.AllTileHasNeighbors)
             {
                 nbRight.UpdateAllTileNeighbors();
 
@@ -985,10 +1161,108 @@ namespace CoreMiner
 
             }
         }
+        private async void UpdateChunkTileNeighborsAsync(Chunk chunk)
+        {
+            // Find chunk neighbors
+            Chunk nbAbove = GetChunkNeighborAbove(chunk);
+            Chunk nbBelow = GetChunkNeighborBelow(chunk);
+            Chunk nbLeft = GetChunkNeighborLeft(chunk);
+            Chunk nbRight = GetChunkNeighborRight(chunk);
+            chunk.SetTwoSidesChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
+
+            Task[] tasks = new Task[5];
+
+            if (chunk.HasNeighbors() && !chunk.AllTileHasNeighbors)
+            {
+                tasks[0] = chunk.UpdateAllTileNeighborsAsync();
+            }
+            else
+                tasks[0] = Task.CompletedTask;
+
+            if (nbAbove != null && nbAbove.HasNeighbors() && !nbAbove.AllTileHasNeighbors)
+                tasks[1] = nbAbove.UpdateAllTileNeighborsAsync();
+            else
+                tasks[1] = Task.CompletedTask;
+
+            if (nbBelow != null && nbBelow.HasNeighbors() && !nbBelow.AllTileHasNeighbors)
+                tasks[2] = nbBelow.UpdateAllTileNeighborsAsync();
+            else
+                tasks[2] = Task.CompletedTask;
+
+            if (nbLeft != null && nbLeft.HasNeighbors() && !nbLeft.AllTileHasNeighbors)
+                tasks[3] = nbLeft.UpdateAllTileNeighborsAsync();
+            else
+                tasks[3] = Task.CompletedTask;
+
+            if (nbRight != null && nbRight.HasNeighbors() && !nbRight.AllTileHasNeighbors)
+                tasks[4] = nbRight.UpdateAllTileNeighborsAsync();
+            else
+                tasks[4] = Task.CompletedTask;
+
+            await Task.WhenAll(tasks);
+
+
+            if (chunk.AllTileHasNeighbors)
+            {
+                if (PaintTileNeighbors)
+                    chunk.PaintNeighborsColor();
+
+                if (chunk.Waters.Count == 0 && chunk.Lands.Count == 0)
+                {
+                    FloodFill(chunk);
+                    chunk.PaintTilegroupMap();
+                }
+            }
+            if (nbAbove != null && nbAbove.AllTileHasNeighbors)
+            {
+                if (PaintTileNeighbors)
+                    nbAbove.PaintNeighborsColor();
+
+                if (nbAbove.Waters.Count == 0 && nbAbove.Lands.Count == 0)
+                {
+                    FloodFill(nbAbove);
+                    nbAbove.PaintTilegroupMap();
+                }
+            }
+            if(nbBelow != null && nbBelow.AllTileHasNeighbors)
+            {
+                if (PaintTileNeighbors)
+                    nbBelow.PaintNeighborsColor();
+
+                if (nbBelow.Waters.Count == 0 && nbBelow.Lands.Count == 0)
+                {
+                    FloodFill(nbBelow);
+                    nbBelow.PaintTilegroupMap();
+                }
+            }
+            if(nbLeft != null && nbLeft.AllTileHasNeighbors)
+            {
+                if (PaintTileNeighbors)
+                    nbLeft.PaintNeighborsColor();
+
+                if (nbLeft.Waters.Count == 0 && nbLeft.Lands.Count == 0)
+                {
+                    FloodFill(nbLeft);
+                    nbLeft.PaintTilegroupMap();
+                }
+            }
+            if(nbRight != null && nbRight.AllTileHasNeighbors)
+            {
+                if (PaintTileNeighbors)
+                    nbRight.PaintNeighborsColor();
+
+                if (nbRight.Waters.Count == 0 && nbRight.Lands.Count == 0)
+                {
+                    FloodFill(nbRight);
+                    nbRight.PaintTilegroupMap();
+                }
+            }
+
+        }
         #endregion
 
 
-        
+
 
         #region Grid Algorithm
         private void FloodFill(Chunk chunk)

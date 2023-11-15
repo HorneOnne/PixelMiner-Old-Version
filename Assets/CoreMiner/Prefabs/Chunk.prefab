@@ -777,8 +777,8 @@ MonoBehaviour:
   FrameY: 0
   IsometricFrameX: 0
   IsometricFrameY: 0
-  _width: 512
-  _height: 512
+  _width: 0
+  _height: 0
   Left: {fileID: 0}
   Right: {fileID: 0}
   Top: {fileID: 0}
@@ -789,7 +789,8 @@ MonoBehaviour:
   HeatTilemap: {fileID: 5944688470899727617}
   MoistureTilemap: {fileID: 8978034657071712779}
   Grid: {fileID: 694292955545555232}
-  HasFourNeighbors: 0
+  HasChunkNeighbors: 0
+  AllTileHasNeighbors: 0
   ChunkHasDrawn: 0
   Waters: []
   Lands: []
