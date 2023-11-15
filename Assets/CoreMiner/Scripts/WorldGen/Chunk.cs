@@ -15,8 +15,8 @@ namespace CoreMiner
         public CoreMiner.Utilities.Grid<Tile> ChunkData;
         public float FrameX;    // Used for calculate world position
         public float FrameY;    // Used for calculate world position
-        public int IsometricFrameX; // Used for calculate world generation
-        public int IsometricFrameY; // Used for calculate world generation
+        public int IsometricFrameX; // Used for calculate world generation (coherent noise)
+        public int IsometricFrameY; // Used for calculate world generation (coherent noise)
         [SerializeField] private int _width;
         [SerializeField] private int _height;
         private float _unloadChunkDistance = 200;
@@ -39,7 +39,8 @@ namespace CoreMiner
         public Tilemap MoistureTilemap;
         public Grid Grid;
 
-        public bool HasFourNeighbors;
+        public bool HasChunkNeighbors = false;
+        public bool AllTileHasNeighbors = false;
         public bool ChunkHasDrawn;
 
 
@@ -50,8 +51,6 @@ namespace CoreMiner
         {
             ChunkHasDrawn = false;
         }
-
-
 
         private void Update()
         {
@@ -84,9 +83,9 @@ namespace CoreMiner
         {
             await Task.Run(() =>
             {
-                for (int x = 0; x < _width; x++)
+                for (byte x = 0; x < _width; x++)
                 {
-                    for (int y = 0; y < _height; y++)
+                    for (byte y = 0; y < _height; y++)
                     {
                         Tile tile = new Tile(x, y);
                         ChunkData.SetValue(x, y, tile);
@@ -114,8 +113,8 @@ namespace CoreMiner
         }
 
 
-        
 
+        #region Load chunk tile data
         public async Task LoadHeightMapDataAsync(float[,] heightValues, bool updateHeightType = true)
         {
             await Task.Run(() =>
@@ -203,7 +202,6 @@ namespace CoreMiner
             });   
         }
 
-      
         public async Task LoadMoistureMapDataAsync(float[,] moisetureValues, bool updateMoistureType = true)
         {
             await Task.Run(() =>
@@ -244,9 +242,11 @@ namespace CoreMiner
 
             });
         }
+        #endregion
 
 
 
+        #region Set chunk tile type
         private void UpdateHeightType(Tile tile)
         {
             if (tile.HeightValue < WorldGeneration.Instance.DeepWater)
@@ -285,7 +285,6 @@ namespace CoreMiner
                 tile.Collidable = true;
             }
         }
-
         private void UpdateHeatType(Tile tile)
         {
             // Adjust heat type when heat value has changed.
@@ -314,7 +313,6 @@ namespace CoreMiner
                 tile.HeatType = HeatType.Warmest;
             }
         }
-
         private void UpdateMoistureType(Tile tile)
         {
             if (tile.MoistureValue < WorldGeneration.Instance.DryerValue)
@@ -342,6 +340,8 @@ namespace CoreMiner
                 tile.MoistureType = MoistureType.Wettest;
             }
         }
+        #endregion
+
 
 
         public async Task DrawChunkAsync()
@@ -494,8 +494,14 @@ namespace CoreMiner
             
             ChunkHasDrawn = true;
         }
+        public void ClearChunkDraw()
+        {
+            LandTilemap.ClearAllTiles();
+        }
 
 
+
+        #region Paint tilemap color
         public void PaintNeighborsColor()
         {
             //return;
@@ -582,12 +588,10 @@ namespace CoreMiner
                 }
             }
         }
-        
+        #endregion
 
-        public void ClearChunkDraw()
-        {
-            LandTilemap.ClearAllTiles();
-        }
+
+        
 
 
         public void SetTwoSidesChunkNeighbors(Chunk left, Chunk right, Chunk top, Chunk bottom)
@@ -613,18 +617,17 @@ namespace CoreMiner
             {
                 bottom.Top = this;
             }
-            HasFourNeighbors = Left != null && Right != null && Top != null && Bottom != null;
+            HasChunkNeighbors = Left != null && Right != null && Top != null && Bottom != null;
         }
         public bool HasNeighbors()
         {
-            HasFourNeighbors = Left != null && Right != null && Top != null && Bottom != null;
-            return Left != null && Right != null && Top != null && Bottom != null;
+            HasChunkNeighbors = Left != null && Right != null && Top != null && Bottom != null;
+            return HasChunkNeighbors;
         }
-
-
         public void UpdateAllTileNeighbors()
         {
             Debug.Log("UpdateAllTileNeighbors");
+            AllTileHasNeighbors = true;
             for (var x = 0; x < _width; x++)
             {
                 for (var y = 0; y < _height; y++)
@@ -635,6 +638,9 @@ namespace CoreMiner
                     t.Bottom = GetBottom(t);
                     t.Left = GetLeft(t);
                     t.Right = GetRight(t);
+
+                    if (t.HasNeighbors() == false)
+                        AllTileHasNeighbors = false;
                 }
             }
         }
@@ -854,9 +860,9 @@ namespace CoreMiner
         /// <param name="heightValues"></param>
         public void LoadHeightMap(float[,] heightValues)
         {
-            for (int x = 0; x < _width; x++)
+            for (byte x = 0; x < _width; x++)
             {
-                for (int y = 0; y < _height; y++)
+                for (byte y = 0; y < _height; y++)
                 {
                     Tile tile = new Tile(x, y);
                     tile.HeightValue = heightValues[x, y];

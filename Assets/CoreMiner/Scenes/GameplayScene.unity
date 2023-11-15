@@ -703,7 +703,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3.4440243, y: 1.328161, z: -9.886057}
+  m_LocalPosition: {x: 3.4440243, y: 25.328161, z: -9.886057}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -788,7 +788,7 @@ Transform:
   m_GameObject: {fileID: 551416350}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3.4440243, y: 1.328161, z: -9.886057}
+  m_LocalPosition: {x: 3.4440243, y: 25.328161, z: -9.886057}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1096,7 +1096,7 @@ Transform:
   m_GameObject: {fileID: 749198358}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 24, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1609,15 +1609,15 @@ MonoBehaviour:
   _chunkPrefab: {fileID: 1287440298023199784, guid: 3f439708f29b6f14dbf4933564e81924, type: 3}
   ChunkWidth: 32
   ChunkHeight: 32
-  InitWorldWidth: 10
-  InitWorldHeight: 10
-  LoadChunkOffsetWidth: 10
-  LoadChunkOffsetHeight: 10
+  InitWorldWidth: 0
+  InitWorldHeight: 0
+  LoadChunkOffsetWidth: 0
+  LoadChunkOffsetHeight: 0
   Octaves: 6
   Frequency: 0.013
   Lacunarity: 2
   Persistence: 0.5
-  Seed: 7
+  Seed: 26
   DeepWater: 0.4
   Water: 0.6
   Sand: 0.65
@@ -1644,11 +1644,19 @@ MonoBehaviour:
   WetValue: 0.6
   WetterValue: 0.8
   WettestValue: 0.9
+  RiverCount: 40
+  MinRiverHeight: 0.6
+  MaxRiverAttempts: 1000
+  MinRiverTurns: 18
+  MinRiverLength: 20
+  MaxRiverIntersections: 2
+  Rivers: []
+  RiverGroups: []
   AutoUnloadChunk: 0
   ShowChunksBorder: 1
   ShowTilegroupMaps: 0
   InitWorldWithHeatmap: 0
-  InitWorldWithMoisturemap: 1
+  InitWorldWithMoisturemap: 0
   PaintTileNeighbors: 0
 --- !u!4 &1497941757
 Transform:
@@ -2752,7 +2760,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6577536551770996436, guid: b5fbf8417053cf343a54a8bfb1069a55, type: 3}
       propertyPath: playButtonTime
-      value: 638355826270112958
+      value: 638356703976455678
       objectReference: {fileID: 0}
     - target: {fileID: 6588897239180729126, guid: b5fbf8417053cf343a54a8bfb1069a55, type: 3}
       propertyPath: m_AnchorMax.y

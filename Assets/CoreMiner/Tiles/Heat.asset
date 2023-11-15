@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Heat
   m_EditorClassIdentifier: 
   tileSprite: {fileID: -1501076743, guid: f8a50d2e719497246820e2f22b8ae397, type: 3}
-  Type: 999
+  Type: 254
   tileColor: {r: 1, g: 1, b: 1, a: 1}

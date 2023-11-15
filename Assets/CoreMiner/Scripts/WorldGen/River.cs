@@ -1,0 +1,34 @@
+﻿using System.Collections.Generic;
+
+namespace CoreMiner
+{
+    [System.Serializable]
+    public class River
+    {
+        public int Length;
+        public List<Tile> Tiles;
+        public int ID;
+
+        public int Insersections;
+        public float TurnCount;
+        public Direction CurrentDirection;
+
+        public River(int id)
+        {
+            this.ID = id;
+            Tiles = new List<Tile>();   
+        }
+
+        public void AddTile(Tile tile)
+        {
+            
+        }
+    }
+
+    [System.Serializable]
+    public class RiverGroup
+    {
+        public List<River> Rivers = new List<River>();
+    }
+}
+

@@ -18,7 +18,7 @@ namespace CoreMiner
             {
                 Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 mousePosition += new Vector2(0.0f, -0.75f);
-                Chunk chunk = _worldGen.GetChunkFromWorldPosition(mousePosition);
+                Chunk chunk = _worldGen.GetChunk(mousePosition);
      
                 if (chunk != null)
                 {
@@ -32,7 +32,7 @@ namespace CoreMiner
             {
                 Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 mousePosition += new Vector2(0f, -0.75f);
-                Chunk chunk = _worldGen.GetChunkFromWorldPosition(mousePosition);
+                Chunk chunk = _worldGen.GetChunk(mousePosition);
                 if (chunk != null)
                 {
                     //SetChunkColor(chunk, Color.white);
