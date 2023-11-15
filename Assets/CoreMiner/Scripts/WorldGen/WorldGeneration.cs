@@ -182,7 +182,7 @@ namespace CoreMiner
 
 
             // World Initialization
-            InitWorldAsync(lastChunkISOFrame.x, lastChunkISOFrame.y, widthInit: InitWorldWidth, heightInit: InitWorldHeight, () =>
+            InitWorldAsyncInParallel(lastChunkISOFrame.x, lastChunkISOFrame.y, widthInit: InitWorldWidth, heightInit: InitWorldHeight, () =>
             {
                 LoadChunksAroundPosition(lastChunkISOFrame.x, lastChunkISOFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
             });
@@ -264,7 +264,7 @@ namespace CoreMiner
             {
                 int newSeed = WorldGenUtilities.GenerateNewSeed(Seed + i);
                 bool updateLoadingUI = i == 0 ? true : false;
-                tasks[i] = ComputeNoiseRangeAsync(newSeed, updateLoadingUI);
+                tasks[i] = ComputeNoiseRangeAsync(newSeed);
 
                 Task continuationTask = tasks[i].ContinueWith(task =>
                 {
@@ -306,7 +306,7 @@ namespace CoreMiner
             public float MinValue;
             public float MaxValue;
         }
-        private async Task<MinMax> ComputeNoiseRangeAsync(int seed, bool updateLoadingUI = false)
+        private async Task<MinMax> ComputeNoiseRangeAsync(int seed)
         {
             MinMax minMax = new MinMax()
             {
@@ -340,10 +340,9 @@ namespace CoreMiner
 
 
         #region Init Chunks
-        private async void InitWorldAsync(int initIsoFrameX, int initIsoFrameY, int widthInit, int heightInit, System.Action onFinished = null)
+        private async void InitWorldAsyncInSequence(int initIsoFrameX, int initIsoFrameY, int widthInit, int heightInit, System.Action onFinished = null)
         {
             UIGameManager.Instance.DisplayWorldGenCanvas(true);
-
             //await ComputeNoiseRangeAsyncInSequence();
             await ComputeNoiseRangeAsyncInParallel();
 
@@ -370,6 +369,58 @@ namespace CoreMiner
             }
 
             await Task.Delay(100);
+            UIGameManager.Instance.DisplayWorldGenCanvas(false);
+            onFinished?.Invoke();
+        }
+        private async void InitWorldAsyncInParallel(int initIsoFrameX, int initIsoFrameY, int widthInit, int heightInit, System.Action onFinished = null)
+        {
+            UIGameManager.Instance.DisplayWorldGenCanvas(true);
+            //await ComputeNoiseRangeAsyncInSequence();
+            await ComputeNoiseRangeAsyncInParallel();
+
+            Debug.Log($"min: {MinWorldNoiseValue}");
+            Debug.Log($"max: {MaxWorldNoiseValue}");
+
+            int completedTaskCount = 0;
+
+            Task<Chunk>[] tasks = new Task<Chunk>[(widthInit * 2 + 1) * (heightInit * 2 + 1)];
+            List<Task> continuationTasks = new List<Task>();
+
+            for (int x = initIsoFrameX - widthInit; x <= initIsoFrameX + widthInit; x++)
+            {
+                for (int y = initIsoFrameY - heightInit; y <= initIsoFrameY + heightInit; y++)
+                {
+                    int index = x - (initIsoFrameX - widthInit) + (y - (initIsoFrameY - heightInit)) * (2 * widthInit + 1);
+                    tasks[index] = GenerateNewChunkAsync(x, y);
+
+                    Task continuationTask = tasks[index].ContinueWith(task =>
+                    {
+                        // Increment the completed tasks counter
+                        Interlocked.Increment(ref completedTaskCount);
+
+                        // Play Slider UI
+                        float progress = (float)completedTaskCount / tasks.Length;
+                        float mapProgress = MathHelper.Map(progress, 0f, 1f, 0.1f, 1.0f);
+                        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                        {
+                            UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);
+                        });
+                    }, TaskContinuationOptions.OnlyOnRanToCompletion);
+
+                    continuationTasks.Add(continuationTask);
+                }
+            }
+
+            await Task.WhenAll(tasks);
+            await Task.WhenAll(continuationTasks);
+
+            foreach(var task in tasks)
+            {
+                Chunk newChunk = task.Result;
+                AddNewChunk(newChunk);
+                newChunk.UnloadChunk();
+            }
+
             UIGameManager.Instance.DisplayWorldGenCanvas(false);
             onFinished?.Invoke();
         }
