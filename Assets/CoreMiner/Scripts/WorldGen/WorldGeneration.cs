@@ -450,8 +450,7 @@ namespace CoreMiner
 
             // Create new data
             float[,] heightValues = await GetHeightMapDataAsync(isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
-            //float[,] heatValues = await GetHeatMapDataAysnc(isoFrameX, isoFrameY);
-            float[,] heatValues = await GetGradientMapDataAsync(isoFrameX, isoFrameY);
+            float[,] heatValues = await GetHeatMapDataAysnc(isoFrameX, isoFrameY);
             float[,] moisetureValues = await GetMoistureMapDataAsync(isoFrameX, isoFrameY);
 
             if (InitWorldWithHeatmap)
@@ -717,8 +716,8 @@ namespace CoreMiner
 
             await Task.Run(() =>
             {
-                int gradientFrameX = (int)(isoFrameX * ChunkWidth / GradientHeatmapSize);
-                int gradientFrameY = -Mathf.CeilToInt(isoFrameY * ChunkHeight / GradientHeatmapSize);
+                int gradientFrameX = (int)(isoFrameX * ChunkWidth / (float)GradientHeatmapSize);
+                int gradientFrameY = -Mathf.CeilToInt(isoFrameY * ChunkHeight / (float)GradientHeatmapSize);
 
                 // Calculate the center of the texture with the offset
                 Vector2 gradientOffset = new Vector2(gradientFrameX * GradientHeatmapSize, gradientFrameY * GradientHeatmapSize);

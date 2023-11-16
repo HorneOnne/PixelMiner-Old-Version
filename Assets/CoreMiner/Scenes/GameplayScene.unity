@@ -2108,7 +2108,7 @@ MonoBehaviour:
   HeatFrequency: 0.02
   HeatLacunarity: 2
   HeatPersistence: 0.5
-  GradientHeatmapSize: 256
+  GradientHeatmapSize: 64
   HeatMapBlendFactor: 0.5
   ColdestValue: 0.05
   ColderValue: 0.18
