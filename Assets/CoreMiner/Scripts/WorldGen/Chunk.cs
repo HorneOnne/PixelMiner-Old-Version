@@ -327,23 +327,23 @@ namespace CoreMiner
         }
         private void UpdateMoistureType(Tile tile)
         {
-            if (tile.MoistureValue < WorldGeneration.Instance.DryerValue)
+            if (tile.MoistureValue < WorldGeneration.Instance.DryestValue)
             {
                 tile.MoistureType = MoistureType.Dryest;
             }
-            else if(tile.MoistureValue < WorldGeneration.Instance.DryValue)
+            else if(tile.MoistureValue < WorldGeneration.Instance.DryerValue)
             {
                 tile.MoistureType = MoistureType.Dryer;
             }
-            else if (tile.MoistureValue < WorldGeneration.Instance.WetValue)
+            else if (tile.MoistureValue < WorldGeneration.Instance.DryValue)
             {
                 tile.MoistureType = MoistureType.Dry;
             }
-            else if (tile.MoistureValue < WorldGeneration.Instance.WetterValue)
+            else if (tile.MoistureValue < WorldGeneration.Instance.WetValue)
             {
                 tile.MoistureType = MoistureType.Wet;
             }
-            else if (tile.MoistureValue < WorldGeneration.Instance.WettestValue)
+            else if (tile.MoistureValue < WorldGeneration.Instance.WetterValue)
             {
                 tile.MoistureType = MoistureType.Wetter;
             }
@@ -535,7 +535,6 @@ namespace CoreMiner
 
         public void PaintTilegroupMap()
         {
-            return;
             foreach (var group in Waters)
             {
                 foreach (var tile in group.Tiles)
@@ -562,7 +561,7 @@ namespace CoreMiner
                 for (var y = 0; y < _height; y++)
                 {
                     Tile t = ChunkData.GetValue(x, y);
-                    HeatTilemap.SetColor(new Vector3Int(t.FrameX, t.FrameY), WorldGeneration.Instance.GetGradientColor(t.HeatValue));
+                    HeatTilemap.SetColor(new Vector3Int(t.FrameX, t.FrameY), WorldGenUtilities.GetGradientColor(t.HeatValue));
                 }
             }
         }
@@ -578,25 +577,25 @@ namespace CoreMiner
                     switch(t.MoistureType)
                     {
                         case MoistureType.Dryest:
-                            color = WorldGeneration.Dryest;
+                            color = WorldGenUtilities.Dryest;
                             break;
                         case MoistureType.Dryer:
-                            color = WorldGeneration.Dryer;
+                            color = WorldGenUtilities.Dryer;
                             break;
                         case MoistureType.Dry:
-                            color = WorldGeneration.Dry;
+                            color = WorldGenUtilities.Dry;
                             break;
                         case MoistureType.Wet:
-                            color = WorldGeneration.Wet;
+                            color = WorldGenUtilities.Wet;
                             break;
                         case MoistureType.Wetter:
-                            color = WorldGeneration.Wetter;
+                            color = WorldGenUtilities.Wetter;
                             break;
                         case MoistureType.Wettest:
-                            color = WorldGeneration.Wettest;
+                            color = WorldGenUtilities.Wettest;
                             break;
                         default:
-                            color = WorldGeneration.Wettest;
+                            color = WorldGenUtilities.Wettest;
                             break;
                     }
 

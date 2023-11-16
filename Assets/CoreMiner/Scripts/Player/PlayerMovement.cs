@@ -67,6 +67,15 @@ namespace CoreMiner
                 transform.localScale = new Vector3(1, 1, 1);
             }
         }
+
+#if DEBUG_CONSOLE
+
+        [Command("SET_PLAYER_SPEED", "[value]", MonoTargetType.Single)] 
+        private void SetPlayerSpeed(float value)
+        {
+            this.moveSpeed = value;
+        }
+#endif
     }
 
 }

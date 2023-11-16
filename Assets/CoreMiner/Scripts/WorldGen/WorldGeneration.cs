@@ -9,7 +9,11 @@ using System.Collections;
 using CoreMiner.Utilities;
 using System.Threading;
 using LibNoise.Operator;
+using Sirenix.OdinInspector;
+
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 namespace CoreMiner
 {
@@ -23,74 +27,89 @@ namespace CoreMiner
         [SerializeField] private Chunk _chunkPrefab;
 
         // Min and Max Height used for normalize noise value in range [0-1]
-        [field: SerializeField] public float MinWorldNoiseValue { get; private set; } = float.MaxValue;
-        [field: SerializeField] public float MaxWorldNoiseValue { get; private set; } = float.MinValue;
+        [ShowInInspector, ReadOnly] public float MinWorldNoiseValue { get; private set; } = float.MaxValue;
+        [ShowInInspector, ReadOnly] public float MaxWorldNoiseValue { get; private set; } = float.MinValue;
 
-        [Header("World Settings")]
-        public byte ChunkWidth = 16;      // Size of each chunk in tiles
-        public byte ChunkHeight = 16;      // Size of each chunk in tiles
+        //[Header("World Settings")]
+
+        [FoldoutGroup("World Settings"), Indent(1)] public int Seed = 7;
+        [FoldoutGroup("World Settings"), Indent(1)] public byte ChunkWidth = 16;      // Size of each chunk in tiles
+        [FoldoutGroup("World Settings"), Indent(1)] public byte ChunkHeight = 16;      // Size of each chunk in tiles
         [Space(5)]
-        public byte InitWorldWidth = 3;
-        public byte InitWorldHeight = 3;
-        public byte LoadChunkOffsetWidth = 1;
-        public byte LoadChunkOffsetHeight = 1;
+        [FoldoutGroup("World Settings"), Indent(1)] public byte InitWorldWidth = 3;
+        [FoldoutGroup("World Settings"), Indent(1)] public byte InitWorldHeight = 3;
+        [FoldoutGroup("World Settings"), Indent(1)] public byte LoadChunkOffsetWidth = 1;
+        [FoldoutGroup("World Settings"), Indent(1)] public byte LoadChunkOffsetHeight = 1;
+
         // Compute noise range sample count.
         private byte _calculateNoiseRangeSampleMultiplier = 15;  // 50 times. 50 * 100000 = 5 mil times.
         private int _calculateNoiseRangeCount = 1000000;    // 1 mil times.
 
 
 
-
-
-        [Header("Noise Settings")]
-        public int Octaves = 6;
-        public double Frequency = 0.02f;
-        public double Lacunarity = 2.0f;
-        public double Persistence = 0.5f;
-        public int Seed = 7;
+        // Height map
+        // ==========
+        [InfoBox("Height map noise settings")]
+        [FoldoutGroup("Height map"), Indent(1)] public int Octaves = 6;
+        [FoldoutGroup("Height map"), Indent(1)] public double Frequency = 0.02f;
+        [FoldoutGroup("Height map"), Indent(1)] public double Lacunarity = 2.0f;
+        [FoldoutGroup("Height map"), Indent(1)] public double Persistence = 0.5f;
+      
+        [InfoBox("Height map threshold"), Space(10)]
+        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 0f, g: 0f, b: 0.5f, Height = 20)]
+        public float DeepWater = 0.2f;
+        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 25 / 255f, g: 25 / 255f, b: 150 / 255f, Height = 20)]
+        public float Water = 0.4f;
+        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 240 / 255f, g: 240 / 255f, b: 64 / 255f, Height = 20)]
+        public float Sand = 0.5f;
+        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 50 / 255f, g: 220 / 255f, b: 20 / 255f, Height = 20)]
+        public float Grass = 0.7f;
+        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 16 / 255f, g: 160 / 255f, b: 0f, Height = 20)]
+        public float Forest = 0.8f;
+        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 0.5f, g: 0.5f, b: 0.5f, Height = 20)]
+        public float Rock = 0.9f;
+        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 1f, g: 1f, b: 1f, Height = 20)]
+        public float Snow = 1;
         private ModuleBase _heightModule;
 
 
-        [Header("Height Threshold")]
-        public float DeepWater = 0.2f;
-        public float Water = 0.4f;
-        public float Sand = 0.5f;
-        public float Grass = 0.7f;
-        public float Forest = 0.8f;
-        public float Rock = 0.9f;
-        public float Snow = 1;
+        // Heapmap
+        // ======
+        [InfoBox("Heat map noise settings")]
+        [FoldoutGroup("Heatmap"), Indent(1)] public int HeatOctaves = 4;
+        [FoldoutGroup("Heatmap"), Indent(1)] public double HeatFrequency = 0.02;
+        [FoldoutGroup("Heatmap"), Indent(1)] public double HeatLacunarity = 2.0f;
+        [FoldoutGroup("Heatmap"), Indent(1)] public double HeatPersistence = 0.5f;
 
-
-        [Header("Heat Map")]
-        [Range(0f, 1f)]
-        public float HeatMapBlendFactor = 0.5f;
-        private ushort _gradientHeatmapSize = 256;
+        [InfoBox("Gradient map"), Space(10)]
+        [FoldoutGroup("Heatmap"), Indent(1)] public ushort GradientHeatmapSize = 256;
+        [FoldoutGroup("Heatmap"), Indent(1), Range(0f, 1f)] public float HeatMapBlendFactor = 0.5f;
+            
+        [InfoBox("Heat map threshold"), Space(10)]
+        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 0f, g: 1.0f, b: 1.0f, Height = 20)] public float ColdestValue = 0.1f;
+        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 170/255f, g: 1f, b: 1f, Height = 20)] public float ColderValue = 0.2f;
+        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 0, g: 229/255f, b: 133/255f, Height = 20)] public float ColdValue = 0.4f;
+        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 1, g:1, b:100/255f, Height = 20)] public float WarmValue = 0.6f;
+        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 1, g: 100/255f, b: 0, Height = 20)] public float WarmerValue = 0.8f;
+        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 241/255f, g: 12/255f, b: 0f, Height = 20)] public float WarmestValue = 1.0f;
         private ModuleBase _heatModule;
-        // Heatmap Gradient
-        public float ColdestValue = 0.1f;
-        public float ColderValue = 0.2f;
-        public float ColdValue = 0.4f;
-        public float WarmValue = 0.6f;
-        public float WarmerValue = 0.8f;
-        // Heatmap fratal
-        public int HeatOctaves = 4;
-        public double HeatFrequency = 0.02;
-        public double HeatLacunarity = 2.0f;
-        public double HeatPersistence = 0.5f;
 
 
 
-        [Header("Moisture Map")]
-        public int MoistureOctaves = 4;
-        public double MoistureFrequency = 0.03;
-        public double MoistureLacunarity = 2.0f;
-        public double MoisturePersistence = 0.5f;
-        [Space(5)]
-        public float DryerValue = 0.22f;
-        public float DryValue = 0.35f;
-        public float WetValue = 0.55f;
-        public float WetterValue = 0.75f;
-        public float WettestValue = 0.85f;
+        // Moisture map
+        // ======
+        [InfoBox("Moisture map noise settings")]
+        [FoldoutGroup("Moisture map"), Indent(1)] public int MoistureOctaves = 4;
+        [FoldoutGroup("Moisture map"), Indent(1)] public double MoistureFrequency = 0.03;
+        [FoldoutGroup("Moisture map"), Indent(1)] public double MoistureLacunarity = 2.0f;
+        [FoldoutGroup("Moisture map"), Indent(1)] public double MoisturePersistence = 0.5f;
+        [InfoBox("Moisture map noise settings"), Space(10)]
+        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 255/255f, 139/255f, 17/255f, Height = 20)] public float DryestValue = 0.22f;
+        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 245/255f, g: 245/255f, b: 23/255f, Height = 20)] public float DryerValue = 0.35f;
+        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 80/255f, g: 255/255f, b: 0/255f, Height = 20)] public float DryValue = 0.55f;
+        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 85/255f, g: 255/255f, b: 255/255f, Height = 20)] public float WetValue = 0.75f;
+        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 20/255f, g: 70/255f, b: 255/255f, Height = 20)] public float WetterValue = 0.85f;
+        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 0/255f, g: 0/255f, b: 100/255f, Height = 20)] public float WettestValue = 1.0f;
         private ModuleBase _moistureModule;
 
 
@@ -127,23 +146,7 @@ namespace CoreMiner
         private Dictionary<Vector2Int, Chunk> _chunks;
         public HashSet<Chunk> ActiveChunks;
 
-        [Header("Color")]
-        // Height
-        // Heat
-        public static Color ColdestColor = new Color(0, 1, 1, 1);
-        public static Color ColderColor = new Color(170 / 255f, 1, 1, 1);
-        public static Color ColdColor = new Color(0, 229 / 255f, 133 / 255f, 1);
-        public static Color WarmColor = new Color(1, 1, 100 / 255f, 1);
-        public static Color WarmerColor = new Color(1, 100 / 255f, 0, 1);
-        public static Color WarmestColor = new Color(241 / 255f, 12 / 255f, 0, 1);
 
-        // Moisture
-        public static Color Dryest = new Color(255 / 255f, 139 / 255f, 17 / 255f, 1);
-        public static Color Dryer = new Color(245 / 255f, 245 / 255f, 23 / 255f, 1);
-        public static Color Dry = new Color(80 / 255f, 255 / 255f, 0 / 255f, 1);
-        public static Color Wet = new Color(85 / 255f, 255 / 255f, 255 / 255f, 1);
-        public static Color Wetter = new Color(20 / 255f, 70 / 255f, 255 / 255f, 1);
-        public static Color Wettest = new Color(0 / 255f, 0 / 255f, 100 / 255f, 1);
 
 
 
@@ -446,8 +449,9 @@ namespace CoreMiner
             newChunk.Init(frame.x, frame.y, isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
 
             // Create new data
-            float[,] heightValues = await GetHeightMapDataAsync(isoFrameX, isoFrameY);
-            float[,] heatValues = await GetHeatMapDataAysnc(isoFrameX, isoFrameY);
+            float[,] heightValues = await GetHeightMapDataAsync(isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
+            //float[,] heatValues = await GetHeatMapDataAysnc(isoFrameX, isoFrameY);
+            float[,] heatValues = await GetGradientMapDataAsync(isoFrameX, isoFrameY);
             float[,] moisetureValues = await GetMoistureMapDataAsync(isoFrameX, isoFrameY);
 
             if (InitWorldWithHeatmap)
@@ -512,7 +516,7 @@ namespace CoreMiner
                             //UpdateChunkTileNeighbors(newChunk);
                             UpdateChunkTileNeighborsAsync(newChunk);
                         }
-                            
+
 
 
                         _chunks[nbIsoFrame].LoadChunk();
@@ -543,7 +547,7 @@ namespace CoreMiner
                             //UpdateChunkTileNeighbors(_chunks[nbIsoFrame]);
                             UpdateChunkTileNeighborsAsync(_chunks[nbIsoFrame]);
                         }
-                           
+
                         _chunks[nbIsoFrame].LoadChunk();
                     }
                 }
@@ -682,18 +686,18 @@ namespace CoreMiner
 
 
         #region Generate noise map data.
-        private async Task<float[,]> GetHeightMapDataAsync(int isoFrameX, int isoFrameY)
+        private async Task<float[,]> GetHeightMapDataAsync(int isoFrameX, int isoFrameY, int width, int height)
         {
-            float[,] heightValues = new float[ChunkWidth, ChunkHeight];
+            float[,] heightValues = new float[width, height];
 
             await Task.Run(() =>
             {
-                Parallel.For(0, ChunkWidth, x =>
+                Parallel.For(0, width, x =>
                 {
-                    for (int y = 0; y < ChunkHeight; y++)
+                    for (int y = 0; y < height; y++)
                     {
-                        float offsetX = isoFrameX * ChunkWidth + x;
-                        float offsetY = isoFrameY * ChunkHeight + y;
+                        float offsetX = isoFrameX * width + x;
+                        float offsetY = isoFrameY * height + y;
                         float heightValue = (float)_heightModule.GetValue(offsetX, offsetY, 0);
                         float normalizeHeightValue = (heightValue - MinWorldNoiseValue) / (MaxWorldNoiseValue - MinWorldNoiseValue);
                         heightValues[x, y] = normalizeHeightValue;
@@ -703,6 +707,7 @@ namespace CoreMiner
 
             return heightValues;
         }
+
         private async Task<float[,]> GetGradientMapDataAsync(int isoFrameX, int isoFrameY)
         {
             //Debug.Log("GetGradientMapAsync Start");
@@ -712,11 +717,11 @@ namespace CoreMiner
 
             await Task.Run(() =>
             {
-                int gradientFrameX = (int)(isoFrameX * ChunkWidth / _gradientHeatmapSize);
-                int gradientFrameY = -Mathf.CeilToInt(isoFrameY * ChunkHeight / _gradientHeatmapSize);
+                int gradientFrameX = (int)(isoFrameX * ChunkWidth / GradientHeatmapSize);
+                int gradientFrameY = -Mathf.CeilToInt(isoFrameY * ChunkHeight / GradientHeatmapSize);
 
                 // Calculate the center of the texture with the offset
-                Vector2 gradientOffset = new Vector2(gradientFrameX * _gradientHeatmapSize, gradientFrameY * _gradientHeatmapSize);
+                Vector2 gradientOffset = new Vector2(gradientFrameX * GradientHeatmapSize, gradientFrameY * GradientHeatmapSize);
                 Vector2 gradientCenterOffset = gradientOffset + new Vector2(isoFrameX * ChunkWidth, isoFrameY * ChunkHeight);
 
 
@@ -724,11 +729,11 @@ namespace CoreMiner
                 {
                     for (int y = 0; y < ChunkHeight; y++)
                     {
-                        Vector2 center = new Vector2(Mathf.FloorToInt(x / _gradientHeatmapSize), Mathf.FloorToInt(y / _gradientHeatmapSize)) * new Vector2(_gradientHeatmapSize, _gradientHeatmapSize) + new Vector2(_gradientHeatmapSize / 2f, _gradientHeatmapSize / 2f);
+                        Vector2 center = new Vector2(Mathf.FloorToInt(x / GradientHeatmapSize), Mathf.FloorToInt(y / GradientHeatmapSize)) * new Vector2(GradientHeatmapSize, GradientHeatmapSize) + new Vector2(GradientHeatmapSize / 2f, GradientHeatmapSize / 2f);
                         Vector2 centerWithOffset = center + gradientCenterOffset;
 
                         float distance = Mathf.Abs(y - centerWithOffset.y);
-                        float normalizedDistance = 1.0f - Mathf.Clamp01(distance / (_gradientHeatmapSize / 2f));
+                        float normalizedDistance = 1.0f - Mathf.Clamp01(distance / (GradientHeatmapSize / 2f));
                         gradientData[x, y] = normalizedDistance;
                     }
                 }
@@ -1224,7 +1229,7 @@ namespace CoreMiner
                     nbAbove.PaintTilegroupMap();
                 }
             }
-            if(nbBelow != null && nbBelow.AllTileHasNeighbors)
+            if (nbBelow != null && nbBelow.AllTileHasNeighbors)
             {
                 if (PaintTileNeighbors)
                     nbBelow.PaintNeighborsColor();
@@ -1235,7 +1240,7 @@ namespace CoreMiner
                     nbBelow.PaintTilegroupMap();
                 }
             }
-            if(nbLeft != null && nbLeft.AllTileHasNeighbors)
+            if (nbLeft != null && nbLeft.AllTileHasNeighbors)
             {
                 if (PaintTileNeighbors)
                     nbLeft.PaintNeighborsColor();
@@ -1246,7 +1251,7 @@ namespace CoreMiner
                     nbLeft.PaintTilegroupMap();
                 }
             }
-            if(nbRight != null && nbRight.AllTileHasNeighbors)
+            if (nbRight != null && nbRight.AllTileHasNeighbors)
             {
                 if (PaintTileNeighbors)
                     nbRight.PaintNeighborsColor();
@@ -1363,41 +1368,7 @@ namespace CoreMiner
 
 
         #region Utilities
-        public Color GetGradientColor(float heatValue)
-        {
-            // predefine heat value threshold
-            float ColdestValue = 0.05f;
-            float ColderValue = 0.18f;
-            float ColdValue = 0.4f;
-            float WarmValue = 0.6f;
-            float WarmerValue = 0.8f;
 
-
-            if (heatValue < ColdestValue)
-            {
-                return ColdestColor;
-            }
-            else if (heatValue < ColderValue)
-            {
-                return ColderColor;
-            }
-            else if (heatValue < ColdValue)
-            {
-                return ColdColor;
-            }
-            else if (heatValue < WarmValue)
-            {
-                return WarmColor;
-            }
-            else if (heatValue < WarmerValue)
-            {
-                return WarmerColor;
-            }
-            else
-            {
-                return WarmestColor;
-            }
-        }
         /// <summary>
         /// Sort active chunks fix some isometric chunk has wrong order (Visualization).
         /// </summary>
@@ -1485,10 +1456,6 @@ namespace CoreMiner
             }
         }
 #endif
-
-
-
-
         #region Obsolete
         /// <summary>
         /// Obsolete (Need update).

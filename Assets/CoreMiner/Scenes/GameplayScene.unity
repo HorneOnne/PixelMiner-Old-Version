@@ -1110,7 +1110,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a24ea02ac60b8c439b2887cb331ee00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 100
+  moveSpeed: 25
 --- !u!114 &749198362
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1637,7 +1637,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4622066769039182589, guid: 2da3dcc22749e7f4280737786d898334, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4622338881456843899, guid: 2da3dcc22749e7f4280737786d898334, type: 3}
       propertyPath: m_Name
@@ -1654,6 +1654,10 @@ PrefabInstance:
     - target: {fileID: 4735113768296962263, guid: 2da3dcc22749e7f4280737786d898334, type: 3}
       propertyPath: _activateOnStartup
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4735113768296962263, guid: 2da3dcc22749e7f4280737786d898334, type: 3}
+      propertyPath: _initialiseOnStartup
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4735202183287030787, guid: 2da3dcc22749e7f4280737786d898334, type: 3}
       propertyPath: m_Size
@@ -2082,45 +2086,46 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _chunkPrefab: {fileID: 1287440298023199784, guid: 3f439708f29b6f14dbf4933564e81924, type: 3}
-  <MinWorldNoiseValue>k__BackingField: 3.402823e+38
-  <MaxWorldNoiseValue>k__BackingField: -3.402823e+38
+  Seed: 26
   ChunkWidth: 32
   ChunkHeight: 32
-  InitWorldWidth: 1
-  InitWorldHeight: 1
-  LoadChunkOffsetWidth: 1
-  LoadChunkOffsetHeight: 1
+  InitWorldWidth: 15
+  InitWorldHeight: 15
+  LoadChunkOffsetWidth: 15
+  LoadChunkOffsetHeight: 15
   Octaves: 6
-  Frequency: 0.013
+  Frequency: 0.009
   Lacunarity: 2
   Persistence: 0.5
-  Seed: 26
-  DeepWater: 0.4
-  Water: 0.6
-  Sand: 0.65
-  Grass: 0.7
-  Forest: 0.8
+  DeepWater: 0.40425533
+  Water: 0.5361702
+  Sand: 0.587234
+  Grass: 0.706383
+  Forest: 0.79148936
   Rock: 0.9
   Snow: 1
+  HeatOctaves: 4
+  HeatFrequency: 0.02
+  HeatLacunarity: 2
+  HeatPersistence: 0.5
+  GradientHeatmapSize: 256
   HeatMapBlendFactor: 0.5
   ColdestValue: 0.05
   ColderValue: 0.18
   ColdValue: 0.4
   WarmValue: 0.6
   WarmerValue: 0.8
-  HeatOctaves: 4
-  HeatFrequency: 0.02
-  HeatLacunarity: 2
-  HeatPersistence: 0.5
+  WarmestValue: 1
   MoistureOctaves: 4
   MoistureFrequency: 0.03
   MoistureLacunarity: 2
   MoisturePersistence: 0.5
-  DryerValue: 0.27
-  DryValue: 0.4
-  WetValue: 0.6
-  WetterValue: 0.8
-  WettestValue: 0.9
+  DryestValue: 0.22
+  DryerValue: 0.34855404
+  DryValue: 0.54946727
+  WetValue: 0.7503805
+  WetterValue: 0.8508371
+  WettestValue: 1
   RiverCount: 40
   MinRiverHeight: 0.6
   MaxRiverAttempts: 1000
@@ -2129,12 +2134,12 @@ MonoBehaviour:
   MaxRiverIntersections: 2
   Rivers: []
   RiverGroups: []
-  AutoUnloadChunk: 1
+  AutoUnloadChunk: 0
   ShowChunksBorder: 0
   ShowTilegroupMaps: 0
-  InitWorldWithHeatmap: 0
+  InitWorldWithHeatmap: 1
   InitWorldWithMoisturemap: 0
-  PaintTileNeighbors: 1
+  PaintTileNeighbors: 0
   InitFastDrawChunk: 1
 --- !u!4 &1497941757
 Transform:

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Sirenix.OdinInspector;
 
 namespace CoreMiner
 {
@@ -9,8 +10,11 @@ namespace CoreMiner
     {
         public static Main Instance { get; private set; }
 
+        [AssetList(Path = "/CoreMiner/Tiles/")]
         public List<CustomTileBase> TileBaseList = new List<CustomTileBase>();
+        [AssetList(Path = "/CoreMiner/Tiles/Animated Tiles")]
         public List<CustomAnimatedTileBase> AnimatedTileBaseList = new List<CustomAnimatedTileBase>();
+
         private Dictionary<TileType, CustomTileBase> _tileBaseDict = new Dictionary<TileType, CustomTileBase>();
         private Dictionary<TileType, CustomAnimatedTileBase> _animatedTileBaseDict = new Dictionary<TileType, CustomAnimatedTileBase>();
 
