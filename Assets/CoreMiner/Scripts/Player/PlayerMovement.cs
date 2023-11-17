@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using QFSW.QC;
 
 namespace CoreMiner
 {
@@ -22,7 +21,7 @@ namespace CoreMiner
 
         void Start()
         {
-            _input = GetComponent<InputHander>();
+            _input = InputHander.Instance;
             _rb = GetComponent<Rigidbody2D>();
             _anim = GetComponent<Animator>();
             AssignAnimationIDs();      
@@ -30,8 +29,6 @@ namespace CoreMiner
 
         private void FixedUpdate()
         {
-            if (QuantumConsole.Instance.IsActive) return;
-
             Movement();
         }
 
@@ -67,8 +64,6 @@ namespace CoreMiner
         }
 
 #if DEV_MODE
-
-        //[Command("SET_PLAYER_SPEED", "[value]", MonoTargetType.Single)] 
         public void SetPlayerSpeed(float value)
         {
             this.moveSpeed = value;

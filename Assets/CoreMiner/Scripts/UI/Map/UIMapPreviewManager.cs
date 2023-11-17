@@ -1,27 +1,58 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 
 namespace CoreMiner.UI
 {
     public class UIMapPreviewManager : MonoBehaviour
     {
-        [SerializeField] private Image _heightMapImage;
-        [SerializeField] private Image _heatMapImage;
-        [SerializeField] private Image _moistureMapImage;
+        public static UIMapPreviewManager Instance { get; private set; }
+        public UIMapPreview HeightMapPreview { get; private set; }
+        public UIMapPreview HeatMapPreview { get; private set; }
+        public UIMapPreview MoistureMapPreview { get; private set; }
+ 
 
 
         private void Awake()
         {
-            transform.Find("HeightMapPreview")?.TryGetComponent<Image>(out _heightMapImage);
-            transform.Find("HeatMapPreview")?.TryGetComponent<Image>(out _heatMapImage);
-            transform.Find("MoistureMapPreview")?.TryGetComponent<Image>(out _moistureMapImage);
+            Instance = this;
+
+            HeightMapPreview = transform.Find("HeightMapPreview")?.GetComponent<UIMapPreview>();
+            HeatMapPreview = transform.Find("HeatMapPreview")?.GetComponent<UIMapPreview>();
+            MoistureMapPreview = transform.Find("MoistureMapPreview")?.GetComponent<UIMapPreview>();
         }
 
 
-        public bool HasHeightMap() => _heightMapImage != null;
-        public bool HasHeatMap() => _heatMapImage != null;
-        public bool HasMoistureMap() => _moistureMapImage != null;
+        public bool HasHeightMap() => HeightMapPreview != null;
+        public bool HasHeatMap() => HeatMapPreview != null;
+        public bool HasMoistureMap() => MoistureMapPreview != null;
 
 
+        public void SetActiveHeightMap()
+        {
+            if (HasHeightMap()) HeightMapPreview.gameObject.SetActive(true);
+            if (HasHeatMap()) HeatMapPreview.gameObject.SetActive(false);
+            if (HasMoistureMap()) MoistureMapPreview.gameObject.SetActive(false);
+        }
+
+        public void SetActiveHeatMap()
+        {
+            if (HasHeightMap()) HeightMapPreview.gameObject.SetActive(false);
+            if (HasHeatMap()) HeatMapPreview.gameObject.SetActive(true);
+            if (HasMoistureMap()) MoistureMapPreview.gameObject.SetActive(false);
+        }
+
+        public void SetActiveMoistureMap()
+        {
+            if (HasHeightMap()) HeightMapPreview.gameObject.SetActive(false);
+            if (HasHeatMap()) HeatMapPreview.gameObject.SetActive(false);
+            if (HasMoistureMap()) MoistureMapPreview.gameObject.SetActive(true);
+        }
+
+
+        public void CloseAllMap()
+        {
+            if (HasHeightMap()) HeightMapPreview.gameObject.SetActive(false);
+            if (HasHeatMap()) HeatMapPreview.gameObject.SetActive(false);
+            if (HasMoistureMap()) MoistureMapPreview.gameObject.SetActive(false);
+        }
     }
 }

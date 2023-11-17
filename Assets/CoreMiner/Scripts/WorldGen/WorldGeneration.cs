@@ -626,7 +626,7 @@ namespace CoreMiner
 
 
         #region Generate noise map data.
-        private async Task<float[,]> GetHeightMapDataAsync(int isoFrameX, int isoFrameY, int width, int height)
+        public async Task<float[,]> GetHeightMapDataAsync(int isoFrameX, int isoFrameY, int width, int height)
         {
             float[,] heightValues = new float[width, height];
 
@@ -647,7 +647,38 @@ namespace CoreMiner
 
             return heightValues;
         }
-        private async Task<float[,]> GetGradientMapDataAsync(int isoFrameX, int isoFrameY)
+        public async Task<float[,]> GetHeightMapDataAsync(int isoFrameX, int isoFrameY, int width, int height, float zoom = 0, float offsetXOffset = 0, float offsetYOffset = 0)
+        {
+            float[,] heightValues = new float[width, height];
+
+            await Task.Run(() =>
+            {
+                Parallel.For(0, width, x =>
+                {
+                    for (int y = 0; y < height; y++)
+                    {
+                        // Calculate the offset from the zoom center
+                        float offsetXFromCenter = x - width / 2.0f;
+                        float offsetYFromCenter = y - height / 2.0f;
+
+                        // Apply zoom around the specified center
+                        offsetXFromCenter *= zoom;
+                        offsetYFromCenter *= zoom;
+
+                        // Adjust offsetX and offsetY based on zoom, center, and offsets
+                        float offsetX = isoFrameX * width + offsetXFromCenter + offsetXOffset;
+                        float offsetY = isoFrameY * height + offsetYFromCenter + offsetYOffset;
+
+                        float heightValue = (float)_heightModule.GetValue(offsetX, offsetY, 0);
+                        float normalizeHeightValue = (heightValue - MinWorldNoiseValue) / (MaxWorldNoiseValue - MinWorldNoiseValue);
+                        heightValues[x, y] = normalizeHeightValue;
+                    }
+                });
+            });
+
+            return heightValues;
+        }
+        public async Task<float[,]> GetGradientMapDataAsync(int isoFrameX, int isoFrameY)
         {
             //Debug.Log("GetGradientMapAsync Start");
             float[,] gradientData = new float[ChunkWidth, ChunkHeight];
@@ -681,7 +712,7 @@ namespace CoreMiner
             //Debug.Log("GetGradientMapAsync Finish");
             return gradientData;
         }
-        private async Task<float[,]> GetFractalHeatMapDataAsync(int isoFrameX, int isoFrameY)
+        public async Task<float[,]> GetFractalHeatMapDataAsync(int isoFrameX, int isoFrameY)
         {
             //Debug.Log("GetFractalHeatMapAsync Start");
 
@@ -706,7 +737,7 @@ namespace CoreMiner
             //Debug.Log("GetFractalHeatMapAsync Finish");
             return fractalNoiseData;
         }
-        private async Task<float[,]> GetHeatMapDataAysnc(int isoFrameX, int isoFrameY)
+        public async Task<float[,]> GetHeatMapDataAysnc(int isoFrameX, int isoFrameY)
         {
             /*
              * Heatmap created by blend gradient map and fractal noise map.
@@ -733,7 +764,7 @@ namespace CoreMiner
             float[,] heatValues = WorldGenUtilities.BlendMapData(gradientValues, fractalNoiseValues, HeatMapBlendFactor);
             return heatValues;
         }
-        private async Task<float[,]> GetMoistureMapDataAsync(int isoFrameX, int isoFrameY)
+        public async Task<float[,]> GetMoistureMapDataAsync(int isoFrameX, int isoFrameY)
         {
             float[,] moistureData = new float[ChunkWidth, ChunkHeight];
 
