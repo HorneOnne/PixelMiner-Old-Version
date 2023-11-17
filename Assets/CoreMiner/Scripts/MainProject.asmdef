@@ -1,0 +1,19 @@
+{
+    "name": "MainProject",
+    "rootNamespace": "MainProject",
+    "references": [
+        "GUID:75469ad4d38634e559750d17036d5f7c",
+        "GUID:97ecb757e517fed4bbe119cb9a4ec3c8",
+        "GUID:fb24642277b1db2449da7ac148ce939d",
+        "GUID:613783dc1674e844b87788ea74ede0f6"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
