@@ -9,6 +9,7 @@ using Unity.Mathematics;
 
 namespace CoreMiner
 {
+    [SelectionBase]
     public class Chunk : MonoBehaviour
     {
         [Header("Chunk Settings")]

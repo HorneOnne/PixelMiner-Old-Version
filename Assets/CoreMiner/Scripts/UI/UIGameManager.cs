@@ -22,12 +22,12 @@ namespace CoreMiner.UI
 
         public void CloseAll()
         {
-            DisplayWorldGenCanvas(false);
+            DisplayWorldGenSlider(false);
         }
 
-        public void DisplayWorldGenCanvas(bool isActive)
+        public void DisplayWorldGenSlider(bool isActive)
         {
-            CanvasWorldGen.DisplayCanvas(isActive);
+            CanvasWorldGen.WorldGenSlider.gameObject.SetActive(isActive);
         }
     }
 }

@@ -24,7 +24,8 @@ namespace CoreMiner
 
 
         #region Fileds and Variables
-        [SerializeField] private Chunk _chunkPrefab;
+        [FoldoutGroup("References"), SerializeField] private Chunk _chunkPrefab;
+        [FoldoutGroup("References"), SerializeField] private Transform _chunkParent;
 
         // Min and Max Height used for normalize noise value in range [0-1]
         [ShowInInspector, ReadOnly] public float MinWorldNoiseValue { get; private set; } = float.MaxValue;
@@ -113,15 +114,17 @@ namespace CoreMiner
         private ModuleBase _moistureModule;
 
 
-        [Header("River")]
-        public int RiverCount = 40;
-        public float MinRiverHeight = 0.6f;
-        public int MaxRiverAttempts = 1000;
-        public int MinRiverTurns = 18;
-        public int MinRiverLength = 20;
-        public int MaxRiverIntersections = 2;
-        public List<River> Rivers = new List<River>();
-        public List<RiverGroup> RiverGroups = new List<RiverGroup>();
+
+        // River
+        // =====
+        [FoldoutGroup("River"), Indent(1)] public int RiverCount = 40;
+        [FoldoutGroup("River"), Indent(1)] public float MinRiverHeight = 0.6f;
+        [FoldoutGroup("River"), Indent(1)] public int MaxRiverAttempts = 1000;
+        [FoldoutGroup("River"), Indent(1)] public int MinRiverTurns = 18;
+        [FoldoutGroup("River"), Indent(1)] public int MinRiverLength = 20;
+        [FoldoutGroup("River"), Indent(1)] public int MaxRiverIntersections = 2;
+        [FoldoutGroup("River"), Indent(1)] public List<River> Rivers = new List<River>();
+        [FoldoutGroup("River"), Indent(1)] public List<RiverGroup> RiverGroups = new List<RiverGroup>();
 
 
         [Header("World Generation Utilities")]
@@ -371,7 +374,7 @@ namespace CoreMiner
         #region Init Chunks
         private async void InitWorldAsyncInSequence(int initIsoFrameX, int initIsoFrameY, byte widthInit, byte heightInit, System.Action onFinished = null)
         {
-            UIGameManager.Instance.DisplayWorldGenCanvas(true);
+            UIGameManager.Instance.DisplayWorldGenSlider(true);
             //await ComputeNoiseRangeAsyncInSequence();
             await ComputeNoiseRangeAsyncInParallel();
 
@@ -398,12 +401,12 @@ namespace CoreMiner
             }
 
             await Task.Delay(100);
-            UIGameManager.Instance.DisplayWorldGenCanvas(false);
+            UIGameManager.Instance.DisplayWorldGenSlider(false);
             onFinished?.Invoke();
         }
         private async void InitWorldAsyncInParallel(int initIsoFrameX, int initIsoFrameY, byte widthInit, byte heightInit, System.Action onFinished = null)
         {
-            UIGameManager.Instance.DisplayWorldGenCanvas(true);
+            UIGameManager.Instance.DisplayWorldGenSlider(true);
             await ComputeNoiseRangeAsyncInParallel();
 
             int completedTaskCount = 0;
@@ -438,14 +441,14 @@ namespace CoreMiner
                 newChunk.UnloadChunk();
             }
 
-            UIGameManager.Instance.DisplayWorldGenCanvas(false);
+            UIGameManager.Instance.DisplayWorldGenSlider(false);
             onFinished?.Invoke();
         }
         private async Task<Chunk> GenerateNewChunkDataAsync(int isoFrameX, int isoFrameY)
         {
             Vector2 frame = IsometricUtilities.IsometricFrameToWorldFrame(isoFrameX, isoFrameY);
             Vector3 worldPosition = IsometricUtilities.ConvertIsometricFrameToWorldPosition(isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
-            Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity);
+            Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity, _chunkParent.transform);
             newChunk.Init(frame.x, frame.y, isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
 
             // Create new data
