@@ -5,7 +5,7 @@ namespace CoreMiner
     public class Tool : MonoBehaviour
     {
         private Main _main;
-
+     
         private void Start()
         {
             _main = Main.Instance;
