@@ -4,8 +4,7 @@ using UnityEngine.Tilemaps;
 using System.Collections;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using UnityEngine.UIElements;
-using Unity.Mathematics;
+using Sirenix.OdinInspector;
 
 namespace CoreMiner
 {

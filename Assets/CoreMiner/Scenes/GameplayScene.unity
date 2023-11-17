@@ -1027,7 +1027,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &696036323
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2231,10 +2231,10 @@ MonoBehaviour:
   Seed: 26
   ChunkWidth: 32
   ChunkHeight: 32
-  InitWorldWidth: 5
-  InitWorldHeight: 5
-  LoadChunkOffsetWidth: 5
-  LoadChunkOffsetHeight: 5
+  InitWorldWidth: 2
+  InitWorldHeight: 2
+  LoadChunkOffsetWidth: 2
+  LoadChunkOffsetHeight: 2
   Octaves: 6
   Frequency: 0.009
   Lacunarity: 2
@@ -2276,12 +2276,12 @@ MonoBehaviour:
   MaxRiverIntersections: 2
   Rivers: []
   RiverGroups: []
-  AutoUnloadChunk: 0
+  AutoUnloadChunk: 1
   ShowChunksBorder: 0
   ShowTilegroupMaps: 0
   InitWorldWithHeatmap: 0
   InitWorldWithMoisturemap: 0
-  PaintTileNeighbors: 0
+  PaintTileNeighbors: 1
   InitFastDrawChunk: 0
 --- !u!4 &1497941757
 Transform:

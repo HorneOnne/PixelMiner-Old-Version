@@ -504,16 +504,6 @@ namespace CoreMiner
                                 newChunk.PaintMoistureMap();
                         }
 
-
-                        // Update chunk tile neighbors
-                        if (!newChunk.HasNeighbors())
-                        {
-                            //UpdateChunkTileNeighbors(newChunk);
-                            UpdateChunkTileNeighborsAsync(newChunk);
-                        }
-
-
-
                         _main.GetChunk(nbIsoFrame).LoadChunk();
                     }
                     else // Load chunk cached.
@@ -535,14 +525,6 @@ namespace CoreMiner
                             if (InitWorldWithMoisturemap)
                                 _main.Chunks[nbIsoFrame].PaintMoistureMap();
                         }
-
-                        // Update chunk tile neighbors
-                        if (!_main.Chunks[nbIsoFrame].HasNeighbors())
-                        {
-                            //UpdateChunkTileNeighbors(_chunks[nbIsoFrame]);
-                            UpdateChunkTileNeighborsAsync(_main.Chunks[nbIsoFrame]);
-                        }
-
                         _main.Chunks[nbIsoFrame].LoadChunk();
                     }
                 }
@@ -552,6 +534,8 @@ namespace CoreMiner
             {
                 SortActiveChunkByDepth();
             }
+
+            UpdateAllActiveChunkTileNeighborsAsync();
         }
         private async void LoadChunksAroundPositionInParallel(int isoFrameX, int isoFrameY, byte offsetWidth = 1, byte offsetHeight = 1)
         {
@@ -577,7 +561,7 @@ namespace CoreMiner
                         drawChunkTasks[index] = newChunk.DrawChunkAsync();
 
                         // Cached chunk data
-                        if (_main.Chunks.ContainsKey(nbIsoFrame) == false)
+                        if (_main.HasChunk(nbIsoFrame) == false)
                         {
                             _main.AddNewChunk(newChunk);
                         }
@@ -585,11 +569,6 @@ namespace CoreMiner
                         _main.ActiveChunks.Add(newChunk);
                         _main.Chunks[nbIsoFrame].LoadChunk();
 
-
-                        //if (!newChunk.HasNeighbors())
-                        //{
-                        //    UpdateChunkTileNeighbors(newChunk);
-                        //}
                     }
                     else // Load chunk cached.
                     {
@@ -599,7 +578,7 @@ namespace CoreMiner
                             // ......
                         }
 
-                        _main.Chunks[nbIsoFrame].LoadChunk();
+                        _main.GetChunk(nbIsoFrame).LoadChunk();
                         _main.ActiveChunks.Add(_main.Chunks[nbIsoFrame]);
 
                         if (_main.Chunks[nbIsoFrame].ChunkHasDrawn == false)
@@ -668,7 +647,6 @@ namespace CoreMiner
 
             return heightValues;
         }
-
         private async Task<float[,]> GetGradientMapDataAsync(int isoFrameX, int isoFrameY)
         {
             //Debug.Log("GetGradientMapAsync Start");
@@ -1023,39 +1001,19 @@ namespace CoreMiner
         #region Neighbors
         private void AddChunkFourDirectionNeighbors(Chunk chunk)
         {
-            Chunk nbAbove = GetChunkNeighborAbove(chunk);
-            Chunk nbBelow = GetChunkNeighborBelow(chunk);
-            Chunk nbLeft = GetChunkNeighborLeft(chunk);
-            Chunk nbRight = GetChunkNeighborRight(chunk);
+            Chunk nbAbove = _main.GetChunkNeighborAbove(chunk);
+            Chunk nbBelow = _main.GetChunkNeighborBelow(chunk);
+            Chunk nbLeft = _main.GetChunkNeighborLeft(chunk);
+            Chunk nbRight = _main.GetChunkNeighborRight(chunk);
             chunk.SetTwoSidesChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
-        }
-        private Chunk GetChunkNeighborAbove(Chunk chunk)
-        {
-            Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX, chunk.IsometricFrameY + 1);
-            return _main.Chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
-        }
-        private Chunk GetChunkNeighborBelow(Chunk chunk)
-        {
-            Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX, chunk.IsometricFrameY - 1);
-            return _main.Chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
-        }
-        private Chunk GetChunkNeighborLeft(Chunk chunk)
-        {
-            Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX - 1, chunk.IsometricFrameY);
-            return _main.Chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
-        }
-        private Chunk GetChunkNeighborRight(Chunk chunk)
-        {
-            Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX + 1, chunk.IsometricFrameY);
-            return _main.Chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
         }
         private void UpdateChunkTileNeighbors(Chunk chunk)
         {
             // Find chunk neighbors
-            Chunk nbAbove = GetChunkNeighborAbove(chunk);
-            Chunk nbBelow = GetChunkNeighborBelow(chunk);
-            Chunk nbLeft = GetChunkNeighborLeft(chunk);
-            Chunk nbRight = GetChunkNeighborRight(chunk);
+            Chunk nbAbove = _main.GetChunkNeighborAbove(chunk);
+            Chunk nbBelow = _main.GetChunkNeighborBelow(chunk);
+            Chunk nbLeft = _main.GetChunkNeighborLeft(chunk);
+            Chunk nbRight = _main.GetChunkNeighborRight(chunk);
             chunk.SetTwoSidesChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
 
             if (chunk.HasNeighbors() && !chunk.AllTileHasNeighbors)
@@ -1130,10 +1088,10 @@ namespace CoreMiner
         private async void UpdateChunkTileNeighborsAsync(Chunk chunk)
         {
             // Find chunk neighbors
-            Chunk nbAbove = GetChunkNeighborAbove(chunk);
-            Chunk nbBelow = GetChunkNeighborBelow(chunk);
-            Chunk nbLeft = GetChunkNeighborLeft(chunk);
-            Chunk nbRight = GetChunkNeighborRight(chunk);
+            Chunk nbAbove = _main.GetChunkNeighborAbove(chunk);
+            Chunk nbBelow = _main.GetChunkNeighborBelow(chunk);
+            Chunk nbLeft = _main.GetChunkNeighborLeft(chunk);
+            Chunk nbRight = _main.GetChunkNeighborRight(chunk);
             chunk.SetTwoSidesChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
 
             Task[] tasks = new Task[5];
@@ -1224,6 +1182,16 @@ namespace CoreMiner
                 }
             }
 
+        }
+        private void UpdateAllActiveChunkTileNeighborsAsync()
+        {
+            foreach (Chunk activeChunk in _main.ActiveChunks)
+            {
+                if (activeChunk.AllTileHasNeighbors == false)
+                {
+                    UpdateChunkTileNeighborsAsync(activeChunk);
+                }
+            }
         }
         #endregion
 

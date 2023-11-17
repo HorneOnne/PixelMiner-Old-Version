@@ -10,7 +10,6 @@ namespace CoreMiner
     {
         public static Main Instance { get; private set; }
 
-
         // Tiles data
         [AssetList(Path = "/CoreMiner/Tiles/")]
         public List<CustomTileBase> TileBaseList = new List<CustomTileBase>();
@@ -113,6 +112,30 @@ namespace CoreMiner
         public void AddNewChunk(Chunk chunk, Vector2Int isoFrame)
         {
             Chunks.Add(isoFrame, chunk);
+        }
+        #endregion
+
+
+        #region Neighbors
+        public Chunk GetChunkNeighborAbove(Chunk chunk)
+        {
+            Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX, chunk.IsometricFrameY + 1);
+            return Chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
+        }
+        public Chunk GetChunkNeighborBelow(Chunk chunk)
+        {
+            Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX, chunk.IsometricFrameY - 1);
+            return Chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
+        }
+        public Chunk GetChunkNeighborLeft(Chunk chunk)
+        {
+            Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX - 1, chunk.IsometricFrameY);
+            return Chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
+        }
+        public Chunk GetChunkNeighborRight(Chunk chunk)
+        {
+            Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX + 1, chunk.IsometricFrameY);
+            return Chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
         }
         #endregion
     }
