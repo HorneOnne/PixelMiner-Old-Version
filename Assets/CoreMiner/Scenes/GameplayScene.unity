@@ -1020,8 +1020,9 @@ GameObject:
   - component: {fileID: 696036323}
   - component: {fileID: 696036325}
   - component: {fileID: 696036324}
+  - component: {fileID: 696036326}
   m_Layer: 5
-  m_Name: HeightmapPreview
+  m_Name: HeightMapPreview
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1044,7 +1045,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 1536, y: 864}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &696036324
 MonoBehaviour:
@@ -1084,6 +1085,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 696036322}
   m_CullTransparentMesh: 1
+--- !u!114 &696036326
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 696036322}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d93c467cd8a19014d9bacd19cf2a49f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &749198358
 GameObject:
   m_ObjectHideFlags: 0
@@ -1323,6 +1336,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 802559733}
+  - component: {fileID: 802559734}
   m_Layer: 5
   m_Name: Map
   m_TagString: Untagged
@@ -1350,6 +1364,21 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &802559734
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 802559732}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d7f2df17d730214f92fea29f3c71c72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _heightMapImage: {fileID: 0}
+  _heatMapImage: {fileID: 0}
+  _moistureMapImage: {fileID: 0}
 --- !u!1 &813266248
 GameObject:
   m_ObjectHideFlags: 0
@@ -2202,10 +2231,10 @@ MonoBehaviour:
   Seed: 26
   ChunkWidth: 32
   ChunkHeight: 32
-  InitWorldWidth: 1
-  InitWorldHeight: 1
-  LoadChunkOffsetWidth: 1
-  LoadChunkOffsetHeight: 1
+  InitWorldWidth: 5
+  InitWorldHeight: 5
+  LoadChunkOffsetWidth: 5
+  LoadChunkOffsetHeight: 5
   Octaves: 6
   Frequency: 0.009
   Lacunarity: 2
@@ -2253,7 +2282,7 @@ MonoBehaviour:
   InitWorldWithHeatmap: 0
   InitWorldWithMoisturemap: 0
   PaintTileNeighbors: 0
-  InitFastDrawChunk: 1
+  InitFastDrawChunk: 0
 --- !u!4 &1497941757
 Transform:
   m_ObjectHideFlags: 0

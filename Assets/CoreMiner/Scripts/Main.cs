@@ -10,18 +10,32 @@ namespace CoreMiner
     {
         public static Main Instance { get; private set; }
 
+
+        // Tiles data
         [AssetList(Path = "/CoreMiner/Tiles/")]
         public List<CustomTileBase> TileBaseList = new List<CustomTileBase>();
         [AssetList(Path = "/CoreMiner/Tiles/Animated Tiles")]
         public List<CustomAnimatedTileBase> AnimatedTileBaseList = new List<CustomAnimatedTileBase>();
-
         private Dictionary<TileType, CustomTileBase> _tileBaseDict = new Dictionary<TileType, CustomTileBase>();
         private Dictionary<TileType, CustomAnimatedTileBase> _animatedTileBaseDict = new Dictionary<TileType, CustomAnimatedTileBase>();
+
+
+        // Chunk data
+        [Header("Data Cached")]
+        public Dictionary<Vector2Int, Chunk> Chunks;
+        public HashSet<Chunk> ActiveChunks;
+
+
 
         private void Awake()
         {
             Instance = this;
             LoadTileBaseDictionary();
+
+
+            // Initialize the chunks data
+            Chunks = new Dictionary<Vector2Int, Chunk>();
+            ActiveChunks = new HashSet<Chunk>();
         }
 
         private void Start()
@@ -29,6 +43,8 @@ namespace CoreMiner
             
         }
 
+
+        #region Initialize tile data
         private void LoadTileBaseDictionary()
         {  
             foreach(var tilebase in TileBaseList)
@@ -54,7 +70,51 @@ namespace CoreMiner
             }
             return null;
         }
+        #endregion
 
+        #region Get, Set Chunk
+        public bool HasChunk(int isoFrameX, int isoFrameY)
+        {
+            return Chunks.ContainsKey(new Vector2Int(isoFrameX, isoFrameY));
+        }
+        public bool HasChunk(Vector2Int isoFrame)
+        {
+            return Chunks.ContainsKey(isoFrame);
+        }
+        public Chunk GetChunk(Vector2 worldPosition, int chunkWidth, int chunkHeight)
+        {
+            var isoFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(worldPosition,
+                                                                               chunkWidth,
+                                                                               chunkHeight);
+            return GetChunk(isoFrame);
+        }
+        public Chunk GetChunk(int isoFrameX, int isoFrameY)
+        {
+            Vector2Int isoFrame = new Vector2Int(isoFrameX, isoFrameY);
+            if (Chunks.ContainsKey(isoFrame))
+            {
+                return Chunks[isoFrame];
+            }
+            return null;
+        }
+        public Chunk GetChunk(Vector2Int isoFrame)
+        {
+            if (Chunks.ContainsKey(isoFrame))
+            {
+                return Chunks[isoFrame];
+            }
+            return null;
+        }
+        public void AddNewChunk(Chunk chunk)
+        {
+            Vector2Int isoFrame = new Vector2Int(chunk.IsometricFrameX, chunk.IsometricFrameY);
+            Chunks.Add(isoFrame, chunk);
+        }
+        public void AddNewChunk(Chunk chunk, Vector2Int isoFrame)
+        {
+            Chunks.Add(isoFrame, chunk);
+        }
+        #endregion
     }
 }
 

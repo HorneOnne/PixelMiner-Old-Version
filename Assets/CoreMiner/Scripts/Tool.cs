@@ -4,11 +4,11 @@ namespace CoreMiner
 {
     public class Tool : MonoBehaviour
     {
-        private WorldGeneration _worldGen;
+        private Main _main;
 
         private void Start()
         {
-            _worldGen = WorldGeneration.Instance;
+            _main = Main.Instance;
         }
 
 
@@ -18,7 +18,7 @@ namespace CoreMiner
             {
                 Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 mousePosition += new Vector2(0.0f, -0.75f);
-                Chunk chunk = _worldGen.GetChunk(mousePosition);
+                Chunk chunk = _main.GetChunk(mousePosition, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
      
                 if (chunk != null)
                 {
@@ -32,7 +32,7 @@ namespace CoreMiner
             {
                 Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 mousePosition += new Vector2(0f, -0.75f);
-                Chunk chunk = _worldGen.GetChunk(mousePosition);
+                Chunk chunk = _main.GetChunk(mousePosition, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
                 if (chunk != null)
                 {
                     //SetChunkColor(chunk, Color.white);

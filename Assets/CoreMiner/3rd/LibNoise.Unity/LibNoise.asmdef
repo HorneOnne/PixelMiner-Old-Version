@@ -1,6 +1,6 @@
 {
-    "name": "LibNoiseAssembly",
-    "rootNamespace": "LibNoiseAssembly",
+    "name": "LibNoise",
+    "rootNamespace": "LibNoise",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

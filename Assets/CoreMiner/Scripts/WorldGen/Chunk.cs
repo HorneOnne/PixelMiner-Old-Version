@@ -64,7 +64,7 @@ namespace CoreMiner
                     && WorldGeneration.Instance.AutoUnloadChunk
                     && !Processing)
                 {
-                    WorldGeneration.Instance.ActiveChunks.Remove(this);
+                    Main.Instance.ActiveChunks.Remove(this);
                     gameObject.SetActive(false);
                 }
             }

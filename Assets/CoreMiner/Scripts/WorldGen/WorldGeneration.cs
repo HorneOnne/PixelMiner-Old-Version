@@ -10,6 +10,7 @@ using CoreMiner.Utilities;
 using System.Threading;
 using LibNoise.Operator;
 using Sirenix.OdinInspector;
+using System.Runtime.CompilerServices;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -145,18 +146,12 @@ namespace CoreMiner
 
 
 
-        [Header("Data Cached")]
-        private Dictionary<Vector2Int, Chunk> _chunks;
-        public HashSet<Chunk> ActiveChunks;
-
-
-
-
 
         // Cached
         private Vector2Int lastChunkISOFrame;
         private Vector2 _centerPoint;
         private Vector2Int _centerPointFrame;
+        private Main _main;
 
         #endregion
 
@@ -186,9 +181,7 @@ namespace CoreMiner
 
         private void Start()
         {
-            // Initialize the chunks dictionary
-            _chunks = new Dictionary<Vector2Int, Chunk>();
-            ActiveChunks = new HashSet<Chunk>();
+            _main = Main.Instance;
 
             _centerPoint = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width / 2f, Screen.height / 2f));
 
@@ -229,7 +222,7 @@ namespace CoreMiner
             if (Input.GetKeyDown(KeyCode.R))
             {
                 Vector2Int isoFrame = new Vector2Int(0, 0);
-                Chunk chunk = GetChunk(isoFrame);
+                Chunk chunk = _main.GetChunk(isoFrame);
                 if (chunk != null)
                 {
                     Debug.Log(chunk.AllTileHasNeighbors);
@@ -388,7 +381,7 @@ namespace CoreMiner
                 for (int y = initIsoFrameY - heightInit; y <= initIsoFrameY + heightInit; y++)
                 {
                     Chunk newChunk = await GenerateNewChunkDataAsync(x, y);
-                    AddNewChunk(newChunk);
+                    _main.AddNewChunk(newChunk);
                     newChunk.UnloadChunk();
 
 
@@ -437,7 +430,7 @@ namespace CoreMiner
             foreach (var task in tasks)
             {
                 Chunk newChunk = task.Result;
-                AddNewChunk(newChunk);
+                _main.AddNewChunk(newChunk);
                 newChunk.UnloadChunk();
             }
 
@@ -484,7 +477,7 @@ namespace CoreMiner
                 for (int y = isoFrameY - offsetHeight; y <= isoFrameY + offsetHeight; y++)
                 {
                     Vector2Int nbIsoFrame = new Vector2Int(x, y);
-                    Chunk chunk = GetChunk(nbIsoFrame);
+                    Chunk chunk = _main.GetChunk(nbIsoFrame);
                     if (chunk == null)   // Create new chunk
                     {
                         if (x == isoFrameX && y == isoFrameY)
@@ -496,9 +489,9 @@ namespace CoreMiner
                         Chunk newChunk = await GenerateNewChunkDataAsync(x, y);
 
                         // Cached chunk data
-                        if (_chunks.ContainsKey(nbIsoFrame) == false)
-                            AddNewChunk(newChunk);
-                        ActiveChunks.Add(newChunk);
+                        if (_main.HasChunk(nbIsoFrame) == false)
+                            _main.AddNewChunk(newChunk);
+                        _main.ActiveChunks.Add(newChunk);
 
 
                         if (newChunk.ChunkHasDrawn == false)
@@ -521,7 +514,7 @@ namespace CoreMiner
 
 
 
-                        _chunks[nbIsoFrame].LoadChunk();
+                        _main.GetChunk(nbIsoFrame).LoadChunk();
                     }
                     else // Load chunk cached.
                     {
@@ -531,26 +524,26 @@ namespace CoreMiner
                             // ......
                         }
 
-                        ActiveChunks.Add(_chunks[nbIsoFrame]);
+                        _main.ActiveChunks.Add(_main.Chunks[nbIsoFrame]);
 
-                        if (_chunks[nbIsoFrame].ChunkHasDrawn == false)
+                        if (_main.Chunks[nbIsoFrame].ChunkHasDrawn == false)
                         {
-                            await _chunks[nbIsoFrame].DrawChunkAsync();
+                            await _main.Chunks[nbIsoFrame].DrawChunkAsync();
 
                             if (InitWorldWithHeatmap)
-                                _chunks[nbIsoFrame].PaintHeatMap();
+                                _main.Chunks[nbIsoFrame].PaintHeatMap();
                             if (InitWorldWithMoisturemap)
-                                _chunks[nbIsoFrame].PaintMoistureMap();
+                                _main.Chunks[nbIsoFrame].PaintMoistureMap();
                         }
 
                         // Update chunk tile neighbors
-                        if (!_chunks[nbIsoFrame].HasNeighbors())
+                        if (!_main.Chunks[nbIsoFrame].HasNeighbors())
                         {
                             //UpdateChunkTileNeighbors(_chunks[nbIsoFrame]);
-                            UpdateChunkTileNeighborsAsync(_chunks[nbIsoFrame]);
+                            UpdateChunkTileNeighborsAsync(_main.Chunks[nbIsoFrame]);
                         }
 
-                        _chunks[nbIsoFrame].LoadChunk();
+                        _main.Chunks[nbIsoFrame].LoadChunk();
                     }
                 }
             }
@@ -570,7 +563,7 @@ namespace CoreMiner
                 {
                     int index = x - (isoFrameX - offsetWidth) + (y - (isoFrameY - offsetHeight)) * (2 * offsetWidth + 1);
                     Vector2Int nbIsoFrame = new Vector2Int(x, y);
-                    Chunk chunk = GetChunk(nbIsoFrame);
+                    Chunk chunk = _main.GetChunk(nbIsoFrame);
 
                     if (chunk == null)   // Create new chunk
                     {
@@ -584,13 +577,13 @@ namespace CoreMiner
                         drawChunkTasks[index] = newChunk.DrawChunkAsync();
 
                         // Cached chunk data
-                        if (_chunks.ContainsKey(nbIsoFrame) == false)
+                        if (_main.Chunks.ContainsKey(nbIsoFrame) == false)
                         {
-                            AddNewChunk(newChunk);
+                            _main.AddNewChunk(newChunk);
                         }
 
-                        ActiveChunks.Add(newChunk);
-                        _chunks[nbIsoFrame].LoadChunk();
+                        _main.ActiveChunks.Add(newChunk);
+                        _main.Chunks[nbIsoFrame].LoadChunk();
 
 
                         //if (!newChunk.HasNeighbors())
@@ -606,12 +599,12 @@ namespace CoreMiner
                             // ......
                         }
 
-                        _chunks[nbIsoFrame].LoadChunk();
-                        ActiveChunks.Add(_chunks[nbIsoFrame]);
+                        _main.Chunks[nbIsoFrame].LoadChunk();
+                        _main.ActiveChunks.Add(_main.Chunks[nbIsoFrame]);
 
-                        if (_chunks[nbIsoFrame].ChunkHasDrawn == false)
+                        if (_main.Chunks[nbIsoFrame].ChunkHasDrawn == false)
                         {
-                            drawChunkTasks[index] = _chunks[nbIsoFrame].DrawChunkAsync();
+                            drawChunkTasks[index] = _main.Chunks[nbIsoFrame].DrawChunkAsync();
                         }
                         else
                         {
@@ -626,7 +619,7 @@ namespace CoreMiner
             await Task.WhenAll(drawChunkTasks);
 
 
-            foreach (var chunk in _chunks.Values)
+            foreach (var chunk in _main.Chunks.Values)
             {
                 if (InitWorldWithHeatmap)
                     chunk.PaintHeatMap();
@@ -650,41 +643,7 @@ namespace CoreMiner
 
 
 
-        #region Get, Set Chunk
-        public Chunk GetChunk(Vector2 worldPosition)
-        {
-            var isoFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(worldPosition,
-                                                                               ChunkWidth,
-                                                                               ChunkHeight);
-            return GetChunk(isoFrame);
-        }
-        public Chunk GetChunk(int isoFrameX, int isoFrameY)
-        {
-            Vector2Int isoFrame = new Vector2Int(isoFrameX, isoFrameY);
-            if (_chunks.ContainsKey(isoFrame))
-            {
-                return _chunks[isoFrame];
-            }
-            return null;
-        }
-        public Chunk GetChunk(Vector2Int isoFrame)
-        {
-            if (_chunks.ContainsKey(isoFrame))
-            {
-                return _chunks[isoFrame];
-            }
-            return null;
-        }
-        public void AddNewChunk(Chunk chunk)
-        {
-            Vector2Int isoFrame = new Vector2Int(chunk.IsometricFrameX, chunk.IsometricFrameY);
-            _chunks.Add(isoFrame, chunk);
-        }
-        public void AddNewChunk(Chunk chunk, Vector2Int isoFrame)
-        {
-            _chunks.Add(isoFrame, chunk);
-        }
-        #endregion
+    
 
 
         #region Generate noise map data.
@@ -860,7 +819,7 @@ namespace CoreMiner
                 int x = Random.Range(0, ChunkWidth);
                 int y = Random.Range(0, ChunkHeight);
 
-                Tile tile = _chunks[new Vector2Int(isoFrameX, isoFrameY)].ChunkData.GetValue(x, y);
+                Tile tile = _main.GetChunk(new Vector2Int(isoFrameX, isoFrameY)).ChunkData.GetValue(x, y);
 
                 // validate the tile
                 if (!tile.Collidable) continue;
@@ -1073,22 +1032,22 @@ namespace CoreMiner
         private Chunk GetChunkNeighborAbove(Chunk chunk)
         {
             Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX, chunk.IsometricFrameY + 1);
-            return _chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
+            return _main.Chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
         }
         private Chunk GetChunkNeighborBelow(Chunk chunk)
         {
             Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX, chunk.IsometricFrameY - 1);
-            return _chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
+            return _main.Chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
         }
         private Chunk GetChunkNeighborLeft(Chunk chunk)
         {
             Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX - 1, chunk.IsometricFrameY);
-            return _chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
+            return _main.Chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
         }
         private Chunk GetChunkNeighborRight(Chunk chunk)
         {
             Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX + 1, chunk.IsometricFrameY);
-            return _chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
+            return _main.Chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
         }
         private void UpdateChunkTileNeighbors(Chunk chunk)
         {
@@ -1377,7 +1336,7 @@ namespace CoreMiner
         private void SortActiveChunkByDepth(bool inverse = false)
         {
             int depth = 0;
-            List<Chunk> chunkList = ActiveChunks.ToList();
+            List<Chunk> chunkList = _main.ActiveChunks.ToList();
 
             chunkList.Sort((v1, v2) =>
             {
