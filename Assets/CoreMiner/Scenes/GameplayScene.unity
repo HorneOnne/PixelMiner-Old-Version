@@ -2282,7 +2282,7 @@ MonoBehaviour:
   InitWorldWithHeatmap: 0
   InitWorldWithMoisturemap: 0
   PaintTileNeighbors: 1
-  InitFastDrawChunk: 0
+  InitFastDrawChunk: 1
 --- !u!4 &1497941757
 Transform:
   m_ObjectHideFlags: 0

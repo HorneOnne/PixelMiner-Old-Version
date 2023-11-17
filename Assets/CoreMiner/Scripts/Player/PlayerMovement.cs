@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using QFSW.QC;
@@ -68,10 +66,10 @@ namespace CoreMiner
             }
         }
 
-#if DEBUG_CONSOLE
+#if DEV_MODE
 
-        [Command("SET_PLAYER_SPEED", "[value]", MonoTargetType.Single)] 
-        private void SetPlayerSpeed(float value)
+        //[Command("SET_PLAYER_SPEED", "[value]", MonoTargetType.Single)] 
+        public void SetPlayerSpeed(float value)
         {
             this.moveSpeed = value;
         }

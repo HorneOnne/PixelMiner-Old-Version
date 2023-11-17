@@ -36,7 +36,6 @@ namespace CoreMiner
             Chunks = new Dictionary<Vector2Int, Chunk>();
             ActiveChunks = new HashSet<Chunk>();
         }
-
         private void Start()
         {
             
