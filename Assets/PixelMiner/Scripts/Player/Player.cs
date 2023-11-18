@@ -1,0 +1,15 @@
+﻿using QFSW.QC;
+using UnityEngine;
+
+namespace PixelMiner
+{
+    public class Player : MonoBehaviour
+    {
+        public PlayerMovement PlayerMovement { get; private set; }
+ 
+        private void Awake()
+        {
+            PlayerMovement = GetComponent<PlayerMovement>();
+        }
+    }
+}
