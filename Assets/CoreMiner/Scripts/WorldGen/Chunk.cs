@@ -910,68 +910,6 @@ namespace CoreMiner
                 }
             }
         }
-
-        /// <summary>
-        /// Obsolete.
-        /// </summary>
-        /// <param name="onFinished"></param>
-        public void DrawChunkPerformance(System.Action onFinished = null)
-        {
-            StartCoroutine(DrawChunkCoroutine(onFinished));
-        }
-
-        /// <summary>
-        /// Obsolete.
-        /// </summary>
-        /// <param name="onFinished"></param>
-        /// <returns></returns>
-        private IEnumerator DrawChunkCoroutine(System.Action onFinished)
-        {
-            for (int x = 0; x < _width; x++)
-            {
-                for (int y = 0; y < _height; y++)
-                {
-                    float heightValue = ChunkData.GetValue(x, y).HeightValue;
-
-                    if (heightValue < WorldGeneration.Instance.DeepWater)
-                    {
-                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DeepWater));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Water)
-                    {
-                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Sand)
-                    {
-                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Sand));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Grass)
-                    {
-                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DirtGrass));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Forest)
-                    {
-                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.ForestGrass));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Rock)
-                    {
-                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Rock));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Snow)
-                    {
-                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Snow));
-                    }
-
-                }
-
-                if (PerformanceManager.Instance.HitFrameLimit())
-                {
-                    yield return null;
-                }
-            }
-            ChunkHasDrawn = true;
-            onFinished?.Invoke();
-        }
         #endregion
 
 

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using QFSW.QC;
+using UnityEngine;
 
 namespace CoreMiner
 {
@@ -11,5 +12,4 @@ namespace CoreMiner
             PlayerMovement = GetComponent<PlayerMovement>();
         }
     }
-
 }

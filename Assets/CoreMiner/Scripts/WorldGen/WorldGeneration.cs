@@ -4,13 +4,9 @@ using LibNoise;
 using LibNoise.Generator;
 using System.Linq;
 using System.Threading.Tasks;
-using CoreMiner.UI;
-using System.Collections;
-using CoreMiner.Utilities;
 using System.Threading;
-using LibNoise.Operator;
 using Sirenix.OdinInspector;
-using System.Runtime.CompilerServices;
+using CoreMiner.Utilities;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -265,7 +261,7 @@ namespace CoreMiner
                         float mapProgress = MathHelper.Map(progress, 0f, 1f, 0.0f, 0.3f);
                         UnityMainThreadDispatcher.Instance().Enqueue(() =>
                         {
-                            UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);
+                            //UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);
                         });
                     }
                 }
@@ -284,7 +280,7 @@ namespace CoreMiner
             float maxNoiseValue = float.MinValue;
             int completedTaskCount = 0;
 
-            UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(0);
+            //UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(0);
 
             Task<MinMax>[] tasks = new Task<MinMax>[_calculateNoiseRangeSampleMultiplier];
             List<Task> continuationTasks = new List<Task>();
@@ -304,7 +300,7 @@ namespace CoreMiner
                     float mapProgress = MathHelper.Map(progress, 0f, 1f, 0.0f, 0.1f);
                     UnityMainThreadDispatcher.Instance().Enqueue(() =>
                     {
-                        UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);
+                        //UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);
                     });
                 }, TaskContinuationOptions.OnlyOnRanToCompletion);
 
@@ -367,7 +363,7 @@ namespace CoreMiner
         #region Init Chunks
         private async void InitWorldAsyncInSequence(int initIsoFrameX, int initIsoFrameY, byte widthInit, byte heightInit, System.Action onFinished = null)
         {
-            UIGameManager.Instance.DisplayWorldGenSlider(true);
+            //UIGameManager.Instance.DisplayWorldGenSlider(true);
             //await ComputeNoiseRangeAsyncInSequence();
             await ComputeNoiseRangeAsyncInParallel();
 
@@ -389,17 +385,17 @@ namespace CoreMiner
                     currentIteration++;
                     float progress = (float)currentIteration / totalIterations;
                     float mapProgress = MathHelper.Map(progress, 0f, 1f, 0.1f, 1.0f);
-                    UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);
+                    //UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);
                 }
             }
 
             await Task.Delay(100);
-            UIGameManager.Instance.DisplayWorldGenSlider(false);
+            //UIGameManager.Instance.DisplayWorldGenSlider(false);
             onFinished?.Invoke();
         }
         private async void InitWorldAsyncInParallel(int initIsoFrameX, int initIsoFrameY, byte widthInit, byte heightInit, System.Action onFinished = null)
         {
-            UIGameManager.Instance.DisplayWorldGenSlider(true);
+            //UIGameManager.Instance.DisplayWorldGenSlider(true);
             await ComputeNoiseRangeAsyncInParallel();
 
             int completedTaskCount = 0;
@@ -420,7 +416,7 @@ namespace CoreMiner
                     float mapProgress = MathHelper.Map(progress, 0f, 1f, 0.1f, 1.0f);
                     UnityMainThreadDispatcher.Instance().Enqueue(() =>
                     {
-                        UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);
+                        //UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);
                     });
                 }
             }
@@ -434,7 +430,7 @@ namespace CoreMiner
                 newChunk.UnloadChunk();
             }
 
-            UIGameManager.Instance.DisplayWorldGenSlider(false);
+            //UIGameManager.Instance.DisplayWorldGenSlider(false);
             onFinished?.Invoke();
         }
         private async Task<Chunk> GenerateNewChunkDataAsync(int isoFrameX, int isoFrameY)

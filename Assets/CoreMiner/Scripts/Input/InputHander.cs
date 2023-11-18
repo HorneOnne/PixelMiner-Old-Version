@@ -8,7 +8,7 @@ namespace CoreMiner
     {
         public static InputHander Instance { get; private set; }
         public event System.Action OnMouseScrollFinish;
-
+ 
         private PlayerInput playerInput;
 
         [Header("Character Input Values")]

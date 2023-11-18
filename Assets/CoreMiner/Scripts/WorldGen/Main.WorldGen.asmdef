@@ -1,11 +1,10 @@
 {
-    "name": "MainProject",
-    "rootNamespace": "MainProject",
+    "name": "Main.WorldGen",
+    "rootNamespace": "Main.WorldGen",
     "references": [
-        "GUID:fb24642277b1db2449da7ac148ce939d",
-        "GUID:49f2eca994477e84ba327c3a83e9e5c7",
-        "GUID:4f7f34825068e144d80372aea14b6aa5",
-        "GUID:47fad0f2c25007240b332ff2ffdeb230"
+        "GUID:97ecb757e517fed4bbe119cb9a4ec3c8",
+        "GUID:613783dc1674e844b87788ea74ede0f6",
+        "GUID:84c06cd667c59eb4cacb203b57aa5eb4"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

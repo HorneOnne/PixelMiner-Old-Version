@@ -1,11 +1,8 @@
 {
-    "name": "MainProject",
-    "rootNamespace": "MainProject",
+    "name": "Main.Input",
+    "rootNamespace": "",
     "references": [
-        "GUID:fb24642277b1db2449da7ac148ce939d",
-        "GUID:49f2eca994477e84ba327c3a83e9e5c7",
-        "GUID:4f7f34825068e144d80372aea14b6aa5",
-        "GUID:47fad0f2c25007240b332ff2ffdeb230"
+        "GUID:75469ad4d38634e559750d17036d5f7c"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

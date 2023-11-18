@@ -5,7 +5,7 @@ namespace CoreMiner
     public class Tool : MonoBehaviour
     {
         private Main _main;
-     
+
         private void Start()
         {
             _main = Main.Instance;
@@ -44,12 +44,7 @@ namespace CoreMiner
         public void SetChunkColor(Chunk chunk, Color color)
         {
             chunk.LandTilemap.color = color;
-        }
-
-
-
-
-        
+        }  
     }
 }
 
