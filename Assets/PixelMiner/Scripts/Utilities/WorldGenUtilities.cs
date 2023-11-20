@@ -96,6 +96,25 @@ namespace PixelMiner
                 return WarmestColor;
             }
         }
+
+        public static int StringToSeed(string input)
+        {
+            // Check if the input consists only of digits and has a length of 10
+            if (input.Length == 10 && int.TryParse(input, out int intValue))
+            {
+                return intValue; // Return the parsed integer value
+            }
+            else
+            {
+                // If the input is not a 10-digit number, use GetHashCode() as before
+                int hash = input.GetHashCode();
+
+                // Ensure the hash value is non-negative (GetHashCode() may return a negative value)
+                int seedValue = hash & int.MaxValue;
+
+                return seedValue;
+            }
+        }
     }
 }
 

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using Sirenix.OdinInspector;
 using PixelMiner.Utilities;
+using System;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -30,7 +31,8 @@ namespace PixelMiner
 
         //[Header("World Settings")]
 
-        [FoldoutGroup("World Settings"), Indent(1)] public int Seed = 7;
+        [FoldoutGroup("World Settings"), Indent(1)] public string SeedInput = "7";
+        [FoldoutGroup("World Settings"), Indent(1), ReadOnly, ShowInInspector] public int Seed { get; private set; }
         [FoldoutGroup("World Settings"), Indent(1)] public byte ChunkWidth = 16;      // Size of each chunk in tiles
         [FoldoutGroup("World Settings"), Indent(1)] public byte ChunkHeight = 16;      // Size of each chunk in tiles
         [Space(5)]
@@ -114,14 +116,12 @@ namespace PixelMiner
 
         // River
         // =====
-        [FoldoutGroup("River"), Indent(1)] public int RiverCount = 40;
-        [FoldoutGroup("River"), Indent(1)] public float MinRiverHeight = 0.6f;
-        [FoldoutGroup("River"), Indent(1)] public int MaxRiverAttempts = 1000;
-        [FoldoutGroup("River"), Indent(1)] public int MinRiverTurns = 18;
-        [FoldoutGroup("River"), Indent(1)] public int MinRiverLength = 20;
-        [FoldoutGroup("River"), Indent(1)] public int MaxRiverIntersections = 2;
-        [FoldoutGroup("River"), Indent(1)] public List<River> Rivers = new List<River>();
-        [FoldoutGroup("River"), Indent(1)] public List<RiverGroup> RiverGroups = new List<RiverGroup>();
+        [FoldoutGroup("River"), Indent(1)] public int RiverOctaves = 4;
+        [FoldoutGroup("River"), Indent(1)] public double RiverFrequency = 0.02;
+        [FoldoutGroup("River"), Indent(1)] public double RiverLacunarity = 2.0f;
+        [FoldoutGroup("River"), Indent(1)] public double RiverPersistence = 0.5f;
+        [FoldoutGroup("River"), Indent(1), MinMaxSlider(0f, 1f, true)] public Vector2 RiverRange = new Vector2(0.7f, 0.75f);
+        private ModuleBase _riverModule;
 
 
         [Header("World Generation Utilities")]
@@ -130,6 +130,7 @@ namespace PixelMiner
         public bool ShowTilegroupMaps = false;
         public bool InitWorldWithHeatmap = false;
         public bool InitWorldWithMoisturemap = false;
+        public bool InitWorldWithRiver = false;
         public bool PaintTileNeighbors = false;
 
         [Header("Performance Options")]
@@ -163,6 +164,8 @@ namespace PixelMiner
         {
             Instance = this;
 
+            Seed = WorldGenUtilities.StringToSeed(SeedInput);
+
             // Set seed
             UnityEngine.Random.InitState(Seed);
 
@@ -181,10 +184,13 @@ namespace PixelMiner
 
             _centerPoint = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width / 2f, Screen.height / 2f));
 
+
             // Init noise module
             _heightModule = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, QualityMode.High);
             _heatModule = new Perlin(HeatFrequency, HeatLacunarity, HeatPersistence, HeatOctaves, Seed, QualityMode.High);
             _moistureModule = new Perlin(MoistureFrequency, MoistureLacunarity, MoisturePersistence, MoistureOctaves, Seed, QualityMode.High);
+            _riverModule = new Perlin(RiverFrequency, RiverLacunarity, RiverPersistence, RiverOctaves, Seed, QualityMode.Low);
+
 
             // Load chunks around the player's starting position
             lastChunkISOFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(_centerPoint, ChunkWidth, ChunkHeight);
@@ -211,19 +217,6 @@ namespace PixelMiner
                 lastChunkISOFrame = _centerPointFrame;
                 LoadChunksAroundPositionInSequence(_centerPointFrame.x, _centerPointFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
                 //LoadChunksAroundPositionInParallel(_centerPointFrame.x, _centerPointFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
-            }
-
-            // Testing
-            // ======
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                Vector2Int isoFrame = new Vector2Int(0, 0);
-                Chunk chunk = _main.GetChunk(isoFrame);
-                if (chunk != null)
-                {
-                    Debug.Log(chunk.AllTileHasNeighbors);
-                    GenerateRivers(isoFrameX: 0, isoFrameY: 0);
-                }
             }
         }
         #endregion
@@ -358,8 +351,6 @@ namespace PixelMiner
         #endregion Compute Noise Range
 
 
-
-
         #region Init Chunks
         private async void InitWorldAsyncInSequence(int initIsoFrameX, int initIsoFrameY, byte widthInit, byte heightInit, System.Action onFinished = null)
         {
@@ -400,6 +391,8 @@ namespace PixelMiner
 
             int completedTaskCount = 0;
             Task<Chunk>[] tasks = new Task<Chunk>[(widthInit * 2 + 1) * (heightInit * 2 + 1)];
+
+   
 
             for (int x = initIsoFrameX - widthInit; x <= initIsoFrameX + widthInit; x++)
             {
@@ -445,6 +438,8 @@ namespace PixelMiner
             float[,] heatValues = await GetHeatMapDataAysnc(isoFrameX, isoFrameY);
             float[,] moisetureValues = await GetMoistureMapDataAsync(isoFrameX, isoFrameY);
 
+            float[,] riverValues = await GetRiverDataAsync(isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
+
             if (InitWorldWithHeatmap)
             {
                 await newChunk.LoadHeightAndHeatMap(heightValues, heatValues);
@@ -461,6 +456,11 @@ namespace PixelMiner
             else
             {
 
+            }
+
+            if(InitWorldWithRiver)
+            {
+                await newChunk.LoadRiverDataAsync(riverValues);
             }
 
             return newChunk;
@@ -617,8 +617,6 @@ namespace PixelMiner
         #endregion
 
 
-
-    
 
 
         #region Generate noise map data.
@@ -788,236 +786,26 @@ namespace PixelMiner
 
 
         #region River
-        /// <summary>
-        /// This method generates rivers on the map.
-        /// Output: Rivers are generated on the map, and the details are stored in the Rivers list.
-        /// </summary>
-        /// <param name="isoFrameX"></param>
-        /// <param name="isoFrameY"></param>
-        private void GenerateRivers(int isoFrameX, int isoFrameY)
+        public async Task<float[,]> GetRiverDataAsync(int isoFrameX, int isoFrameY, int width, int height)
         {
-            /*
-             * Initialize variables, including the number of rivers (RiverCount) and an empty list to store river objects (Rivers).
-             * Use a loop to generate rivers until the desired number (RiverCount) is reached or the maximum attempts (MaxRiverAttempts) are made.
-             */
-            int attempts = 0;
-            int riverCount = RiverCount;
-            Rivers = new List<River>();
+            float[,] riverValues = new float[width, height];
 
-            // Generate some rivers
-            while (riverCount > 0 && attempts < MaxRiverAttempts)
+            await Task.Run(() =>
             {
-                /*
-                 * Randomly select a tile on the map.
-                 * Check if the tile is collidable and doesn't already have a river.
-                 * If the tile's height is above a specified minimum (MinRiverHeight), start generating a river from that tile.
-                 * Create a new River object and determine the initial flow direction based on the tile's lowest neighbor.
-                 * Recursively find a path to water using the FindPathToWater() method.
-                 * Validate the generated river: If it doesn't meet certain criteria, remove it; otherwise, add it to the list of rivers.
-                 */
-
-                /*
-                 * Repeat until the desired number of rivers is generated or the maximum attempts are reached.
-                 */
-
-                // Get a random tile
-                int x = Random.Range(0, ChunkWidth);
-                int y = Random.Range(0, ChunkHeight);
-
-                Tile tile = _main.GetChunk(new Vector2Int(isoFrameX, isoFrameY)).ChunkData.GetValue(x, y);
-
-                // validate the tile
-                if (!tile.Collidable) continue;
-                if (tile.Rivers.Count > 0) continue;
-
-                if (tile.HeightValue > MinRiverHeight)
+                Parallel.For(0, width, x =>
                 {
-                    // Tile is good to start from
-                    River river = new River(riverCount);
-
-                    // Figure out the direction this river will try to flow
-                    river.CurrentDirection = tile.GetLowestNeighbors();
-
-                    // Recursively find a path to water
-                    FindPathToWater(tile, river.CurrentDirection, ref river);
-
-                    // Validate the generated river
-                    if (river.TurnCount < MinRiverTurns || river.Tiles.Count < MinRiverLength || river.Insersections > MaxRiverIntersections)
+                    for (int y = 0; y < height; y++)
                     {
-                        // Validation failed - remove this river
-                        for (int i = 0; i < river.Tiles.Count; i++)
-                        {
-                            Tile t = river.Tiles[i];
-                            t.Rivers.Remove(river);
-                        }
+                        float offsetX = isoFrameX * width + x;
+                        float offsetY = isoFrameY * height + y;
+                        float riverValue = (float)_riverModule.GetValue(offsetX, offsetY, 0);
+                        float normalizeRiverValue = (riverValue - MinWorldNoiseValue) / (MaxWorldNoiseValue - MinWorldNoiseValue);
+                        riverValues[x, y] = normalizeRiverValue;
                     }
-                    else if (river.Tiles.Count >= MinRiverLength)
-                    {
-                        // Validation passed -- Add river to list
-                        Rivers.Add(river);
-                        tile.Rivers.Add(river);
-                        riverCount--;
-                    }
-                }
-                attempts++;
-            }
-        }
-        /// <summary>
-        /// This method is a recursive function that explores a path from a starting tile to water, determining the flow direction of a river.
-        /// Output: The river path is updated based on the flow direction.
-        /// </summary>
-        /// <param name="tile"></param>
-        /// <param name="direction"></param>
-        /// <param name="river"></param>
-        private void FindPathToWater(Tile tile, Direction direction, ref River river)
-        {
-            /* 
-             * Check if the current tile is already part of the river. If yes, return to avoid infinite recursion.
-             * Check if there is already a river on the current tile; if yes, increment the intersection count.
-             * Add the current tile to the river's path.
-             * Get neighboring tiles (left, right, top, bottom).
-             * Query height values of neighbors and consider them in determining the flow direction.
-             * Override the flow direction if a significantly lower tile is found in a certain direction.
-             * Find the minimum height value among neighbors.
-             * Move to the next neighbor based on the minimum height value and update the river's turn count and direction accordingly.
-             * Recursively call FindPathToWater() for the selected neighbor.
-             */
+                });
+            });
 
-
-            if (tile.Rivers.Contains(river))
-                return;
-
-            // Check if there is already a river on this tile.
-            if (tile.Rivers.Count > 0)
-                river.Insersections++;
-
-            river.AddTile(tile);
-
-            // Get Neighbors
-            Tile leftNb = tile.Left;
-            Tile rightNb = tile.Right;
-            Tile topNb = tile.Top;
-            Tile bottomNb = tile.Bottom;
-
-            if (!tile.HasNeighbors() || !leftNb.HasNeighbors() || !rightNb.HasNeighbors() || !topNb.HasNeighbors() || !bottomNb.HasNeighbors()) return;
-
-
-            float leftValue = int.MaxValue;
-            float rightValue = int.MaxValue;
-            float topValue = int.MaxValue;
-            float bottomValue = int.MaxValue;
-
-            // Query height values of neighbors
-            if (leftNb.GetRiverNeighborCount(river) < 2 && !river.Tiles.Contains(leftNb))
-                leftValue = leftNb.HeightValue;
-            if (rightNb.GetRiverNeighborCount(river) < 2 && !river.Tiles.Contains(rightNb))
-                rightValue = rightNb.HeightValue;
-            if (topNb.GetRiverNeighborCount(river) < 2 && !river.Tiles.Contains(topNb))
-                topValue = topNb.HeightValue;
-            if (bottomNb.GetRiverNeighborCount(river) < 2 && !river.Tiles.Contains(bottomNb))
-                bottomValue = bottomNb.HeightValue;
-
-
-            // if neighbor is existing river that is not this one, flow into it
-            if (bottomNb.Rivers.Count == 0 && !bottomNb.Collidable)
-                bottomValue = 0;
-            if (topNb.Rivers.Count == 0 && !topNb.Collidable)
-                bottomValue = 0;
-            if (bottomNb.Rivers.Count == 0 && !bottomNb.Collidable)
-                bottomValue = 0;
-            if (bottomNb.Rivers.Count == 0 && !bottomNb.Collidable)
-                bottomValue = 0;
-
-
-            // Override flow direction if a tile is significantly lower
-            if (direction == Direction.Left)
-            {
-                if (Mathf.Abs(rightValue - leftValue) < 0.1f)
-                {
-                    rightValue = int.MaxValue;
-                }
-            }
-            if (direction == Direction.Right)
-            {
-                if (Mathf.Abs(rightValue - leftValue) < 0.1)
-                {
-                    leftValue = int.MaxValue;
-                }
-            }
-            if (direction == Direction.Top)
-            {
-                if (Mathf.Abs(topValue - bottomValue) < 0.1f)
-                {
-                    bottomValue = int.MaxValue;
-                }
-            }
-            if (direction == Direction.Bottom)
-            {
-                if (Mathf.Abs(topValue - bottomValue) < 0.1f)
-                {
-                    topValue = int.MaxValue;
-                }
-            }
-
-
-            // Find minimum
-            float min = Mathf.Min(leftValue, rightValue);
-            min = Mathf.Min(min, topValue);
-            min = Mathf.Min(min, bottomValue);
-
-            // if no minimum found -> exit
-            if (min == int.MaxValue)
-                return;
-
-            // Move to next neighbor
-            if (min == leftValue)
-            {
-                if (leftNb.Collidable)
-                {
-                    if (river.CurrentDirection != Direction.Left)
-                    {
-                        river.TurnCount++;
-                        river.CurrentDirection = Direction.Left;
-                    }
-                    FindPathToWater(leftNb, direction, ref river);
-                }
-            }
-            else if (min == rightValue)
-            {
-                if (rightNb.Collidable)
-                {
-                    if (river.CurrentDirection != Direction.Right)
-                    {
-                        river.TurnCount++;
-                        river.CurrentDirection = Direction.Right;
-                    }
-                    FindPathToWater(leftNb, direction, ref river);
-                }
-            }
-            else if (min == bottomValue)
-            {
-                if (bottomNb.Collidable)
-                {
-                    if (river.CurrentDirection != Direction.Bottom)
-                    {
-                        river.TurnCount++;
-                        river.CurrentDirection = Direction.Bottom;
-                    }
-                    FindPathToWater(leftNb, direction, ref river);
-                }
-            }
-            else if (min == topValue)
-            {
-                if (topNb.Collidable)
-                {
-                    if (river.CurrentDirection != Direction.Top)
-                    {
-                        river.TurnCount++;
-                        river.CurrentDirection = Direction.Top;
-                    }
-                    FindPathToWater(leftNb, direction, ref river);
-                }
-            }
+            return riverValues;
         }
         #endregion
 

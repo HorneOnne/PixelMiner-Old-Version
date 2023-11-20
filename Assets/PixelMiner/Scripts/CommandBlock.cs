@@ -1,6 +1,7 @@
 ﻿using QFSW.QC;
 using UnityEngine;
 using PixelMiner.UI;
+using System.Collections.Generic;
 
 namespace PixelMiner
 {
@@ -36,15 +37,45 @@ namespace PixelMiner
         }
 
         [Command("/preview_heightmap")]
-        private static void PreviewHeightmap(float zoom)
+        private static void PreviewHeightmap()
         {
             if(UIMapPreviewManager.Instance.HasHeightMap())
             {
                 InputHander.Instance.ActiveUIMap();
-
                 UIMapPreviewManager.Instance.SetActiveHeightMap();
             }
         }
+
+
+       
+        [CommandDescription("all commands")]
+        [Command("/all")]
+        private static string GenerateAllCommandList()
+        {
+            string output = "";
+            foreach (CommandData command in QuantumConsoleProcessor.GetUniqueCommands())
+            {
+                output += $"\n   - {command.CommandName}";
+            }
+
+            return output;
+        }
+
+
+        [Command("/clear")]
+        public static void ClearCommands()
+        {
+            QuantumConsole.Instance.ClearConsole();
+        }
+
+
+        [Command("/seed")]
+        public static void GetSeed()
+        {
+            QuantumConsole.Instance.LogToConsole($"Seed: {WorldGeneration.Instance.Seed}");
+        }
+
+
 #endif
     }
 }

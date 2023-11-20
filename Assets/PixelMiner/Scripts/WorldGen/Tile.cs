@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
-
-namespace PixelMiner
+﻿namespace PixelMiner
 {
     public class Tile
     {
@@ -24,10 +21,7 @@ namespace PixelMiner
         public bool FloodFilled;
 
 
-        // Rivers
-        public List<River> Rivers = new List<River>();
-        public int RiverSize { get; set; }
-
+  
         public Tile() { }
         public Tile(byte x, byte y)
         {
@@ -42,7 +36,7 @@ namespace PixelMiner
         }
 
 
-        #region River
+    
         public Direction GetLowestNeighbors()
         {
             float leftNbHeight = Left.HeightValue;
@@ -61,37 +55,6 @@ namespace PixelMiner
             else
                 return Direction.Bottom; // If all values are equal, returning any direction or a default direction.
         }
-        public int GetRiverNeighborCount(River river)
-        {
-            int count = 0;
-            if (Left.Rivers.Count > 0 && Left.Rivers.Contains(river))
-                count++;
-            if (Right.Rivers.Count > 0 && Right.Rivers.Contains(river))
-                count++;
-            if (Top.Rivers.Count > 0 && Top.Rivers.Contains(river))
-                count++;
-            if (Bottom.Rivers.Count > 0 && Bottom.Rivers.Contains(river))
-                count++;
-            return count;
-        }
-        public void SetRiverPath(River river)
-        {
-            if (Collidable == false)
-                return;
-
-            if (Rivers.Contains(river) == false)
-            {
-                Rivers.Add(river);
-            }
-        }
-        public void SetRiverTile(River river)
-        {
-            SetRiverPath(river);
-            HeightType = HeightType.River;
-            HeightValue = 0;
-            Collidable = false;
-        }
-        #endregion
     }
 
     public enum TileType : byte
@@ -105,6 +68,7 @@ namespace PixelMiner
         Sand,
         Rock,
         Snow,
+        River = 253,
         Color = 254,
         Other
     }

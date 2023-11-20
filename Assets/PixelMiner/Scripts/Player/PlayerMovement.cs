@@ -42,6 +42,12 @@ namespace PixelMiner
         private void Movement()
         {
             _rb.velocity = _input.Move * moveSpeed;
+
+            // Assuming _input.Move is a Vector2 input from the player
+            //Vector2 isometricMove = ConvertToIsometric(_input.Move);
+            //_rb.velocity = isometricMove * moveSpeed;
+
+
             Flip(_input.Move);
             if (_hasAnimator)
             {
@@ -61,6 +67,30 @@ namespace PixelMiner
                 transform.localScale = new Vector3(1, 1, 1);
             }
         }
+
+
+
+        #region Isometric helper
+        // Function to convert Cartesian coordinates to isometric coordinates
+        private Vector2 ConvertToIsometric(Vector2 cartesianInput)
+        {
+            // Assuming your isometric tile has a 45-degree angle
+            float angle = 30f;
+
+            // Convert degrees to radians
+            float radians = Mathf.Deg2Rad * angle;
+
+            // Calculate the isometric transformation matrix
+            float cos = Mathf.Cos(radians);
+            float sin = Mathf.Sin(radians);
+
+            // Apply the transformation matrix to convert Cartesian to isometric coordinates
+            float isoX = cartesianInput.x * cos - cartesianInput.y * sin;
+            float isoY = cartesianInput.x * sin + cartesianInput.y * cos;
+
+            return new Vector2(isoX, isoY).normalized; // Normalize to ensure consistent movement speed in all directions
+        }
+        #endregion
 
 #if DEV_MODE
         public void SetPlayerSpeed(float value)

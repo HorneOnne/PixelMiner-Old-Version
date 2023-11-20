@@ -253,6 +253,29 @@ namespace PixelMiner
             });
             Processing = false;
         }
+        public async Task LoadRiverDataAsync(float[,] riverValues)
+        {
+            Processing = true;
+            await Task.Run(() =>
+            {
+                Parallel.For(0, _width, x =>
+                {
+                    for (int y = 0; y < _height; y++)
+                    {
+                        Tile tile = ChunkData.GetValue(x, y);
+                        float riverValue = riverValues[x, y];
+
+                        if(riverValue > WorldGeneration.Instance.RiverRange.x && riverValue < WorldGeneration.Instance.RiverRange.y)
+                        {
+                            tile.HeightType = HeightType.River;
+                        }
+                    }
+                });
+
+            });
+            Processing = false;
+        }
+
         #endregion
 
 
@@ -366,6 +389,8 @@ namespace PixelMiner
             TileBase[] heatTiles = new TileBase[_width * _height];
             TileBase[] moistureTiles = new TileBase[_width * _height];
 
+            TileBase[] riverTiles = new TileBase[_width * _height];
+
             Vector3Int[] positionArray = new Vector3Int[_width * _height];
 
             await Task.Run(() =>
@@ -417,6 +442,11 @@ namespace PixelMiner
                                 break;
                             case HeightType.Snow:
                                 landTiles[index] = Main.Instance.GetTileBase(TileType.Snow);
+                                waterTiles[index] = null;
+                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case HeightType.River:
+                                landTiles[index] = Main.Instance.GetTileBase(TileType.Water);
                                 waterTiles[index] = null;
                                 tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
                                 break;
@@ -477,6 +507,40 @@ namespace PixelMiner
                                 moistureTiles[index] = Main.Instance.GetTileBase(TileType.Color);
                                 break;
                         }
+
+
+                        // River
+                        
+                        switch (heightType)
+                        {
+                            case HeightType.DeepWater:
+                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                break;
+                            case HeightType.ShallowWater:
+                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                break;
+                            case HeightType.Sand:
+                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                break;
+                            case HeightType.Grass:
+                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                break;
+                            case HeightType.Forest:
+                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                break;
+                            case HeightType.Rock:
+                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                break;
+                            case HeightType.Snow:
+                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                break;
+                            case HeightType.River:
+                                riverTiles[index] = Main.Instance.GetTileBase(TileType.River);
+                                break;
+                            default:
+                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                break;
+                        }
                     }
                 });
             });
@@ -507,6 +571,7 @@ namespace PixelMiner
                 MoistureTilemap.gameObject.SetActive(false);
             }
             
+
             ChunkHasDrawn = true;
             Processing = false;
         }
@@ -722,6 +787,7 @@ namespace PixelMiner
         }
 
 
+
         #region Find Tile Neighbors
         public Tile GetTop(Tile t)
         {
@@ -843,57 +909,6 @@ namespace PixelMiner
 
 
         #region Obsolete method.
-        /// <summary>
-        /// Obsolete.
-        /// </summary>
-        public void DrawChunk()
-        {
-            for (int x = 0; x < _width; x++)
-            {
-                for (int y = 0; y < _height; y++)
-                {
-                    float heightValue = ChunkData.GetValue(x, y).HeightValue;
-
-                    if (heightValue < WorldGeneration.Instance.DeepWater)
-                    {
-                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DeepWater));
-                        WaterTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Water)
-                    {
-                        //LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
-                        WaterTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Sand)
-                    {
-                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Sand));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Grass)
-                    {
-                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.DirtGrass));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Forest)
-                    {
-                        //LandTileMap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Water));
-                        WaterTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.ForestGrass));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Rock)
-                    {
-                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Rock));
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Snow)
-                    {
-                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Snow));
-                    }
-                    else
-                    {
-                        LandTilemap.SetTile(new Vector3Int(x, y, 0), Main.Instance.GetTileBase(TileType.Snow));
-                    }
-                }
-            }
-            ChunkHasDrawn = true;
-        }
-
         /// <summary>
         /// Obsolete, use LoadHeightMapAsync instead.
         /// </summary>
