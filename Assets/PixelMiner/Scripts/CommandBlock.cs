@@ -1,7 +1,7 @@
 ﻿using QFSW.QC;
 using UnityEngine;
 using PixelMiner.UI;
-using System.Collections.Generic;
+using PixelMiner.WorldGen;
 
 namespace PixelMiner
 {

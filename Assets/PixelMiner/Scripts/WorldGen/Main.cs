@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using Sirenix.OdinInspector;
 
-namespace PixelMiner
+namespace PixelMiner.WorldGen
 {
     public class Main : MonoBehaviour
     {

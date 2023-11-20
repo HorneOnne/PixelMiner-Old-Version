@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace PixelMiner.Utilities
+namespace PixelMiner.WorldGen
 {
     public class Grid<T>
     {

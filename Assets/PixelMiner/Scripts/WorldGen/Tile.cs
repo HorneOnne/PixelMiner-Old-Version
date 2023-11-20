@@ -1,4 +1,6 @@
-﻿namespace PixelMiner
+﻿using UnityEngine;
+
+namespace PixelMiner.WorldGen
 {
     public class Tile
     {
@@ -21,7 +23,14 @@
         public bool FloodFilled;
 
 
+        // Test
+        public Chunk Chunk;
+        public void SetColor(Color color)
+        {
+            Chunk.PaintTileColor(this, color);
+        }
   
+
         public Tile() { }
         public Tile(byte x, byte y)
         {
@@ -34,8 +43,6 @@
         {
             return Left != null && Right != null && Top != null && Bottom != null;
         }
-
-
     
         public Direction GetLowestNeighbors()
         {

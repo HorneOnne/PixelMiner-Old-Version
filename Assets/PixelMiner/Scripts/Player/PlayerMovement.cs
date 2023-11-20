@@ -1,4 +1,5 @@
 using UnityEngine;
+using PixelMiner.WorldGen;
 
 namespace PixelMiner
 {
@@ -36,32 +37,93 @@ namespace PixelMiner
         }
 
         [SerializeField] private Vector2 _previousPostition;
+        [SerializeField] private Vector2 _predictMovePostition;
+        [SerializeField] private Vector2 _predictMovePostition2;
+        [SerializeField] private Vector2 _predictMovePostition3;
         [SerializeField] private HeightType _heightType;
         private Tile _currentTile;
+        private Tile _predictTile;
 
         private void Update()
         {
+            _predictMovePostition = (Vector2)transform.position + _input.Move;
+
             _currentTile = Main.Instance.GetTile(transform.position);
-            if (_currentTile != null && (_currentTile.HeightType != HeightType.DeepWater && _currentTile.HeightType != HeightType.ShallowWater && _currentTile.HeightType != HeightType.River))
+            _predictTile = Main.Instance.GetTile(_predictMovePostition);
+
+            _currentTile.SetColor(Color.red);
+            _predictTile.SetColor(Color.blue);
+
+            if(_predictTile != null)
             {
-                //_previousPostition = Main.Instance.GetWorldTilePosition(transform.position);
+                // Predict
+                if (_input.Move.x != 0 && _input.Move.y == 0)
+                {
+                    //_predictTile.Top.SetColor(Color.green);
+                    //_predictTile.Bottom.SetColor(Color.green);
+
+                }
+                else if (_input.Move.x == 0 && _input.Move.y != 0)
+                {
+
+                }
+                else if (_input.Move.x != 0 && _input.Move.y != 0)
+                {
+
+                }
+                else
+                {
+
+                }
+
+            }
+
+
+
+
+
+
+
+            //if (_currentTile != null)
+            //{
+            //    _heightType = _currentTile.HeightType;
+            //}
+
+            //if (_currentTile != null && (_currentTile.HeightType != HeightType.DeepWater && _currentTile.HeightType != HeightType.ShallowWater && _currentTile.HeightType != HeightType.River))
+            //{
+            //    _previousPostition = transform.position;
+            //}
+
+            if (_predictTile != null && (
+                _predictTile.HeightType == HeightType.DeepWater || 
+                _predictTile.HeightType == HeightType.ShallowWater ||
+                _predictTile.HeightType == HeightType.River))
+            {
                 _previousPostition = transform.position;
             }
 
         }
         private void FixedUpdate()
         {
-            //Movement();
-      
-            if(_currentTile != null && (_currentTile.HeightType != HeightType.DeepWater && _currentTile.HeightType != HeightType.ShallowWater && _currentTile.HeightType != HeightType.River))
-            {
+            //if(_currentTile != null && (_currentTile.HeightType != HeightType.DeepWater && _currentTile.HeightType != HeightType.ShallowWater && _currentTile.HeightType != HeightType.River))
+            //{
+            //    Movement();
+            //}
+            //else
+            //{
+            //    _rb.MovePosition(_previousPostition);
+            //}
 
-                Movement();
+            if (_predictTile != null && (
+                _predictTile.HeightType == HeightType.DeepWater ||
+                _predictTile.HeightType == HeightType.ShallowWater ||
+                _predictTile.HeightType == HeightType.River))
+            {
+                _rb.MovePosition(_previousPostition);
             }
             else
             {
-                //_rb.position = Main.Instance.GetWorldTilePosition(_previousPostition);
-                _rb.MovePosition(_previousPostition);
+                Movement();
             }
         }
 

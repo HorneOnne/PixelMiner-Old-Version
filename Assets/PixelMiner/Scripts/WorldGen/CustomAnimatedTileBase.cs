@@ -2,7 +2,7 @@
 using UnityEngine.Tilemaps;
 using Sirenix.OdinInspector;
 
-namespace PixelMiner
+namespace PixelMiner.WorldGen
 {
     [CreateAssetMenu(menuName = "PixelMiner/Tiles/CustomAnimatedTile")]
     public class CustomAnimatedTileBase : AnimatedTile

@@ -13,7 +13,7 @@ using System;
 using UnityEditor;
 #endif
 
-namespace PixelMiner
+namespace PixelMiner.WorldGen
 {
     public class WorldGeneration : MonoBehaviour
     {

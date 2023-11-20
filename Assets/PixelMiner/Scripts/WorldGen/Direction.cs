@@ -1,4 +1,4 @@
-﻿namespace PixelMiner
+﻿namespace PixelMiner.WorldGen
 {
     public enum Direction
     {

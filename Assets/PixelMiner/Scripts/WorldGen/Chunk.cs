@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 
-namespace PixelMiner
+namespace PixelMiner.WorldGen
 {
     [SelectionBase]
     public class Chunk : MonoBehaviour
     {
         [Header("Chunk Settings")]
-        public PixelMiner.Utilities.Grid<Tile> ChunkData;
+        public Grid<Tile> ChunkData;
         public float FrameX;    // Used for calculate world position
         public float FrameY;    // Used for calculate world position
         public int IsometricFrameX; // Used for calculate world generation (coherent noise)
@@ -95,6 +95,9 @@ namespace PixelMiner
                     {
                         Tile tile = new Tile(x, y);
                         ChunkData.SetValue(x, y, tile);
+
+                        // Test
+                        tile.Chunk = this;
                     }
                 }
             });
@@ -671,6 +674,13 @@ namespace PixelMiner
                 }
             }
         }
+
+        // Test
+        // ====
+        public void PaintTileColor(Tile tile, Color color)
+        {
+            LandTilemap.SetColor(new Vector3Int(tile.FrameX, tile.FrameY), color);
+        }
         #endregion
 
 
@@ -907,7 +917,6 @@ namespace PixelMiner
         public Tile GetTile(Vector2 worldPosition)
         {
             Vector3Int cellPosition = Grid.WorldToCell(worldPosition);
-            LandTilemap.SetColor(cellPosition, Color.red);
             return ChunkData.GetValue(cellPosition.x, cellPosition.y);
         }
         public Vector3 GetWorldTilePosition(Vector2 worldPosition)
@@ -915,7 +924,11 @@ namespace PixelMiner
             Vector3Int cellPosition = Grid.WorldToCell(worldPosition);
             return Grid.CellToWorld(cellPosition);
         }
-
+        public Vector3 GetWorldTilePosition(Vector3Int cellPosition)
+        {
+            Vector3 worldPosition = Grid.CellToWorld(cellPosition);
+            return worldPosition;
+        }
 
         private void ResetAllTileColorTester()
         {

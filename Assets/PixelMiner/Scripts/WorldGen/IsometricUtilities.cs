@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace PixelMiner
+namespace PixelMiner.WorldGen
 {
     public static class IsometricUtilities
     {

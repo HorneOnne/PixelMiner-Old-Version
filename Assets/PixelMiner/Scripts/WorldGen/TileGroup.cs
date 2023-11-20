@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace PixelMiner
+namespace PixelMiner.WorldGen
 {
     [System.Serializable]
     public class TileGroup
