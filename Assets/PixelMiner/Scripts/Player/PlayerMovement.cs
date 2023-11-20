@@ -7,7 +7,7 @@ namespace PixelMiner
         private InputHander _input;
         private Rigidbody2D _rb;
         private Animator _anim;
-
+         private Transform _model;
         [SerializeField] private float moveSpeed;
 
       
@@ -18,17 +18,51 @@ namespace PixelMiner
         private int _animIDVelocityX;
         private int _animIDVelocityY;
 
+
+        private void Awake()
+        {
+            _model = transform.Find("Model");
+            _rb = GetComponent<Rigidbody2D>();
+            _anim = GetComponentInChildren<Animator>();
+
+            _hasAnimator = _anim != null;
+        }
         void Start()
         {
             _input = InputHander.Instance;
-            _rb = GetComponent<Rigidbody2D>();
-            _anim = GetComponent<Animator>();
-            AssignAnimationIDs();      
+            AssignAnimationIDs();
+
+            _previousPostition = transform.position;
         }
 
+        [SerializeField] private Vector2 _previousPostition;
+        [SerializeField] private HeightType _heightType;
+        private Tile _currentTile;
+
+        private void Update()
+        {
+            _currentTile = Main.Instance.GetTile(transform.position);
+            if (_currentTile != null && (_currentTile.HeightType != HeightType.DeepWater && _currentTile.HeightType != HeightType.ShallowWater && _currentTile.HeightType != HeightType.River))
+            {
+                //_previousPostition = Main.Instance.GetWorldTilePosition(transform.position);
+                _previousPostition = transform.position;
+            }
+
+        }
         private void FixedUpdate()
         {
-            Movement();
+            //Movement();
+      
+            if(_currentTile != null && (_currentTile.HeightType != HeightType.DeepWater && _currentTile.HeightType != HeightType.ShallowWater && _currentTile.HeightType != HeightType.River))
+            {
+
+                Movement();
+            }
+            else
+            {
+                //_rb.position = Main.Instance.GetWorldTilePosition(_previousPostition);
+                _rb.MovePosition(_previousPostition);
+            }
         }
 
         private void AssignAnimationIDs()
@@ -36,7 +70,6 @@ namespace PixelMiner
             _animIDVelocityX = Animator.StringToHash("VelocityX");
             _animIDVelocityY = Animator.StringToHash("VelocityY");
 
-            _hasAnimator = TryGetComponent(out _anim);
         }
 
         private void Movement()
@@ -60,11 +93,11 @@ namespace PixelMiner
         {
             if (move.x > 0)
             {
-                transform.localScale = new Vector3(-1, 1, 1);
+                _model.localScale = new Vector3(-1, 1, 1);
             }
             else if (move.x < 0)
             {
-                transform.localScale = new Vector3(1, 1, 1);
+                _model.localScale = new Vector3(1, 1, 1);
             }
         }
 

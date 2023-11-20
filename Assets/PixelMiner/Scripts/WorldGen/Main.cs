@@ -113,7 +113,6 @@ namespace PixelMiner
         }
         #endregion
 
-
         #region Neighbors
         public Chunk GetChunkNeighborAbove(Chunk chunk)
         {
@@ -134,6 +133,28 @@ namespace PixelMiner
         {
             Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX + 1, chunk.IsometricFrameY);
             return Chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
+        }
+        #endregion
+
+
+        #region Tile Utilities
+        public Tile GetTile(Vector2 worldPosition)
+        {
+            Chunk chunk = GetChunk(worldPosition, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
+            if(chunk != null)
+            {
+                return chunk.GetTile(worldPosition);
+            }
+            return null;
+        }
+        public Vector3 GetWorldTilePosition(Vector2 worldPosition)
+        {
+            Chunk chunk = GetChunk(worldPosition, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
+            if (chunk != null)
+            {
+                return chunk.GetWorldTilePosition(worldPosition);
+            }
+            return Vector3.zero;
         }
         #endregion
     }

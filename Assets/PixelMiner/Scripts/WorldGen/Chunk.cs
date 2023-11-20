@@ -52,7 +52,10 @@ namespace PixelMiner
         {
             ChunkHasDrawn = false;
         }
-
+        private void Start()
+        {
+            InvokeRepeating(nameof(ResetAllTileColorTester), 1f, 1f);
+        }
         private void Update()
         {
             if (Time.time - _updateTimer > _updateFrequency)
@@ -447,7 +450,7 @@ namespace PixelMiner
                                 break;
                             case HeightType.River:
                                 landTiles[index] = Main.Instance.GetTileBase(TileType.Water);
-                                waterTiles[index] = null;
+                                waterTiles[index] = Main.Instance.GetTileBase(TileType.Water);
                                 tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
                                 break;
                             default:
@@ -548,7 +551,7 @@ namespace PixelMiner
 
           
             LandTilemap.SetTiles(positionArray, landTiles);
-            //WaterTileMap.SetTiles(positionArray, waterTiles);
+            //WaterTilemap.SetTiles(positionArray, waterTiles);
             //Tilegroupmap.SetTiles(positionArray, tilegroupTiles);
 
             if(WorldGeneration.Instance.InitWorldWithHeatmap)
@@ -901,6 +904,30 @@ namespace PixelMiner
             cellPosition.z = 0;
             LandTilemap.SetTile(cellPosition, tileBase);
         }
+        public Tile GetTile(Vector2 worldPosition)
+        {
+            Vector3Int cellPosition = Grid.WorldToCell(worldPosition);
+            LandTilemap.SetColor(cellPosition, Color.red);
+            return ChunkData.GetValue(cellPosition.x, cellPosition.y);
+        }
+        public Vector3 GetWorldTilePosition(Vector2 worldPosition)
+        {
+            Vector3Int cellPosition = Grid.WorldToCell(worldPosition);
+            return Grid.CellToWorld(cellPosition);
+        }
+
+
+        private void ResetAllTileColorTester()
+        {
+            for (var x = 0; x < _width; x++)
+            {
+                for (var y = 0; y < _height; y++)
+                {
+                    LandTilemap.SetColor(new Vector3Int(x, y), Color.white);
+                }
+            }
+        }
+
 
         public void SetDrawRenderMode(TilemapRenderer.Mode mode)
         {
@@ -928,22 +955,6 @@ namespace PixelMiner
         #endregion
 
 
-
-        #region Utilities
-        // Function to convert world coordinates to tile coordinates
-        public Vector3Int WorldToTilePosition(Vector3 worldPosition)
-        {
-            Vector3Int tilePosition = LandTilemap.WorldToCell(worldPosition);
-            return tilePosition;
-        }
-
-        // Function to convert tile coordinates to world coordinates
-        public Vector3 TileToWorldPosition(Vector3Int tilePosition)
-        {
-            Vector3 worldPosition = LandTilemap.GetCellCenterWorld(tilePosition);
-            return worldPosition;
-        }
-        #endregion
     }
 }
 
