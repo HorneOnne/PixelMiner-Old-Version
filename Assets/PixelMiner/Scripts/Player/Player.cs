@@ -1,5 +1,4 @@
-﻿using QFSW.QC;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace PixelMiner
 {
