@@ -130,6 +130,7 @@ namespace PixelMiner.WorldGen
 
 
         [Header("World Generation Utilities")]
+        public bool AutoLoadChunk = true;
         public bool AutoUnloadChunk = true;
         public bool ShowChunksBorder = false;
         public bool ShowTilegroupMaps = false;
@@ -208,15 +209,18 @@ namespace PixelMiner.WorldGen
 
         private void Update()
         {
-            _centerPoint = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width / 2f, Screen.height / 2f));
-            _centerPointFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(_centerPoint, ChunkWidth, ChunkHeight);
-
-            if (_centerPointFrame != lastChunkISOFrame)
+            if(AutoLoadChunk)
             {
-                lastChunkISOFrame = _centerPointFrame;
-                LoadChunksAroundPositionInSequence(_centerPointFrame.x, _centerPointFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
-                //LoadChunksAroundPositionInParallel(_centerPointFrame.x, _centerPointFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
+                _centerPoint = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width / 2f, Screen.height / 2f));
+                _centerPointFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(_centerPoint, ChunkWidth, ChunkHeight);
+
+                if (_centerPointFrame != lastChunkISOFrame)
+                {
+                    lastChunkISOFrame = _centerPointFrame;
+                    LoadChunksAroundPositionInSequence(_centerPointFrame.x, _centerPointFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
+                }
             }
+            
         }
         #endregion
 
@@ -464,7 +468,14 @@ namespace PixelMiner.WorldGen
 
             return newChunk;
         }
-        // Load chunks around a given chunk position
+
+        /// <summary>
+        /// Load each chunk in sequence and draw each chunk in sequence. -> Less drop FPS but slow.
+        /// </summary>
+        /// <param name="isoFrameX"></param>
+        /// <param name="isoFrameY"></param>
+        /// <param name="offsetWidth"></param>
+        /// <param name="offsetHeight"></param>
         private async void LoadChunksAroundPositionInSequence(int isoFrameX, int isoFrameY, byte offsetWidth = 1, byte offsetHeight = 1)
         {
             for (int x = isoFrameX - offsetWidth; x <= isoFrameX + offsetWidth; x++)
@@ -532,6 +543,13 @@ namespace PixelMiner.WorldGen
 
             UpdateAllActiveChunkTileNeighborsAsync();
         }
+        /// <summary>
+        /// Load all chunks and draw all chunks at the same time. -> Fast but drop a bit FPS in low end devices.
+        /// </summary>
+        /// <param name="isoFrameX"></param>
+        /// <param name="isoFrameY"></param>
+        /// <param name="offsetWidth"></param>
+        /// <param name="offsetHeight"></param>
         private async void LoadChunksAroundPositionInParallel(int isoFrameX, int isoFrameY, byte offsetWidth = 1, byte offsetHeight = 1)
         {
             Task[] drawChunkTasks = new Task[(offsetWidth * 2 + 1) * (offsetHeight * 2 + 1)];

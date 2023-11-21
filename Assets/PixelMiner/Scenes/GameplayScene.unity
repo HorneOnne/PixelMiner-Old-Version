@@ -398,7 +398,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a24ea02ac60b8c439b2887cb331ee00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 7
+  moveSpeed: 15
+  _moveDirection: {x: 0, y: 0}
   _previousPostition: {x: 0, y: 0}
   _predictMovePostition: {x: 0, y: 0}
   _predictMovePostition2: {x: 0, y: 0}
@@ -2058,6 +2059,7 @@ MonoBehaviour:
   RiverLacunarity: 2
   RiverPersistence: 0.5
   RiverRange: {x: 0.55, y: 0.6}
+  AutoLoadChunk: 0
   AutoUnloadChunk: 0
   ShowChunksBorder: 1
   ShowTilegroupMaps: 0

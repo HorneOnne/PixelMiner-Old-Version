@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using Sirenix.OdinInspector;
+using PixelMiner.Enums;
 
 namespace PixelMiner.WorldGen
 {
@@ -146,6 +147,14 @@ namespace PixelMiner.WorldGen
                 return chunk.GetTile(worldPosition);
             }
             return null;
+        }
+        public void SetTileColor(Vector2 worldPosition, Color color)
+        {
+            Chunk chunk = GetChunk(worldPosition, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
+            if (chunk != null)
+            {
+                chunk.PaintTileColor(chunk.GetTile(worldPosition), color);
+            }
         }
         public Vector3 GetWorldTilePosition(Vector2 worldPosition)
         {

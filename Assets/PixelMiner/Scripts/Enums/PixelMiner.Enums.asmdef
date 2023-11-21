@@ -1,11 +1,7 @@
 {
-    "name": "PixelMiner.Player",
-    "rootNamespace": "PixelMiner.Player",
-    "references": [
-        "GUID:4f7f34825068e144d80372aea14b6aa5",
-        "GUID:49f2eca994477e84ba327c3a83e9e5c7",
-        "GUID:83a651e378233fe418e687488e563cf9"
-    ],
+    "name": "PixelMiner.Enums",
+    "rootNamespace": "PixelMiner.Enums",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Tilemaps;
 using Sirenix.OdinInspector;
+using PixelMiner.Enums;
 
 namespace PixelMiner.WorldGen
 {

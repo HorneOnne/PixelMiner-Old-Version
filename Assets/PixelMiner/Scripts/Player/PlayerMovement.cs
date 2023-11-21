@@ -1,5 +1,6 @@
 using UnityEngine;
 using PixelMiner.WorldGen;
+using PixelMiner.Enums;
 
 namespace PixelMiner
 {
@@ -46,36 +47,39 @@ namespace PixelMiner
 
         private void Update()
         {
-            _predictMovePostition = (Vector2)transform.position + _input.Move;
+            //Vector2 direction = ConvertDiagonalVectorToDimetricProjection(new Vector2(_input.Move.x * 2, _input.Move.y * 1), WorldGeneration.Instance.IsometricAngle);
+            Vector2 direction = new Vector2(_input.Move.x * 2, _input.Move.y * 1);
+            _predictMovePostition = (Vector2)transform.position + direction;
 
-            //_currentTile = Main.Instance.GetTile(transform.position);
-            //_predictTile = Main.Instance.GetTile(_predictMovePostition);
+            _currentTile = Main.Instance.GetTile(transform.position);
+            _predictTile = Main.Instance.GetTile(_predictMovePostition);
 
-            //_currentTile.SetColor(Color.red);
-            //_predictTile.SetColor(Color.blue);
+            Main.Instance.SetTileColor(transform.position, Color.red);
+            Main.Instance.SetTileColor(_predictMovePostition, Color.blue);
 
-            //if(_predictTile != null)
-            //{
-            //    // Predict
-            //    if (_input.Move.x != 0 && _input.Move.y == 0)
-            //    {
-            //        //_predictTile.Top.SetColor(Color.green);
-            //        //_predictTile.Bottom.SetColor(Color.green);
 
-            //    }
-            //    else if (_input.Move.x == 0 && _input.Move.y != 0)
-            //    {
+            if (_predictTile != null)
+            {
+                // Predict
+                if (_input.Move.x != 0 && _input.Move.y == 0)
+                {
+                    //_predictTile.Top.SetColor(Color.green);
+                    //_predictTile.Bottom.SetColor(Color.green);
 
-            //    }
-            //    else if (_input.Move.x != 0 && _input.Move.y != 0)
-            //    {
+                }
+                else if (_input.Move.x == 0 && _input.Move.y != 0)
+                {
 
-            //    }
-            //    else
-            //    {
+                }
+                else if (_input.Move.x != 0 && _input.Move.y != 0)
+                {
 
-            //    }
-            //}
+                }
+                else
+                {
+
+                }
+            }
 
 
 
@@ -91,15 +95,6 @@ namespace PixelMiner
         }
         private void FixedUpdate()
         {
-            //if(_currentTile != null && (_currentTile.HeightType != HeightType.DeepWater && _currentTile.HeightType != HeightType.ShallowWater && _currentTile.HeightType != HeightType.River))
-            //{
-            //    Movement();
-            //}
-            //else
-            //{
-            //    _rb.MovePosition(_previousPostition);
-            //}
-
             if (_predictTile != null && (
                 _predictTile.HeightType == HeightType.DeepWater ||
                 _predictTile.HeightType == HeightType.ShallowWater ||

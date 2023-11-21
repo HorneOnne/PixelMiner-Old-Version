@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using PixelMiner.Utilities;
+using PixelMiner.Enums;
 using UnityEngine.Tilemaps;
 using System.Collections;
 using System.Threading.Tasks;
@@ -95,9 +95,6 @@ namespace PixelMiner.WorldGen
                     {
                         Tile tile = new Tile(x, y);
                         ChunkData.SetValue(x, y, tile);
-
-                        // Test
-                        tile.Chunk = this;
                     }
                 }
             });
