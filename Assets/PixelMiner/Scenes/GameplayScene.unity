@@ -360,9 +360,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 314038816}
+  - component: {fileID: 314038819}
   - component: {fileID: 314038818}
   - component: {fileID: 314038817}
-  - component: {fileID: 314038819}
   m_Layer: 0
   m_Name: Character
   m_TagString: Untagged
@@ -398,7 +398,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a24ea02ac60b8c439b2887cb331ee00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 20
+  moveSpeed: 7
   _previousPostition: {x: 0, y: 0}
   _predictMovePostition: {x: 0, y: 0}
   _predictMovePostition2: {x: 0, y: 0}

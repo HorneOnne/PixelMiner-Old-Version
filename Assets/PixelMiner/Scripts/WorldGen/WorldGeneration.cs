@@ -20,10 +20,15 @@ namespace PixelMiner.WorldGen
         private readonly object lockObject = new object(); // Define a lock object for thread safety
         public static WorldGeneration Instance { get; private set; }
 
-
         #region Fileds and Variables
         [FoldoutGroup("References"), SerializeField] private Chunk _chunkPrefab;
         [FoldoutGroup("References"), SerializeField] private Transform _chunkParent;
+
+
+        // Tilemap Settings
+        [FoldoutGroup("Tilemap Settings"), Indent(1), ShowInInspector, ReadOnly] public readonly float IsometricAngle = 26.565f;
+        [FoldoutGroup("Tilemap Settings"), Indent(1), ShowInInspector, ReadOnly] public readonly Vector3 CELL_SIZE = new Vector3(2.0f, 1.0f, 1.0f);
+        [FoldoutGroup("Tilemap Settings"), Indent(1), ShowInInspector, ReadOnly] public readonly Vector3 CELL_GAP = new Vector3(0.0f, 0.0f, 0.0f);
 
         // Min and Max Height used for normalize noise value in range [0-1]
         [ShowInInspector, ReadOnly] public float MinWorldNoiseValue { get; private set; } = float.MaxValue;
@@ -135,12 +140,6 @@ namespace PixelMiner.WorldGen
 
         [Header("Performance Options")]
         public bool InitFastDrawChunk;
-
-
-        [Header("Tilemap")]
-        public readonly Vector3 CELL_SIZE = new Vector3(2.0f, 1.0f, 1.0f);
-        public readonly Vector3 CELL_GAP = new Vector3(0.0f, 0.0f, 0.0f);
-
 
 
 

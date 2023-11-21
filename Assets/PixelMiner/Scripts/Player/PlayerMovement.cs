@@ -10,8 +10,8 @@ namespace PixelMiner
         private Animator _anim;
          private Transform _model;
         [SerializeField] private float moveSpeed;
+        public Vector2 _moveDirection;
 
-      
         private bool _hasAnimator;
         private bool _facingRight;
 
@@ -48,51 +48,37 @@ namespace PixelMiner
         {
             _predictMovePostition = (Vector2)transform.position + _input.Move;
 
-            _currentTile = Main.Instance.GetTile(transform.position);
-            _predictTile = Main.Instance.GetTile(_predictMovePostition);
+            //_currentTile = Main.Instance.GetTile(transform.position);
+            //_predictTile = Main.Instance.GetTile(_predictMovePostition);
 
-            _currentTile.SetColor(Color.red);
-            _predictTile.SetColor(Color.blue);
+            //_currentTile.SetColor(Color.red);
+            //_predictTile.SetColor(Color.blue);
 
-            if(_predictTile != null)
-            {
-                // Predict
-                if (_input.Move.x != 0 && _input.Move.y == 0)
-                {
-                    //_predictTile.Top.SetColor(Color.green);
-                    //_predictTile.Bottom.SetColor(Color.green);
-
-                }
-                else if (_input.Move.x == 0 && _input.Move.y != 0)
-                {
-
-                }
-                else if (_input.Move.x != 0 && _input.Move.y != 0)
-                {
-
-                }
-                else
-                {
-
-                }
-
-            }
-
-
-
-
-
-
-
-            //if (_currentTile != null)
+            //if(_predictTile != null)
             //{
-            //    _heightType = _currentTile.HeightType;
+            //    // Predict
+            //    if (_input.Move.x != 0 && _input.Move.y == 0)
+            //    {
+            //        //_predictTile.Top.SetColor(Color.green);
+            //        //_predictTile.Bottom.SetColor(Color.green);
+
+            //    }
+            //    else if (_input.Move.x == 0 && _input.Move.y != 0)
+            //    {
+
+            //    }
+            //    else if (_input.Move.x != 0 && _input.Move.y != 0)
+            //    {
+
+            //    }
+            //    else
+            //    {
+
+            //    }
             //}
 
-            //if (_currentTile != null && (_currentTile.HeightType != HeightType.DeepWater && _currentTile.HeightType != HeightType.ShallowWater && _currentTile.HeightType != HeightType.River))
-            //{
-            //    _previousPostition = transform.position;
-            //}
+
+
 
             if (_predictTile != null && (
                 _predictTile.HeightType == HeightType.DeepWater || 
@@ -134,13 +120,17 @@ namespace PixelMiner
 
         }
 
+       
         private void Movement()
         {
-            _rb.velocity = _input.Move * moveSpeed;
-
-            // Assuming _input.Move is a Vector2 input from the player
-            //Vector2 isometricMove = ConvertToIsometric(_input.Move);
-            //_rb.velocity = isometricMove * moveSpeed;
+            _moveDirection = _input.Move;
+            // Move diagonally
+            if (_input.Move.x != 0 && _input.Move.y != 0)
+            {
+                _moveDirection = ConvertDiagonalVectorToDimetricProjection(_input.Move, WorldGeneration.Instance.IsometricAngle);
+            }
+    
+            _rb.velocity = _moveDirection * moveSpeed;
 
 
             Flip(_input.Move);
@@ -163,29 +153,21 @@ namespace PixelMiner
             }
         }
 
-
-
-        #region Isometric helper
-        // Function to convert Cartesian coordinates to isometric coordinates
-        private Vector2 ConvertToIsometric(Vector2 cartesianInput)
+        /// <summary>
+        /// Converts a 2D diagonal vector (45 degrees) in a manner consistent with dimetric projection based on the specified angle.
+        /// </summary>
+        private Vector2 ConvertDiagonalVectorToDimetricProjection(Vector2 originalVector, float desiredAngle)
         {
-            // Assuming your isometric tile has a 45-degree angle
-            float angle = 30f;
+            float radians = Mathf.Deg2Rad * desiredAngle;
+            float magnitude = originalVector.magnitude;
 
-            // Convert degrees to radians
-            float radians = Mathf.Deg2Rad * angle;
-
-            // Calculate the isometric transformation matrix
-            float cos = Mathf.Cos(radians);
-            float sin = Mathf.Sin(radians);
-
-            // Apply the transformation matrix to convert Cartesian to isometric coordinates
-            float isoX = cartesianInput.x * cos - cartesianInput.y * sin;
-            float isoY = cartesianInput.x * sin + cartesianInput.y * cos;
-
-            return new Vector2(isoX, isoY).normalized; // Normalize to ensure consistent movement speed in all directions
+            // Calculate the new vector components, considering the signs of the original components
+            float newX = originalVector.x >= 0 ? magnitude * Mathf.Cos(radians) : -magnitude * Mathf.Cos(radians);
+            float newY = originalVector.y >= 0 ? magnitude * Mathf.Sin(radians) : -magnitude * Mathf.Sin(radians);
+            return new Vector2(newX, newY);
         }
-        #endregion
+
+
 
 #if DEV_MODE
         public void SetPlayerSpeed(float value)
