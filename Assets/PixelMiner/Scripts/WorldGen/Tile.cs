@@ -48,11 +48,11 @@ namespace PixelMiner.WorldGen
             else if (rightNbHeight < leftNbHeight && rightNbHeight < topNbHeight && rightNbHeight < bottomNbHeight)
                 return Direction.Right;
             else if (topNbHeight < leftNbHeight && topNbHeight < rightNbHeight && topNbHeight < bottomNbHeight)
-                return Direction.Top;
+                return Direction.Up;
             else if (bottomNbHeight < leftNbHeight && bottomNbHeight < topNbHeight && bottomNbHeight < rightNbHeight)
-                return Direction.Bottom;
+                return Direction.Down;
             else
-                return Direction.Bottom; // If all values are equal, returning any direction or a default direction.
+                return Direction.Down; // If all values are equal, returning any direction or a default direction.
         }
     }
 }

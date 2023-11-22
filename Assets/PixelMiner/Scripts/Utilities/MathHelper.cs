@@ -5,6 +5,15 @@ namespace PixelMiner.Utilities
 {
     public static class MathHelper
     {
+        public static readonly Vector2 LeftVector = Vector2.left;
+        public static readonly Vector2 RightVector = Vector2.right;
+        public static readonly Vector2 UpVector = Vector2.up;
+        public static readonly Vector2 DownVector = Vector2.down;
+        public static readonly Vector2 UpLeftVector = new Vector2(-1,1);
+        public static readonly Vector2 UpRightVector = new Vector2(1,1);
+        public static readonly Vector2 DownLeftVector = new Vector2(-1,-1);
+        public static readonly Vector2 DownRightVector = new Vector2(1,-1);
+
         public static double Clamp(double v, double l, double h)
         {
             if (v < l) v = l;
@@ -61,5 +70,25 @@ namespace PixelMiner.Utilities
             return (value - fromMin) / (fromMax - fromMin) * (toMax - toMin) + toMin;
         }
 
+
+        /// <summary>
+        /// Rounds the input to the nearest 0.5.
+        /// </summary>
+        /// <param name="input">The input float to be rounded.</param>
+        /// <returns>The rounded float.</returns>
+        public static float RoundToNearest(float input)
+        {
+            float roundedValue = Mathf.Round(input * 2) / 2f;
+            return roundedValue;
+        }
+        /// <summary>
+        /// Rounds each component of a Vector2 to the nearest 0.5.
+        /// </summary>
+        /// <param name="v">The input Vector2 to be rounded.</param>
+        /// <returns>The Vector2 with each component rounded to the nearest 0.5.</returns>
+        public static Vector2 RoundToNearest(Vector2 v)
+        {
+            return new Vector2(RoundToNearest(v.x), RoundToNearest(v.y));
+        }
     }
 }

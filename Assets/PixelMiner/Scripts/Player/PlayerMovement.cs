@@ -1,6 +1,8 @@
 using UnityEngine;
 using PixelMiner.WorldGen;
 using PixelMiner.Enums;
+using PixelMiner.Utilities;
+using Mono.CSharp;
 
 namespace PixelMiner
 {
@@ -38,50 +40,32 @@ namespace PixelMiner
         }
 
         [SerializeField] private Vector2 _previousPostition;
-        [SerializeField] private Vector2 _predictMovePostition;
-        [SerializeField] private Vector2 _predictMovePostition2;
-        [SerializeField] private Vector2 _predictMovePostition3;
+        [SerializeField] private Vector2 _intPostition;
+        [SerializeField] private Vector2 _predictMovePosition;
+        [SerializeField] private Vector2 _predictMovePosition2;
+        [SerializeField] private Vector2 _predictMovePosition3;
         [SerializeField] private HeightType _heightType;
+        public Vector2 direction;
         private Tile _currentTile;
         private Tile _predictTile;
 
+
+
         private void Update()
         {
-            //Vector2 direction = ConvertDiagonalVectorToDimetricProjection(new Vector2(_input.Move.x * 2, _input.Move.y * 1), WorldGeneration.Instance.IsometricAngle);
-            Vector2 direction = new Vector2(_input.Move.x * 2, _input.Move.y * 1);
-            _predictMovePostition = (Vector2)transform.position + direction;
-
             _currentTile = Main.Instance.GetTile(transform.position);
-            _predictTile = Main.Instance.GetTile(_predictMovePostition);
-
-            Main.Instance.SetTileColor(transform.position, Color.red);
-            Main.Instance.SetTileColor(_predictMovePostition, Color.blue);
+            
+            Main.Instance.SetTileColor(Main.Instance.GetTileWorldPosition(transform.position), Color.red);
 
 
-            if (_predictTile != null)
+            _predictMovePosition = Main.Instance.GetNeighborWorldPosition(transform.position, _input.Move);
+            
+            if (_input.Move.x != 0 || _input.Move.y != 0)
             {
-                // Predict
-                if (_input.Move.x != 0 && _input.Move.y == 0)
-                {
-                    //_predictTile.Top.SetColor(Color.green);
-                    //_predictTile.Bottom.SetColor(Color.green);
-
-                }
-                else if (_input.Move.x == 0 && _input.Move.y != 0)
-                {
-
-                }
-                else if (_input.Move.x != 0 && _input.Move.y != 0)
-                {
-
-                }
-                else
-                {
-
-                }
+                SmartMove();
             }
 
-
+           
 
 
             if (_predictTile != null && (
@@ -92,21 +76,135 @@ namespace PixelMiner
                 _previousPostition = transform.position;
             }
 
+
+            // Animation
+            // =========
+            Flip(_input.Move);
+            if (_hasAnimator)
+            {
+                _anim.SetFloat(_animIDVelocityX, _input.Move.x);
+                _anim.SetFloat(_animIDVelocityY, _input.Move.y);
+            }
         }
         private void FixedUpdate()
-        {
+        {           
             if (_predictTile != null && (
                 _predictTile.HeightType == HeightType.DeepWater ||
                 _predictTile.HeightType == HeightType.ShallowWater ||
                 _predictTile.HeightType == HeightType.River))
             {
-                _rb.MovePosition(_previousPostition);
+
+                
+                Vector2 pos = transform.position;
+                pos.x = Mathf.Clamp(pos.x, (transform.position).x,(transform.position).x);
+                pos.y = Mathf.Clamp(pos.y, (transform.position).y, (transform.position).y);
+                
+                //_rb.position = pos;
+                _rb.MovePosition(pos);
+
             }
             else
             {
                 Movement();
             }
         }
+
+        private void SmartMove()
+        {
+            _predictTile = Main.Instance.GetTile(_predictMovePosition);
+            Main.Instance.SetTileColor(_predictMovePosition, Color.blue);
+
+            if (_input.Move.x == 0 && _input.Move.y == 0)
+                return;
+
+            if (_input.Move.x > 0 && _input.Move.y == 0)
+            {
+                // Right
+                _predictMovePosition2 = Main.Instance.GetNeighborWorldPosition(_predictMovePosition, MathHelper.UpLeftVector);
+                _predictMovePosition3 = Main.Instance.GetNeighborWorldPosition(_predictMovePosition, MathHelper.DownLeftVector);
+            }
+            else if (_input.Move.x < 0 && _input.Move.y == 0)
+            {
+                // Left
+                _predictMovePosition2 = Main.Instance.GetNeighborWorldPosition(_predictMovePosition, MathHelper.UpRightVector);
+                _predictMovePosition3 = Main.Instance.GetNeighborWorldPosition(_predictMovePosition, MathHelper.DownRightVector);
+            }
+            else if (_input.Move.x == 0 && _input.Move.y > 0)
+            {
+                // Up
+                _predictMovePosition2 = Main.Instance.GetNeighborWorldPosition(_predictMovePosition, MathHelper.DownLeftVector);
+                _predictMovePosition3 = Main.Instance.GetNeighborWorldPosition(_predictMovePosition, MathHelper.DownRightVector);
+            }
+            else if (_input.Move.x == 0 && _input.Move.y < 0)
+            {
+                // Down
+                _predictMovePosition2 = Main.Instance.GetNeighborWorldPosition(_predictMovePosition, MathHelper.UpLeftVector);
+                _predictMovePosition3 = Main.Instance.GetNeighborWorldPosition(_predictMovePosition, MathHelper.UpRightVector);
+
+
+            }
+            else if (_input.Move.x > 0 && _input.Move.y > 0)
+            {
+                // Top Right
+               
+
+            }
+            else if (_input.Move.x < 0 && _input.Move.y > 0)
+            {
+                // Top Left
+              
+            }
+
+            else if (_input.Move.x > 0 && _input.Move.y < 0)
+            {
+                // Down Right
+          
+
+            }
+            else if (_input.Move.x < 0 && _input.Move.y < 0)
+            {
+                // Down Left
+              
+
+            }
+
+
+            Main.Instance.SetTileColor(_predictMovePosition2, Color.black);
+            Main.Instance.SetTileColor(_predictMovePosition3, Color.black);
+
+        }
+
+
+        private void MyFormula(Vector2 p1, Vector2 p2, out Vector2 p3, out Vector2 p4)
+        {
+            if(p1.y == p2.y)
+            {
+                float a = (p1.x + p2.x) / 2.0f;
+                float c = p1.y + 0.5f;
+                float d = p1.y - 0.5f;
+
+                p3 = new Vector2(a,c);
+                p4 = new Vector2(a,d);
+            }
+            else if(p1.x == p2.x)
+            {
+                float a = (p1.y + p2.y) / 2.0f;
+                float c = p1.y + 0.5f;
+                float d = p1.y - 0.5f;
+
+                p3 = new Vector2(c, a);
+                p4 = new Vector2(d, a);
+            }
+            else
+            {
+                p3 = Vector2.zero;
+                p4 = Vector2.zero;
+            }
+        }
+
+        
+
+
 
         private void AssignAnimationIDs()
         {
@@ -128,12 +226,7 @@ namespace PixelMiner
             _rb.velocity = _moveDirection * moveSpeed;
 
 
-            Flip(_input.Move);
-            if (_hasAnimator)
-            {
-                _anim.SetFloat(_animIDVelocityX, _input.Move.x);
-                _anim.SetFloat(_animIDVelocityY, _input.Move.y);
-            }
+            
         }
 
         private void Flip(Vector2 move)

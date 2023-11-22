@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using Sirenix.OdinInspector;
 using PixelMiner.Enums;
+using PixelMiner.Utilities;
+
 
 namespace PixelMiner.WorldGen
 {
@@ -25,6 +27,11 @@ namespace PixelMiner.WorldGen
         public HashSet<Chunk> ActiveChunks;
 
 
+        private readonly Vector2 HORIZONTAL_DISTANCE_TO_NB = new Vector2(2.0f, 1.0f);
+        private readonly Vector2 VERTICAL_DISTANCE_TO_NB = new Vector2(1.0f, 0.5f);
+
+
+
 
         private void Awake()
         {
@@ -38,14 +45,14 @@ namespace PixelMiner.WorldGen
         }
         private void Start()
         {
-            
+
         }
 
 
         #region Initialize tile data
         private void LoadTileBaseDictionary()
-        {  
-            foreach(var tilebase in TileBaseList)
+        {
+            foreach (var tilebase in TileBaseList)
             {
                 _tileBaseDict.Add(tilebase.Type, tilebase);
             }
@@ -58,7 +65,7 @@ namespace PixelMiner.WorldGen
 
         public TileBase GetTileBase(TileType tileType)
         {
-            if(_tileBaseDict.ContainsKey(tileType))
+            if (_tileBaseDict.ContainsKey(tileType))
             {
                 return _tileBaseDict[tileType];
             }
@@ -142,7 +149,7 @@ namespace PixelMiner.WorldGen
         public Tile GetTile(Vector2 worldPosition)
         {
             Chunk chunk = GetChunk(worldPosition, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
-            if(chunk != null)
+            if (chunk != null)
             {
                 return chunk.GetTile(worldPosition);
             }
@@ -156,14 +163,100 @@ namespace PixelMiner.WorldGen
                 chunk.PaintTileColor(chunk.GetTile(worldPosition), color);
             }
         }
-        public Vector3 GetWorldTilePosition(Vector2 worldPosition)
+        public Vector2 GetTileWorldPosition(Vector2 worldPosition)
         {
             Chunk chunk = GetChunk(worldPosition, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
             if (chunk != null)
             {
-                return chunk.GetWorldTilePosition(worldPosition);
+                return chunk.GetTileWorldPosition(worldPosition);
             }
-            return Vector3.zero;
+            return Vector2.zero;
+        }
+        public Vector2 GetNeighborWorldPosition(Vector2 worldPosition, Direction nbDirection)
+        {
+            Tile tile = GetTile(worldPosition);
+            Vector2 direction = Vector2.zero;
+            if (tile != null)
+            {
+                switch (nbDirection)
+                {
+                    default:
+                    case Direction.Left:
+                        direction = Vector2.left;
+                        break;
+                    case Direction.Right:
+                        direction = Vector2.right;
+                        break;
+                    case Direction.Up:
+                        direction = Vector2.up;
+                        break;
+                    case Direction.Down:
+                        direction = Vector2.down;
+                        break;
+                    case Direction.UpLeft:
+                        direction = MathHelper.UpLeftVector;
+                        break;
+                    case Direction.UpRight:
+                        direction = MathHelper.UpRightVector;
+                        break;
+                    case Direction.DownLeft:
+                        direction = MathHelper.DownLeftVector;
+                        break;
+                    case Direction.DownRight:
+                        direction = MathHelper.DownRightVector;
+                        break;
+                }
+            }
+            return GetNeighborWorldPosition(worldPosition, direction);
+        }
+        public Vector2 GetNeighborWorldPosition(Vector2 worldPosition, Vector2 direction)
+        {
+            Tile tile = GetTile(worldPosition);
+            Vector2 nbWorldPosition = Vector2.zero;
+            if (tile != null)
+            {
+                if (direction.x < 0 && direction.y == 0)
+                {
+                    // Left
+                    nbWorldPosition = GetTileWorldPosition(worldPosition) + Vector2.left * HORIZONTAL_DISTANCE_TO_NB;
+                }
+                else if (direction.x > 0 && direction.y == 0)
+                {
+                    // Right
+                    nbWorldPosition = GetTileWorldPosition(worldPosition) + Vector2.right * HORIZONTAL_DISTANCE_TO_NB;
+                }
+                else if (direction.x == 0 && direction.y > 0)
+                {
+                    // Up
+                    nbWorldPosition = GetTileWorldPosition(worldPosition) + Vector2.up * HORIZONTAL_DISTANCE_TO_NB;
+                }
+                else if (direction.x == 0 && direction.y < 0)
+                {
+                    // Down
+                    nbWorldPosition = GetTileWorldPosition(worldPosition) + Vector2.down * HORIZONTAL_DISTANCE_TO_NB;
+                }
+                else if (direction.x < 0 && direction.y > 0)
+                {
+                    // Up Left
+                    nbWorldPosition = GetTileWorldPosition(worldPosition) + MathHelper.UpLeftVector * VERTICAL_DISTANCE_TO_NB;
+                }
+                else if (direction.x > 0 && direction.y > 0)
+                {
+                    // Up Right
+                    nbWorldPosition = GetTileWorldPosition(worldPosition) + MathHelper.UpRightVector * VERTICAL_DISTANCE_TO_NB;
+                }
+                else if (direction.x < 0 && direction.y < 0)
+                {
+                    // Down Left
+                    nbWorldPosition = GetTileWorldPosition(worldPosition) + MathHelper.DownLeftVector * VERTICAL_DISTANCE_TO_NB;
+                }
+                else if (direction.x > 0 && direction.y < 0)
+                {
+                    // Down Right
+                    nbWorldPosition = GetTileWorldPosition(worldPosition) + MathHelper.DownRightVector * VERTICAL_DISTANCE_TO_NB;
+                }
+            }
+            return nbWorldPosition;
         }
         #endregion
     }

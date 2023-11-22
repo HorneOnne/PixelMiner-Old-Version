@@ -5,6 +5,8 @@ using System.Collections;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
+using PixelMiner.WorldGen.Utilities;
+using PixelMiner.Utilities;
 
 namespace PixelMiner.WorldGen
 {
@@ -914,11 +916,13 @@ namespace PixelMiner.WorldGen
         public Tile GetTile(Vector2 worldPosition)
         {
             Vector3Int cellPosition = Grid.WorldToCell(worldPosition);
+            cellPosition.z = 0;
             return ChunkData.GetValue(cellPosition.x, cellPosition.y);
         }
-        public Vector3 GetWorldTilePosition(Vector2 worldPosition)
+        public Vector3 GetTileWorldPosition(Vector2 worldPosition)
         {
             Vector3Int cellPosition = Grid.WorldToCell(worldPosition);
+            cellPosition.z = 0;
             return Grid.CellToWorld(cellPosition);
         }
         public Vector3 GetWorldTilePosition(Vector3Int cellPosition)
@@ -937,7 +941,6 @@ namespace PixelMiner.WorldGen
                 }
             }
         }
-
 
         public void SetDrawRenderMode(TilemapRenderer.Mode mode)
         {

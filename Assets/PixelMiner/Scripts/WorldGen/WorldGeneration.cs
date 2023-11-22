@@ -8,6 +8,7 @@ using System.Threading;
 using Sirenix.OdinInspector;
 using PixelMiner.Utilities;
 using System;
+using PixelMiner.WorldGen.Utilities;
 
 #if UNITY_EDITOR
 using UnityEditor;
