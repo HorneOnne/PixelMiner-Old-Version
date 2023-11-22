@@ -44,7 +44,7 @@ namespace PixelMiner
 
                 Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 mousePosition += Offset;
-                Vector2 frame = IsometricUtilities.WorldToTileFrame(mousePosition.x, mousePosition.y, 2f, 1f);
+                Vector2 frame = IsometricUtilities.WorldToTileFrame(mousePosition.x, mousePosition.y, 2f, 1f, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
                 Tile tile = Main.Instance.GetTile((byte)frame.x, (byte)frame.y, mousePosition);
 
 
@@ -90,7 +90,8 @@ namespace PixelMiner
             {
                 Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 mousePosition += Offset;
-                Vector2 frame = IsometricUtilities.WorldToTileFrame(mousePosition.x, mousePosition.y, 2f, 1f);
+                Vector2 frame = IsometricUtilities.WorldToTileFrame(mousePosition.x, mousePosition.y, 2f, 1f, 
+                    WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
                 Debug.Log(frame);
             }
         }

@@ -39,10 +39,10 @@ namespace PixelMiner.WorldGen
             return new Vector2Int(chunkX, chunkY);
         }
 
-        public static Vector2 WorldToTileFrame(float x, float y, float tileWidth, float tileHeight)
+        public static Vector2 WorldToTileFrame(float x, float y, float tileWidth, float tileHeight, byte chunkWidth, byte chunkHeight)
         {
-            x %= 32;
-            y %= 32;
+            x %= chunkWidth;
+            y %= chunkHeight;
 
             //Debug.Log($"A: {x}");
             x = Mathf.FloorToInt(x / 2.0f) * 2;
