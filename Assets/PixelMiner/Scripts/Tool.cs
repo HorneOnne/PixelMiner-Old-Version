@@ -20,6 +20,9 @@ namespace PixelMiner
 
             _isoCoordText = Utilities.Utilities.CreateWorldText("", null,fontSize: 10, textAnchor: TextAnchor.MiddleCenter);
             _isoCoordText.hideFlags = HideFlags.HideInInspector;
+
+            Debug.Log($"FloorToInt(5.7): {Mathf.FloorToInt(5.7f)}");
+            Debug.Log($"RountToInt(5.7): {Mathf.RoundToInt(5.7f)}");
         }
 
         public Vector2 Offset;
@@ -27,18 +30,34 @@ namespace PixelMiner
         {
             if(_isoCoordText != null)
             {
+                //Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                //mousePosition += Offset;
+                //Tile tile = Main.Instance.GetTile(mousePosition);
+                //if(tile != null)
+                //{
+                //    Main.Instance.SetTileColor(mousePosition, Color.magenta);
+                //}
+                //Vector2 worldTilePos = Main.Instance.GetTileWorldPosition(mousePosition);
+                //SetIsoCoordText($"GridTile: {worldTilePos} " +
+                //       $"\n Mouse: {mousePosition} " +
+                //       $"\n Frame: {tile?.FrameX} \t {tile?.FrameY}", mousePosition);
+
                 Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 mousePosition += Offset;
-                Tile tile = Main.Instance.GetTile(mousePosition);
-                Vector2 worldTilePos = Main.Instance.GetTileWorldPosition(mousePosition);
-                Main.Instance.SetTileColor(mousePosition, Color.magenta);
-                if(tile != null)
+                Vector2 frame = IsometricUtilities.WorldToTileFrame(mousePosition.x, mousePosition.y, 2f, 1f);
+                Tile tile = Main.Instance.GetTile((byte)frame.x, (byte)frame.y, mousePosition);
+
+
+                if (tile != null)
                 {
-                    SetIsoCoordText($"GridTile: {worldTilePos} " +
-                        $"\n Mouse: {mousePosition} " +
-                        $"\n Frame: {tile.FrameX} \t {tile.FrameY}", mousePosition);
+                    Main.Instance.SetTileColor(mousePosition, tile, Color.magenta);
                 }
-                
+                Vector2 worldTilePos = Main.Instance.GetTileWorldPosition(mousePosition);
+                SetIsoCoordText($"GridTile: {worldTilePos} " +
+                       $"\n Mouse: {mousePosition} " +
+                       $"\n Frame: {tile?.FrameX} \t {tile?.FrameY}", mousePosition);
+
+
             }
 
             if (Input.GetMouseButtonDown(0))
@@ -65,6 +84,14 @@ namespace PixelMiner
                     //SetChunkColor(chunk, Color.white);
                     chunk.SetTile(mousePosition, null);
                 }
+            }
+
+            if(Input.GetKeyDown(KeyCode.J))
+            {
+                Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                mousePosition += Offset;
+                Vector2 frame = IsometricUtilities.WorldToTileFrame(mousePosition.x, mousePosition.y, 2f, 1f);
+                Debug.Log(frame);
             }
         }
 

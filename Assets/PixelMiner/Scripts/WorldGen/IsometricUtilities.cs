@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using PixelMiner.Utilities;
+using UnityEngine;
 
 namespace PixelMiner.WorldGen
 {
@@ -37,6 +38,24 @@ namespace PixelMiner.WorldGen
 
             return new Vector2Int(chunkX, chunkY);
         }
+
+        public static Vector2 WorldToTileFrame(float x, float y, float tileWidth, float tileHeight)
+        {
+            x %= 32;
+            y %= 32;
+
+            //Debug.Log($"A: {x}");
+            x = Mathf.FloorToInt(x / 2.0f) * 2;
+            //Debug.Log($"B:{x}");
+            y = Mathf.FloorToInt(y);
+           
+            int i = (int)Mathf.Floor((x / tileWidth + y / tileHeight));
+            int j = (int)Mathf.Floor((y / tileHeight - x / tileWidth));
+            //Debug.Log($"x: {x} \t y: {y} \t i: {i} \t j: {j}");
+            //Debug.Log($"{(x / tileWidth + y / tileHeight) / 2.0f}");
+            return new Vector2Int(i, j);
+        }
+
     }
 }
 

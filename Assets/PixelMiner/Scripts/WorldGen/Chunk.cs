@@ -919,6 +919,10 @@ namespace PixelMiner.WorldGen
             cellPosition.z = 0;
             return ChunkData.GetValue(cellPosition.x, cellPosition.y);
         }
+        public Tile GetTile(byte frameX, byte frameY)
+        {
+            return ChunkData.GetValue(frameX, frameY);
+        }
         public Vector3 GetTileWorldPosition(Vector2 worldPosition)
         {
             Vector3Int cellPosition = Grid.WorldToCell(worldPosition);

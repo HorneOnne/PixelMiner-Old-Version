@@ -240,6 +240,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   WorldGenSlider: {fileID: 813266250}
+--- !u!1 &139101237
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 139101238}
+  m_Layer: 0
+  m_Name: 00000
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &139101238
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 139101237}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &172394999
 GameObject:
   m_ObjectHideFlags: 0
@@ -379,7 +410,7 @@ Transform:
   m_GameObject: {fileID: 314038815}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.14, y: 4.46, z: 0}
+  m_LocalPosition: {x: 5, y: 6.422845, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -656,7 +687,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3.3040242, y: 6.7881613, z: -9.886057}
+  m_LocalPosition: {x: 8.444024, y: 8.751006, z: -9.886057}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -722,7 +753,7 @@ Transform:
   m_GameObject: {fileID: 551416350}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3.3040242, y: 6.7881613, z: -9.886057}
+  m_LocalPosition: {x: 8.444024, y: 8.751006, z: -9.886057}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -933,7 +964,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43612efcd8e494c4cb2b446a8c7d5077, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Offset: {x: 0, y: 0}
+  Offset: {x: 1, y: 0}
 --- !u!4 &677337752
 Transform:
   m_ObjectHideFlags: 0
@@ -2411,3 +2442,4 @@ SceneRoots:
   - {fileID: 1590955043}
   - {fileID: 314038816}
   - {fileID: 1169672579}
+  - {fileID: 139101238}

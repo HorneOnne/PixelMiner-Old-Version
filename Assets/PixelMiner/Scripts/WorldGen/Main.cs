@@ -155,12 +155,29 @@ namespace PixelMiner.WorldGen
             }
             return null;
         }
+        public Tile GetTile(byte frameX, byte frameY, Vector2 worldPosition)
+        {
+            Chunk chunk = GetChunk(worldPosition, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
+            if (chunk != null)
+            {
+                return chunk.GetTile(frameX, frameY);
+            }
+            return null;
+        }
         public void SetTileColor(Vector2 worldPosition, Color color)
         {
             Chunk chunk = GetChunk(worldPosition, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
             if (chunk != null)
             {
                 chunk.PaintTileColor(chunk.GetTile(worldPosition), color);
+            }
+        }
+        public void SetTileColor(Vector2 worldPosition, Tile tile, Color color)
+        {
+            Chunk chunk = GetChunk(worldPosition, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
+            if (chunk != null)
+            {
+                chunk.PaintTileColor(tile, color);
             }
         }
         public Vector2 GetTileWorldPosition(Vector2 worldPosition)
