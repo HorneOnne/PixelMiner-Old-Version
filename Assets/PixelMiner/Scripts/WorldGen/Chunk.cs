@@ -46,7 +46,7 @@ namespace PixelMiner.WorldGen
         public bool HasChunkNeighbors = false;
         public bool AllTileHasNeighbors = false;
         public bool ChunkHasDrawn;
-        public bool Processing { get; private set; } = false;
+        public bool Processing { get; set; } = false;
 
 
         public List<TileGroup> Waters = new List<TileGroup>();
@@ -67,7 +67,7 @@ namespace PixelMiner.WorldGen
                 _updateTimer = Time.time;
                 if (Vector2.Distance(Camera.main.transform.position, transform.position) > _unloadChunkDistance
                     && ChunkHasDrawn
-                    && WorldGeneration.Instance.AutoUnloadChunk
+                    && Main.Instance.AutoUnloadChunk
                     && !Processing)
                 {
                     Main.Instance.ActiveChunks.Remove(this);
@@ -78,6 +78,7 @@ namespace PixelMiner.WorldGen
 
         public async void Init(float frameX, float frameY, int isometricFrameX, int isometricFrameY, byte _width, byte height)
         {
+            Processing = true;
             this.FrameX = frameX;
             this.FrameY = frameY;
             this.IsometricFrameX = isometricFrameX;
@@ -85,12 +86,8 @@ namespace PixelMiner.WorldGen
             this._width = _width;
             this._height = height;
             ChunkData = new Grid<Tile>(_width, height, 1.0f);
-            await InitEmptyTilesDataAsync();
-        }
-
-        private async Task InitEmptyTilesDataAsync()
-        {
-            Processing = true;
+     
+            // Init empty chunk tile data
             await Task.Run(() =>
             {
                 for (byte x = 0; x < _width; x++)
@@ -104,286 +101,16 @@ namespace PixelMiner.WorldGen
             });
             Processing = false;
         }
-
+   
         public void LoadChunk()
         {
             gameObject.SetActive(true);
-            if (WorldGeneration.Instance.ShowTilegroupMaps)
-            {
-                Tilegroupmap.GetComponent<TilemapRenderer>().enabled = true;
-            }
-            else
-            {
-                Tilegroupmap.GetComponent<TilemapRenderer>().enabled = false;
-            }
         }
 
         public void UnloadChunk()
         {
             gameObject.SetActive(false);
         }
-
-
-
-        #region Load chunk tile data
-        public async Task LoadHeightMapDataAsync(float[,] heightValues, bool updateHeightType = true)
-        {
-            Processing = true;
-            await Task.Run(() =>
-            {
-                Parallel.For(0, _width, x =>
-                {
-                    for (int y = 0; y < _height; y++)
-                    {
-                        Tile tile = ChunkData.GetValue(x, y);
-                        tile.HeightValue = heightValues[x, y];
-
-                        if (updateHeightType)
-                        {
-                            UpdateHeightType(tile);
-                        }
-                    }
-                });
-
-            });
-            Processing = false;
-        }
-        public async Task LoadHeatMapDataAsync(float[,] heatValues, bool updateHeatType = true)
-        {
-            Processing = true;
-            await Task.Run(() =>
-            {
-                Parallel.For(0, _width, x =>
-                {
-                    for (int y = 0; y < _height; y++)
-                    {
-                        Tile tile = ChunkData.GetValue(x, y);
-                        tile.HeatValue = heatValues[x, y];
-
-                        if (updateHeatType)
-                        {
-                            UpdateHeatType(tile);
-                        }
-                    }
-                });
-            });
-            Processing = false;
-        }
-
-        /// <summary>
-        /// Load heightmap and heatmap simulteneously and
-        /// ajdust heatmap based on heightmap.(The higher you go, the lower the temperature)
-        /// </summary>
-        /// <param name="heightValues"></param>
-        /// <returns></returns>
-        public async Task LoadHeightAndHeatMap(float[,] heightValues, float[,] heatValues)
-        {
-            Processing = true;
-            Task loadHeightMapDataTask = LoadHeightMapDataAsync(heightValues, updateHeightType: true);
-            Task loadHeatMapDataTask = LoadHeatMapDataAsync(heatValues, updateHeatType: false); // updateHeatType = false because we will update it after adjust by heightmap.
-
-            await Task.WhenAll(loadHeatMapDataTask, loadHeightMapDataTask);
-
-            await Task.Run(() =>
-            {
-                for (int x = 0; x < _width; x++)
-                {
-                    for (int y = 0; y < _height; y++)
-                    {
-                        Tile tile = ChunkData.GetValue(x, y);
-
-
-                        // Ajdust Heat map based on height.
-                        if (tile.HeightType == HeightType.Forest)
-                        {
-                            tile.HeatValue -= 0.1f * tile.HeightValue;
-                        }
-                        else if (tile.HeightType == HeightType.Rock)
-                        {
-                            tile.HeatValue -= 0.25f * tile.HeightValue;
-                        }
-                        else if (tile.HeightType == HeightType.Snow)
-                        {
-                            tile.HeatValue -= 0.4f * tile.HeightValue;
-                        }
-                        else
-                        {
-                            tile.HeatValue += 0.01f * tile.HeightValue;
-                        }
-
-                        UpdateHeatType(tile);
-                    }
-                }
-            });
-            Processing = false;
-        }
-
-        public async Task LoadMoistureMapDataAsync(float[,] moisetureValues, bool updateMoistureType = true)
-        {
-            Processing = true;
-            await Task.Run(() =>
-            {
-                Parallel.For(0, _width, x =>
-                {
-                    for (int y = 0; y < _height; y++)
-                    {
-                        Tile tile = ChunkData.GetValue(x, y);
-                        tile.MoistureValue = moisetureValues[x, y];
-
-
-                        // Ajdust moisture based on height
-                        if (tile.HeightType == HeightType.DeepWater)
-                        {
-                            tile.MoistureValue += 8f * tile.HeightValue;
-                        }
-                        else if (tile.HeightType == HeightType.ShallowWater)
-                        {
-                            tile.MoistureValue += 3f * tile.HeightValue;
-                        }
-                        else if (tile.HeightType == HeightType.Shore)
-                        {
-                            tile.MoistureValue += 1f * tile.HeightValue;
-                        }
-                        else if (tile.HeightType == HeightType.Sand)
-                        {
-                            tile.MoistureValue += 0.2f * tile.HeightValue;
-                        }
-
-
-                        if (updateMoistureType)
-                        {
-                            UpdateMoistureType(tile);
-                        }
-                    }
-                });
-
-            });
-            Processing = false;
-        }
-        public async Task LoadRiverDataAsync(float[,] riverValues)
-        {
-            Processing = true;
-            await Task.Run(() =>
-            {
-                Parallel.For(0, _width, x =>
-                {
-                    for (int y = 0; y < _height; y++)
-                    {
-                        Tile tile = ChunkData.GetValue(x, y);
-                        float riverValue = riverValues[x, y];
-
-                        if (riverValue > WorldGeneration.Instance.RiverRange.x && riverValue < WorldGeneration.Instance.RiverRange.y)
-                        {
-                            tile.HeightType = HeightType.River;
-                        }
-                    }
-                });
-
-            });
-            Processing = false;
-        }
-
-        #endregion
-
-
-
-        #region Set chunk tile type
-        private void UpdateHeightType(Tile tile)
-        {
-
-            if (tile.HeightValue < WorldGeneration.Instance.DeepWater)
-            {
-                tile.HeightType = HeightType.DeepWater;
-                tile.Collidable = false;
-            }
-            else if (tile.HeightValue < WorldGeneration.Instance.Water)
-            {
-                tile.HeightType = HeightType.ShallowWater;
-                tile.Collidable = false;
-            }
-            else if (tile.HeightValue < WorldGeneration.Instance.Sand)
-            {
-                tile.HeightType = HeightType.Sand;
-                tile.Collidable = true;
-            }
-            else if (tile.HeightValue < WorldGeneration.Instance.Grass)
-            {
-                tile.HeightType = HeightType.Grass;
-                tile.Collidable = true;
-            }
-            else if (tile.HeightValue < WorldGeneration.Instance.Forest)
-            {
-                tile.HeightType = HeightType.Forest;
-                tile.Collidable = true;
-            }
-            else if (tile.HeightValue < WorldGeneration.Instance.Rock)
-            {
-                tile.HeightType = HeightType.Rock;
-                tile.Collidable = true;
-            }
-            else
-            {
-                tile.HeightType = HeightType.Snow;
-                tile.Collidable = true;
-            }
-        }
-        private void UpdateHeatType(Tile tile)
-        {
-            // Adjust heat type when heat value has changed.
-            if (tile.HeatValue < WorldGeneration.Instance.ColdestValue)
-            {
-                tile.HeatType = HeatType.Coldest;
-            }
-            else if (tile.HeatValue < WorldGeneration.Instance.ColderValue)
-            {
-                tile.HeatType = HeatType.Colder;
-            }
-            else if (tile.HeatValue < WorldGeneration.Instance.ColdValue)
-            {
-                tile.HeatType = HeatType.Cold;
-            }
-            else if (tile.HeatValue < WorldGeneration.Instance.WarmValue)
-            {
-                tile.HeatType = HeatType.Warm;
-            }
-            else if (tile.HeatValue < WorldGeneration.Instance.WarmerValue)
-            {
-                tile.HeatType = HeatType.Warmer;
-            }
-            else
-            {
-                tile.HeatType = HeatType.Warmest;
-            }
-        }
-        private void UpdateMoistureType(Tile tile)
-        {
-            if (tile.MoistureValue < WorldGeneration.Instance.DryestValue)
-            {
-                tile.MoistureType = MoistureType.Dryest;
-            }
-            else if (tile.MoistureValue < WorldGeneration.Instance.DryerValue)
-            {
-                tile.MoistureType = MoistureType.Dryer;
-            }
-            else if (tile.MoistureValue < WorldGeneration.Instance.DryValue)
-            {
-                tile.MoistureType = MoistureType.Dry;
-            }
-            else if (tile.MoistureValue < WorldGeneration.Instance.WetValue)
-            {
-                tile.MoistureType = MoistureType.Wet;
-            }
-            else if (tile.MoistureValue < WorldGeneration.Instance.WetterValue)
-            {
-                tile.MoistureType = MoistureType.Wetter;
-            }
-            else
-            {
-                tile.MoistureType = MoistureType.Wettest;
-            }
-        }
-        #endregion
-
 
 
         public async Task DrawChunkAsync()
@@ -558,7 +285,7 @@ namespace PixelMiner.WorldGen
             //WaterTilemap.SetTiles(positionArray, waterTiles);
             //Tilegroupmap.SetTiles(positionArray, tilegroupTiles);
 
-            if (WorldGeneration.Instance.InitWorldWithHeatmap)
+            if (Main.Instance.InitWorldWithHeatmap)
             {
                 HeatTilemap.SetTiles(positionArray, heatTiles);
                 HeatTilemap.gameObject.SetActive(true);
@@ -568,7 +295,7 @@ namespace PixelMiner.WorldGen
                 HeatTilemap.gameObject.SetActive(false);
             }
 
-            if (WorldGeneration.Instance.InitWorldWithMoisturemap)
+            if (Main.Instance.InitWorldWithMoisturemap)
             {
                 MoistureTilemap.SetTiles(positionArray, moistureTiles);
                 MoistureTilemap.gameObject.SetActive(true);
@@ -588,104 +315,13 @@ namespace PixelMiner.WorldGen
         }
 
 
-
-        #region Paint tilemap color
-        public void PaintNeighborsColor()
-        {
-            for (var x = 0; x < _width; x++)
-            {
-                for (var y = 0; y < _height; y++)
-                {
-                    Tile t = ChunkData.GetValue(x, y);
-                    if (t.HasNeighbors())
-                    {
-                        LandTilemap.SetColor(new Vector3Int(t.FrameX, t.FrameY), Color.red);
-                    }
-                }
-            }
-        }
-
-        public void PaintTilegroupMap()
-        {
-            foreach (var group in Waters)
-            {
-                foreach (var tile in group.Tiles)
-                {
-                    Vector3Int tileFrame = new Vector3Int(tile.FrameX, tile.FrameY, 0);
-                    Tilegroupmap.SetColor(tileFrame, Color.blue);
-                }
-            }
-
-            foreach (var group in Lands)
-            {
-                foreach (var tile in group.Tiles)
-                {
-                    Vector3Int tileFrame = new Vector3Int(tile.FrameX, tile.FrameY, 0);
-                    Tilegroupmap.SetColor(tileFrame, Color.green);
-                }
-            }
-        }
-
-        public void PaintHeatMap()
-        {
-            for (var x = 0; x < _width; x++)
-            {
-                for (var y = 0; y < _height; y++)
-                {
-                    Tile t = ChunkData.GetValue(x, y);
-                    HeatTilemap.SetColor(new Vector3Int(t.FrameX, t.FrameY), WorldGenUtilities.GetGradientColor(t.HeatValue));
-                }
-            }
-        }
-
-        public void PaintMoistureMap()
-        {
-            for (int x = 0; x < _width; x++)
-            {
-                for (int y = 0; y < _height; y++)
-                {
-                    Tile t = ChunkData.GetValue(x, y);
-                    Color color;
-                    switch (t.MoistureType)
-                    {
-                        case MoistureType.Dryest:
-                            color = WorldGenUtilities.Dryest;
-                            break;
-                        case MoistureType.Dryer:
-                            color = WorldGenUtilities.Dryer;
-                            break;
-                        case MoistureType.Dry:
-                            color = WorldGenUtilities.Dry;
-                            break;
-                        case MoistureType.Wet:
-                            color = WorldGenUtilities.Wet;
-                            break;
-                        case MoistureType.Wetter:
-                            color = WorldGenUtilities.Wetter;
-                            break;
-                        case MoistureType.Wettest:
-                            color = WorldGenUtilities.Wettest;
-                            break;
-                        default:
-                            color = WorldGenUtilities.Wettest;
-                            break;
-                    }
-
-                    MoistureTilemap.SetColor(new Vector3Int(t.FrameX, t.FrameY), color);
-                }
-            }
-        }
-
         // Test
         // ====
         public void PaintTileColor(Tile tile, Color color)
         {
             LandTilemap.SetColor(new Vector3Int(tile.FrameX, tile.FrameY), color);
         }
-        #endregion
-
-
-
+     
 
 
         public void SetTwoSidesChunkNeighbors(Chunk left, Chunk right, Chunk top, Chunk bottom)
@@ -943,72 +579,51 @@ namespace PixelMiner.WorldGen
         }
 
 
-        #region Obsolete method.
-        /// <summary>
-        /// Obsolete, use LoadHeightMapAsync instead.
-        /// </summary>
-        /// <param name="heightValues"></param>
-        public void LoadHeightMap(float[,] heightValues)
-        {
-            for (byte x = 0; x < _width; x++)
-            {
-                for (byte y = 0; y < _height; y++)
-                {
-                    Tile tile = new Tile(x, y);
-                    tile.HeightValue = heightValues[x, y];
-                    ChunkData.SetValue(x, y, tile);
-                }
-            }
-        }
-        #endregion
+     
 
+        //#region Testing 
+        //public Canvas Canvas;
+        //public TextMeshProUGUI TextPrefab;
+        //public void ShowTextTest()
+        //{
+        //    return;
+        //    Canvas = GameObject.Find("Canvas_1").GetComponent<Canvas>();
+        //    for (byte x = 0; x < _width; ++x)
+        //    {
+        //        for (byte y = 0; y < _height; ++y)
+        //        {
+        //            TextMeshProUGUI isoCoordText = Instantiate(TextPrefab, Canvas.transform);
+        //            isoCoordText.hideFlags = HideFlags.HideInInspector;
 
+        //            //Vector3 position = GetTileWorldPosition(x, y);
+        //            //isoCoordText.text = $"[{position.x} , {position.y}]";
 
-        #region Testing 
-        public Canvas Canvas;
-        public TextMeshProUGUI TextPrefab;
-        public void ShowTextTest()
-        {
-            return;
-            Canvas = GameObject.Find("Canvas_1").GetComponent<Canvas>();
-            for (byte x = 0; x < _width; ++x)
-            {
-                for (byte y = 0; y < _height; ++y)
-                {
-                    TextMeshProUGUI isoCoordText = Instantiate(TextPrefab, Canvas.transform);
-                    isoCoordText.hideFlags = HideFlags.HideInInspector;
+        //            Vector3 position = GetTileWorldPosition(x, y);
+        //            isoCoordText.text = $"[{x + (IsometricFrameX * _width)} , {y + (IsometricFrameY * _height)}]";
 
-                    //Vector3 position = GetTileWorldPosition(x, y);
-                    //isoCoordText.text = $"[{position.x} , {position.y}]";
+        //            isoCoordText.fontSize = 15f;
+        //            isoCoordText.transform.position = GetTileWorldPosition(x, y) + new Vector3(0,0.5f);
+        //        }
+        //    }
+        //}
+        //public TextMeshProUGUI CreateWorldText(string text, Transform parent = null, Vector3 localPosition = default(Vector3), int fontSize = 10, Color? color = null)
+        //{
+        //    if (color == null) color = Color.white;
+        //    return CreateWorldText(parent, text, localPosition, fontSize, (Color)color);
+        //}
 
-                    Vector3 position = GetTileWorldPosition(x, y);
-                    isoCoordText.text = $"[{x + (IsometricFrameX * _width)} , {y + (IsometricFrameY * _height)}]";
-
-                    isoCoordText.fontSize = 15f;
-                    isoCoordText.transform.position = GetTileWorldPosition(x, y) + new Vector3(0,0.5f);
-                }
-            }
-        }
-        public TextMeshProUGUI CreateWorldText(string text, Transform parent = null, Vector3 localPosition = default(Vector3), int fontSize = 10, Color? color = null)
-        {
-            if (color == null) color = Color.white;
-            return CreateWorldText(parent, text, localPosition, fontSize, (Color)color);
-        }
-
-        // Create Text in the World
-        public TextMeshProUGUI CreateWorldText(Transform parent, string text, Vector3 localPosition, int fontSize, Color color)
-        {
-            TextMeshProUGUI textMesh = Instantiate(TextPrefab);
-            textMesh.transform.SetParent(transform, false);
-            textMesh.transform.position = localPosition;
-            textMesh.text = text;
-            textMesh.fontSize = fontSize;
-            textMesh.color = color;
-            return textMesh;
-        }
-
-   
-        #endregion
+        //// Create Text in the World
+        //public TextMeshProUGUI CreateWorldText(Transform parent, string text, Vector3 localPosition, int fontSize, Color color)
+        //{
+        //    TextMeshProUGUI textMesh = Instantiate(TextPrefab);
+        //    textMesh.transform.SetParent(transform, false);
+        //    textMesh.transform.position = localPosition;
+        //    textMesh.text = text;
+        //    textMesh.fontSize = fontSize;
+        //    textMesh.color = color;
+        //    return textMesh;
+        //}  
+        //#endregion
     }
 }
 

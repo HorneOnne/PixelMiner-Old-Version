@@ -9,6 +9,7 @@ using Sirenix.OdinInspector;
 using PixelMiner.Utilities;
 using System;
 using PixelMiner.WorldGen.Utilities;
+using PixelMiner.Enums;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -446,16 +447,16 @@ namespace PixelMiner.WorldGen
 
             if (InitWorldWithHeatmap)
             {
-                await newChunk.LoadHeightAndHeatMap(heightValues, heatValues);
+                await LoadHeightAndHeatMap(newChunk, heightValues, heatValues);
             }
             else
             {
-                await newChunk.LoadHeightMapDataAsync(heightValues);
+                await LoadHeightMapDataAsync(newChunk, heightValues);
             }
 
             if (InitWorldWithMoisturemap)
             {
-                await newChunk.LoadMoistureMapDataAsync(moisetureValues);
+                await LoadMoistureMapDataAsync(newChunk, moisetureValues);
             }
             else
             {
@@ -464,7 +465,7 @@ namespace PixelMiner.WorldGen
 
             if(InitWorldWithRiver)
             {
-                await newChunk.LoadRiverDataAsync(riverValues);
+                await LoadRiverDataAsync(newChunk, riverValues);
             }
 
             return newChunk;
@@ -504,12 +505,12 @@ namespace PixelMiner.WorldGen
                         if (newChunk.ChunkHasDrawn == false)
                         {
                             await newChunk.DrawChunkAsync();
-                            _main.Chunks[nbIsoFrame].ShowTextTest();
+                            //_main.Chunks[nbIsoFrame].ShowTextTest();
 
                             if (InitWorldWithHeatmap)
-                                newChunk.PaintHeatMap();
+                                PaintHeatMap(newChunk);
                             if (InitWorldWithMoisturemap)
-                                newChunk.PaintMoistureMap();
+                                PaintMoistureMap(newChunk);
                         }
 
                         _main.GetChunk(nbIsoFrame).LoadChunk();
@@ -527,12 +528,12 @@ namespace PixelMiner.WorldGen
                         if (_main.Chunks[nbIsoFrame].ChunkHasDrawn == false)
                         {
                             await _main.Chunks[nbIsoFrame].DrawChunkAsync();
-                            _main.Chunks[nbIsoFrame].ShowTextTest();
+                            //_main.Chunks[nbIsoFrame].ShowTextTest();
 
                             if (InitWorldWithHeatmap)
-                                _main.Chunks[nbIsoFrame].PaintHeatMap();
+                                PaintHeatMap(_main.Chunks[nbIsoFrame]);
                             if (InitWorldWithMoisturemap)
-                                _main.Chunks[nbIsoFrame].PaintMoistureMap();
+                                PaintMoistureMap(_main.Chunks[nbIsoFrame]);
                         }
                         _main.Chunks[nbIsoFrame].LoadChunk();
                     }
@@ -617,10 +618,10 @@ namespace PixelMiner.WorldGen
             foreach (var chunk in _main.Chunks.Values)
             {
                 if (InitWorldWithHeatmap)
-                    chunk.PaintHeatMap();
+                    PaintHeatMap(chunk);
 
                 if (InitWorldWithMoisturemap)
-                    chunk.PaintMoistureMap();
+                    PaintMoistureMap(chunk);
 
                 if (!chunk.HasNeighbors())
                 {
@@ -831,6 +832,348 @@ namespace PixelMiner.WorldGen
 
 
 
+        #region Set tiles types
+        public async Task LoadHeightMapDataAsync(Chunk chunk, float[,] heightValues, bool updateHeightType = true)
+        {
+            chunk.Processing = true;
+            await Task.Run(() =>
+            {
+                Parallel.For(0, ChunkWidth, x =>
+                {
+                    for (int y = 0; y < ChunkHeight; y++)
+                    {
+                        Tile tile = chunk.ChunkData.GetValue(x, y);
+                        tile.HeightValue = heightValues[x, y];
+
+                        if (updateHeightType)
+                        {
+                            UpdateHeightType(tile);
+                        }
+                    }
+                });
+
+            });
+            chunk.Processing = false;
+        }
+        public async Task LoadHeatMapDataAsync(Chunk chunk, float[,] heatValues, bool updateHeatType = true)
+        {
+            chunk.Processing = true;
+            await Task.Run(() =>
+            {
+                Parallel.For(0, ChunkWidth, x =>
+                {
+                    for (int y = 0; y < ChunkHeight; y++)
+                    {
+                        Tile tile = chunk.ChunkData.GetValue(x, y);
+                        tile.HeatValue = heatValues[x, y];
+
+                        if (updateHeatType)
+                        {
+                            UpdateHeatType(tile);
+                        }
+                    }
+                });
+            });
+            chunk.Processing = false;
+        }
+
+        /// <summary>
+        /// Load heightmap and heatmap simulteneously and
+        /// ajdust heatmap based on heightmap.(The higher you go, the lower the temperature)
+        /// </summary>
+        /// <param name="heightValues"></param>
+        /// <returns></returns>
+        public async Task LoadHeightAndHeatMap(Chunk chunk, float[,] heightValues, float[,] heatValues)
+        {
+            chunk.Processing = true;
+            Task loadHeightMapDataTask = LoadHeightMapDataAsync(chunk, heightValues, updateHeightType: true);
+            Task loadHeatMapDataTask = LoadHeatMapDataAsync(chunk, heatValues, updateHeatType: false); // updateHeatType = false because we will update it after adjust by heightmap.
+
+            await Task.WhenAll(loadHeatMapDataTask, loadHeightMapDataTask);
+
+            await Task.Run(() =>
+            {
+                for (int x = 0; x < ChunkWidth; x++)
+                {
+                    for (int y = 0; y < ChunkHeight; y++)
+                    {
+                        Tile tile = chunk.ChunkData.GetValue(x, y);
+
+
+                        // Ajdust Heat map based on height.
+                        if (tile.HeightType == HeightType.Forest)
+                        {
+                            tile.HeatValue -= 0.1f * tile.HeightValue;
+                        }
+                        else if (tile.HeightType == HeightType.Rock)
+                        {
+                            tile.HeatValue -= 0.25f * tile.HeightValue;
+                        }
+                        else if (tile.HeightType == HeightType.Snow)
+                        {
+                            tile.HeatValue -= 0.4f * tile.HeightValue;
+                        }
+                        else
+                        {
+                            tile.HeatValue += 0.01f * tile.HeightValue;
+                        }
+
+                        UpdateHeatType(tile);
+                    }
+                }
+            });
+            chunk.Processing = false;
+        }
+
+        public async Task LoadMoistureMapDataAsync(Chunk chunk, float[,] moisetureValues, bool updateMoistureType = true)
+        {
+            chunk.Processing = true;
+            await Task.Run(() =>
+            {
+                Parallel.For(0, ChunkWidth, x =>
+                {
+                    for (int y = 0; y < ChunkHeight; y++)
+                    {
+                        Tile tile = chunk.ChunkData.GetValue(x, y);
+                        tile.MoistureValue = moisetureValues[x, y];
+
+
+                        // Ajdust moisture based on height
+                        if (tile.HeightType == HeightType.DeepWater)
+                        {
+                            tile.MoistureValue += 8f * tile.HeightValue;
+                        }
+                        else if (tile.HeightType == HeightType.ShallowWater)
+                        {
+                            tile.MoistureValue += 3f * tile.HeightValue;
+                        }
+                        else if (tile.HeightType == HeightType.Shore)
+                        {
+                            tile.MoistureValue += 1f * tile.HeightValue;
+                        }
+                        else if (tile.HeightType == HeightType.Sand)
+                        {
+                            tile.MoistureValue += 0.2f * tile.HeightValue;
+                        }
+
+
+                        if (updateMoistureType)
+                        {
+                            UpdateMoistureType(tile);
+                        }
+                    }
+                });
+
+            });
+            chunk.Processing = false;
+        }
+        public async Task LoadRiverDataAsync(Chunk chunk, float[,] riverValues)
+        {
+            chunk.Processing = true;
+            await Task.Run(() =>
+            {
+                Parallel.For(0, ChunkWidth, x =>
+                {
+                    for (int y = 0; y < ChunkHeight; y++)
+                    {
+                        Tile tile = chunk.ChunkData.GetValue(x, y);
+                        float riverValue = riverValues[x, y];
+
+                        if (riverValue > WorldGeneration.Instance.RiverRange.x && riverValue < WorldGeneration.Instance.RiverRange.y)
+                        {
+                            tile.HeightType = HeightType.River;
+                        }
+                    }
+                });
+
+            });
+            chunk.Processing = false;
+        }
+
+        private void UpdateHeightType(Tile tile)
+        {
+            if (tile.HeightValue < DeepWater)
+            {
+                tile.HeightType = HeightType.DeepWater;
+                tile.Collidable = false;
+            }
+            else if (tile.HeightValue < Water)
+            {
+                tile.HeightType = HeightType.ShallowWater;
+                tile.Collidable = false;
+            }
+            else if (tile.HeightValue < Sand)
+            {
+                tile.HeightType = HeightType.Sand;
+                tile.Collidable = true;
+            }
+            else if (tile.HeightValue < Grass)
+            {
+                tile.HeightType = HeightType.Grass;
+                tile.Collidable = true;
+            }
+            else if (tile.HeightValue < Forest)
+            {
+                tile.HeightType = HeightType.Forest;
+                tile.Collidable = true;
+            }
+            else if (tile.HeightValue < Rock)
+            {
+                tile.HeightType = HeightType.Rock;
+                tile.Collidable = true;
+            }
+            else
+            {
+                tile.HeightType = HeightType.Snow;
+                tile.Collidable = true;
+            }
+        }
+        private void UpdateHeatType(Tile tile)
+        {
+            // Adjust heat type when heat value has changed.
+            if (tile.HeatValue < ColdestValue)
+            {
+                tile.HeatType = HeatType.Coldest;
+            }
+            else if (tile.HeatValue < ColderValue)
+            {
+                tile.HeatType = HeatType.Colder;
+            }
+            else if (tile.HeatValue < ColdValue)
+            {
+                tile.HeatType = HeatType.Cold;
+            }
+            else if (tile.HeatValue < WarmValue)
+            {
+                tile.HeatType = HeatType.Warm;
+            }
+            else if (tile.HeatValue < WarmerValue)
+            {
+                tile.HeatType = HeatType.Warmer;
+            }
+            else
+            {
+                tile.HeatType = HeatType.Warmest;
+            }
+        }
+        private void UpdateMoistureType(Tile tile)
+        {
+            if (tile.MoistureValue < DryestValue)
+            {
+                tile.MoistureType = MoistureType.Dryest;
+            }
+            else if (tile.MoistureValue < DryerValue)
+            {
+                tile.MoistureType = MoistureType.Dryer;
+            }
+            else if (tile.MoistureValue < DryValue)
+            {
+                tile.MoistureType = MoistureType.Dry;
+            }
+            else if (tile.MoistureValue < WetValue)
+            {
+                tile.MoistureType = MoistureType.Wet;
+            }
+            else if (tile.MoistureValue < WetterValue)
+            {
+                tile.MoistureType = MoistureType.Wetter;
+            }
+            else
+            {
+                tile.MoistureType = MoistureType.Wettest;
+            }
+        }
+        #endregion
+
+
+        #region Paint Color
+        public void PaintNeighborsColor(Chunk chunk)
+        {
+            for (var x = 0; x < ChunkWidth; x++)
+            {
+                for (var y = 0; y < ChunkHeight; y++)
+                {
+                    Tile t = chunk.ChunkData.GetValue(x, y);
+                    if (t.HasNeighbors())
+                    {
+                        chunk.LandTilemap.SetColor(new Vector3Int(t.FrameX, t.FrameY), Color.red);
+                    }
+                }
+            }
+        }
+
+        public void PaintTilegroupMap(Chunk chunk)
+        {
+            foreach (var group in chunk.Waters)
+            {
+                foreach (var tile in group.Tiles)
+                {
+                    Vector3Int tileFrame = new Vector3Int(tile.FrameX, tile.FrameY, 0);
+                    chunk.Tilegroupmap.SetColor(tileFrame, Color.blue);
+                }
+            }
+
+            foreach (var group in chunk.Lands)
+            {
+                foreach (var tile in group.Tiles)
+                {
+                    Vector3Int tileFrame = new Vector3Int(tile.FrameX, tile.FrameY, 0);
+                    chunk.Tilegroupmap.SetColor(tileFrame, Color.green);
+                }
+            }
+        }
+
+        public void PaintHeatMap(Chunk chunk)
+        {
+            for (var x = 0; x < ChunkWidth; x++)
+            {
+                for (var y = 0; y < ChunkHeight; y++)
+                {
+                    Tile t = chunk.ChunkData.GetValue(x, y);
+                    chunk.HeatTilemap.SetColor(new Vector3Int(t.FrameX, t.FrameY), WorldGenUtilities.GetGradientColor(t.HeatValue));
+                }
+            }
+        }
+
+        public void PaintMoistureMap(Chunk chunk)
+        {
+            for (int x = 0; x < ChunkWidth; x++)
+            {
+                for (int y = 0; y < ChunkHeight; y++)
+                {
+                    Tile t = chunk.ChunkData.GetValue(x, y);
+                    Color color;
+                    switch (t.MoistureType)
+                    {
+                        case MoistureType.Dryest:
+                            color = WorldGenUtilities.Dryest;
+                            break;
+                        case MoistureType.Dryer:
+                            color = WorldGenUtilities.Dryer;
+                            break;
+                        case MoistureType.Dry:
+                            color = WorldGenUtilities.Dry;
+                            break;
+                        case MoistureType.Wet:
+                            color = WorldGenUtilities.Wet;
+                            break;
+                        case MoistureType.Wetter:
+                            color = WorldGenUtilities.Wetter;
+                            break;
+                        case MoistureType.Wettest:
+                            color = WorldGenUtilities.Wettest;
+                            break;
+                        default:
+                            color = WorldGenUtilities.Wettest;
+                            break;
+                    }
+
+                    chunk.MoistureTilemap.SetColor(new Vector3Int(t.FrameX, t.FrameY), color);
+                }
+            }
+        }
+        #endregion
+
 
 
         #region Neighbors
@@ -856,12 +1199,12 @@ namespace PixelMiner.WorldGen
                 chunk.UpdateAllTileNeighbors();
 
                 if (PaintTileNeighbors)
-                    chunk.PaintNeighborsColor();
+                    PaintNeighborsColor(chunk);
 
                 if (chunk.Waters.Count == 0 && chunk.Lands.Count == 0)
                 {
                     FloodFill(chunk);
-                    chunk.PaintTilegroupMap();
+                    PaintTilegroupMap(chunk);
                 }
             }
 
@@ -870,12 +1213,12 @@ namespace PixelMiner.WorldGen
                 nbAbove.UpdateAllTileNeighbors();
 
                 if (PaintTileNeighbors)
-                    nbAbove.PaintNeighborsColor();
+                    PaintNeighborsColor(nbAbove);
 
                 if (nbAbove.Waters.Count == 0 && nbAbove.Lands.Count == 0)
                 {
                     FloodFill(nbAbove);
-                    nbAbove.PaintTilegroupMap();
+                    PaintTilegroupMap(nbAbove);
                 }
             }
             if (nbBelow != null && nbBelow.HasNeighbors() && !nbBelow.AllTileHasNeighbors)
@@ -883,12 +1226,12 @@ namespace PixelMiner.WorldGen
                 nbBelow.UpdateAllTileNeighbors();
 
                 if (PaintTileNeighbors)
-                    nbBelow.PaintNeighborsColor();
+                    PaintNeighborsColor(nbBelow);
 
                 if (nbBelow.Waters.Count == 0 && nbBelow.Lands.Count == 0)
                 {
                     FloodFill(nbBelow);
-                    nbBelow.PaintTilegroupMap();
+                    PaintTilegroupMap(nbBelow);
                 }
 
             }
@@ -897,12 +1240,12 @@ namespace PixelMiner.WorldGen
                 nbLeft.UpdateAllTileNeighbors();
 
                 if (PaintTileNeighbors)
-                    nbLeft.PaintNeighborsColor();
+                    PaintNeighborsColor(nbLeft);
 
                 if (nbLeft.Waters.Count == 0 && nbLeft.Lands.Count == 0)
                 {
                     FloodFill(nbLeft);
-                    nbLeft.PaintTilegroupMap();
+                    PaintTilegroupMap(nbLeft);
                 }
             }
             if (nbRight != null && nbRight.HasNeighbors() && !nbRight.AllTileHasNeighbors)
@@ -910,12 +1253,12 @@ namespace PixelMiner.WorldGen
                 nbRight.UpdateAllTileNeighbors();
 
                 if (PaintTileNeighbors)
-                    nbRight.PaintNeighborsColor();
+                    PaintNeighborsColor(nbRight);
 
                 if (nbRight.Waters.Count == 0 && nbRight.Lands.Count == 0)
                 {
                     FloodFill(nbRight);
-                    nbRight.PaintTilegroupMap();
+                    PaintTilegroupMap(nbRight);
                 }
 
             }
@@ -964,56 +1307,56 @@ namespace PixelMiner.WorldGen
             if (chunk.AllTileHasNeighbors)
             {
                 if (PaintTileNeighbors)
-                    chunk.PaintNeighborsColor();
+                    PaintNeighborsColor(chunk);
 
                 if (chunk.Waters.Count == 0 && chunk.Lands.Count == 0)
                 {
                     FloodFill(chunk);
-                    chunk.PaintTilegroupMap();
+                    PaintTilegroupMap(chunk);
                 }
             }
             if (nbAbove != null && nbAbove.AllTileHasNeighbors)
             {
                 if (PaintTileNeighbors)
-                    nbAbove.PaintNeighborsColor();
+                    PaintNeighborsColor(nbAbove);
 
                 if (nbAbove.Waters.Count == 0 && nbAbove.Lands.Count == 0)
                 {
                     FloodFill(nbAbove);
-                    nbAbove.PaintTilegroupMap();
+                    PaintTilegroupMap(nbAbove);
                 }
             }
             if (nbBelow != null && nbBelow.AllTileHasNeighbors)
             {
                 if (PaintTileNeighbors)
-                    nbBelow.PaintNeighborsColor();
+                    PaintNeighborsColor(nbBelow);
 
                 if (nbBelow.Waters.Count == 0 && nbBelow.Lands.Count == 0)
                 {
                     FloodFill(nbBelow);
-                    nbBelow.PaintTilegroupMap();
+                    PaintTilegroupMap(nbBelow);
                 }
             }
             if (nbLeft != null && nbLeft.AllTileHasNeighbors)
             {
                 if (PaintTileNeighbors)
-                    nbLeft.PaintNeighborsColor();
+                    PaintNeighborsColor(nbLeft);
 
                 if (nbLeft.Waters.Count == 0 && nbLeft.Lands.Count == 0)
                 {
                     FloodFill(nbLeft);
-                    nbLeft.PaintTilegroupMap();
+                    PaintTilegroupMap(nbLeft);
                 }
             }
             if (nbRight != null && nbRight.AllTileHasNeighbors)
             {
                 if (PaintTileNeighbors)
-                    nbRight.PaintNeighborsColor();
+                    PaintNeighborsColor(nbRight);
 
                 if (nbRight.Waters.Count == 0 && nbRight.Lands.Count == 0)
                 {
                     FloodFill(nbRight);
-                    nbRight.PaintTilegroupMap();
+                    PaintTilegroupMap(nbRight);
                 }
             }
 
@@ -1220,47 +1563,6 @@ namespace PixelMiner.WorldGen
             }
         }
 #endif
-        #region Obsolete
-        /// <summary>
-        /// Obsolete (Need update).
-        /// </summary>
-        /// <param name="isoFrameX"></param>
-        /// <param name="isoFrameY"></param>
-        /// <returns></returns>
-        private Chunk AddNewChunk(int isoFrameX, int isoFrameY)
-        {
-            Vector2 frame = IsometricUtilities.IsometricFrameToWorldFrame(isoFrameX, isoFrameY);
-            Vector3 worldPosition = IsometricUtilities.ConvertIsometricFrameToWorldPosition(isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
-            Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity);
-            newChunk.Init(frame.x, frame.y, isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
-
-            // Create new data
-            float[,] heightValues = GetHeightMapNoise(isoFrameX, isoFrameY);
-            newChunk.LoadHeightMap(heightValues);
-            return newChunk;
-        }
-
-        /// <summary>
-        /// Obsolete
-        /// </summary>
-        /// <param name="isoFrameX"></param>
-        /// <param name="isoFrameY"></param>
-        /// <returns></returns>
-        private float[,] GetHeightMapNoise(int isoFrameX, int isoFrameY)
-        {
-            float[,] heightValues = new float[ChunkWidth, ChunkHeight];
-            for (int x = 0; x < ChunkWidth; x++)
-            {
-                for (int y = 0; y < ChunkHeight; y++)
-                {
-                    float offsetX = isoFrameX * ChunkWidth + x;
-                    float offsetY = isoFrameY * ChunkHeight + y;
-                    heightValues[x, y] = (float)_heightModule.GetValue(offsetX, offsetY, 0);
-                }
-            }
-            return heightValues;
-        }
-        #endregion
     }
 }
 

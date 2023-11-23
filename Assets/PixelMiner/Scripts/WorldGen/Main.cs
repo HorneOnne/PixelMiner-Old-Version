@@ -32,6 +32,15 @@ namespace PixelMiner.WorldGen
 
 
 
+        public bool AutoLoadChunk = true;
+        public bool AutoUnloadChunk = true;
+        public bool ShowChunksBorder = false;
+        public bool ShowTilegroupMaps = false;
+        public bool InitWorldWithHeatmap = false;
+        public bool InitWorldWithMoisturemap = false;
+        public bool InitWorldWithRiver = false;
+        public bool PaintTileNeighbors = false;
+
 
         private void Awake()
         {
