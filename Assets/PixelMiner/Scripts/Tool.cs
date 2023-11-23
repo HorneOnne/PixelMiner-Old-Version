@@ -20,9 +20,6 @@ namespace PixelMiner
 
             _isoCoordText = Utilities.Utilities.CreateWorldText("", null,fontSize: 10, textAnchor: TextAnchor.MiddleCenter);
             _isoCoordText.hideFlags = HideFlags.HideInInspector;
-
-            Debug.Log($"FloorToInt(5.7): {Mathf.FloorToInt(5.7f)}");
-            Debug.Log($"RountToInt(5.7): {Mathf.RoundToInt(5.7f)}");
         }
 
        
@@ -30,22 +27,6 @@ namespace PixelMiner
         {
             if(_isoCoordText != null)
             {
-                //Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                //Tile tile = Main.Instance.GetTile(mousePosition, out Chunk chunk);
-                //if (tile != null)
-                //{
-                //    Vector3 pos = IsometricUtilities.GlobalToLocal(mousePosition.x, mousePosition.y, isoX: chunk.transform.position.x, isoY: chunk.transform.position.y, isoW: 2f, isoH: 1f);
-                //    pos = new Vector3(Mathf.FloorToInt(pos.x), Mathf.FloorToInt(pos.y));
-                //    Main.Instance.SetTileColor(chunk, (byte)pos.x, (byte)pos.y, Color.magenta);
-                //}
-
-                //Vector2 worldTilePos = Main.Instance.GetTileWorldPosition(mousePosition);
-                //SetIsoCoordText($"GridTile: {worldTilePos} " +
-                //       $"\n Mouse: {mousePosition} " +
-                //       $"\n Frame: {tile?.FrameX} \t {tile?.FrameY}" +
-                //       $"\n {IsometricUtilities.GlobalToLocal(mousePosition.x, mousePosition.y, isoX: 32, isoY: -16, isoW: 2f, isoH: 1f)}"
-                //       , mousePosition);
-
                 Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 Main.Instance.SetTileColor(mousePosition, Color.magenta);
                 Tile tile = Main.Instance.GetTile(mousePosition, out Chunk chunk);

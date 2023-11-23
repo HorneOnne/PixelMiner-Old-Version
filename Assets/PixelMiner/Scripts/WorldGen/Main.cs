@@ -185,7 +185,7 @@ namespace PixelMiner.WorldGen
             return Vector2.zero;
         }
  
-        public Vector2 GetNeighborWorldPosition(Vector2 worldPosition, Vector2 direction)
+        public Vector2 GetNeighborWorldPosition(Vector2 worldPosition, Vector2 direction, Vector2 offset = (default))
         {
             Tile tile = GetTile(worldPosition, out Chunk chunk);
             Vector2 nbWorldPosition = Vector2.zero;
@@ -231,6 +231,8 @@ namespace PixelMiner.WorldGen
                     // Down Right
                     nbWorldPosition = GetTileWorldPosition(worldPosition) + MathHelper.DownRightVector * VERTICAL_DISTANCE_TO_NB;
                 }
+
+                nbWorldPosition += offset;
             }
             return nbWorldPosition;
         }
