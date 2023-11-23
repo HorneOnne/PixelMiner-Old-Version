@@ -504,6 +504,7 @@ namespace PixelMiner.WorldGen
                         if (newChunk.ChunkHasDrawn == false)
                         {
                             await newChunk.DrawChunkAsync();
+                            _main.Chunks[nbIsoFrame].ShowTextTest();
 
                             if (InitWorldWithHeatmap)
                                 newChunk.PaintHeatMap();
@@ -526,6 +527,7 @@ namespace PixelMiner.WorldGen
                         if (_main.Chunks[nbIsoFrame].ChunkHasDrawn == false)
                         {
                             await _main.Chunks[nbIsoFrame].DrawChunkAsync();
+                            _main.Chunks[nbIsoFrame].ShowTextTest();
 
                             if (InitWorldWithHeatmap)
                                 _main.Chunks[nbIsoFrame].PaintHeatMap();

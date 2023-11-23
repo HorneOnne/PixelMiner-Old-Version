@@ -804,3 +804,5 @@ MonoBehaviour:
   ChunkHasDrawn: 0
   Waters: []
   Lands: []
+  Canvas: {fileID: 0}
+  TextPrefab: {fileID: 4540515727213318110, guid: 188e655ec44b4724d9f3711493e08345, type: 3}

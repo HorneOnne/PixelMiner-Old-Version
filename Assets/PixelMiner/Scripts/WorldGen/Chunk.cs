@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using PixelMiner.WorldGen.Utilities;
 using PixelMiner.Utilities;
+using UnityEngine.UI;
+using TMPro;
 
 namespace PixelMiner.WorldGen
 {
@@ -56,7 +58,7 @@ namespace PixelMiner.WorldGen
         }
         private void Start()
         {
-            InvokeRepeating(nameof(ResetAllTileColorTester), 1f, 1f);
+            InvokeRepeating(nameof(ResetAllTileColorTester), 1f, 0.2f);
         }
         private void Update()
         {
@@ -136,10 +138,10 @@ namespace PixelMiner.WorldGen
                         Tile tile = ChunkData.GetValue(x, y);
                         tile.HeightValue = heightValues[x, y];
 
-                        if(updateHeightType)
+                        if (updateHeightType)
                         {
                             UpdateHeightType(tile);
-                        }                 
+                        }
                     }
                 });
 
@@ -158,10 +160,10 @@ namespace PixelMiner.WorldGen
                         Tile tile = ChunkData.GetValue(x, y);
                         tile.HeatValue = heatValues[x, y];
 
-                        if(updateHeatType)
+                        if (updateHeatType)
                         {
                             UpdateHeatType(tile);
-                        }    
+                        }
                     }
                 });
             });
@@ -270,7 +272,7 @@ namespace PixelMiner.WorldGen
                         Tile tile = ChunkData.GetValue(x, y);
                         float riverValue = riverValues[x, y];
 
-                        if(riverValue > WorldGeneration.Instance.RiverRange.x && riverValue < WorldGeneration.Instance.RiverRange.y)
+                        if (riverValue > WorldGeneration.Instance.RiverRange.x && riverValue < WorldGeneration.Instance.RiverRange.y)
                         {
                             tile.HeightType = HeightType.River;
                         }
@@ -359,7 +361,7 @@ namespace PixelMiner.WorldGen
             {
                 tile.MoistureType = MoistureType.Dryest;
             }
-            else if(tile.MoistureValue < WorldGeneration.Instance.DryerValue)
+            else if (tile.MoistureValue < WorldGeneration.Instance.DryerValue)
             {
                 tile.MoistureType = MoistureType.Dryer;
             }
@@ -375,7 +377,7 @@ namespace PixelMiner.WorldGen
             {
                 tile.MoistureType = MoistureType.Wetter;
             }
-            else 
+            else
             {
                 tile.MoistureType = MoistureType.Wettest;
             }
@@ -411,9 +413,9 @@ namespace PixelMiner.WorldGen
                         HeatType heatType = ChunkData.GetValue(x, y).HeatType;
                         MoistureType moistureType = ChunkData.GetValue(x, y).MoistureType;
 
-                       
+
                         // Height
-                        switch(heightType)
+                        switch (heightType)
                         {
                             case HeightType.DeepWater:
                                 landTiles[index] = Main.Instance.GetTileBase(TileType.Water);
@@ -461,11 +463,11 @@ namespace PixelMiner.WorldGen
                                 tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
                                 break;
                         }
-               
+
 
 
                         // Heat
-                        switch(heatType)
+                        switch (heatType)
                         {
                             case HeatType.Coldest:
                                 heatTiles[index] = Main.Instance.GetTileBase(TileType.Color);
@@ -515,7 +517,7 @@ namespace PixelMiner.WorldGen
 
 
                         // River
-                        
+
                         switch (heightType)
                         {
                             case HeightType.DeepWater:
@@ -551,12 +553,12 @@ namespace PixelMiner.WorldGen
             });
 
 
-          
+
             LandTilemap.SetTiles(positionArray, landTiles);
             //WaterTilemap.SetTiles(positionArray, waterTiles);
             //Tilegroupmap.SetTiles(positionArray, tilegroupTiles);
 
-            if(WorldGeneration.Instance.InitWorldWithHeatmap)
+            if (WorldGeneration.Instance.InitWorldWithHeatmap)
             {
                 HeatTilemap.SetTiles(positionArray, heatTiles);
                 HeatTilemap.gameObject.SetActive(true);
@@ -566,7 +568,7 @@ namespace PixelMiner.WorldGen
                 HeatTilemap.gameObject.SetActive(false);
             }
 
-            if(WorldGeneration.Instance.InitWorldWithMoisturemap)
+            if (WorldGeneration.Instance.InitWorldWithMoisturemap)
             {
                 MoistureTilemap.SetTiles(positionArray, moistureTiles);
                 MoistureTilemap.gameObject.SetActive(true);
@@ -575,7 +577,7 @@ namespace PixelMiner.WorldGen
             {
                 MoistureTilemap.gameObject.SetActive(false);
             }
-            
+
 
             ChunkHasDrawn = true;
             Processing = false;
@@ -638,13 +640,13 @@ namespace PixelMiner.WorldGen
 
         public void PaintMoistureMap()
         {
-            for(int x = 0; x < _width; x++)
+            for (int x = 0; x < _width; x++)
             {
-                for(int y = 0; y < _height; y++)
+                for (int y = 0; y < _height; y++)
                 {
                     Tile t = ChunkData.GetValue(x, y);
                     Color color;
-                    switch(t.MoistureType)
+                    switch (t.MoistureType)
                     {
                         case MoistureType.Dryest:
                             color = WorldGenUtilities.Dryest;
@@ -683,7 +685,7 @@ namespace PixelMiner.WorldGen
         #endregion
 
 
-        
+
 
 
         public void SetTwoSidesChunkNeighbors(Chunk left, Chunk right, Chunk top, Chunk bottom)
@@ -913,27 +915,16 @@ namespace PixelMiner.WorldGen
             cellPosition.z = 0;
             LandTilemap.SetTile(cellPosition, tileBase);
         }
-        public Tile GetTile(Vector2 worldPosition)
-        {
-            Vector3Int cellPosition = Grid.WorldToCell(worldPosition);
-            cellPosition.z = 0;
-            return ChunkData.GetValue(cellPosition.x, cellPosition.y);
-        }
+
         public Tile GetTile(byte frameX, byte frameY)
         {
             return ChunkData.GetValue(frameX, frameY);
         }
-        public Vector3 GetTileWorldPosition(Vector2 worldPosition)
+        public Vector3 GetTileWorldPosition(byte frameX, byte frameY)
         {
-            Vector3Int cellPosition = Grid.WorldToCell(worldPosition);
-            cellPosition.z = 0;
-            return Grid.CellToWorld(cellPosition);
+            return Grid.CellToWorld(new Vector3Int(frameX, frameY, 0));
         }
-        public Vector3 GetWorldTilePosition(Vector3Int cellPosition)
-        {
-            Vector3 worldPosition = Grid.CellToWorld(cellPosition);
-            return worldPosition;
-        }
+
 
         private void ResetAllTileColorTester()
         {
@@ -972,6 +963,52 @@ namespace PixelMiner.WorldGen
         #endregion
 
 
+
+        #region Testing 
+        public Canvas Canvas;
+        public TextMeshProUGUI TextPrefab;
+        public void ShowTextTest()
+        {
+            return;
+            Canvas = GameObject.Find("Canvas_1").GetComponent<Canvas>();
+            for (byte x = 0; x < _width; ++x)
+            {
+                for (byte y = 0; y < _height; ++y)
+                {
+                    TextMeshProUGUI isoCoordText = Instantiate(TextPrefab, Canvas.transform);
+                    isoCoordText.hideFlags = HideFlags.HideInInspector;
+
+                    //Vector3 position = GetTileWorldPosition(x, y);
+                    //isoCoordText.text = $"[{position.x} , {position.y}]";
+
+                    Vector3 position = GetTileWorldPosition(x, y);
+                    isoCoordText.text = $"[{x + (IsometricFrameX * _width)} , {y + (IsometricFrameY * _height)}]";
+
+                    isoCoordText.fontSize = 15f;
+                    isoCoordText.transform.position = GetTileWorldPosition(x, y) + new Vector3(0,0.5f);
+                }
+            }
+        }
+        public TextMeshProUGUI CreateWorldText(string text, Transform parent = null, Vector3 localPosition = default(Vector3), int fontSize = 10, Color? color = null)
+        {
+            if (color == null) color = Color.white;
+            return CreateWorldText(parent, text, localPosition, fontSize, (Color)color);
+        }
+
+        // Create Text in the World
+        public TextMeshProUGUI CreateWorldText(Transform parent, string text, Vector3 localPosition, int fontSize, Color color)
+        {
+            TextMeshProUGUI textMesh = Instantiate(TextPrefab);
+            textMesh.transform.SetParent(transform, false);
+            textMesh.transform.position = localPosition;
+            textMesh.text = text;
+            textMesh.fontSize = fontSize;
+            textMesh.color = color;
+            return textMesh;
+        }
+
+   
+        #endregion
     }
 }
 

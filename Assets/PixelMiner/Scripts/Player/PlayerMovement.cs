@@ -35,12 +35,9 @@ namespace PixelMiner
         {
             _input = InputHander.Instance;
             AssignAnimationIDs();
-
-            _previousPostition = transform.position;
         }
 
-        [SerializeField] private Vector2 _previousPostition;
-        [SerializeField] private Vector2 _intPostition;
+
         [SerializeField] private Vector2 _predictMovePosition;
         [SerializeField] private Vector2 _predictMovePosition2;
         [SerializeField] private Vector2 _predictMovePosition3;
@@ -53,30 +50,19 @@ namespace PixelMiner
 
         private void Update()
         {
-            _currentTile = Main.Instance.GetTile(transform.position);
-            
-            Main.Instance.SetTileColor(Main.Instance.GetTileWorldPosition(transform.position), Color.red);
+            _currentTile = Main.Instance.GetTile(transform.position, out Chunk chunk);
+            Main.Instance.SetTileColor(transform.position, Color.red);
 
 
-            _predictMovePosition = Main.Instance.GetNeighborWorldPosition(transform.position, _input.Move);
+            //_predictMovePosition = Main.Instance.GetNeighborWorldPosition(transform.position, _input.Move);
+            _predictMovePosition = (Vector2)transform.position + (_input.Move * 0.2f);
             
             if (_input.Move.x != 0 || _input.Move.y != 0)
             {
                 SmartMove();
             }
 
-           
-
-
-            if (_predictTile != null && (
-                _predictTile.HeightType == HeightType.DeepWater || 
-                _predictTile.HeightType == HeightType.ShallowWater ||
-                _predictTile.HeightType == HeightType.River))
-            {
-                _previousPostition = transform.position;
-            }
-
-
+         
             // Animation
             // =========
             Flip(_input.Move);
@@ -96,9 +82,7 @@ namespace PixelMiner
 
                 
                 Vector2 pos = transform.position;
-                pos.x = Mathf.Clamp(pos.x, (transform.position).x,(transform.position).x);
-                pos.y = Mathf.Clamp(pos.y, (transform.position).y, (transform.position).y);
-                
+           
                 //_rb.position = pos;
                 _rb.MovePosition(pos);
 
@@ -109,10 +93,12 @@ namespace PixelMiner
             }
         }
 
+        public Transform PredictObject;
         private void SmartMove()
         {
-            _predictTile = Main.Instance.GetTile(_predictMovePosition);
+            _predictTile = Main.Instance.GetTile(_predictMovePosition, out Chunk chunk);
             Main.Instance.SetTileColor(_predictMovePosition, Color.blue);
+            PredictObject.position = _predictMovePosition;
 
             if (_input.Move.x == 0 && _input.Move.y == 0)
                 return;

@@ -146,89 +146,48 @@ namespace PixelMiner.WorldGen
 
 
         #region Tile Utilities
-        public Tile GetTile(Vector2 worldPosition)
+        public Tile GetTile(Vector2 worldPosition, out Chunk chunk)
         {
-            Chunk chunk = GetChunk(worldPosition, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
+            chunk = GetChunk(worldPosition, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
             if (chunk != null)
             {
-                return chunk.GetTile(worldPosition);
+                Vector3 localTilePosition = IsometricUtilities.GlobalToLocal(worldPosition.x, worldPosition.y, offsetX: chunk.transform.position.x, offsetY: chunk.transform.position.y);
+                byte tileFrameX = (byte)Mathf.FloorToInt(localTilePosition.x);
+                byte tileFrameY = (byte)Mathf.FloorToInt(localTilePosition.y);
+
+                return chunk.GetTile(tileFrameX, tileFrameY);
             }
             return null;
         }
-        public Tile GetTile(byte frameX, byte frameY, Vector2 worldPosition)
-        {
-            Chunk chunk = GetChunk(worldPosition, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
-            if (chunk != null)
-            {
-                return chunk.GetTile(frameX, frameY);
-            }
-            return null;
-        }
+   
         public void SetTileColor(Vector2 worldPosition, Color color)
         {
-            Chunk chunk = GetChunk(worldPosition, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
-            if (chunk != null)
-            {
-                chunk.PaintTileColor(chunk.GetTile(worldPosition), color);
-            }
-        }
-        public void SetTileColor(Vector2 worldPosition, Tile tile, Color color)
-        {
-            Chunk chunk = GetChunk(worldPosition, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
-            if (chunk != null)
+            Tile tile = GetTile(worldPosition, out Chunk chunk);
+            if(chunk != null && tile != null)
             {
                 chunk.PaintTileColor(tile, color);
             }
         }
+     
+        /// <summary>
+        /// Get world position of a tile at specific position.
+        /// </summary>
+        /// <param name="worldPosition"></param>
+        /// <returns></returns>
         public Vector2 GetTileWorldPosition(Vector2 worldPosition)
         {
-            Chunk chunk = GetChunk(worldPosition, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
+            Tile tile = GetTile(worldPosition, out Chunk chunk);
             if (chunk != null)
             {
-                return chunk.GetTileWorldPosition(worldPosition);
+                Vector2 offset = chunk.transform.position;
+                return IsometricUtilities.LocalToGlobal(tile.FrameX, tile.FrameY, offset.x, offset.y);
             }
             return Vector2.zero;
         }
-        public Vector2 GetNeighborWorldPosition(Vector2 worldPosition, Direction nbDirection)
-        {
-            Tile tile = GetTile(worldPosition);
-            Vector2 direction = Vector2.zero;
-            if (tile != null)
-            {
-                switch (nbDirection)
-                {
-                    default:
-                    case Direction.Left:
-                        direction = Vector2.left;
-                        break;
-                    case Direction.Right:
-                        direction = Vector2.right;
-                        break;
-                    case Direction.Up:
-                        direction = Vector2.up;
-                        break;
-                    case Direction.Down:
-                        direction = Vector2.down;
-                        break;
-                    case Direction.UpLeft:
-                        direction = MathHelper.UpLeftVector;
-                        break;
-                    case Direction.UpRight:
-                        direction = MathHelper.UpRightVector;
-                        break;
-                    case Direction.DownLeft:
-                        direction = MathHelper.DownLeftVector;
-                        break;
-                    case Direction.DownRight:
-                        direction = MathHelper.DownRightVector;
-                        break;
-                }
-            }
-            return GetNeighborWorldPosition(worldPosition, direction);
-        }
+ 
         public Vector2 GetNeighborWorldPosition(Vector2 worldPosition, Vector2 direction)
         {
-            Tile tile = GetTile(worldPosition);
+            Tile tile = GetTile(worldPosition, out Chunk chunk);
             Vector2 nbWorldPosition = Vector2.zero;
             if (tile != null)
             {

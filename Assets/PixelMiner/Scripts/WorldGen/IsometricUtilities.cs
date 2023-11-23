@@ -39,23 +39,44 @@ namespace PixelMiner.WorldGen
             return new Vector2Int(chunkX, chunkY);
         }
 
-        public static Vector2 WorldToTileFrame(float x, float y, float tileWidth, float tileHeight, byte chunkWidth, byte chunkHeight)
-        {
-            x %= chunkWidth;
-            y %= chunkHeight;
+        
 
-            //Debug.Log($"A: {x}");
-            x = Mathf.FloorToInt(x / 2.0f) * 2;
-            //Debug.Log($"B:{x}");
-            y = Mathf.FloorToInt(y);
-           
-            int i = (int)Mathf.Floor((x / tileWidth + y / tileHeight));
-            int j = (int)Mathf.Floor((y / tileHeight - x / tileWidth));
-            //Debug.Log($"x: {x} \t y: {y} \t i: {i} \t j: {j}");
-            //Debug.Log($"{(x / tileWidth + y / tileHeight) / 2.0f}");
-            return new Vector2Int(i, j);
+       /// <summary>
+       /// Global position to tile frame.
+       /// </summary>
+       /// <param name="globalX"></param>
+       /// <param name="globalY"></param>
+       /// <param name="offsetX"></param>
+       /// <param name="offsetY"></param>
+       /// <param name="tileWidth"></param>
+       /// <param name="tileHeight"></param>
+       /// <returns></returns>
+        public static Vector2 GlobalToLocal(float globalX, float globalY, float offsetX, float offsetY, float tileWidth = 2.0f, float tileHeight = 1.0f)
+        {
+            float localX = (globalY - offsetY) / tileHeight + (globalX - offsetX) / tileWidth;
+            float localY = (globalY - offsetY) / tileHeight - (globalX - offsetX) / tileWidth;
+
+            return new Vector2(localX, localY);
         }
 
+
+        /// <summary>
+        /// Tile frame to global position.
+        /// </summary>
+        /// <param name="localX"></param>
+        /// <param name="localY"></param>
+        /// <param name="offsetX"></param>
+        /// <param name="offsetY"></param>
+        /// <param name="tileWidth"></param>
+        /// <param name="tileHeight"></param>
+        /// <returns></returns>
+        public static Vector2 LocalToGlobal(float localX, float localY, float offsetX, float offsetY, float tileWidth = 2.0f, float tileHeight = 1.0f)
+        {
+            float globalX = offsetX + (localX - localY) * tileWidth / 2.0f;
+            float globalY = offsetY + (localX + localY) * tileHeight / 2.0f;
+
+            return new Vector2(globalX, globalY);
+        }
     }
 }
 

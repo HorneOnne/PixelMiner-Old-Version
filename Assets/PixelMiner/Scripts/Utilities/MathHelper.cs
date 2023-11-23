@@ -90,5 +90,13 @@ namespace PixelMiner.Utilities
         {
             return new Vector2(RoundToNearest(v.x), RoundToNearest(v.y));
         }
+
+        public static float SqrtDistance(Vector2 point1, Vector2 point2)
+        {
+            float deltaX = point1.x - point2.x;
+            float deltaY = point1.y - point2.y;
+            return (float)Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
+        }
+
     }
 }

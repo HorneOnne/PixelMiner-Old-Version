@@ -25,45 +25,43 @@ namespace PixelMiner
             Debug.Log($"RountToInt(5.7): {Mathf.RoundToInt(5.7f)}");
         }
 
-        public Vector2 Offset;
+       
         private void Update()
         {
             if(_isoCoordText != null)
             {
                 //Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                //mousePosition += Offset;
-                //Tile tile = Main.Instance.GetTile(mousePosition);
-                //if(tile != null)
+                //Tile tile = Main.Instance.GetTile(mousePosition, out Chunk chunk);
+                //if (tile != null)
                 //{
-                //    Main.Instance.SetTileColor(mousePosition, Color.magenta);
+                //    Vector3 pos = IsometricUtilities.GlobalToLocal(mousePosition.x, mousePosition.y, isoX: chunk.transform.position.x, isoY: chunk.transform.position.y, isoW: 2f, isoH: 1f);
+                //    pos = new Vector3(Mathf.FloorToInt(pos.x), Mathf.FloorToInt(pos.y));
+                //    Main.Instance.SetTileColor(chunk, (byte)pos.x, (byte)pos.y, Color.magenta);
                 //}
+
                 //Vector2 worldTilePos = Main.Instance.GetTileWorldPosition(mousePosition);
                 //SetIsoCoordText($"GridTile: {worldTilePos} " +
                 //       $"\n Mouse: {mousePosition} " +
-                //       $"\n Frame: {tile?.FrameX} \t {tile?.FrameY}", mousePosition);
+                //       $"\n Frame: {tile?.FrameX} \t {tile?.FrameY}" +
+                //       $"\n {IsometricUtilities.GlobalToLocal(mousePosition.x, mousePosition.y, isoX: 32, isoY: -16, isoW: 2f, isoH: 1f)}"
+                //       , mousePosition);
 
                 Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                mousePosition += Offset;
-                Vector2 frame = IsometricUtilities.WorldToTileFrame(mousePosition.x, mousePosition.y, 2f, 1f, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
-                Tile tile = Main.Instance.GetTile((byte)frame.x, (byte)frame.y, mousePosition);
-
-
-                if (tile != null)
+                Main.Instance.SetTileColor(mousePosition, Color.magenta);
+                Tile tile = Main.Instance.GetTile(mousePosition, out Chunk chunk);
+                if(tile != null)
                 {
-                    Main.Instance.SetTileColor(mousePosition, tile, Color.magenta);
+                    SetIsoCoordText($"Mouse: {mousePosition} " +
+                       $"\n {Main.Instance.GetTileWorldPosition(mousePosition)}" +
+                       $"\n {IsometricUtilities.LocalToGlobal(tile.FrameX, tile.FrameY, chunk.transform.position.x, chunk.transform.position.y)}"
+                       , mousePosition);
                 }
-                Vector2 worldTilePos = Main.Instance.GetTileWorldPosition(mousePosition);
-                SetIsoCoordText($"GridTile: {worldTilePos} " +
-                       $"\n Mouse: {mousePosition} " +
-                       $"\n Frame: {tile?.FrameX} \t {tile?.FrameY}", mousePosition);
-
-
+                
             }
 
             if (Input.GetMouseButtonDown(0))
             {
                 Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                mousePosition += Offset;
                 Chunk chunk = _main.GetChunk(mousePosition, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
      
                 if (chunk != null)
@@ -86,20 +84,14 @@ namespace PixelMiner
                 }
             }
 
-            if(Input.GetKeyDown(KeyCode.J))
-            {
-                Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                mousePosition += Offset;
-                Vector2 frame = IsometricUtilities.WorldToTileFrame(mousePosition.x, mousePosition.y, 2f, 1f, 
-                    WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
-                Debug.Log(frame);
-            }
+         
         }
 
         public void SetChunkColor(Chunk chunk, Color color)
         {
             chunk.LandTilemap.color = color;
         }
+
 
 
         #region Utilities
