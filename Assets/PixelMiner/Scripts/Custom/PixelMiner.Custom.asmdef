@@ -1,0 +1,17 @@
+{
+    "name": "PixelMiner.Custom",
+    "rootNamespace": "PixelMiner.Custom",
+    "references": [
+        "GUID:83a651e378233fe418e687488e563cf9",
+        "GUID:613783dc1674e844b87788ea74ede0f6"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

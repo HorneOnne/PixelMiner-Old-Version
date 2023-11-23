@@ -67,39 +67,6 @@ namespace PixelMiner
         }
         private void FixedUpdate()
         {
-            //if(_input.Move.x == 0 && _input.Move.y == 0)
-            //{
-            //    _rb.velocity = Vector2.zero;    
-            //}
-            //else
-            //{
-            //    if (_predictTile != null && (
-            //    _predictTile.HeightType == HeightType.DeepWater ||
-            //    _predictTile.HeightType == HeightType.ShallowWater ||
-            //    _predictTile.HeightType == HeightType.River))
-            //    {
-            //        Vector2 suggestionDirection = GetSuggestMoveDirection();
-            //        if (suggestionDirection == Vector2.zero)
-            //        {
-            //            _rb.velocity = Vector2.zero;
-            //        }
-            //        else
-            //        {
-            //            if (_input.Move.x == 0 && _input.Move.y == 0)
-            //            {
-            //                _rb.velocity = Vector2.zero;
-            //            }
-            //            else
-            //            {
-            //                Movement(suggestionDirection);
-            //            }
-            //        }
-            //    }
-            //    else
-            //    {
-            //        Movement(_input.Move);
-            //    }
-            //}
             if (_input.Move == Vector2.zero)
             {
                 _rb.velocity = Vector2.zero;
