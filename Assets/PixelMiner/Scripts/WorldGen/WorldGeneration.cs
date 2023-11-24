@@ -10,6 +10,7 @@ using PixelMiner.Utilities;
 using System;
 using PixelMiner.WorldGen.Utilities;
 using PixelMiner.Enums;
+using UnityEngine.Tilemaps;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -27,11 +28,7 @@ namespace PixelMiner.WorldGen
         [FoldoutGroup("References"), SerializeField] private Transform _chunkParent;
 
 
-        // Tilemap Settings
-        [FoldoutGroup("Tilemap Settings"), Indent(1), ShowInInspector, ReadOnly] public readonly float IsometricAngle = 26.565f;
-        [FoldoutGroup("Tilemap Settings"), Indent(1), ShowInInspector, ReadOnly] public readonly Vector3 CELL_SIZE = new Vector3(2.0f, 1.0f, 1.0f);
-        [FoldoutGroup("Tilemap Settings"), Indent(1), ShowInInspector, ReadOnly] public readonly Vector3 CELL_GAP = new Vector3(0.0f, 0.0f, 0.0f);
-
+        
         // Min and Max Height used for normalize noise value in range [0-1]
         [ShowInInspector, ReadOnly] public float MinWorldNoiseValue { get; private set; } = float.MaxValue;
         [ShowInInspector, ReadOnly] public float MaxWorldNoiseValue { get; private set; } = float.MinValue;
@@ -171,8 +168,8 @@ namespace PixelMiner.WorldGen
             // Set seed
             UnityEngine.Random.InitState(Seed);
 
-            IsometricUtilities.CELLSIZE_X = CELL_SIZE.x;
-            IsometricUtilities.CELLSIZE_Y = CELL_SIZE.y;
+            IsometricUtilities.CELLSIZE_X = Main.Instance.CELL_SIZE.x;
+            IsometricUtilities.CELLSIZE_Y = Main.Instance.CELL_SIZE.y;
 
             MinWorldNoiseValue = float.MaxValue;
             MaxWorldNoiseValue = float.MinValue;
@@ -504,7 +501,7 @@ namespace PixelMiner.WorldGen
 
                         if (newChunk.ChunkHasDrawn == false)
                         {
-                            await newChunk.DrawChunkAsync();
+                            await DrawChunkAsync(newChunk);
                             //_main.Chunks[nbIsoFrame].ShowTextTest();
 
                             if (InitWorldWithHeatmap)
@@ -527,7 +524,7 @@ namespace PixelMiner.WorldGen
 
                         if (_main.Chunks[nbIsoFrame].ChunkHasDrawn == false)
                         {
-                            await _main.Chunks[nbIsoFrame].DrawChunkAsync();
+                            await DrawChunkAsync(_main.Chunks[nbIsoFrame]);
                             //_main.Chunks[nbIsoFrame].ShowTextTest();
 
                             if (InitWorldWithHeatmap)
@@ -575,7 +572,7 @@ namespace PixelMiner.WorldGen
                         }
 
                         Chunk newChunk = await GenerateNewChunkDataAsync(x, y);
-                        drawChunkTasks[index] = newChunk.DrawChunkAsync();
+                        drawChunkTasks[index] = DrawChunkAsync(_main.Chunks[nbIsoFrame]);
 
                         // Cached chunk data
                         if (_main.HasChunk(nbIsoFrame) == false)
@@ -600,7 +597,7 @@ namespace PixelMiner.WorldGen
 
                         if (_main.Chunks[nbIsoFrame].ChunkHasDrawn == false)
                         {
-                            drawChunkTasks[index] = _main.Chunks[nbIsoFrame].DrawChunkAsync();
+                            drawChunkTasks[index] = DrawChunkAsync(_main.Chunks[nbIsoFrame]);
                         }
                         else
                         {
@@ -1171,6 +1168,207 @@ namespace PixelMiner.WorldGen
                     chunk.MoistureTilemap.SetColor(new Vector3Int(t.FrameX, t.FrameY), color);
                 }
             }
+        }
+        #endregion
+
+
+
+        #region Draw chunk
+        public async Task DrawChunkAsync(Chunk chunk)
+        {
+            chunk.Processing = true;
+            int size = ChunkWidth * ChunkHeight;
+            TileBase[] landTiles = new TileBase[size];
+            TileBase[] waterTiles = new TileBase[size];
+            TileBase[] tilegroupTiles = new TileBase[size];
+            TileBase[] heatTiles = new TileBase[size];
+            TileBase[] moistureTiles = new TileBase[size];
+
+            TileBase[] riverTiles = new TileBase[size];
+
+            Vector3Int[] positionArray = new Vector3Int[size];
+
+            await Task.Run(() =>
+            {
+                Parallel.For(0, ChunkWidth, x =>
+                {
+                    for (int y = 0; y < ChunkHeight; y++)
+                    {
+                        int index = x + y * ChunkWidth;
+                        positionArray[index] = new Vector3Int(x, y, 0);
+
+                        HeightType heightType = chunk.ChunkData.GetValue(x, y).HeightType;
+                        HeatType heatType = chunk.ChunkData.GetValue(x, y).HeatType;
+                        MoistureType moistureType = chunk.ChunkData.GetValue(x, y).MoistureType;
+
+
+                        // Height
+                        switch (heightType)
+                        {
+                            case HeightType.DeepWater:
+                                landTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                waterTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case HeightType.ShallowWater:
+                                landTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                waterTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case HeightType.Sand:
+                                landTiles[index] = Main.Instance.GetTileBase(TileType.Sand);
+                                waterTiles[index] = null;
+                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case HeightType.Grass:
+                                landTiles[index] = Main.Instance.GetTileBase(TileType.DirtGrass);
+                                waterTiles[index] = null;
+                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case HeightType.Forest:
+                                landTiles[index] = Main.Instance.GetTileBase(TileType.ForestGrass);
+                                waterTiles[index] = null;
+                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case HeightType.Rock:
+                                landTiles[index] = Main.Instance.GetTileBase(TileType.Rock);
+                                waterTiles[index] = null;
+                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case HeightType.Snow:
+                                landTiles[index] = Main.Instance.GetTileBase(TileType.Snow);
+                                waterTiles[index] = null;
+                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case HeightType.River:
+                                landTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                waterTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            default:
+                                landTiles[index] = Main.Instance.GetTileBase(TileType.Snow);
+                                waterTiles[index] = null;
+                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                        }
+
+
+
+                        // Heat
+                        switch (heatType)
+                        {
+                            case HeatType.Coldest:
+                                heatTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case HeatType.Colder:
+                                heatTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case HeatType.Cold:
+                                heatTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case HeatType.Warm:
+                                heatTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case HeatType.Warmer:
+                                heatTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case HeatType.Warmest:
+                                heatTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                        }
+
+                        // Moisture
+                        switch (moistureType)
+                        {
+                            case MoistureType.Dryest:
+                                moistureTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case MoistureType.Dryer:
+                                moistureTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case MoistureType.Dry:
+                                moistureTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case MoistureType.Wet:
+                                moistureTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case MoistureType.Wetter:
+                                moistureTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            case MoistureType.Wettest:
+                                moistureTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                            default:
+                                moistureTiles[index] = Main.Instance.GetTileBase(TileType.Color);
+                                break;
+                        }
+
+
+                        // River
+
+                        switch (heightType)
+                        {
+                            case HeightType.DeepWater:
+                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                break;
+                            case HeightType.ShallowWater:
+                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                break;
+                            case HeightType.Sand:
+                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                break;
+                            case HeightType.Grass:
+                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                break;
+                            case HeightType.Forest:
+                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                break;
+                            case HeightType.Rock:
+                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                break;
+                            case HeightType.Snow:
+                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                break;
+                            case HeightType.River:
+                                riverTiles[index] = Main.Instance.GetTileBase(TileType.River);
+                                break;
+                            default:
+                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
+                                break;
+                        }
+                    }
+                });
+            });
+
+
+
+            chunk.LandTilemap.SetTiles(positionArray, landTiles);
+            //WaterTilemap.SetTiles(positionArray, waterTiles);
+            //Tilegroupmap.SetTiles(positionArray, tilegroupTiles);
+
+            if (Main.Instance.InitWorldWithHeatmap)
+            {
+                chunk.HeatTilemap.SetTiles(positionArray, heatTiles);
+                chunk.HeatTilemap.gameObject.SetActive(true);
+            }
+            else
+            {
+                chunk.HeatTilemap.gameObject.SetActive(false);
+            }
+
+            if (Main.Instance.InitWorldWithMoisturemap)
+            {
+                chunk.MoistureTilemap.SetTiles(positionArray, moistureTiles);
+                chunk.MoistureTilemap.gameObject.SetActive(true);
+            }
+            else
+            {
+                chunk.MoistureTilemap.gameObject.SetActive(false);
+            }
+
+
+            chunk.ChunkHasDrawn = true;
+            chunk.Processing = false;
         }
         #endregion
 

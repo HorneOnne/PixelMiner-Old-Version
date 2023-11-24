@@ -1,12 +1,12 @@
 {
-    "name": "PixelMiner.Player",
-    "rootNamespace": "PixelMiner.Player",
+    "name": "PixelMiner.Core",
+    "rootNamespace": "PixelMiner.Core",
     "references": [
-        "GUID:4f7f34825068e144d80372aea14b6aa5",
+        "GUID:cdce3721149a968458d95984d050e50d",
         "GUID:83a651e378233fe418e687488e563cf9",
         "GUID:2c22f545697e3424484744f569e7f766",
-        "GUID:cdce3721149a968458d95984d050e50d",
-        "GUID:6a81283e11ef63341ac2bd3e6f2eff5c"
+        "GUID:976d709241a7a084c8344683c07c92df",
+        "GUID:613783dc1674e844b87788ea74ede0f6"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

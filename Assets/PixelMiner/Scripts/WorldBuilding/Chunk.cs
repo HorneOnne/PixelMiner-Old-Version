@@ -1,14 +1,8 @@
 ﻿using UnityEngine;
-using PixelMiner.Enums;
 using UnityEngine.Tilemaps;
-using System.Collections;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using Sirenix.OdinInspector;
-using PixelMiner.WorldGen.Utilities;
-using PixelMiner.Utilities;
-using UnityEngine.UI;
-using TMPro;
+
 
 namespace PixelMiner.WorldGen
 {
@@ -62,18 +56,18 @@ namespace PixelMiner.WorldGen
         }
         private void Update()
         {
-            if (Time.time - _updateTimer > _updateFrequency)
-            {
-                _updateTimer = Time.time;
-                if (Vector2.Distance(Camera.main.transform.position, transform.position) > _unloadChunkDistance
-                    && ChunkHasDrawn
-                    && Main.Instance.AutoUnloadChunk
-                    && !Processing)
-                {
-                    Main.Instance.ActiveChunks.Remove(this);
-                    gameObject.SetActive(false);
-                }
-            }
+            //if (Time.time - _updateTimer > _updateFrequency)
+            //{
+            //    _updateTimer = Time.time;
+            //    if (Vector2.Distance(Camera.main.transform.position, transform.position) > _unloadChunkDistance
+            //        && ChunkHasDrawn
+            //        && Main.Instance.AutoUnloadChunk
+            //        && !Processing)
+            //    {
+            //        Main.Instance.ActiveChunks.Remove(this);
+            //        gameObject.SetActive(false);
+            //    }
+            //}
         }
 
         public async void Init(float frameX, float frameY, int isometricFrameX, int isometricFrameY, byte _width, byte height)
@@ -113,206 +107,8 @@ namespace PixelMiner.WorldGen
         }
 
 
-        public async Task DrawChunkAsync()
-        {
-            Processing = true;
+      
 
-            TileBase[] landTiles = new TileBase[_width * _height];
-            TileBase[] waterTiles = new TileBase[_width * _height];
-            TileBase[] tilegroupTiles = new TileBase[_width * _height];
-            TileBase[] heatTiles = new TileBase[_width * _height];
-            TileBase[] moistureTiles = new TileBase[_width * _height];
-
-            TileBase[] riverTiles = new TileBase[_width * _height];
-
-            Vector3Int[] positionArray = new Vector3Int[_width * _height];
-
-            await Task.Run(() =>
-            {
-                Parallel.For(0, _width, x =>
-                {
-                    for (int y = 0; y < _height; y++)
-                    {
-                        int index = x + y * _width;
-                        positionArray[index] = new Vector3Int(x, y, 0);
-
-                        HeightType heightType = ChunkData.GetValue(x, y).HeightType;
-                        HeatType heatType = ChunkData.GetValue(x, y).HeatType;
-                        MoistureType moistureType = ChunkData.GetValue(x, y).MoistureType;
-
-
-                        // Height
-                        switch (heightType)
-                        {
-                            case HeightType.DeepWater:
-                                landTiles[index] = Main.Instance.GetTileBase(TileType.Water);
-                                waterTiles[index] = Main.Instance.GetTileBase(TileType.Water);
-                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            case HeightType.ShallowWater:
-                                landTiles[index] = Main.Instance.GetTileBase(TileType.Water);
-                                waterTiles[index] = Main.Instance.GetTileBase(TileType.Water);
-                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            case HeightType.Sand:
-                                landTiles[index] = Main.Instance.GetTileBase(TileType.Sand);
-                                waterTiles[index] = null;
-                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            case HeightType.Grass:
-                                landTiles[index] = Main.Instance.GetTileBase(TileType.DirtGrass);
-                                waterTiles[index] = null;
-                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            case HeightType.Forest:
-                                landTiles[index] = Main.Instance.GetTileBase(TileType.ForestGrass);
-                                waterTiles[index] = null;
-                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            case HeightType.Rock:
-                                landTiles[index] = Main.Instance.GetTileBase(TileType.Rock);
-                                waterTiles[index] = null;
-                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            case HeightType.Snow:
-                                landTiles[index] = Main.Instance.GetTileBase(TileType.Snow);
-                                waterTiles[index] = null;
-                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            case HeightType.River:
-                                landTiles[index] = Main.Instance.GetTileBase(TileType.Water);
-                                waterTiles[index] = Main.Instance.GetTileBase(TileType.Water);
-                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            default:
-                                landTiles[index] = Main.Instance.GetTileBase(TileType.Snow);
-                                waterTiles[index] = null;
-                                tilegroupTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                        }
-
-
-
-                        // Heat
-                        switch (heatType)
-                        {
-                            case HeatType.Coldest:
-                                heatTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            case HeatType.Colder:
-                                heatTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            case HeatType.Cold:
-                                heatTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            case HeatType.Warm:
-                                heatTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            case HeatType.Warmer:
-                                heatTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            case HeatType.Warmest:
-                                heatTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                        }
-
-                        // Moisture
-                        switch (moistureType)
-                        {
-                            case MoistureType.Dryest:
-                                moistureTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            case MoistureType.Dryer:
-                                moistureTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            case MoistureType.Dry:
-                                moistureTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            case MoistureType.Wet:
-                                moistureTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            case MoistureType.Wetter:
-                                moistureTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            case MoistureType.Wettest:
-                                moistureTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                            default:
-                                moistureTiles[index] = Main.Instance.GetTileBase(TileType.Color);
-                                break;
-                        }
-
-
-                        // River
-
-                        switch (heightType)
-                        {
-                            case HeightType.DeepWater:
-                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
-                                break;
-                            case HeightType.ShallowWater:
-                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
-                                break;
-                            case HeightType.Sand:
-                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
-                                break;
-                            case HeightType.Grass:
-                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
-                                break;
-                            case HeightType.Forest:
-                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
-                                break;
-                            case HeightType.Rock:
-                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
-                                break;
-                            case HeightType.Snow:
-                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
-                                break;
-                            case HeightType.River:
-                                riverTiles[index] = Main.Instance.GetTileBase(TileType.River);
-                                break;
-                            default:
-                                riverTiles[index] = Main.Instance.GetTileBase(TileType.Water);
-                                break;
-                        }
-                    }
-                });
-            });
-
-
-
-            LandTilemap.SetTiles(positionArray, landTiles);
-            //WaterTilemap.SetTiles(positionArray, waterTiles);
-            //Tilegroupmap.SetTiles(positionArray, tilegroupTiles);
-
-            if (Main.Instance.InitWorldWithHeatmap)
-            {
-                HeatTilemap.SetTiles(positionArray, heatTiles);
-                HeatTilemap.gameObject.SetActive(true);
-            }
-            else
-            {
-                HeatTilemap.gameObject.SetActive(false);
-            }
-
-            if (Main.Instance.InitWorldWithMoisturemap)
-            {
-                MoistureTilemap.SetTiles(positionArray, moistureTiles);
-                MoistureTilemap.gameObject.SetActive(true);
-            }
-            else
-            {
-                MoistureTilemap.gameObject.SetActive(false);
-            }
-
-
-            ChunkHasDrawn = true;
-            Processing = false;
-        }
-        public void ClearChunkDraw()
-        {
-            LandTilemap.ClearAllTiles();
-        }
 
 
         // Test

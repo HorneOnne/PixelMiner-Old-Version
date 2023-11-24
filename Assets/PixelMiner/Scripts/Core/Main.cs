@@ -26,11 +26,18 @@ namespace PixelMiner.WorldGen
         public Dictionary<Vector2Int, Chunk> Chunks;
         public HashSet<Chunk> ActiveChunks;
 
+        // Tilemap Settings
+        [FoldoutGroup("Tilemap Settings"), Indent(1), ShowInInspector, ReadOnly] public readonly float IsometricAngle = 26.565f;
+        [FoldoutGroup("Tilemap Settings"), Indent(1), ShowInInspector, ReadOnly] public readonly Vector3 CELL_SIZE = new Vector3(2.0f, 1.0f, 1.0f);
+        [FoldoutGroup("Tilemap Settings"), Indent(1), ShowInInspector, ReadOnly] public readonly Vector3 CELL_GAP = new Vector3(0.0f, 0.0f, 0.0f);
+
+
 
         private readonly Vector2 HORIZONTAL_DISTANCE_TO_NB = new Vector2(2.0f, 1.0f);
         private readonly Vector2 VERTICAL_DISTANCE_TO_NB = new Vector2(1.0f, 0.5f);
 
-
+        public int ChunkWidth = 32;
+        public int ChunkHeight = 32;
 
         public bool AutoLoadChunk = true;
         public bool AutoUnloadChunk = true;
@@ -157,7 +164,7 @@ namespace PixelMiner.WorldGen
         #region Tile Utilities
         public Tile GetTile(Vector2 worldPosition, out Chunk chunk)
         {
-            chunk = GetChunk(worldPosition, WorldGeneration.Instance.ChunkWidth, WorldGeneration.Instance.ChunkHeight);
+            chunk = GetChunk(worldPosition, ChunkWidth, ChunkHeight);
             if (chunk != null)
             {
                 Vector3 localTilePosition = IsometricUtilities.GlobalToLocal(worldPosition.x, worldPosition.y, offsetX: chunk.transform.position.x, offsetY: chunk.transform.position.y);

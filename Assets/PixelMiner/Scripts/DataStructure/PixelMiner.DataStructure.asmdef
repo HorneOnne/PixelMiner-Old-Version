@@ -1,6 +1,6 @@
 {
-    "name": "Pixel.WorldGen.Utilities",
-    "rootNamespace": "Pixel.WorldGen.Utilities",
+    "name": "PixelMiner.DataStructure",
+    "rootNamespace": "PixelMiner.DataStructure",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

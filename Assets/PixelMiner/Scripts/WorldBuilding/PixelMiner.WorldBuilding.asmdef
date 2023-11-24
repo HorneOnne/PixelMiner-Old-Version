@@ -1,9 +1,10 @@
 {
-    "name": "PixelMiner.UI",
-    "rootNamespace": "PixelMiner.UI",
+    "name": "PixelMiner.WorldBuilding",
+    "rootNamespace": "PixelMiner.WorldBuilding",
     "references": [
-        "GUID:4f7f34825068e144d80372aea14b6aa5",
-        "GUID:49f2eca994477e84ba327c3a83e9e5c7"
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:83a651e378233fe418e687488e563cf9",
+        "GUID:39448f9fffd102a4aa3c83fa92e21cb8"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

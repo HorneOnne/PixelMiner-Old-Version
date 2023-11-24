@@ -182,7 +182,7 @@ namespace PixelMiner
         private Vector2 GetPredictMovePosition()
         {
             Vector2 predictPosition;
-            Vector2 predictDirection = ConvertDiagonalVectorToDimetricProjection(_input.Move, WorldGeneration.Instance.IsometricAngle);
+            Vector2 predictDirection = ConvertDiagonalVectorToDimetricProjection(_input.Move, Main.Instance.IsometricAngle);
      
 
             if (_input.Move.x > 0 && _input.Move.y == 0)
@@ -274,7 +274,7 @@ namespace PixelMiner
             // Move diagonally
             if (_input.Move.x != 0 && _input.Move.y != 0)
             {
-                direction = ConvertDiagonalVectorToDimetricProjection(direction, WorldGeneration.Instance.IsometricAngle);
+                direction = ConvertDiagonalVectorToDimetricProjection(direction, Main.Instance.IsometricAngle);
             }
 
             _rb.velocity = direction * moveSpeed;
