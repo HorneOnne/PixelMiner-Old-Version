@@ -398,7 +398,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a24ea02ac60b8c439b2887cb331ee00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 20
+  moveSpeed: 15
   _moveDirection: {x: 0, y: 0}
   _predictMovePosition: {x: 0, y: 0}
   FlyMode: 0
@@ -2291,6 +2291,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Move: {x: 0, y: 0}
   MouseScrollY: 0
+  Cancel: 0
 --- !u!4 &1590955043
 Transform:
   m_ObjectHideFlags: 0

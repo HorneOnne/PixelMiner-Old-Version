@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace PixelMiner
 {
@@ -12,6 +11,8 @@ namespace PixelMiner
         [Header("Character Input Values")]
         public Vector2 Move;
         public float MouseScrollY;
+        public bool Cancel;
+        public float Fire;
 
         private void Awake()
         {
@@ -22,6 +23,12 @@ namespace PixelMiner
             playerInput.Player.Move.performed += x => { Move = x.ReadValue<Vector2>(); };
             playerInput.Player.Move.canceled += x => { Move = x.ReadValue<Vector2>(); };
 
+
+            playerInput.Player.Cancel.started += x => { Cancel = x.ReadValue<float>() == 1 ? true: false ; };
+            playerInput.Player.Cancel.canceled += x => { Cancel = x.ReadValue<float>() == 1 ? true : false; };
+
+
+            playerInput.Player.Fire.performed += x => { Fire = x.ReadValue<float>(); };
 
             playerInput.UI.ScrollWheel.performed += x => { MouseScrollY = x.ReadValue<Vector2>().y; };
         }

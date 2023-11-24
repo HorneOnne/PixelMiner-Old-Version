@@ -31,6 +31,11 @@ namespace PixelMiner
         public bool FlyMode;
 
 
+        // Continuous move
+        public bool ContinuousMove;
+
+
+
         private void Awake()
         {
             _model = transform.Find("Model");
@@ -54,8 +59,22 @@ namespace PixelMiner
         {
             Main.Instance.SetTileColor(_rb.position, Color.red);
 
+            if(ContinuousMove)
+            {
+                _moveDirection = _input.Move == Vector2.zero ? _moveDirection : _input.Move;
+            }
+            else
+            {
+                _moveDirection = _input.Move;
+            }
             
-            if (_input.Move.x != 0 || _input.Move.y != 0)
+            if(_input.Cancel)
+            {
+                _moveDirection = Vector2.zero;
+            }
+
+
+            if (_moveDirection.x != 0 || _moveDirection.y != 0)
             {
                 SmartMove();
                 Tile curPositionTile = Main.Instance.GetTile(_rb.position, out Chunk chunk);
@@ -73,24 +92,33 @@ namespace PixelMiner
             }
 
 
+      
+         
+
             // Animation
             // =========
-            Flip(_input.Move);
+            Flip(_moveDirection);
             if (_hasAnimator)
             {
-                _anim.SetFloat(_animIDVelocityX, _input.Move.x);
-                _anim.SetFloat(_animIDVelocityY, _input.Move.y);
+                _anim.SetFloat(_animIDVelocityX, _moveDirection.x);
+                _anim.SetFloat(_animIDVelocityY, _moveDirection.y);
             }
         }
         private void FixedUpdate()
-        {
+        {         
             if (FlyMode == true)
             {
-                Movement(_input.Move);
+                // Move diagonally
+                Vector2 direction = _moveDirection;
+                if (_moveDirection.x != 0 && _moveDirection.y != 0)
+                {
+                    direction = ConvertDiagonalVectorToDimetricProjection(direction, Main.Instance.IsometricAngle);
+                }
+                Movement(direction);
             }
             else
             {
-                if (_input.Move == Vector2.zero)
+                if (_moveDirection == Vector2.zero)
                 {
                     _rb.velocity = Vector2.zero;
                 }
@@ -106,12 +134,21 @@ namespace PixelMiner
                     }
                     else
                     {
+                        if (_moveDirection.x != 0 && _moveDirection.y != 0)
+                        {
+                            suggestionDirection = ConvertDiagonalVectorToDimetricProjection(suggestionDirection, Main.Instance.IsometricAngle);
+                        }
                         Movement(suggestionDirection);
                     }
                 }
                 else
                 {
-                    Movement(_input.Move);
+                    Vector2 direction = _moveDirection;
+                    if (_moveDirection.x != 0 && _moveDirection.y != 0)
+                    {
+                        direction = ConvertDiagonalVectorToDimetricProjection(direction, Main.Instance.IsometricAngle);
+                    }
+                    Movement(direction);
                 }
             }
         }
@@ -127,33 +164,33 @@ namespace PixelMiner
             _moveSuggestions.Clear();
             Vector2 centerOffset = new Vector2(0.0f, 0.5f);
             Vector2 playerPosition = _rb.position;
-            if (_input.Move.x > 0 && _input.Move.y == 0)
+            if (_moveDirection.x > 0 && _moveDirection.y == 0)
             {
                 // Right
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpRightVector, centerOffset));
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownRightVector, centerOffset));
 
             }
-            else if (_input.Move.x < 0 && _input.Move.y == 0)
+            else if (_moveDirection.x < 0 && _moveDirection.y == 0)
             {
                 // Left
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpLeftVector, centerOffset));
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownLeftVector, centerOffset));
             }
-            else if (_input.Move.x == 0 && _input.Move.y > 0)
+            else if (_moveDirection.x == 0 && _moveDirection.y > 0)
             {
                 // Up
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpLeftVector, centerOffset));
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpRightVector, centerOffset));
 
             }
-            else if (_input.Move.x == 0 && _input.Move.y < 0)
+            else if (_moveDirection.x == 0 && _moveDirection.y < 0)
             {
                 // Down
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownLeftVector, centerOffset));
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownRightVector, centerOffset));
             }
-            else if (_input.Move.x > 0 && _input.Move.y > 0)
+            else if (_moveDirection.x > 0 && _moveDirection.y > 0)
             {
                 // Up Right
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpRightVector, centerOffset));
@@ -161,7 +198,7 @@ namespace PixelMiner
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpLeftVector, centerOffset));
 
             }
-            else if (_input.Move.x < 0 && _input.Move.y > 0)
+            else if (_moveDirection.x < 0 && _moveDirection.y > 0)
             {
                 // Up Left
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpLeftVector, centerOffset));
@@ -169,14 +206,14 @@ namespace PixelMiner
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpRightVector, centerOffset));
 
             }
-            else if (_input.Move.x > 0 && _input.Move.y < 0)
+            else if (_moveDirection.x > 0 && _moveDirection.y < 0)
             {
                 // Down Right
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownRightVector, centerOffset));
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownVector, centerOffset));
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownLeftVector, centerOffset));
             }
-            else if (_input.Move.x < 0 && _input.Move.y < 0)
+            else if (_moveDirection.x < 0 && _moveDirection.y < 0)
             {
                 // Down Left;
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownLeftVector, centerOffset));
@@ -207,48 +244,48 @@ namespace PixelMiner
         private Vector2 GetPredictMovePosition()
         {
             Vector2 predictPosition;
-            Vector2 predictDirection = ConvertDiagonalVectorToDimetricProjection(_input.Move, Main.Instance.IsometricAngle);
+            Vector2 predictDirection = ConvertDiagonalVectorToDimetricProjection(_moveDirection, Main.Instance.IsometricAngle);
             Vector2 playerPosition = _rb.position;
 
 
-            if (_input.Move.x > 0 && _input.Move.y == 0)
+            if (_moveDirection.x > 0 && _moveDirection.y == 0)
             {
                 // Right
-                predictPosition = playerPosition + _input.Move * 0.45f;
+                predictPosition = playerPosition + _moveDirection * 0.45f;
 
             }
-            else if (_input.Move.x < 0 && _input.Move.y == 0)
+            else if (_moveDirection.x < 0 && _moveDirection.y == 0)
             {
                 // Left
-                predictPosition = playerPosition + _input.Move * 0.45f;
+                predictPosition = playerPosition + _moveDirection * 0.45f;
             }
-            else if (_input.Move.x == 0 && _input.Move.y > 0)
+            else if (_moveDirection.x == 0 && _moveDirection.y > 0)
             {
                 // Up
-                predictPosition = playerPosition + _input.Move * 0.45f;
+                predictPosition = playerPosition + _moveDirection * 0.45f;
             }
-            else if (_input.Move.x == 0 && _input.Move.y < 0)
+            else if (_moveDirection.x == 0 && _moveDirection.y < 0)
             {
                 // Down
-                predictPosition = playerPosition + _input.Move * 0.45f;
+                predictPosition = playerPosition + _moveDirection * 0.45f;
             }
-            else if (_input.Move.x > 0 && _input.Move.y > 0)
+            else if (_moveDirection.x > 0 && _moveDirection.y > 0)
             {
                 // Top Right
                 predictPosition = playerPosition + predictDirection * 0.45f;
             }
-            else if (_input.Move.x < 0 && _input.Move.y > 0)
+            else if (_moveDirection.x < 0 && _moveDirection.y > 0)
             {
                 // Top Left
                 predictPosition = playerPosition + predictDirection * 1.2f;
             }
 
-            else if (_input.Move.x > 0 && _input.Move.y < 0)
+            else if (_moveDirection.x > 0 && _moveDirection.y < 0)
             {
                 // Down Right
                 predictPosition = playerPosition + predictDirection * 1.2f;
             }
-            else if (_input.Move.x < 0 && _input.Move.y < 0)
+            else if (_moveDirection.x < 0 && _moveDirection.y < 0)
             {
                 // Down Left
                 predictPosition = playerPosition + predictDirection * 1.2f;
@@ -297,12 +334,6 @@ namespace PixelMiner
 
         private void Movement(Vector2 direction)
         {
-            // Move diagonally
-            if (_input.Move.x != 0 && _input.Move.y != 0)
-            {
-                direction = ConvertDiagonalVectorToDimetricProjection(direction, Main.Instance.IsometricAngle);
-            }
-
             _rb.velocity = direction * moveSpeed;
         }
 
