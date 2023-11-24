@@ -26,8 +26,7 @@ namespace PixelMiner
         [SerializeField] private Vector2 _predictMovePosition;
         private List<Vector2> _moveSuggestions = new List<Vector2>();
         private Tile _predictTile;
-
-
+        private Vector2 _lastGroundTilePosition;   // Use to prevent move to fast through water tile.
 
         public bool FlyMode;
 
@@ -44,6 +43,8 @@ namespace PixelMiner
         {
             _input = InputHander.Instance;
             AssignAnimationIDs();
+
+            _lastGroundTilePosition = transform.position;
         }
 
 
@@ -51,12 +52,24 @@ namespace PixelMiner
 
         private void Update()
         {
-            Main.Instance.SetTileColor(transform.position, Color.red);
-            
+            Main.Instance.SetTileColor(_rb.position, Color.red);
 
+            
             if (_input.Move.x != 0 || _input.Move.y != 0)
             {
                 SmartMove();
+                Tile curPositionTile = Main.Instance.GetTile(_rb.position, out Chunk chunk);
+                if (!(curPositionTile != null && (
+                    curPositionTile.HeightType == HeightType.DeepWater ||
+                    curPositionTile.HeightType == HeightType.ShallowWater ||
+                    curPositionTile.HeightType == HeightType.River)))
+                {
+                    _lastGroundTilePosition = _rb.position;
+                }
+            }
+            else
+            {
+                _rb.MovePosition(_lastGroundTilePosition);
             }
 
 
@@ -71,7 +84,7 @@ namespace PixelMiner
         }
         private void FixedUpdate()
         {
-            if(FlyMode == true)
+            if (FlyMode == true)
             {
                 Movement(_input.Move);
             }
@@ -109,75 +122,77 @@ namespace PixelMiner
             _predictMovePosition = GetPredictMovePosition();
             _predictTile = Main.Instance.GetTile(_predictMovePosition, out Chunk chunk);
             Main.Instance.SetTileColor(_predictMovePosition, Color.blue);
-            
+
+           
             _moveSuggestions.Clear();
             Vector2 centerOffset = new Vector2(0.0f, 0.5f);
+            Vector2 playerPosition = _rb.position;
             if (_input.Move.x > 0 && _input.Move.y == 0)
             {
                 // Right
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.UpRightVector, centerOffset));
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.DownRightVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpRightVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownRightVector, centerOffset));
 
             }
             else if (_input.Move.x < 0 && _input.Move.y == 0)
             {
                 // Left
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.UpLeftVector, centerOffset));
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.DownLeftVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpLeftVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownLeftVector, centerOffset));
             }
             else if (_input.Move.x == 0 && _input.Move.y > 0)
             {
                 // Up
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.UpLeftVector, centerOffset));
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.UpRightVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpLeftVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpRightVector, centerOffset));
 
             }
             else if (_input.Move.x == 0 && _input.Move.y < 0)
             {
                 // Down
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.DownLeftVector, centerOffset));
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.DownRightVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownLeftVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownRightVector, centerOffset));
             }
             else if (_input.Move.x > 0 && _input.Move.y > 0)
             {
                 // Up Right
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.UpRightVector, centerOffset));
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.UpVector, centerOffset));
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.UpLeftVector, centerOffset));
-                
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpRightVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpLeftVector, centerOffset));
+
             }
             else if (_input.Move.x < 0 && _input.Move.y > 0)
             {
                 // Up Left
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.UpLeftVector, centerOffset));
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.UpVector, centerOffset));           
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.UpRightVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpLeftVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpRightVector, centerOffset));
 
             }
             else if (_input.Move.x > 0 && _input.Move.y < 0)
             {
                 // Down Right
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.DownRightVector, centerOffset));
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.DownVector, centerOffset));
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.DownLeftVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownRightVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownLeftVector, centerOffset));
             }
             else if (_input.Move.x < 0 && _input.Move.y < 0)
             {
                 // Down Left;
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.DownLeftVector, centerOffset));
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.DownVector, centerOffset));
-                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(transform.position, MathHelper.DownRightVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownLeftVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownVector, centerOffset));
+                _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownRightVector, centerOffset));
             }
 
             foreach (var suggesttion in _moveSuggestions)
             {
                 Tile tile = Main.Instance.GetTile(suggesttion, out Chunk c);
-   
+
                 if (tile != null && (
                     tile.HeightType == HeightType.DeepWater ||
                     tile.HeightType == HeightType.ShallowWater ||
                     tile.HeightType == HeightType.River))
-                {               
+                {
                     // Cant mmove
                     Main.Instance.SetTileColor(suggesttion, Color.black);
                 }
@@ -193,53 +208,54 @@ namespace PixelMiner
         {
             Vector2 predictPosition;
             Vector2 predictDirection = ConvertDiagonalVectorToDimetricProjection(_input.Move, Main.Instance.IsometricAngle);
-     
+            Vector2 playerPosition = _rb.position;
+
 
             if (_input.Move.x > 0 && _input.Move.y == 0)
             {
                 // Right
-                predictPosition = (Vector2)transform.position + _input.Move * 0.45f;
+                predictPosition = playerPosition + _input.Move * 0.45f;
 
             }
             else if (_input.Move.x < 0 && _input.Move.y == 0)
             {
                 // Left
-                predictPosition = (Vector2)transform.position + _input.Move * 0.45f;
+                predictPosition = playerPosition + _input.Move * 0.45f;
             }
             else if (_input.Move.x == 0 && _input.Move.y > 0)
             {
                 // Up
-                predictPosition = (Vector2)transform.position + _input.Move * 0.45f;
+                predictPosition = playerPosition + _input.Move * 0.45f;
             }
             else if (_input.Move.x == 0 && _input.Move.y < 0)
             {
                 // Down
-                predictPosition = (Vector2)transform.position + _input.Move * 0.45f;
+                predictPosition = playerPosition + _input.Move * 0.45f;
             }
             else if (_input.Move.x > 0 && _input.Move.y > 0)
             {
                 // Top Right
-                predictPosition = (Vector2)transform.position + predictDirection * 0.45f;
+                predictPosition = playerPosition + predictDirection * 0.45f;
             }
             else if (_input.Move.x < 0 && _input.Move.y > 0)
             {
                 // Top Left
-                predictPosition = (Vector2)transform.position + predictDirection * 1.2f;
+                predictPosition = playerPosition + predictDirection * 1.2f;
             }
 
             else if (_input.Move.x > 0 && _input.Move.y < 0)
             {
                 // Down Right
-                predictPosition = (Vector2)transform.position + predictDirection * 1.2f;
+                predictPosition = playerPosition + predictDirection * 1.2f;
             }
             else if (_input.Move.x < 0 && _input.Move.y < 0)
             {
                 // Down Left
-                predictPosition = (Vector2)transform.position + predictDirection * 1.2f;
+                predictPosition = playerPosition + predictDirection * 1.2f;
             }
             else
             {
-                predictPosition = (Vector2)transform.position + Vector2.zero;
+                predictPosition = playerPosition + Vector2.zero;
             }
 
             return predictPosition;
@@ -261,13 +277,13 @@ namespace PixelMiner
                 }
                 else
                 {
-                    return (suggesttion - (Vector2)transform.position).normalized;
+                    return (suggesttion - _rb.position).normalized;
                 }
             }
             return Vector2.zero;
         }
 
- 
+
 
 
 

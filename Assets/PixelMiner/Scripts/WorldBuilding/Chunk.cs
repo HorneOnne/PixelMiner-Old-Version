@@ -22,7 +22,7 @@ namespace PixelMiner.WorldGen
         private float _unloadChunkDistance = 200;
         private float _updateFrequency = 1.0f;
         private float _updateTimer = 0.0f;
-        private Vector2 _offsetTileFromCenter = new Vector2(0.0f, -0.25f);
+
 
         // Neighbors
         public Chunk Left;
@@ -332,14 +332,12 @@ namespace PixelMiner.WorldGen
             return null; // Handle the case where the index is out of range.
         }
         #endregion
-
         public void SetTile(Vector2 worldPosition, TileBase tileBase)
         {
             Vector3Int cellPosition = Grid.WorldToCell(worldPosition);
             cellPosition.z = 0;
             LandTilemap.SetTile(cellPosition, tileBase);
         }
-
         public Tile GetTile(byte frameX, byte frameY)
         {
             return ChunkData.GetValue(frameX, frameY);
@@ -348,8 +346,6 @@ namespace PixelMiner.WorldGen
         {
             return Grid.CellToWorld(new Vector3Int(frameX, frameY, 0));
         }
-
-
         private void ResetAllTileColorTester()
         {
             for (var x = 0; x < _width; x++)
@@ -360,7 +356,6 @@ namespace PixelMiner.WorldGen
                 }
             }
         }
-
         public void SetDrawRenderMode(TilemapRenderer.Mode mode)
         {
             LandTilemap.GetComponent<TilemapRenderer>().mode = mode;

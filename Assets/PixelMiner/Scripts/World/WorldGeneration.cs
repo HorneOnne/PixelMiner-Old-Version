@@ -12,8 +12,6 @@ using PixelMiner.Utilities;
 using PixelMiner.Enums;
 
 
-
-
 namespace PixelMiner.WorldGen
 {
     public class WorldGeneration : MonoBehaviour

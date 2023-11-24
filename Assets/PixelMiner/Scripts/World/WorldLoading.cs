@@ -3,8 +3,6 @@ using UnityEngine;
 using Sirenix.OdinInspector;
 
 
-
-
 namespace PixelMiner.WorldGen
 {
     public class WorldLoading : MonoBehaviour
