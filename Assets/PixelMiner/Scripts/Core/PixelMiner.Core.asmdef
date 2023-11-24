@@ -2,11 +2,11 @@
     "name": "PixelMiner.Core",
     "rootNamespace": "PixelMiner.Core",
     "references": [
-        "GUID:cdce3721149a968458d95984d050e50d",
+        "GUID:613783dc1674e844b87788ea74ede0f6",
         "GUID:83a651e378233fe418e687488e563cf9",
-        "GUID:2c22f545697e3424484744f569e7f766",
         "GUID:976d709241a7a084c8344683c07c92df",
-        "GUID:613783dc1674e844b87788ea74ede0f6"
+        "GUID:2c22f545697e3424484744f569e7f766",
+        "GUID:cdce3721149a968458d95984d050e50d"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

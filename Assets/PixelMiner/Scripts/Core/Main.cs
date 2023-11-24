@@ -32,12 +32,13 @@ namespace PixelMiner.WorldGen
         [FoldoutGroup("Tilemap Settings"), Indent(1), ShowInInspector, ReadOnly] public readonly Vector3 CELL_GAP = new Vector3(0.0f, 0.0f, 0.0f);
 
 
+        public string SeedInput = "7";
 
         private readonly Vector2 HORIZONTAL_DISTANCE_TO_NB = new Vector2(2.0f, 1.0f);
         private readonly Vector2 VERTICAL_DISTANCE_TO_NB = new Vector2(1.0f, 0.5f);
 
-        public int ChunkWidth = 32;
-        public int ChunkHeight = 32;
+        public byte ChunkWidth = 32;
+        public byte ChunkHeight = 32;
 
         public bool AutoLoadChunk = true;
         public bool AutoUnloadChunk = true;

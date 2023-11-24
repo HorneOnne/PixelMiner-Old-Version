@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using UnityEngine.EventSystems;
 using Sirenix.OdinInspector;
 using PixelMiner.WorldGen;
-using PixelMiner.WorldGen.Utilities;
 
 namespace PixelMiner.UI
 {
@@ -171,31 +170,31 @@ namespace PixelMiner.UI
                         float heightValue = heightValues[x, y];
                         if (heightValue < WorldGeneration.Instance.DeepWater)
                         {
-                            pixels[x + y * textureWidth] = WorldGenUtilities.DeepColor;
+                            pixels[x + y * textureWidth] = WorldGeneration.DeepColor;
                         }
                         else if (heightValue < WorldGeneration.Instance.Water)
                         {
-                            pixels[x + y * textureWidth] = WorldGenUtilities.ShallowColor;
+                            pixels[x + y * textureWidth] = WorldGeneration.ShallowColor;
                         }
                         else if (heightValue < WorldGeneration.Instance.Sand)
                         {
-                            pixels[x + y * textureWidth] = WorldGenUtilities.SandColor;
+                            pixels[x + y * textureWidth] = WorldGeneration.SandColor;
                         }
                         else if (heightValue < WorldGeneration.Instance.Grass)
                         {
-                            pixels[x + y * textureWidth] = WorldGenUtilities.GrassColor;
+                            pixels[x + y * textureWidth] = WorldGeneration.GrassColor;
                         }
                         else if (heightValue < WorldGeneration.Instance.Forest)
                         {
-                            pixels[x + y * textureWidth] = WorldGenUtilities.ForestColor;
+                            pixels[x + y * textureWidth] = WorldGeneration.ForestColor;
                         }
                         else if (heightValue < WorldGeneration.Instance.Rock)
                         {
-                            pixels[x + y * textureWidth] = WorldGenUtilities.RockColor;
+                            pixels[x + y * textureWidth] = WorldGeneration.RockColor;
                         }
                         else
                         {
-                            pixels[x + y * textureWidth] = WorldGenUtilities.SnowColor;
+                            pixels[x + y * textureWidth] = WorldGeneration.SnowColor;
                         }
                     }
                 });

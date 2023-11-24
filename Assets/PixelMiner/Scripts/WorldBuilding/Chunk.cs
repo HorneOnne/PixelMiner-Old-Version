@@ -9,6 +9,8 @@ namespace PixelMiner.WorldGen
     [SelectionBase]
     public class Chunk : MonoBehaviour
     {
+        public static System.Action<Chunk> OnChunkFarAway;
+
         [Header("Chunk Settings")]
         public Grid<Tile> ChunkData;
         public float FrameX;    // Used for calculate world position
@@ -56,18 +58,14 @@ namespace PixelMiner.WorldGen
         }
         private void Update()
         {
-            //if (Time.time - _updateTimer > _updateFrequency)
-            //{
-            //    _updateTimer = Time.time;
-            //    if (Vector2.Distance(Camera.main.transform.position, transform.position) > _unloadChunkDistance
-            //        && ChunkHasDrawn
-            //        && Main.Instance.AutoUnloadChunk
-            //        && !Processing)
-            //    {
-            //        Main.Instance.ActiveChunks.Remove(this);
-            //        gameObject.SetActive(false);
-            //    }
-            //}
+            if (Time.time - _updateTimer > _updateFrequency)
+            {
+                _updateTimer = Time.time;
+                if (Vector2.Distance(Camera.main.transform.position, transform.position) > _unloadChunkDistance)
+                {
+                    OnChunkFarAway?.Invoke(this);
+                }
+            }
         }
 
         public async void Init(float frameX, float frameY, int isometricFrameX, int isometricFrameY, byte _width, byte height)
@@ -101,13 +99,7 @@ namespace PixelMiner.WorldGen
             gameObject.SetActive(true);
         }
 
-        public void UnloadChunk()
-        {
-            gameObject.SetActive(false);
-        }
-
-
-      
+   
 
 
 

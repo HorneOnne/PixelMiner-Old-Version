@@ -1,20 +1,18 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
-using LibNoise;
-using LibNoise.Generator;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Tilemaps;
+using LibNoise;
+using LibNoise.Generator;
 using Sirenix.OdinInspector;
 using PixelMiner.Utilities;
-using System;
-using PixelMiner.WorldGen.Utilities;
 using PixelMiner.Enums;
-using UnityEngine.Tilemaps;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
+
+
 
 namespace PixelMiner.WorldGen
 {
@@ -22,34 +20,11 @@ namespace PixelMiner.WorldGen
     {
         private readonly object lockObject = new object(); // Define a lock object for thread safety
         public static WorldGeneration Instance { get; private set; }
+        public event System.Action OnWorldGenWhenStartFinished;
 
         #region Fileds and Variables
         [FoldoutGroup("References"), SerializeField] private Chunk _chunkPrefab;
         [FoldoutGroup("References"), SerializeField] private Transform _chunkParent;
-
-
-        
-        // Min and Max Height used for normalize noise value in range [0-1]
-        [ShowInInspector, ReadOnly] public float MinWorldNoiseValue { get; private set; } = float.MaxValue;
-        [ShowInInspector, ReadOnly] public float MaxWorldNoiseValue { get; private set; } = float.MinValue;
-
-        //[Header("World Settings")]
-
-        [FoldoutGroup("World Settings"), Indent(1)] public string SeedInput = "7";
-        [FoldoutGroup("World Settings"), Indent(1), ReadOnly, ShowInInspector] public int Seed { get; private set; }
-        [FoldoutGroup("World Settings"), Indent(1)] public byte ChunkWidth = 16;      // Size of each chunk in tiles
-        [FoldoutGroup("World Settings"), Indent(1)] public byte ChunkHeight = 16;      // Size of each chunk in tiles
-        [Space(5)]
-        [FoldoutGroup("World Settings"), Indent(1)] public byte InitWorldWidth = 3;
-        [FoldoutGroup("World Settings"), Indent(1)] public byte InitWorldHeight = 3;
-        [FoldoutGroup("World Settings"), Indent(1)] public byte LoadChunkOffsetWidth = 1;
-        [FoldoutGroup("World Settings"), Indent(1)] public byte LoadChunkOffsetHeight = 1;
-
-        // Compute noise range sample count.
-        private byte _calculateNoiseRangeSampleMultiplier = 15;  // 50 times. 50 * 100000 = 5 mil times.
-        private int _calculateNoiseRangeCount = 1000000;    // 1 mil times.
-
-
 
         // Height map
         // ==========
@@ -62,13 +37,13 @@ namespace PixelMiner.WorldGen
         [InfoBox("Height map threshold"), Space(10)]
         [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 0f, g: 0f, b: 0.5f, Height = 20)]
         public float DeepWater = 0.2f;
-        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 25 / 255f, g: 25 / 255f, b: 150 / 255f, Height = 20)]
+        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 25/255f, g: 25/255f, b: 150/255f, Height = 20)]
         public float Water = 0.4f;
-        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 240 / 255f, g: 240 / 255f, b: 64 / 255f, Height = 20)]
+        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 240/255f, g: 240/255f, b: 64/255f, Height = 20)]
         public float Sand = 0.5f;
-        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 50 / 255f, g: 220 / 255f, b: 20 / 255f, Height = 20)]
+        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 50/255f, g: 220/255f, b: 20/255f, Height = 20)]
         public float Grass = 0.7f;
-        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 16 / 255f, g: 160 / 255f, b: 0f, Height = 20)]
+        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 16/255f, g: 160/255f, b: 0f, Height = 20)]
         public float Forest = 0.8f;
         [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 0.5f, g: 0.5f, b: 0.5f, Height = 20)]
         public float Rock = 0.9f;
@@ -128,27 +103,48 @@ namespace PixelMiner.WorldGen
         private ModuleBase _riverModule;
 
 
-        [Header("World Generation Utilities")]
-        public bool AutoLoadChunk = true;
-        public bool AutoUnloadChunk = true;
-        public bool ShowChunksBorder = false;
-        public bool ShowTilegroupMaps = false;
-        public bool InitWorldWithHeatmap = false;
-        public bool InitWorldWithMoisturemap = false;
-        public bool InitWorldWithRiver = false;
-        public bool PaintTileNeighbors = false;
 
-        [Header("Performance Options")]
-        public bool InitFastDrawChunk;
-
-
+        [Header("Color")]
+        // Height
+        public static Color RiverColor = new Color(30 / 255f, 120 / 255f, 200 / 255f, 1);
+        public static Color DeepColor = new Color(0, 0, 0.5f, 1);
+        public static Color ShallowColor = new Color(25 / 255f, 25 / 255f, 150 / 255f, 1);
+        public static Color SandColor = new Color(240 / 255f, 240 / 255f, 64 / 255f, 1);
+        public static Color GrassColor = new Color(50 / 255f, 220 / 255f, 20 / 255f, 1);
+        public static Color ForestColor = new Color(16 / 255f, 160 / 255f, 0, 1);
+        public static Color RockColor = new Color(0.5f, 0.5f, 0.5f, 1);
+        public static Color SnowColor = new Color(1, 1, 1, 1);
+        // Heat
+        public static Color ColdestColor = new Color(0, 1, 1, 1);
+        public static Color ColderColor = new Color(170 / 255f, 1, 1, 1);
+        public static Color ColdColor = new Color(0, 229 / 255f, 133 / 255f, 1);
+        public static Color WarmColor = new Color(1, 1, 100 / 255f, 1);
+        public static Color WarmerColor = new Color(1, 100 / 255f, 0, 1);
+        public static Color WarmestColor = new Color(241 / 255f, 12 / 255f, 0, 1);
+        // Moisture
+        public static Color Dryest = new Color(255 / 255f, 139 / 255f, 17 / 255f, 1);
+        public static Color Dryer = new Color(245 / 255f, 245 / 255f, 23 / 255f, 1);
+        public static Color Dry = new Color(80 / 255f, 255 / 255f, 0 / 255f, 1);
+        public static Color Wet = new Color(85 / 255f, 255 / 255f, 255 / 255f, 1);
+        public static Color Wetter = new Color(20 / 255f, 70 / 255f, 255 / 255f, 1);
+        public static Color Wettest = new Color(0 / 255f, 0 / 255f, 100 / 255f, 1);
 
         // Cached
         private Vector2Int lastChunkISOFrame;
         private Vector2 _centerPoint;
-        private Vector2Int _centerPointFrame;
+        private byte _chunkWidth;      // Size of each chunk in tiles
+        private byte _chunkHeight;      // Size of each chunk in tiles
+        private byte _calculateNoiseRangeSampleMultiplier = 15;  // 50 times. 50 * 100000 = 5 mil times.
+        private int _calculateNoiseRangeCount = 1000000;    // 1 mil times.
+        private float _minWorldNoiseValue = float.MaxValue;
+        private float _maxWorldNoiseValue = float.MinValue;
         private Main _main;
+        private WorldLoading _worldLoading;
+        #endregion
 
+
+        #region Properties
+        [FoldoutGroup("World Properties"), Indent(1), ReadOnly, ShowInInspector] public int Seed { get; private set; }
         #endregion
 
         /*
@@ -162,17 +158,11 @@ namespace PixelMiner.WorldGen
         private void Awake()
         {
             Instance = this;
-
-            Seed = WorldGenUtilities.StringToSeed(SeedInput);
-
-            // Set seed
-            UnityEngine.Random.InitState(Seed);
-
             IsometricUtilities.CELLSIZE_X = Main.Instance.CELL_SIZE.x;
             IsometricUtilities.CELLSIZE_Y = Main.Instance.CELL_SIZE.y;
 
-            MinWorldNoiseValue = float.MaxValue;
-            MaxWorldNoiseValue = float.MinValue;
+            _minWorldNoiseValue = float.MaxValue;
+            _maxWorldNoiseValue = float.MinValue;
 
 
         }
@@ -180,9 +170,10 @@ namespace PixelMiner.WorldGen
         private void Start()
         {
             _main = Main.Instance;
+            _worldLoading = WorldLoading.Instance;
 
-            _centerPoint = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width / 2f, Screen.height / 2f));
-
+            Seed = WorldGenUtilities.StringToSeed(_main.SeedInput);
+            UnityEngine.Random.InitState(Seed);
 
             // Init noise module
             _heightModule = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, QualityMode.High);
@@ -191,36 +182,24 @@ namespace PixelMiner.WorldGen
             _riverModule = new Perlin(RiverFrequency, RiverLacunarity, RiverPersistence, RiverOctaves, Seed, QualityMode.Low);
 
 
-            // Load chunks around the player's starting position
-            lastChunkISOFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(_centerPoint, ChunkWidth, ChunkHeight);
+            _chunkWidth = _main.ChunkWidth;
+            _chunkHeight = _main.ChunkHeight;
 
+
+            // Load chunks around the player's starting position
+            _centerPoint = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width / 2f, Screen.height / 2f));
+            lastChunkISOFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(_centerPoint, _chunkWidth, _chunkHeight);
 
             // World Initialization
-            InitWorldAsyncInParallel(lastChunkISOFrame.x, lastChunkISOFrame.y, widthInit: InitWorldWidth, heightInit: InitWorldHeight, () =>
+            InitWorldAsyncInParallel(lastChunkISOFrame.x, lastChunkISOFrame.y, widthInit: _worldLoading.InitWorldWidth, heightInit: _worldLoading.InitWorldHeight, () =>
             {
-                if (InitFastDrawChunk)
-                    LoadChunksAroundPositionInParallel(lastChunkISOFrame.x, lastChunkISOFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
-                else
-                    LoadChunksAroundPositionInSequence(lastChunkISOFrame.x, lastChunkISOFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
+                OnWorldGenWhenStartFinished?.Invoke();
+                
             });
 
         }
 
-        private void Update()
-        {
-            if(AutoLoadChunk)
-            {
-                _centerPoint = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width / 2f, Screen.height / 2f));
-                _centerPointFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(_centerPoint, ChunkWidth, ChunkHeight);
-
-                if (_centerPointFrame != lastChunkISOFrame)
-                {
-                    lastChunkISOFrame = _centerPointFrame;
-                    LoadChunksAroundPositionInSequence(_centerPointFrame.x, _centerPointFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
-                }
-            }
-            
-        }
+       
         #endregion
 
 
@@ -263,8 +242,8 @@ namespace PixelMiner.WorldGen
             });
 
 
-            MinWorldNoiseValue = minNoiseValue;
-            MaxWorldNoiseValue = maxNoiseValue;
+            _minWorldNoiseValue = minNoiseValue;
+            _maxWorldNoiseValue = maxNoiseValue;
 
             sw.Stop();
             Debug.Log($"Compute noise time: {sw.ElapsedMilliseconds / 1000f} s");
@@ -314,8 +293,8 @@ namespace PixelMiner.WorldGen
                 if (maxNoiseValue < maxValue)
                     maxNoiseValue = maxValue;
             }
-            MinWorldNoiseValue = minNoiseValue;
-            MaxWorldNoiseValue = maxNoiseValue;
+            _minWorldNoiseValue = minNoiseValue;
+            _maxWorldNoiseValue = maxNoiseValue;
         }
         struct MinMax
         {
@@ -360,8 +339,8 @@ namespace PixelMiner.WorldGen
             //await ComputeNoiseRangeAsyncInSequence();
             await ComputeNoiseRangeAsyncInParallel();
 
-            Debug.Log($"min: {MinWorldNoiseValue}");
-            Debug.Log($"max: {MaxWorldNoiseValue}");
+            Debug.Log($"min: {_minWorldNoiseValue}");
+            Debug.Log($"max: {_maxWorldNoiseValue}");
 
             int totalIterations = (2 * widthInit + 1) * (2 * heightInit + 1);
             int currentIteration = 0;
@@ -371,7 +350,7 @@ namespace PixelMiner.WorldGen
                 {
                     Chunk newChunk = await GenerateNewChunkDataAsync(x, y);
                     _main.AddNewChunk(newChunk);
-                    newChunk.UnloadChunk();
+                    newChunk.gameObject.SetActive(false);
 
 
                     // Update the slider value based on progress
@@ -422,27 +401,27 @@ namespace PixelMiner.WorldGen
             {
                 Chunk newChunk = task.Result;
                 _main.AddNewChunk(newChunk);
-                newChunk.UnloadChunk();
+                newChunk.gameObject.SetActive(false);
             }
 
             //UIGameManager.Instance.DisplayWorldGenSlider(false);
             onFinished?.Invoke();
         }
-        private async Task<Chunk> GenerateNewChunkDataAsync(int isoFrameX, int isoFrameY)
+        public async Task<Chunk> GenerateNewChunkDataAsync(int isoFrameX, int isoFrameY)
         {
             Vector2 frame = IsometricUtilities.IsometricFrameToWorldFrame(isoFrameX, isoFrameY);
-            Vector3 worldPosition = IsometricUtilities.ConvertIsometricFrameToWorldPosition(isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
+            Vector3 worldPosition = IsometricUtilities.ConvertIsometricFrameToWorldPosition(isoFrameX, isoFrameY, _chunkWidth, _chunkHeight);
             Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity, _chunkParent.transform);
-            newChunk.Init(frame.x, frame.y, isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
+            newChunk.Init(frame.x, frame.y, isoFrameX, isoFrameY, _chunkWidth, _chunkHeight);
 
             // Create new data
-            float[,] heightValues = await GetHeightMapDataAsync(isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
+            float[,] heightValues = await GetHeightMapDataAsync(isoFrameX, isoFrameY, _chunkWidth, _chunkHeight);
             float[,] heatValues = await GetHeatMapDataAysnc(isoFrameX, isoFrameY);
             float[,] moisetureValues = await GetMoistureMapDataAsync(isoFrameX, isoFrameY);
 
-            float[,] riverValues = await GetRiverDataAsync(isoFrameX, isoFrameY, ChunkWidth, ChunkHeight);
+            float[,] riverValues = await GetRiverDataAsync(isoFrameX, isoFrameY, _chunkWidth, _chunkHeight);
 
-            if (InitWorldWithHeatmap)
+            if (_main.InitWorldWithHeatmap)
             {
                 await LoadHeightAndHeatMap(newChunk, heightValues, heatValues);
             }
@@ -451,7 +430,7 @@ namespace PixelMiner.WorldGen
                 await LoadHeightMapDataAsync(newChunk, heightValues);
             }
 
-            if (InitWorldWithMoisturemap)
+            if (_main.InitWorldWithMoisturemap)
             {
                 await LoadMoistureMapDataAsync(newChunk, moisetureValues);
             }
@@ -460,7 +439,7 @@ namespace PixelMiner.WorldGen
 
             }
 
-            if(InitWorldWithRiver)
+            if(_main.InitWorldWithRiver)
             {
                 await LoadRiverDataAsync(newChunk, riverValues);
             }
@@ -468,170 +447,7 @@ namespace PixelMiner.WorldGen
             return newChunk;
         }
 
-        /// <summary>
-        /// Load each chunk in sequence and draw each chunk in sequence. -> Less drop FPS but slow.
-        /// </summary>
-        /// <param name="isoFrameX"></param>
-        /// <param name="isoFrameY"></param>
-        /// <param name="offsetWidth"></param>
-        /// <param name="offsetHeight"></param>
-        private async void LoadChunksAroundPositionInSequence(int isoFrameX, int isoFrameY, byte offsetWidth = 1, byte offsetHeight = 1)
-        {
-            for (int x = isoFrameX - offsetWidth; x <= isoFrameX + offsetWidth; x++)
-            {
-                for (int y = isoFrameY - offsetHeight; y <= isoFrameY + offsetHeight; y++)
-                {
-                    Vector2Int nbIsoFrame = new Vector2Int(x, y);
-                    Chunk chunk = _main.GetChunk(nbIsoFrame);
-                    if (chunk == null)   // Create new chunk
-                    {
-                        if (x == isoFrameX && y == isoFrameY)
-                        {
-                            // Center
-                            // ......
-                        }
-
-                        Chunk newChunk = await GenerateNewChunkDataAsync(x, y);
-
-                        // Cached chunk data
-                        if (_main.HasChunk(nbIsoFrame) == false)
-                            _main.AddNewChunk(newChunk);
-                        _main.ActiveChunks.Add(newChunk);
-
-
-                        if (newChunk.ChunkHasDrawn == false)
-                        {
-                            await DrawChunkAsync(newChunk);
-                            //_main.Chunks[nbIsoFrame].ShowTextTest();
-
-                            if (InitWorldWithHeatmap)
-                                PaintHeatMap(newChunk);
-                            if (InitWorldWithMoisturemap)
-                                PaintMoistureMap(newChunk);
-                        }
-
-                        _main.GetChunk(nbIsoFrame).LoadChunk();
-                    }
-                    else // Load chunk cached.
-                    {
-                        if (x == isoFrameX && y == isoFrameY)
-                        {
-                            // Center
-                            // ......
-                        }
-
-                        _main.ActiveChunks.Add(_main.Chunks[nbIsoFrame]);
-
-                        if (_main.Chunks[nbIsoFrame].ChunkHasDrawn == false)
-                        {
-                            await DrawChunkAsync(_main.Chunks[nbIsoFrame]);
-                            //_main.Chunks[nbIsoFrame].ShowTextTest();
-
-                            if (InitWorldWithHeatmap)
-                                PaintHeatMap(_main.Chunks[nbIsoFrame]);
-                            if (InitWorldWithMoisturemap)
-                                PaintMoistureMap(_main.Chunks[nbIsoFrame]);
-                        }
-                        _main.Chunks[nbIsoFrame].LoadChunk();
-                    }
-                }
-            }
-
-            if (ShowChunksBorder)
-            {
-                SortActiveChunkByDepth();
-            }
-
-            UpdateAllActiveChunkTileNeighborsAsync();
-        }
-        /// <summary>
-        /// Load all chunks and draw all chunks at the same time. -> Fast but drop a bit FPS in low end devices.
-        /// </summary>
-        /// <param name="isoFrameX"></param>
-        /// <param name="isoFrameY"></param>
-        /// <param name="offsetWidth"></param>
-        /// <param name="offsetHeight"></param>
-        private async void LoadChunksAroundPositionInParallel(int isoFrameX, int isoFrameY, byte offsetWidth = 1, byte offsetHeight = 1)
-        {
-            Task[] drawChunkTasks = new Task[(offsetWidth * 2 + 1) * (offsetHeight * 2 + 1)];
-
-            for (int x = isoFrameX - offsetWidth; x <= isoFrameX + offsetWidth; x++)
-            {
-                for (int y = isoFrameY - offsetHeight; y <= isoFrameY + offsetHeight; y++)
-                {
-                    int index = x - (isoFrameX - offsetWidth) + (y - (isoFrameY - offsetHeight)) * (2 * offsetWidth + 1);
-                    Vector2Int nbIsoFrame = new Vector2Int(x, y);
-                    Chunk chunk = _main.GetChunk(nbIsoFrame);
-
-                    if (chunk == null)   // Create new chunk
-                    {
-                        if (x == isoFrameX && y == isoFrameY)
-                        {
-                            // Center
-                            // ......
-                        }
-
-                        Chunk newChunk = await GenerateNewChunkDataAsync(x, y);
-                        drawChunkTasks[index] = DrawChunkAsync(_main.Chunks[nbIsoFrame]);
-
-                        // Cached chunk data
-                        if (_main.HasChunk(nbIsoFrame) == false)
-                        {
-                            _main.AddNewChunk(newChunk);
-                        }
-
-                        _main.ActiveChunks.Add(newChunk);
-                        _main.Chunks[nbIsoFrame].LoadChunk();
-
-                    }
-                    else // Load chunk cached.
-                    {
-                        if (x == isoFrameX && y == isoFrameY)
-                        {
-                            // Center
-                            // ......
-                        }
-
-                        _main.GetChunk(nbIsoFrame).LoadChunk();
-                        _main.ActiveChunks.Add(_main.Chunks[nbIsoFrame]);
-
-                        if (_main.Chunks[nbIsoFrame].ChunkHasDrawn == false)
-                        {
-                            drawChunkTasks[index] = DrawChunkAsync(_main.Chunks[nbIsoFrame]);
-                        }
-                        else
-                        {
-                            drawChunkTasks[index] = Task.CompletedTask;
-                        }
-                    }
-
-                }
-            }
-
-            // When all chunk has drawn.
-            await Task.WhenAll(drawChunkTasks);
-
-
-            foreach (var chunk in _main.Chunks.Values)
-            {
-                if (InitWorldWithHeatmap)
-                    PaintHeatMap(chunk);
-
-                if (InitWorldWithMoisturemap)
-                    PaintMoistureMap(chunk);
-
-                if (!chunk.HasNeighbors())
-                {
-                    UpdateChunkTileNeighbors(chunk);
-                }
-            }
-
-
-            if (ShowChunksBorder)
-            {
-                SortActiveChunkByDepth();
-            }
-        }
+       
         #endregion
 
 
@@ -651,7 +467,7 @@ namespace PixelMiner.WorldGen
                         float offsetX = isoFrameX * width + x;
                         float offsetY = isoFrameY * height + y;
                         float heightValue = (float)_heightModule.GetValue(offsetX, offsetY, 0);
-                        float normalizeHeightValue = (heightValue - MinWorldNoiseValue) / (MaxWorldNoiseValue - MinWorldNoiseValue);
+                        float normalizeHeightValue = (heightValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
                         heightValues[x, y] = normalizeHeightValue;
                     }
                 });
@@ -682,7 +498,7 @@ namespace PixelMiner.WorldGen
                         float offsetY = isoFrameY * height + offsetYFromCenter + offsetYOffset;
 
                         float heightValue = (float)_heightModule.GetValue(offsetX, offsetY, 0);
-                        float normalizeHeightValue = (heightValue - MinWorldNoiseValue) / (MaxWorldNoiseValue - MinWorldNoiseValue);
+                        float normalizeHeightValue = (heightValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
                         heightValues[x, y] = normalizeHeightValue;
                     }
                 });
@@ -693,23 +509,23 @@ namespace PixelMiner.WorldGen
         public async Task<float[,]> GetGradientMapDataAsync(int isoFrameX, int isoFrameY)
         {
             //Debug.Log("GetGradientMapAsync Start");
-            float[,] gradientData = new float[ChunkWidth, ChunkHeight];
+            float[,] gradientData = new float[_chunkWidth, _chunkHeight];
             isoFrameX = -isoFrameX;
             isoFrameY = -isoFrameY;
 
             await Task.Run(() =>
             {
-                int gradientFrameX = (int)(isoFrameX * ChunkWidth / (float)GradientHeatmapSize);
-                int gradientFrameY = -Mathf.CeilToInt(isoFrameY * ChunkHeight / (float)GradientHeatmapSize);
+                int gradientFrameX = (int)(isoFrameX * _chunkWidth / (float)GradientHeatmapSize);
+                int gradientFrameY = -Mathf.CeilToInt(isoFrameY * _chunkHeight / (float)GradientHeatmapSize);
 
                 // Calculate the center of the texture with the offset
                 Vector2 gradientOffset = new Vector2(gradientFrameX * GradientHeatmapSize, gradientFrameY * GradientHeatmapSize);
-                Vector2 gradientCenterOffset = gradientOffset + new Vector2(isoFrameX * ChunkWidth, isoFrameY * ChunkHeight);
+                Vector2 gradientCenterOffset = gradientOffset + new Vector2(isoFrameX * _chunkWidth, isoFrameY * _chunkHeight);
 
 
-                for (int x = 0; x < ChunkWidth; x++)
+                for (int x = 0; x < _chunkWidth; x++)
                 {
-                    for (int y = 0; y < ChunkHeight; y++)
+                    for (int y = 0; y < _chunkHeight; y++)
                     {
                         Vector2 center = new Vector2(Mathf.FloorToInt(x / GradientHeatmapSize), Mathf.FloorToInt(y / GradientHeatmapSize)) * new Vector2(GradientHeatmapSize, GradientHeatmapSize) + new Vector2(GradientHeatmapSize / 2f, GradientHeatmapSize / 2f);
                         Vector2 centerWithOffset = center + gradientCenterOffset;
@@ -728,18 +544,18 @@ namespace PixelMiner.WorldGen
         {
             //Debug.Log("GetFractalHeatMapAsync Start");
 
-            float[,] fractalNoiseData = new float[ChunkWidth, ChunkHeight];
+            float[,] fractalNoiseData = new float[_chunkWidth, _chunkHeight];
 
             await Task.Run(() =>
             {
-                for (int x = 0; x < ChunkWidth; x++)
+                for (int x = 0; x < _chunkWidth; x++)
                 {
-                    for (int y = 0; y < ChunkHeight; y++)
+                    for (int y = 0; y < _chunkHeight; y++)
                     {
-                        float offsetX = isoFrameX * ChunkWidth + x;
-                        float offsetY = isoFrameY * ChunkHeight + y;
+                        float offsetX = isoFrameX * _chunkWidth + x;
+                        float offsetY = isoFrameY * _chunkHeight + y;
                         float heatValue = (float)_heatModule.GetValue(offsetX, offsetY, 0);
-                        float normalizeHeatValue = (heatValue - MinWorldNoiseValue) / (MaxWorldNoiseValue - MinWorldNoiseValue);
+                        float normalizeHeatValue = (heatValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
 
                         fractalNoiseData[x, y] = normalizeHeatValue;
                     }
@@ -778,18 +594,18 @@ namespace PixelMiner.WorldGen
         }
         public async Task<float[,]> GetMoistureMapDataAsync(int isoFrameX, int isoFrameY)
         {
-            float[,] moistureData = new float[ChunkWidth, ChunkHeight];
+            float[,] moistureData = new float[_chunkWidth, _chunkHeight];
 
             await Task.Run(() =>
             {
-                for (int x = 0; x < ChunkWidth; x++)
+                for (int x = 0; x < _chunkWidth; x++)
                 {
-                    for (int y = 0; y < ChunkHeight; y++)
+                    for (int y = 0; y < _chunkHeight; y++)
                     {
-                        float offsetX = isoFrameX * ChunkWidth + x;
-                        float offsetY = isoFrameY * ChunkHeight + y;
+                        float offsetX = isoFrameX * _chunkWidth + x;
+                        float offsetY = isoFrameY * _chunkHeight + y;
                         float moisetureValue = (float)_moistureModule.GetValue(offsetX, 0, offsetY);
-                        float normalizeMoistureValue = (moisetureValue - MinWorldNoiseValue) / (MaxWorldNoiseValue - MinWorldNoiseValue);
+                        float normalizeMoistureValue = (moisetureValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
 
                         moistureData[x, y] = normalizeMoistureValue;
                     }
@@ -817,7 +633,7 @@ namespace PixelMiner.WorldGen
                         float offsetX = isoFrameX * width + x;
                         float offsetY = isoFrameY * height + y;
                         float riverValue = (float)_riverModule.GetValue(offsetX, offsetY, 0);
-                        float normalizeRiverValue = (riverValue - MinWorldNoiseValue) / (MaxWorldNoiseValue - MinWorldNoiseValue);
+                        float normalizeRiverValue = (riverValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
                         riverValues[x, y] = normalizeRiverValue;
                     }
                 });
@@ -835,9 +651,9 @@ namespace PixelMiner.WorldGen
             chunk.Processing = true;
             await Task.Run(() =>
             {
-                Parallel.For(0, ChunkWidth, x =>
+                Parallel.For(0, _chunkWidth, x =>
                 {
-                    for (int y = 0; y < ChunkHeight; y++)
+                    for (int y = 0; y < _chunkHeight; y++)
                     {
                         Tile tile = chunk.ChunkData.GetValue(x, y);
                         tile.HeightValue = heightValues[x, y];
@@ -857,9 +673,9 @@ namespace PixelMiner.WorldGen
             chunk.Processing = true;
             await Task.Run(() =>
             {
-                Parallel.For(0, ChunkWidth, x =>
+                Parallel.For(0, _chunkWidth, x =>
                 {
-                    for (int y = 0; y < ChunkHeight; y++)
+                    for (int y = 0; y < _chunkHeight; y++)
                     {
                         Tile tile = chunk.ChunkData.GetValue(x, y);
                         tile.HeatValue = heatValues[x, y];
@@ -890,9 +706,9 @@ namespace PixelMiner.WorldGen
 
             await Task.Run(() =>
             {
-                for (int x = 0; x < ChunkWidth; x++)
+                for (int x = 0; x < _chunkWidth; x++)
                 {
-                    for (int y = 0; y < ChunkHeight; y++)
+                    for (int y = 0; y < _chunkHeight; y++)
                     {
                         Tile tile = chunk.ChunkData.GetValue(x, y);
 
@@ -927,9 +743,9 @@ namespace PixelMiner.WorldGen
             chunk.Processing = true;
             await Task.Run(() =>
             {
-                Parallel.For(0, ChunkWidth, x =>
+                Parallel.For(0, _chunkWidth, x =>
                 {
-                    for (int y = 0; y < ChunkHeight; y++)
+                    for (int y = 0; y < _chunkHeight; y++)
                     {
                         Tile tile = chunk.ChunkData.GetValue(x, y);
                         tile.MoistureValue = moisetureValues[x, y];
@@ -969,9 +785,9 @@ namespace PixelMiner.WorldGen
             chunk.Processing = true;
             await Task.Run(() =>
             {
-                Parallel.For(0, ChunkWidth, x =>
+                Parallel.For(0, _chunkWidth, x =>
                 {
-                    for (int y = 0; y < ChunkHeight; y++)
+                    for (int y = 0; y < _chunkHeight; y++)
                     {
                         Tile tile = chunk.ChunkData.GetValue(x, y);
                         float riverValue = riverValues[x, y];
@@ -1086,9 +902,9 @@ namespace PixelMiner.WorldGen
         #region Paint Color
         public void PaintNeighborsColor(Chunk chunk)
         {
-            for (var x = 0; x < ChunkWidth; x++)
+            for (var x = 0; x < _chunkWidth; x++)
             {
-                for (var y = 0; y < ChunkHeight; y++)
+                for (var y = 0; y < _chunkHeight; y++)
                 {
                     Tile t = chunk.ChunkData.GetValue(x, y);
                     if (t.HasNeighbors())
@@ -1122,46 +938,46 @@ namespace PixelMiner.WorldGen
 
         public void PaintHeatMap(Chunk chunk)
         {
-            for (var x = 0; x < ChunkWidth; x++)
+            for (var x = 0; x < _chunkWidth; x++)
             {
-                for (var y = 0; y < ChunkHeight; y++)
+                for (var y = 0; y < _chunkHeight; y++)
                 {
                     Tile t = chunk.ChunkData.GetValue(x, y);
-                    chunk.HeatTilemap.SetColor(new Vector3Int(t.FrameX, t.FrameY), WorldGenUtilities.GetGradientColor(t.HeatValue));
+                    chunk.HeatTilemap.SetColor(new Vector3Int(t.FrameX, t.FrameY), GetGradientColor(t.HeatValue));
                 }
             }
         }
 
         public void PaintMoistureMap(Chunk chunk)
         {
-            for (int x = 0; x < ChunkWidth; x++)
+            for (int x = 0; x < _chunkWidth; x++)
             {
-                for (int y = 0; y < ChunkHeight; y++)
+                for (int y = 0; y < _chunkHeight; y++)
                 {
                     Tile t = chunk.ChunkData.GetValue(x, y);
                     Color color;
                     switch (t.MoistureType)
                     {
                         case MoistureType.Dryest:
-                            color = WorldGenUtilities.Dryest;
+                            color = Dryest;
                             break;
                         case MoistureType.Dryer:
-                            color = WorldGenUtilities.Dryer;
+                            color = Dryer;
                             break;
                         case MoistureType.Dry:
-                            color = WorldGenUtilities.Dry;
+                            color = Dry;
                             break;
                         case MoistureType.Wet:
-                            color = WorldGenUtilities.Wet;
+                            color = Wet;
                             break;
                         case MoistureType.Wetter:
-                            color = WorldGenUtilities.Wetter;
+                            color = Wetter;
                             break;
                         case MoistureType.Wettest:
-                            color = WorldGenUtilities.Wettest;
+                            color = Wettest;
                             break;
                         default:
-                            color = WorldGenUtilities.Wettest;
+                            color = Wettest;
                             break;
                     }
 
@@ -1177,7 +993,7 @@ namespace PixelMiner.WorldGen
         public async Task DrawChunkAsync(Chunk chunk)
         {
             chunk.Processing = true;
-            int size = ChunkWidth * ChunkHeight;
+            int size = _chunkWidth * _chunkHeight;
             TileBase[] landTiles = new TileBase[size];
             TileBase[] waterTiles = new TileBase[size];
             TileBase[] tilegroupTiles = new TileBase[size];
@@ -1190,11 +1006,11 @@ namespace PixelMiner.WorldGen
 
             await Task.Run(() =>
             {
-                Parallel.For(0, ChunkWidth, x =>
+                Parallel.For(0, _chunkWidth, x =>
                 {
-                    for (int y = 0; y < ChunkHeight; y++)
+                    for (int y = 0; y < _chunkHeight; y++)
                     {
-                        int index = x + y * ChunkWidth;
+                        int index = x + y * _chunkWidth;
                         positionArray[index] = new Vector3Int(x, y, 0);
 
                         HeightType heightType = chunk.ChunkData.GetValue(x, y).HeightType;
@@ -1375,7 +1191,7 @@ namespace PixelMiner.WorldGen
 
 
         #region Neighbors
-        private void AddChunkFourDirectionNeighbors(Chunk chunk)
+        public void AddChunkFourDirectionNeighbors(Chunk chunk)
         {
             Chunk nbAbove = _main.GetChunkNeighborAbove(chunk);
             Chunk nbBelow = _main.GetChunkNeighborBelow(chunk);
@@ -1383,7 +1199,7 @@ namespace PixelMiner.WorldGen
             Chunk nbRight = _main.GetChunkNeighborRight(chunk);
             chunk.SetTwoSidesChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
         }
-        private void UpdateChunkTileNeighbors(Chunk chunk)
+        public void UpdateChunkTileNeighbors(Chunk chunk)
         {
             // Find chunk neighbors
             Chunk nbAbove = _main.GetChunkNeighborAbove(chunk);
@@ -1396,7 +1212,7 @@ namespace PixelMiner.WorldGen
             {
                 chunk.UpdateAllTileNeighbors();
 
-                if (PaintTileNeighbors)
+                if (_main.PaintTileNeighbors)
                     PaintNeighborsColor(chunk);
 
                 if (chunk.Waters.Count == 0 && chunk.Lands.Count == 0)
@@ -1410,7 +1226,7 @@ namespace PixelMiner.WorldGen
             {
                 nbAbove.UpdateAllTileNeighbors();
 
-                if (PaintTileNeighbors)
+                if (_main.PaintTileNeighbors)
                     PaintNeighborsColor(nbAbove);
 
                 if (nbAbove.Waters.Count == 0 && nbAbove.Lands.Count == 0)
@@ -1423,7 +1239,7 @@ namespace PixelMiner.WorldGen
             {
                 nbBelow.UpdateAllTileNeighbors();
 
-                if (PaintTileNeighbors)
+                if (_main.PaintTileNeighbors)
                     PaintNeighborsColor(nbBelow);
 
                 if (nbBelow.Waters.Count == 0 && nbBelow.Lands.Count == 0)
@@ -1437,7 +1253,7 @@ namespace PixelMiner.WorldGen
             {
                 nbLeft.UpdateAllTileNeighbors();
 
-                if (PaintTileNeighbors)
+                if (_main.PaintTileNeighbors)
                     PaintNeighborsColor(nbLeft);
 
                 if (nbLeft.Waters.Count == 0 && nbLeft.Lands.Count == 0)
@@ -1450,7 +1266,7 @@ namespace PixelMiner.WorldGen
             {
                 nbRight.UpdateAllTileNeighbors();
 
-                if (PaintTileNeighbors)
+                if (_main.PaintTileNeighbors)
                     PaintNeighborsColor(nbRight);
 
                 if (nbRight.Waters.Count == 0 && nbRight.Lands.Count == 0)
@@ -1461,7 +1277,7 @@ namespace PixelMiner.WorldGen
 
             }
         }
-        private async void UpdateChunkTileNeighborsAsync(Chunk chunk)
+        public async void UpdateChunkTileNeighborsAsync(Chunk chunk)
         {
             // Find chunk neighbors
             Chunk nbAbove = _main.GetChunkNeighborAbove(chunk);
@@ -1504,7 +1320,7 @@ namespace PixelMiner.WorldGen
 
             if (chunk.AllTileHasNeighbors)
             {
-                if (PaintTileNeighbors)
+                if (_main.PaintTileNeighbors)
                     PaintNeighborsColor(chunk);
 
                 if (chunk.Waters.Count == 0 && chunk.Lands.Count == 0)
@@ -1515,7 +1331,7 @@ namespace PixelMiner.WorldGen
             }
             if (nbAbove != null && nbAbove.AllTileHasNeighbors)
             {
-                if (PaintTileNeighbors)
+                if (_main.PaintTileNeighbors)
                     PaintNeighborsColor(nbAbove);
 
                 if (nbAbove.Waters.Count == 0 && nbAbove.Lands.Count == 0)
@@ -1526,7 +1342,7 @@ namespace PixelMiner.WorldGen
             }
             if (nbBelow != null && nbBelow.AllTileHasNeighbors)
             {
-                if (PaintTileNeighbors)
+                if (_main.PaintTileNeighbors)
                     PaintNeighborsColor(nbBelow);
 
                 if (nbBelow.Waters.Count == 0 && nbBelow.Lands.Count == 0)
@@ -1537,7 +1353,7 @@ namespace PixelMiner.WorldGen
             }
             if (nbLeft != null && nbLeft.AllTileHasNeighbors)
             {
-                if (PaintTileNeighbors)
+                if (_main.PaintTileNeighbors)
                     PaintNeighborsColor(nbLeft);
 
                 if (nbLeft.Waters.Count == 0 && nbLeft.Lands.Count == 0)
@@ -1548,7 +1364,7 @@ namespace PixelMiner.WorldGen
             }
             if (nbRight != null && nbRight.AllTileHasNeighbors)
             {
-                if (PaintTileNeighbors)
+                if (_main.PaintTileNeighbors)
                     PaintNeighborsColor(nbRight);
 
                 if (nbRight.Waters.Count == 0 && nbRight.Lands.Count == 0)
@@ -1559,7 +1375,7 @@ namespace PixelMiner.WorldGen
             }
 
         }
-        private void UpdateAllActiveChunkTileNeighborsAsync()
+        public void UpdateAllActiveChunkTileNeighborsAsync()
         {
             foreach (Chunk activeChunk in _main.ActiveChunks)
             {
@@ -1579,9 +1395,9 @@ namespace PixelMiner.WorldGen
         {
             Stack<Tile> stack = new Stack<Tile>();
 
-            for (int x = 0; x < ChunkWidth; x++)
+            for (int x = 0; x < _chunkWidth; x++)
             {
-                for (int y = 0; y < ChunkHeight; y++)
+                for (int y = 0; y < _chunkHeight; y++)
                 {
                     Tile t = chunk.ChunkData.GetValue(x, y);
 
@@ -1677,7 +1493,7 @@ namespace PixelMiner.WorldGen
         /// <summary>
         /// Sort active chunks fix some isometric chunk has wrong order (Visualization).
         /// </summary>
-        private void SortActiveChunkByDepth(bool inverse = false)
+        public void SortActiveChunkByDepth(bool inverse = false)
         {
             int depth = 0;
             List<Chunk> chunkList = _main.ActiveChunks.ToList();
@@ -1701,6 +1517,41 @@ namespace PixelMiner.WorldGen
                 chunk.transform.position = new Vector3(chunk.transform.position.x,
                     chunk.transform.position.y,
                     depth++);
+            }
+        }
+        public static Color GetGradientColor(float heatValue)
+        {
+            // predefine heat value threshold
+            float ColdestValue = 0.05f;
+            float ColderValue = 0.18f;
+            float ColdValue = 0.4f;
+            float WarmValue = 0.6f;
+            float WarmerValue = 0.8f;
+
+
+            if (heatValue < ColdestValue)
+            {
+                return ColdestColor;
+            }
+            else if (heatValue < ColderValue)
+            {
+                return ColderColor;
+            }
+            else if (heatValue < ColdValue)
+            {
+                return ColdColor;
+            }
+            else if (heatValue < WarmValue)
+            {
+                return WarmColor;
+            }
+            else if (heatValue < WarmerValue)
+            {
+                return WarmerColor;
+            }
+            else
+            {
+                return WarmestColor;
             }
         }
         #endregion
