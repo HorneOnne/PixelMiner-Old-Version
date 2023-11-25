@@ -1,4 +1,4 @@
-﻿namespace PixelMiner.WorldGen
+﻿namespace PixelMiner.Enums
 {
     public enum TileGroupType : ushort
     {

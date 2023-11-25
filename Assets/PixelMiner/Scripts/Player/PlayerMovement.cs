@@ -3,6 +3,7 @@ using PixelMiner.WorldGen;
 using PixelMiner.Enums;
 using PixelMiner.Utilities;
 using System.Collections.Generic;
+using PixelMiner.WorldBuilding;
 
 namespace PixelMiner
 {

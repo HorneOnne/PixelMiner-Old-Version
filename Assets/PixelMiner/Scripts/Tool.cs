@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using PixelMiner.WorldGen;
 using PixelMiner.Enums;
+using PixelMiner.WorldBuilding;
 
 namespace PixelMiner
 {

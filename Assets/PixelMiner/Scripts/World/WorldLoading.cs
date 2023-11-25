@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using UnityEngine;
 using Sirenix.OdinInspector;
+using PixelMiner.WorldBuilding;
 
 
 namespace PixelMiner.WorldGen

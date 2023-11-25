@@ -1,6 +1,6 @@
 ﻿using PixelMiner.Enums;
 
-namespace PixelMiner.WorldGen
+namespace PixelMiner.WorldBuilding
 {
     public class Tile
     {

@@ -5,6 +5,7 @@ using Sirenix.OdinInspector;
 using PixelMiner.Enums;
 using PixelMiner.Utilities;
 using System.Threading.Tasks;
+using PixelMiner.WorldBuilding;
 
 namespace PixelMiner.WorldGen
 {
@@ -64,11 +65,7 @@ namespace PixelMiner.WorldGen
         {
 
         }
-        private void Update()
-        {
-            Debug.Log(Chunks.Count);
-        }
-
+       
         #region Initialize tile data
         private void LoadTileBaseDictionary()
         {
@@ -166,7 +163,7 @@ namespace PixelMiner.WorldGen
 
 
         #region Tile Utilities
-        public Tile GetTile(Vector2 worldPosition, out Chunk chunk)
+        public WorldBuilding.Tile GetTile(Vector2 worldPosition, out Chunk chunk)
         {
             chunk = GetChunk(worldPosition, ChunkWidth, ChunkHeight);
             if (chunk != null)
@@ -181,7 +178,7 @@ namespace PixelMiner.WorldGen
         }
         public void SetTileColor(Vector2 worldPosition, Color color)
         {
-            Tile tile = GetTile(worldPosition, out Chunk chunk);
+            WorldBuilding.Tile tile = GetTile(worldPosition, out Chunk chunk);
             if(chunk != null && tile != null)
             {
                 chunk.PaintTileColor(tile, color);
@@ -200,7 +197,7 @@ namespace PixelMiner.WorldGen
         /// <returns></returns>
         public Vector2 GetTileWorldPosition(Vector2 worldPosition)
         {
-            Tile tile = GetTile(worldPosition, out Chunk chunk);
+            WorldBuilding.Tile tile = GetTile(worldPosition, out Chunk chunk);
             if (chunk != null && tile != null)
             {
                 Vector2 offset = chunk.transform.position;
@@ -210,7 +207,7 @@ namespace PixelMiner.WorldGen
         }
         public Vector2 GetNeighborWorldPosition(Vector2 worldPosition, Vector2 direction, Vector2 offset = (default))
         {
-            Tile tile = GetTile(worldPosition, out Chunk chunk);
+            WorldBuilding.Tile tile = GetTile(worldPosition, out Chunk chunk);
             Vector2 nbWorldPosition = Vector2.zero;
             if (tile != null)
             {

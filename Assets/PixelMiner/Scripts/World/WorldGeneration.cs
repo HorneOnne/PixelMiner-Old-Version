@@ -4,12 +4,12 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 using LibNoise;
 using LibNoise.Generator;
 using Sirenix.OdinInspector;
 using PixelMiner.Utilities;
 using PixelMiner.Enums;
+using PixelMiner.WorldBuilding;
 
 
 namespace PixelMiner.WorldGen
@@ -992,13 +992,13 @@ namespace PixelMiner.WorldGen
         {
             chunk.Processing = true;
             int size = _chunkWidth * _chunkHeight;
-            TileBase[] landTiles = new TileBase[size];
-            TileBase[] waterTiles = new TileBase[size];
-            TileBase[] tilegroupTiles = new TileBase[size];
-            TileBase[] heatTiles = new TileBase[size];
-            TileBase[] moistureTiles = new TileBase[size];
+            UnityEngine.Tilemaps.TileBase[] landTiles = new UnityEngine.Tilemaps.TileBase[size];
+            UnityEngine.Tilemaps.TileBase[] waterTiles = new UnityEngine.Tilemaps.TileBase[size];
+            UnityEngine.Tilemaps.TileBase[] tilegroupTiles = new UnityEngine.Tilemaps.TileBase[size];
+            UnityEngine.Tilemaps.TileBase[] heatTiles = new UnityEngine.Tilemaps.TileBase[size];
+            UnityEngine.Tilemaps.TileBase[] moistureTiles = new UnityEngine.Tilemaps.TileBase[size];
 
-            TileBase[] riverTiles = new TileBase[size];
+            UnityEngine.Tilemaps.TileBase[] riverTiles = new UnityEngine.Tilemaps.TileBase[size];
 
             Vector3Int[] positionArray = new Vector3Int[size];
 

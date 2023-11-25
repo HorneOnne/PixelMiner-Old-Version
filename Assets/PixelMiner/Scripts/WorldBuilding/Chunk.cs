@@ -2,9 +2,9 @@
 using UnityEngine.Tilemaps;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using PixelMiner.DataStructure;
 
-
-namespace PixelMiner.WorldGen
+namespace PixelMiner.WorldBuilding
 {
     [SelectionBase]
     public class Chunk : MonoBehaviour
