@@ -64,7 +64,6 @@ namespace PixelMiner.WorldGen
                 {
                     lastChunkISOFrame = _centerPointFrame;
                     LoadChunksAroundPositionInSequence(_centerPointFrame.x, _centerPointFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
-                    Debug.Log("Load");
                 }
             }
         }

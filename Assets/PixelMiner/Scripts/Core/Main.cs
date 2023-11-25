@@ -4,7 +4,7 @@ using UnityEngine.Tilemaps;
 using Sirenix.OdinInspector;
 using PixelMiner.Enums;
 using PixelMiner.Utilities;
-
+using System.Threading.Tasks;
 
 namespace PixelMiner.WorldGen
 {
@@ -64,7 +64,10 @@ namespace PixelMiner.WorldGen
         {
 
         }
-
+        private void Update()
+        {
+            Debug.Log(Chunks.Count);
+        }
 
         #region Initialize tile data
         private void LoadTileBaseDictionary()
@@ -176,7 +179,6 @@ namespace PixelMiner.WorldGen
             }
             return null;
         }
-   
         public void SetTileColor(Vector2 worldPosition, Color color)
         {
             Tile tile = GetTile(worldPosition, out Chunk chunk);
@@ -185,7 +187,12 @@ namespace PixelMiner.WorldGen
                 chunk.PaintTileColor(tile, color);
             }
         }
-     
+        public async void ToggleTileColor(Vector2 worldPosition, Color color, int toggleTime = 200)
+        {
+            SetTileColor(worldPosition, color);
+            await Task.Delay(toggleTime);
+            SetTileColor(worldPosition, Color.white);
+        }
         /// <summary>
         /// Get world position of a tile at specific position.
         /// </summary>
@@ -194,14 +201,13 @@ namespace PixelMiner.WorldGen
         public Vector2 GetTileWorldPosition(Vector2 worldPosition)
         {
             Tile tile = GetTile(worldPosition, out Chunk chunk);
-            if (chunk != null)
+            if (chunk != null && tile != null)
             {
                 Vector2 offset = chunk.transform.position;
                 return IsometricUtilities.LocalToGlobal(tile.FrameX, tile.FrameY, offset.x, offset.y);
             }
             return Vector2.zero;
         }
- 
         public Vector2 GetNeighborWorldPosition(Vector2 worldPosition, Vector2 direction, Vector2 offset = (default))
         {
             Tile tile = GetTile(worldPosition, out Chunk chunk);

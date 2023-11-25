@@ -57,7 +57,7 @@ namespace PixelMiner
 
         private void Update()
         {
-            Main.Instance.SetTileColor(_rb.position, Color.red);
+            Main.Instance.ToggleTileColor(_rb.position, Color.red);
 
             if(ContinuousMove)
             {
@@ -158,7 +158,7 @@ namespace PixelMiner
 
             _predictMovePosition = GetPredictMovePosition();
             _predictTile = Main.Instance.GetTile(_predictMovePosition, out Chunk chunk);
-            Main.Instance.SetTileColor(_predictMovePosition, Color.blue);
+            Main.Instance.ToggleTileColor(_predictMovePosition, Color.blue);
 
            
             _moveSuggestions.Clear();
@@ -231,12 +231,12 @@ namespace PixelMiner
                     tile.HeightType == HeightType.River))
                 {
                     // Cant mmove
-                    Main.Instance.SetTileColor(suggesttion, Color.black);
+                    Main.Instance.ToggleTileColor(suggesttion, Color.black);
                 }
                 else
                 {
                     // Can move
-                    Main.Instance.SetTileColor(suggesttion, Color.green);
+                    Main.Instance.ToggleTileColor(suggesttion, Color.green);
                 }
             }
         }
@@ -310,7 +310,7 @@ namespace PixelMiner
                     tile.HeightType == HeightType.River))
                 {
                     // Cant mmove
-                    Main.Instance.SetTileColor(suggesttion, Color.black);
+                    Main.Instance.ToggleTileColor(suggesttion, Color.black);
                 }
                 else
                 {

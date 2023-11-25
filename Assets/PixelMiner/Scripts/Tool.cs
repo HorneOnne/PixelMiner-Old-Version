@@ -1,68 +1,48 @@
 ﻿using UnityEngine;
 using PixelMiner.WorldGen;
 using PixelMiner.Enums;
-using PixelMiner.Utilities;
 
 namespace PixelMiner
 {
     public class Tool : MonoBehaviour
     {
+        [SerializeField] private GameObject _cursorPrefab;
         private Main _main;
 
-
-        // Cached
-        private TextMesh _isoCoordText;
-
+        private Transform _cursor;
 
         private void Start()
         {
             _main = Main.Instance;
 
-            _isoCoordText = Utilities.Utilities.CreateWorldText("", null,fontSize: 10, textAnchor: TextAnchor.MiddleCenter);
-            _isoCoordText.hideFlags = HideFlags.HideInInspector;
+            // Cursor
+            _cursor = Instantiate(_cursorPrefab).transform;
+            _cursor.gameObject.hideFlags = HideFlags.HideInHierarchy;
         }
 
        
         private void Update()
         {
-            if(_isoCoordText != null)
-            {
-                Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                Main.Instance.SetTileColor(mousePosition, Color.magenta);
-                Tile tile = Main.Instance.GetTile(mousePosition, out Chunk chunk);
-                if(tile != null)
-                {
-                    SetIsoCoordText($"Mouse: {mousePosition} " +
-                       $"\n {Main.Instance.GetTileWorldPosition(mousePosition)}" +
-                       $"\n {IsometricUtilities.LocalToGlobal(tile.FrameX, tile.FrameY, chunk.transform.position.x, chunk.transform.position.y)}"
-                       , mousePosition);
-                }
-                
-            }
+            Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Tile tile = Main.Instance.GetTile(mousePosition, out Chunk chunk);
+            Vector2 tileWorldPos = _main.GetTileWorldPosition(mousePosition);
+            _cursor.position = tileWorldPos;
 
-            if (Input.GetMouseButtonDown(0))
+
+            if (Input.GetMouseButton(0))
             {
-                Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                Chunk chunk = _main.GetChunk(mousePosition, _main.ChunkWidth, _main.ChunkHeight);
-     
                 if (chunk != null)
                 {
-                    //SetChunkColor(chunk, Color.red);
-                    chunk.SetTile(mousePosition, Main.Instance.GetTileBase(TileType.DirtGrass));
+                    chunk.SetTile(tile.FrameX, tile.FrameY, _main.GetTileBase(TileType.DirtGrass));
                 }
 
             }
 
-            if(Input.GetMouseButtonDown(1))
+            if(Input.GetMouseButton(1))
             {
-                Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                mousePosition += new Vector2(0f, -0.75f);
-                Chunk chunk = _main.GetChunk(mousePosition, _main.ChunkWidth, _main.ChunkHeight);
-               
                 if (chunk != null)
                 {
-                    //SetChunkColor(chunk, Color.white);
-                    chunk.SetTile(mousePosition, null);
+                    chunk.SetTile(tile.FrameX, tile.FrameY, null);
                 }
             }
 
@@ -73,16 +53,6 @@ namespace PixelMiner
         {
             chunk.LandTilemap.color = color;
         }
-
-
-
-        #region Utilities
-        public void SetIsoCoordText(string text, Vector2 position)
-        {
-            _isoCoordText.text = text;
-            _isoCoordText.transform.position = position;
-        }
-        #endregion
     }
 }
 

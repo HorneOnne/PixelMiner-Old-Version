@@ -54,7 +54,7 @@ namespace PixelMiner.WorldGen
         }
         private void Start()
         {
-            InvokeRepeating(nameof(ResetAllTileColorTester), 1f, 0.2f);
+
         }
         private void Update()
         {
@@ -338,6 +338,10 @@ namespace PixelMiner.WorldGen
             cellPosition.z = 0;
             LandTilemap.SetTile(cellPosition, tileBase);
         }
+        public void SetTile(byte frameX, byte frameY, TileBase tileBase)
+        {
+            LandTilemap.SetTile(new Vector3Int(frameX, frameY, 0), tileBase);
+        }
         public Tile GetTile(byte frameX, byte frameY)
         {
             return ChunkData.GetValue(frameX, frameY);
@@ -345,16 +349,6 @@ namespace PixelMiner.WorldGen
         public Vector3 GetTileWorldPosition(byte frameX, byte frameY)
         {
             return Grid.CellToWorld(new Vector3Int(frameX, frameY, 0));
-        }
-        private void ResetAllTileColorTester()
-        {
-            for (var x = 0; x < _width; x++)
-            {
-                for (var y = 0; y < _height; y++)
-                {
-                    LandTilemap.SetColor(new Vector3Int(x, y), Color.white);
-                }
-            }
         }
         public void SetDrawRenderMode(TilemapRenderer.Mode mode)
         {
