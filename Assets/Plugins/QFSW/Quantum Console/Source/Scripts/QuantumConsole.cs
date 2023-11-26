@@ -93,7 +93,7 @@ namespace QFSW.QC
 
         [SerializeField] private TMP_InputField _consoleInput;
         [SerializeField] private TextMeshProUGUI _inputPlaceholderText;
-        [SerializeField] private TextMeshProUGUI _consoleLogText;
+        [SerializeField] private TMP_InputField _consoleLogText;
         [SerializeField] private TextMeshProUGUI _consoleSuggestionText;
         [SerializeField] private TextMeshProUGUI _suggestionPopupText;
         [SerializeField] private TextMeshProUGUI _jobCounterText;
@@ -989,7 +989,7 @@ namespace QFSW.QC
             _logStorage.Clear();
             _logQueue.Clear();
             _consoleLogText.text = string.Empty;
-            _consoleLogText.SetLayoutDirty();
+            //_consoleLogText.SetLayoutDirty();
             ClearBuffers();
             OnClear?.Invoke();
         }

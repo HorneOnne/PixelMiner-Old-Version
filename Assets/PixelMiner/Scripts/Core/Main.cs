@@ -6,12 +6,19 @@ using PixelMiner.Enums;
 using PixelMiner.Utilities;
 using System.Threading.Tasks;
 using PixelMiner.WorldBuilding;
+using PixelMiner.Core;
 
 namespace PixelMiner.WorldGen
 {
     public class Main : MonoBehaviour
     {
         public static Main Instance { get; private set; }
+
+        // BlockUV
+        public BlockDataSO BlockDataSO;
+        public float TileSizeX, TileSizeY;  
+        public Dictionary<BlockType, BlockData> BlockDataDict = new Dictionary<BlockType, BlockData>();
+
 
         // Tiles data
         [AssetList(Path = "/PixelMiner/Tiles/")]
@@ -63,8 +70,9 @@ namespace PixelMiner.WorldGen
         }
         private void Start()
         {
-
+            InitBlockDataDictionary();
         }
+
        
         #region Initialize tile data
         private void LoadTileBaseDictionary()
@@ -79,7 +87,6 @@ namespace PixelMiner.WorldGen
                 _animatedTileBaseDict.Add(animatedTile.Type, animatedTile);
             }
         }
-
         public TileBase GetTileBase(TileType tileType)
         {
             if (_tileBaseDict.ContainsKey(tileType))
@@ -91,6 +98,18 @@ namespace PixelMiner.WorldGen
                 return _animatedTileBaseDict[tileType];
             }
             return null;
+        }
+        private void InitBlockDataDictionary()
+        {
+            TileSizeX = BlockDataSO.TileSizeX;
+            TileSizeY = BlockDataSO.TileSizeY;
+            foreach(var blockData in BlockDataSO.BLockDataList)
+            {
+                if(!BlockDataDict.ContainsKey(blockData.BlockType))
+                {
+                    BlockDataDict.Add(blockData.BlockType, blockData);
+                }
+            }
         }
         #endregion
 
@@ -256,6 +275,11 @@ namespace PixelMiner.WorldGen
             }
             return nbWorldPosition;
         }
+        #endregion
+
+
+        #region Block
+    
         #endregion
     }
 }
