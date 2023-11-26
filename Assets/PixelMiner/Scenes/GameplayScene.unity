@@ -3187,6 +3187,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3534082803645681338, guid: fe826b5dc7b8e274e9036be246c91785, type: 3}
+      propertyPath: m_LineType
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3534082803645681338, guid: fe826b5dc7b8e274e9036be246c91785, type: 3}
       propertyPath: m_ReadOnly
       value: 1
       objectReference: {fileID: 0}

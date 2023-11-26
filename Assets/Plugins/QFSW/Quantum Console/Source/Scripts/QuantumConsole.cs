@@ -271,7 +271,8 @@ namespace QFSW.QC
 
                 else if (!IsBlockedByAsync)
                 {
-                    if (InputHelper.GetKeyDown(_keyConfig.SubmitCommandKey)) { InvokeCommand(); }
+
+                    if (InputHelper.GetKeysDown(_keyConfig.SubmitCommandKeys)) { InvokeCommand(); }
                     if (_storeCommandHistory) { ProcessCommandHistory(); }
                     ProcessAutocomplete();
                 }

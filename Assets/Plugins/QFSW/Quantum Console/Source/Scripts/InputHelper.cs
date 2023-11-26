@@ -56,6 +56,23 @@ namespace QFSW.QC
 #endif
         }
 
+        public static bool GetKeysDown(KeyCode[] keys)
+        {
+#if NEW_INPUT
+            return IsKeySupported(key)
+                   && Keyboard.current[key.ToKey()].wasPressedThisFrame;
+#else
+            foreach(var key in keys)
+            {
+                if(Input.GetKeyDown(key))
+                {
+                    return true;
+                }
+            }
+            return false;
+#endif
+        }
+
         public static bool GetKeyUp(KeyCode key)
         {
 #if NEW_INPUT

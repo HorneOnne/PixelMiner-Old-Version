@@ -31,7 +31,7 @@ namespace QFSW.QC.Editor
 
             _keyConfigInstance = (QuantumKeyConfig)target;
 
-            _submitCommandKeyProperty = serializedObject.FindProperty("SubmitCommandKey");
+            _submitCommandKeyProperty = serializedObject.FindProperty("SubmitCommandKeys");
             _hideConsoleKeyProperty = serializedObject.FindProperty("HideConsoleKey");
             _showConsoleKeyProperty = serializedObject.FindProperty("ShowConsoleKey");
             _toggleConsoleVisibilityKeyProperty = serializedObject.FindProperty("ToggleConsoleVisibilityKey");
