@@ -2,7 +2,9 @@
 using UnityEngine;
 using System.Threading.Tasks;
 using QFSW.QC;
-using VertexData = System.Tuple<UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector2>;
+//using VertexData = System.Tuple<UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector2>;
+using VertexData = System.Tuple<UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector2, UnityEngine.Vector2>;
+using PixelMiner.Enums;
 
 namespace PixelMiner.Core
 {
@@ -24,12 +26,13 @@ namespace PixelMiner.Core
 
             /*DIRT*/ 
             {new Vector2(0.125f, 0.9375f), new Vector2(0.1875f, 0.9375f),
-             new Vector2(0.125f, 1f), new Vector2(0.1875f, 1f)}
+             new Vector2(0.125f, 1f), new Vector2(0.1875f, 1f)},
+
         };
 
 
         [Command("/getUV")]
-        public static void ReadUVTesting(int u, int v)
+        public static void ReadUVTesting(int u, int v, ushort blockType = 0)
         {
             float tileSize = 1 / 16f;
             //Debug.Log($"\n{tileSize * u}   {tileSize * v}" +
@@ -37,10 +40,11 @@ namespace PixelMiner.Core
             //    $"\n{tileSize * u}  {tileSize * v + tileSize}" +
             //    $"\n{tileSize * u + tileSize}   {tileSize * v + tileSize}");
 
-            Debug.Log($"\n{{new Vector2({tileSize * u}f, {tileSize * v}f), " +
+            Debug.Log($"\n\n/*{((BlockType)blockType).ToString().ToUpper()}*/" +
+               $"\n{{new Vector2({tileSize * u}f, {tileSize * v}f), " +
                $"new Vector2({tileSize * u + tileSize}f, {tileSize * v}f)," +
                $"\nnew Vector2({tileSize * u}f, {tileSize * v + tileSize}f), " +
-               $"new Vector2({tileSize * u + tileSize}f, {tileSize * v + tileSize}f)}}");
+               $"new Vector2({tileSize * u + tileSize}f, {tileSize * v + tileSize}f)}}, ");
         }
 
 
@@ -61,7 +65,8 @@ namespace PixelMiner.Core
                     Vector3 v = meshes[i].vertices[j];
                     Vector3 n = meshes[i].normals[j];
                     Vector2 uv = meshes[i].uv[j];
-                    VertexData p = new VertexData(v, n, uv);
+                    Vector2 uv2 = meshes[i].uv2[j];
+                    VertexData p = new VertexData(v, n, uv, uv2);
 
                     if (!pointsHash.Contains(p))
                     {
@@ -77,7 +82,8 @@ namespace PixelMiner.Core
                     Vector3 v = meshes[i].vertices[triPoint];
                     Vector3 n = meshes[i].normals[triPoint];
                     Vector2 uv = meshes[i].uv[triPoint];
-                    VertexData p = new VertexData(v, n, uv);
+                    Vector2 uv2 = meshes[i].uv2[triPoint];
+                    VertexData p = new VertexData(v, n, uv, uv2);
 
                     int index;
                     pointsOrder.TryGetValue(p, out index);
@@ -97,16 +103,19 @@ namespace PixelMiner.Core
             List<Vector3> verts = new List<Vector3>();
             List<Vector3> norms = new List<Vector3>();
             List<Vector2> uvs = new List<Vector2>();
+            List<Vector2> uv2s = new List<Vector2>();
 
             foreach (VertexData v in list.Keys)
             {
                 verts.Add(v.Item1);
                 norms.Add(v.Item2);
                 uvs.Add(v.Item3);
+                uv2s.Add(v.Item4);
             }
             mesh.vertices = verts.ToArray();
             mesh.normals = norms.ToArray();
             mesh.uv = uvs.ToArray();
+            mesh.uv2 = uv2s.ToArray();
         }
 
 

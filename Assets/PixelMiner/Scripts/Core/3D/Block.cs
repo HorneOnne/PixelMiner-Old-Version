@@ -21,7 +21,7 @@ namespace PixelMiner.Core
         private void CreateCube()
         {
             Quad[] q = new Quad[6];
-            q[0] = new Quad(BlockSide.Top, BlockType.Dirt);
+            q[0] = new Quad(BlockSide.Top, BlockType.GrassTop);
             q[1] = new Quad(BlockSide.Bottom, BlockType.GrassSide);
             q[2] = new Quad(BlockSide.Front, BlockType.GrassSide);
             q[3] = new Quad(BlockSide.Back, BlockType.GrassSide);
@@ -34,6 +34,7 @@ namespace PixelMiner.Core
             }
 
             _meshFilter.mesh = MeshUtils.MergeMesh(meshes);
+            //_meshFilter.mesh = q[3].Mesh;
             _meshFilter.mesh.name = "Cube_0_0_0";
         }
     }
