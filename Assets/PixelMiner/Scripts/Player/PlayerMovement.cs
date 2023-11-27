@@ -10,11 +10,11 @@ namespace PixelMiner
     public class PlayerMovement : MonoBehaviour
     {
         private InputHander _input;
-        private Rigidbody2D _rb;
+        private Rigidbody _rb;
         private Animator _anim;
-        private Transform _model;
+        private SpriteRenderer _sr;
         [SerializeField] private float moveSpeed;
-        public Vector2 _moveDirection;
+        public Vector3 _moveDirection;
 
         private bool _hasAnimator;
         private bool _facingRight;
@@ -24,10 +24,10 @@ namespace PixelMiner
         private int _animIDVelocityY;
 
 
-        [SerializeField] private Vector2 _predictMovePosition;
-        private List<Vector2> _moveSuggestions = new List<Vector2>();
+        [SerializeField] private Vector3 _predictMovePosition;
+        private List<Vector3> _moveSuggestions = new List<Vector3>();
         private Tile _predictTile;
-        private Vector2 _lastGroundTilePosition;   // Use to prevent move to fast through water tile.
+        private Vector3 _lastGroundTilePosition;   // Use to prevent move to fast through water tile.
 
         public bool FlyMode;
 
@@ -39,8 +39,8 @@ namespace PixelMiner
 
         private void Awake()
         {
-            _model = transform.Find("Model");
-            _rb = GetComponent<Rigidbody2D>();
+            _sr = GetComponentInChildren<SpriteRenderer>();
+            _rb = GetComponent<Rigidbody>();
             _anim = GetComponentInChildren<Animator>();
 
             _hasAnimator = _anim != null;
@@ -62,11 +62,11 @@ namespace PixelMiner
 
             if(ContinuousMove)
             {
-                _moveDirection = _input.Move == Vector2.zero ? _moveDirection : _input.Move;
+                _moveDirection = _input.Move == Vector2.zero ? _moveDirection : new Vector3(_input.Move.x, 0, _input.Move.y);
             }
             else
             {
-                _moveDirection = _input.Move;
+                _moveDirection = new Vector3(_input.Move.x, 0, _input.Move.y);
             }
             
             if(_input.Cancel)
@@ -75,7 +75,7 @@ namespace PixelMiner
             }
 
 
-            if (_moveDirection.x != 0 || _moveDirection.y != 0)
+            if (_moveDirection.x != 0 || _moveDirection.z != 0)
             {
                 SmartMove();
                 Tile curPositionTile = Main.Instance.GetTile(_rb.position, out Chunk2D chunk);
@@ -102,16 +102,16 @@ namespace PixelMiner
             if (_hasAnimator)
             {
                 _anim.SetFloat(_animIDVelocityX, _moveDirection.x);
-                _anim.SetFloat(_animIDVelocityY, _moveDirection.y);
+                _anim.SetFloat(_animIDVelocityY, _moveDirection.z);
             }
         }
         private void FixedUpdate()
-        {         
+        {
             if (FlyMode == true)
             {
                 // Move diagonally
                 Vector2 direction = _moveDirection;
-                if (_moveDirection.x != 0 && _moveDirection.y != 0)
+                if (_moveDirection.x != 0 && _moveDirection.z != 0)
                 {
                     direction = ConvertDiagonalVectorToDimetricProjection(direction, Main.Instance.IsometricAngle);
                 }
@@ -119,7 +119,7 @@ namespace PixelMiner
             }
             else
             {
-                if (_moveDirection == Vector2.zero)
+                if (_moveDirection == Vector3.zero)
                 {
                     _rb.velocity = Vector2.zero;
                 }
@@ -128,14 +128,14 @@ namespace PixelMiner
                          _predictTile.HeightType == HeightType.ShallowWater ||
                          _predictTile.HeightType == HeightType.River))
                 {
-                    Vector2 suggestionDirection = GetSuggestMoveDirection();
-                    if (suggestionDirection == Vector2.zero)
+                    Vector3 suggestionDirection = GetSuggestMoveDirection();
+                    if (suggestionDirection == Vector3.zero)
                     {
-                        _rb.velocity = Vector2.zero;
+                        _rb.velocity = Vector3.zero;
                     }
                     else
                     {
-                        if (_moveDirection.x != 0 && _moveDirection.y != 0)
+                        if (_moveDirection.x != 0 && _moveDirection.z != 0)
                         {
                             suggestionDirection = ConvertDiagonalVectorToDimetricProjection(suggestionDirection, Main.Instance.IsometricAngle);
                         }
@@ -144,8 +144,8 @@ namespace PixelMiner
                 }
                 else
                 {
-                    Vector2 direction = _moveDirection;
-                    if (_moveDirection.x != 0 && _moveDirection.y != 0)
+                    Vector3 direction = _moveDirection;
+                    if (_moveDirection.x != 0 && _moveDirection.z != 0)
                     {
                         direction = ConvertDiagonalVectorToDimetricProjection(direction, Main.Instance.IsometricAngle);
                     }
@@ -165,33 +165,33 @@ namespace PixelMiner
             _moveSuggestions.Clear();
             Vector2 centerOffset = new Vector2(0.0f, 0.5f);
             Vector2 playerPosition = _rb.position;
-            if (_moveDirection.x > 0 && _moveDirection.y == 0)
+            if (_moveDirection.x > 0 && _moveDirection.z == 0)
             {
                 // Right
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpRightVector, centerOffset));
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownRightVector, centerOffset));
 
             }
-            else if (_moveDirection.x < 0 && _moveDirection.y == 0)
+            else if (_moveDirection.x < 0 && _moveDirection.z == 0)
             {
                 // Left
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpLeftVector, centerOffset));
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownLeftVector, centerOffset));
             }
-            else if (_moveDirection.x == 0 && _moveDirection.y > 0)
+            else if (_moveDirection.x == 0 && _moveDirection.z > 0)
             {
                 // Up
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpLeftVector, centerOffset));
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpRightVector, centerOffset));
 
             }
-            else if (_moveDirection.x == 0 && _moveDirection.y < 0)
+            else if (_moveDirection.x == 0 && _moveDirection.z < 0)
             {
                 // Down
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownLeftVector, centerOffset));
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownRightVector, centerOffset));
             }
-            else if (_moveDirection.x > 0 && _moveDirection.y > 0)
+            else if (_moveDirection.x > 0 && _moveDirection.z > 0)
             {
                 // Up Right
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpRightVector, centerOffset));
@@ -199,7 +199,7 @@ namespace PixelMiner
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpLeftVector, centerOffset));
 
             }
-            else if (_moveDirection.x < 0 && _moveDirection.y > 0)
+            else if (_moveDirection.x < 0 && _moveDirection.z > 0)
             {
                 // Up Left
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpLeftVector, centerOffset));
@@ -207,14 +207,14 @@ namespace PixelMiner
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.UpRightVector, centerOffset));
 
             }
-            else if (_moveDirection.x > 0 && _moveDirection.y < 0)
+            else if (_moveDirection.x > 0 && _moveDirection.z < 0)
             {
                 // Down Right
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownRightVector, centerOffset));
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownVector, centerOffset));
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownLeftVector, centerOffset));
             }
-            else if (_moveDirection.x < 0 && _moveDirection.y < 0)
+            else if (_moveDirection.x < 0 && _moveDirection.z < 0)
             {
                 // Down Left;
                 _moveSuggestions.Add(Main.Instance.GetNeighborWorldPosition(playerPosition, MathHelper.DownLeftVector, centerOffset));
@@ -242,64 +242,64 @@ namespace PixelMiner
             }
         }
 
-        private Vector2 GetPredictMovePosition()
+        private Vector3 GetPredictMovePosition()
         {
-            Vector2 predictPosition;
-            Vector2 predictDirection = ConvertDiagonalVectorToDimetricProjection(_moveDirection, Main.Instance.IsometricAngle);
-            Vector2 playerPosition = _rb.position;
+            Vector3 predictPosition;
+            Vector3 predictDirection = ConvertDiagonalVectorToDimetricProjection(_moveDirection, Main.Instance.IsometricAngle);
+            Vector3 playerPosition = _rb.position;
 
 
-            if (_moveDirection.x > 0 && _moveDirection.y == 0)
+            if (_moveDirection.x > 0 && _moveDirection.z == 0)
             {
                 // Right
                 predictPosition = playerPosition + _moveDirection * 0.45f;
 
             }
-            else if (_moveDirection.x < 0 && _moveDirection.y == 0)
+            else if (_moveDirection.x < 0 && _moveDirection.z == 0)
             {
                 // Left
                 predictPosition = playerPosition + _moveDirection * 0.45f;
             }
-            else if (_moveDirection.x == 0 && _moveDirection.y > 0)
+            else if (_moveDirection.x == 0 && _moveDirection.z > 0)
             {
                 // Up
                 predictPosition = playerPosition + _moveDirection * 0.45f;
             }
-            else if (_moveDirection.x == 0 && _moveDirection.y < 0)
+            else if (_moveDirection.x == 0 && _moveDirection.z < 0)
             {
                 // Down
                 predictPosition = playerPosition + _moveDirection * 0.45f;
             }
-            else if (_moveDirection.x > 0 && _moveDirection.y > 0)
+            else if (_moveDirection.x > 0 && _moveDirection.z > 0)
             {
                 // Top Right
                 predictPosition = playerPosition + predictDirection * 0.45f;
             }
-            else if (_moveDirection.x < 0 && _moveDirection.y > 0)
+            else if (_moveDirection.x < 0 && _moveDirection.z > 0)
             {
                 // Top Left
                 predictPosition = playerPosition + predictDirection * 1.2f;
             }
 
-            else if (_moveDirection.x > 0 && _moveDirection.y < 0)
+            else if (_moveDirection.x > 0 && _moveDirection.z < 0)
             {
                 // Down Right
                 predictPosition = playerPosition + predictDirection * 1.2f;
             }
-            else if (_moveDirection.x < 0 && _moveDirection.y < 0)
+            else if (_moveDirection.x < 0 && _moveDirection.z < 0)
             {
                 // Down Left
                 predictPosition = playerPosition + predictDirection * 1.2f;
             }
             else
             {
-                predictPosition = playerPosition + Vector2.zero;
+                predictPosition = playerPosition + Vector3.zero;
             }
 
             return predictPosition;
         }
 
-        private Vector2 GetSuggestMoveDirection()
+        private Vector3 GetSuggestMoveDirection()
         {
             foreach (var suggesttion in _moveSuggestions)
             {
@@ -318,7 +318,7 @@ namespace PixelMiner
                     return (suggesttion - _rb.position).normalized;
                 }
             }
-            return Vector2.zero;
+            return Vector3.zero;
         }
 
 
@@ -333,8 +333,9 @@ namespace PixelMiner
         }
 
 
-        private void Movement(Vector2 direction)
+        private void Movement(Vector3 direction)
         {
+            Debug.Log($"Move");
             _rb.velocity = direction * moveSpeed;
         }
 
@@ -342,11 +343,11 @@ namespace PixelMiner
         {
             if (move.x > 0)
             {
-                _model.localScale = new Vector3(-1, 1, 1);
+                _sr.flipX = false;
             }
             else if (move.x < 0)
             {
-                _model.localScale = new Vector3(1, 1, 1);
+                _sr.flipX = true;
             }
         }
 
