@@ -9,7 +9,7 @@ namespace PixelMiner.Core
 
 
 
-        public Quad(BlockSide side, BlockType blockType, Vector3 offset = (default))
+        public Quad(BlockSide side, BlockType blockType, ColorMapType colorMap, Vector3 offset = (default))
         {
             Mesh = new Mesh();
 
@@ -24,26 +24,10 @@ namespace PixelMiner.Core
             Vector2 uv01 = MeshUtils.BlockUVs[(ushort)blockType, 2];   // Top left
             Vector2 uv11 = MeshUtils.BlockUVs[(ushort)blockType, 3];   // Top Right
 
-            //Vector2 uv00 = Vector2.zero;   // Bottom left
-            //Vector2 uv10 = Vector2.right;   // Bottom right
-            //Vector2 uv01 = Vector2.up;   // Top left
-            //Vector2 uv11 = new Vector2(1f,1f);   // Top Right
-
-
-            Vector2 uv2_00 = new Vector2(0.5f, 0.8125f);   // Bottom left
-            Vector2 uv2_10 = new Vector2(0.5625f, 0.8125f);   // Bottom right
-            Vector2 uv2_01 = new Vector2(0.5f, 0.875f);   // Top left
-            Vector2 uv2_11 = new Vector2(0.5625f, 0.875f);   // Top Right
-
-            if (!(side == BlockSide.Top))
-            {
-                uv2_00 = new Vector2(0.9375f, 0f);
-                uv2_10 = new Vector2(1f, 0f);
-                uv2_01 = new Vector2(0.9375f, 0.0625f);
-                uv2_11 = new Vector2(1f, 0.0625f);
-            }
-
-
+            Vector2 uv2_00 = MeshUtils.BlockUV2s[(ushort)colorMap, 0];    // Bottom left
+            Vector2 uv2_10 = MeshUtils.BlockUV2s[(ushort)colorMap, 1];   // Bottom right
+            Vector2 uv2_01 = MeshUtils.BlockUV2s[(ushort)colorMap, 2];   // Top left
+            Vector2 uv2_11 = MeshUtils.BlockUV2s[(ushort)colorMap, 3];   // Top Right
 
 
             Vector3 p0 = new Vector3(-0.5f, -0.5f, 0.5f) + offset;

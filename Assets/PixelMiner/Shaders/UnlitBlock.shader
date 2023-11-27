@@ -3,7 +3,10 @@ Shader "PixelMiner/UnlitBlock"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        _ColorTex ("Texture", 2D) = "white" {}
+        _ColorTex ("Color Map", 2D) = "white" {}
+        
+        // BlendMode
+        _Cull("Cull", FLoat) = 2.0
         _Alpha ("Alpha", Range(0.0, 1.0)) = 1.0 // Alpha property to control transparency
     }
     SubShader
@@ -14,7 +17,7 @@ Shader "PixelMiner/UnlitBlock"
 
         Pass
         {
-            Cull Off
+            Cull [_Cull]
             Blend SrcAlpha OneMinusSrcAlpha // Standard alpha blending
 
             CGPROGRAM
@@ -75,7 +78,7 @@ Shader "PixelMiner/UnlitBlock"
 
                 // apply fog
                 UNITY_APPLY_FOG(i.fogCoord, finalColor);
-                return col1 * col2;
+                return finalColor;
             }
             ENDCG
         }
