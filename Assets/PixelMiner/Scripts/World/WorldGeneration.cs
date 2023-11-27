@@ -21,7 +21,7 @@ namespace PixelMiner.WorldGen
         public event System.Action OnWorldGenWhenStartFinished;
 
         #region Fileds and Variables
-        [FoldoutGroup("References"), SerializeField] private Chunk _chunkPrefab;
+        [FoldoutGroup("References"), SerializeField] private Chunk2D _chunkPrefab;
         [FoldoutGroup("References"), SerializeField] private Transform _chunkParent;
 
         // Height map
@@ -346,7 +346,7 @@ namespace PixelMiner.WorldGen
             {
                 for (int y = initIsoFrameY - heightInit; y <= initIsoFrameY + heightInit; y++)
                 {
-                    Chunk newChunk = await GenerateNewChunkDataAsync(x, y);
+                    Chunk2D newChunk = await GenerateNewChunkDataAsync(x, y);
                     _main.AddNewChunk(newChunk);
                     newChunk.gameObject.SetActive(false);
 
@@ -369,7 +369,7 @@ namespace PixelMiner.WorldGen
             await ComputeNoiseRangeAsyncInParallel();
 
             int completedTaskCount = 0;
-            Task<Chunk>[] tasks = new Task<Chunk>[(widthInit * 2 + 1) * (heightInit * 2 + 1)];
+            Task<Chunk2D>[] tasks = new Task<Chunk2D>[(widthInit * 2 + 1) * (heightInit * 2 + 1)];
 
    
 
@@ -397,7 +397,7 @@ namespace PixelMiner.WorldGen
 
             foreach (var task in tasks)
             {
-                Chunk newChunk = task.Result;
+                Chunk2D newChunk = task.Result;
                 _main.AddNewChunk(newChunk);
                 newChunk.gameObject.SetActive(false);
             }
@@ -405,11 +405,11 @@ namespace PixelMiner.WorldGen
             //UIGameManager.Instance.DisplayWorldGenSlider(false);
             onFinished?.Invoke();
         }
-        public async Task<Chunk> GenerateNewChunkDataAsync(int isoFrameX, int isoFrameY)
+        public async Task<Chunk2D> GenerateNewChunkDataAsync(int isoFrameX, int isoFrameY)
         {
             Vector2 frame = IsometricUtilities.IsometricFrameToWorldFrame(isoFrameX, isoFrameY);
             Vector3 worldPosition = IsometricUtilities.ConvertIsometricFrameToWorldPosition(isoFrameX, isoFrameY, _chunkWidth, _chunkHeight);
-            Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity, _chunkParent.transform);
+            Chunk2D newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity, _chunkParent.transform);
             newChunk.Init(frame.x, frame.y, isoFrameX, isoFrameY, _chunkWidth, _chunkHeight);
 
             // Create new data
@@ -644,7 +644,7 @@ namespace PixelMiner.WorldGen
 
 
         #region Set tiles types
-        public async Task LoadHeightMapDataAsync(Chunk chunk, float[,] heightValues, bool updateHeightType = true)
+        public async Task LoadHeightMapDataAsync(Chunk2D chunk, float[,] heightValues, bool updateHeightType = true)
         {
             chunk.Processing = true;
             await Task.Run(() =>
@@ -666,7 +666,7 @@ namespace PixelMiner.WorldGen
             });
             chunk.Processing = false;
         }
-        public async Task LoadHeatMapDataAsync(Chunk chunk, float[,] heatValues, bool updateHeatType = true)
+        public async Task LoadHeatMapDataAsync(Chunk2D chunk, float[,] heatValues, bool updateHeatType = true)
         {
             chunk.Processing = true;
             await Task.Run(() =>
@@ -694,7 +694,7 @@ namespace PixelMiner.WorldGen
         /// </summary>
         /// <param name="heightValues"></param>
         /// <returns></returns>
-        public async Task LoadHeightAndHeatMap(Chunk chunk, float[,] heightValues, float[,] heatValues)
+        public async Task LoadHeightAndHeatMap(Chunk2D chunk, float[,] heightValues, float[,] heatValues)
         {
             chunk.Processing = true;
             Task loadHeightMapDataTask = LoadHeightMapDataAsync(chunk, heightValues, updateHeightType: true);
@@ -736,7 +736,7 @@ namespace PixelMiner.WorldGen
             chunk.Processing = false;
         }
 
-        public async Task LoadMoistureMapDataAsync(Chunk chunk, float[,] moisetureValues, bool updateMoistureType = true)
+        public async Task LoadMoistureMapDataAsync(Chunk2D chunk, float[,] moisetureValues, bool updateMoistureType = true)
         {
             chunk.Processing = true;
             await Task.Run(() =>
@@ -778,7 +778,7 @@ namespace PixelMiner.WorldGen
             });
             chunk.Processing = false;
         }
-        public async Task LoadRiverDataAsync(Chunk chunk, float[,] riverValues)
+        public async Task LoadRiverDataAsync(Chunk2D chunk, float[,] riverValues)
         {
             chunk.Processing = true;
             await Task.Run(() =>
@@ -898,7 +898,7 @@ namespace PixelMiner.WorldGen
 
 
         #region Paint Color
-        public void PaintNeighborsColor(Chunk chunk)
+        public void PaintNeighborsColor(Chunk2D chunk)
         {
             for (var x = 0; x < _chunkWidth; x++)
             {
@@ -913,7 +913,7 @@ namespace PixelMiner.WorldGen
             }
         }
 
-        public void PaintTilegroupMap(Chunk chunk)
+        public void PaintTilegroupMap(Chunk2D chunk)
         {
             foreach (var group in chunk.Waters)
             {
@@ -934,7 +934,7 @@ namespace PixelMiner.WorldGen
             }
         }
 
-        public void PaintHeatMap(Chunk chunk)
+        public void PaintHeatMap(Chunk2D chunk)
         {
             for (var x = 0; x < _chunkWidth; x++)
             {
@@ -946,7 +946,7 @@ namespace PixelMiner.WorldGen
             }
         }
 
-        public void PaintMoistureMap(Chunk chunk)
+        public void PaintMoistureMap(Chunk2D chunk)
         {
             for (int x = 0; x < _chunkWidth; x++)
             {
@@ -988,7 +988,7 @@ namespace PixelMiner.WorldGen
 
 
         #region Draw chunk
-        public async Task DrawChunkAsync(Chunk chunk)
+        public async Task DrawChunkAsync(Chunk2D chunk)
         {
             chunk.Processing = true;
             int size = _chunkWidth * _chunkHeight;
@@ -1189,21 +1189,21 @@ namespace PixelMiner.WorldGen
 
 
         #region Neighbors
-        public void AddChunkFourDirectionNeighbors(Chunk chunk)
+        public void AddChunkFourDirectionNeighbors(Chunk2D chunk)
         {
-            Chunk nbAbove = _main.GetChunkNeighborAbove(chunk);
-            Chunk nbBelow = _main.GetChunkNeighborBelow(chunk);
-            Chunk nbLeft = _main.GetChunkNeighborLeft(chunk);
-            Chunk nbRight = _main.GetChunkNeighborRight(chunk);
+            Chunk2D nbAbove = _main.GetChunkNeighborAbove(chunk);
+            Chunk2D nbBelow = _main.GetChunkNeighborBelow(chunk);
+            Chunk2D nbLeft = _main.GetChunkNeighborLeft(chunk);
+            Chunk2D nbRight = _main.GetChunkNeighborRight(chunk);
             chunk.SetTwoSidesChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
         }
-        public void UpdateChunkTileNeighbors(Chunk chunk)
+        public void UpdateChunkTileNeighbors(Chunk2D chunk)
         {
             // Find chunk neighbors
-            Chunk nbAbove = _main.GetChunkNeighborAbove(chunk);
-            Chunk nbBelow = _main.GetChunkNeighborBelow(chunk);
-            Chunk nbLeft = _main.GetChunkNeighborLeft(chunk);
-            Chunk nbRight = _main.GetChunkNeighborRight(chunk);
+            Chunk2D nbAbove = _main.GetChunkNeighborAbove(chunk);
+            Chunk2D nbBelow = _main.GetChunkNeighborBelow(chunk);
+            Chunk2D nbLeft = _main.GetChunkNeighborLeft(chunk);
+            Chunk2D nbRight = _main.GetChunkNeighborRight(chunk);
             chunk.SetTwoSidesChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
 
             if (chunk.HasNeighbors() && !chunk.AllTileHasNeighbors)
@@ -1275,13 +1275,13 @@ namespace PixelMiner.WorldGen
 
             }
         }
-        public async void UpdateChunkTileNeighborsAsync(Chunk chunk)
+        public async void UpdateChunkTileNeighborsAsync(Chunk2D chunk)
         {
             // Find chunk neighbors
-            Chunk nbAbove = _main.GetChunkNeighborAbove(chunk);
-            Chunk nbBelow = _main.GetChunkNeighborBelow(chunk);
-            Chunk nbLeft = _main.GetChunkNeighborLeft(chunk);
-            Chunk nbRight = _main.GetChunkNeighborRight(chunk);
+            Chunk2D nbAbove = _main.GetChunkNeighborAbove(chunk);
+            Chunk2D nbBelow = _main.GetChunkNeighborBelow(chunk);
+            Chunk2D nbLeft = _main.GetChunkNeighborLeft(chunk);
+            Chunk2D nbRight = _main.GetChunkNeighborRight(chunk);
             chunk.SetTwoSidesChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
 
             Task[] tasks = new Task[5];
@@ -1375,7 +1375,7 @@ namespace PixelMiner.WorldGen
         }
         public void UpdateAllActiveChunkTileNeighborsAsync()
         {
-            foreach (Chunk activeChunk in _main.ActiveChunks)
+            foreach (Chunk2D activeChunk in _main.ActiveChunks)
             {
                 if (activeChunk.AllTileHasNeighbors == false)
                 {
@@ -1389,7 +1389,7 @@ namespace PixelMiner.WorldGen
 
 
         #region Grid Algorithm
-        private void FloodFill(Chunk chunk)
+        private void FloodFill(Chunk2D chunk)
         {
             Stack<Tile> stack = new Stack<Tile>();
 
@@ -1443,7 +1443,7 @@ namespace PixelMiner.WorldGen
                 }
             }
         }
-        private void FloodFill(Tile tile, ref TileGroup tiles, ref Stack<Tile> stack, Chunk chunk)
+        private void FloodFill(Tile tile, ref TileGroup tiles, ref Stack<Tile> stack, Chunk2D chunk)
         {
             // Validate
             if (tile.FloodFilled)
@@ -1494,7 +1494,7 @@ namespace PixelMiner.WorldGen
         public void SortActiveChunkByDepth(bool inverse = false)
         {
             int depth = 0;
-            List<Chunk> chunkList = _main.ActiveChunks.ToList();
+            List<Chunk2D> chunkList = _main.ActiveChunks.ToList();
 
             chunkList.Sort((v1, v2) =>
             {

@@ -14,12 +14,6 @@ namespace PixelMiner.WorldGen
     {
         public static Main Instance { get; private set; }
 
-        // BlockUV
-        public BlockDataSO BlockDataSO;
-        public float TileSizeX, TileSizeY;  
-        public Dictionary<BlockType, BlockData> BlockDataDict = new Dictionary<BlockType, BlockData>();
-
-
         // Tiles data
         [AssetList(Path = "/PixelMiner/Tiles/")]
         public List<CustomTileBase> TileBaseList = new List<CustomTileBase>();
@@ -31,8 +25,8 @@ namespace PixelMiner.WorldGen
 
         // Chunk data
         [Header("Data Cached")]
-        public Dictionary<Vector2Int, Chunk> Chunks;
-        public HashSet<Chunk> ActiveChunks;
+        public Dictionary<Vector2Int, Chunk2D> Chunks;
+        public HashSet<Chunk2D> ActiveChunks;
 
         // Tilemap Settings
         [FoldoutGroup("Tilemap Settings"), Indent(1), ShowInInspector, ReadOnly] public readonly float IsometricAngle = 26.565f;
@@ -65,12 +59,12 @@ namespace PixelMiner.WorldGen
 
 
             // Initialize the chunks data
-            Chunks = new Dictionary<Vector2Int, Chunk>();
-            ActiveChunks = new HashSet<Chunk>();
+            Chunks = new Dictionary<Vector2Int, Chunk2D>();
+            ActiveChunks = new HashSet<Chunk2D>();
         }
         private void Start()
         {
-            InitBlockDataDictionary();
+            
         }
 
        
@@ -99,18 +93,7 @@ namespace PixelMiner.WorldGen
             }
             return null;
         }
-        private void InitBlockDataDictionary()
-        {
-            TileSizeX = BlockDataSO.TileSizeX;
-            TileSizeY = BlockDataSO.TileSizeY;
-            foreach(var blockData in BlockDataSO.BLockDataList)
-            {
-                if(!BlockDataDict.ContainsKey(blockData.BlockType))
-                {
-                    BlockDataDict.Add(blockData.BlockType, blockData);
-                }
-            }
-        }
+
         #endregion
 
         #region Get, Set Chunk
@@ -122,14 +105,14 @@ namespace PixelMiner.WorldGen
         {
             return Chunks.ContainsKey(isoFrame);
         }
-        public Chunk GetChunk(Vector2 worldPosition, int chunkWidth, int chunkHeight)
+        public Chunk2D GetChunk(Vector2 worldPosition, int chunkWidth, int chunkHeight)
         {
             var isoFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(worldPosition,
                                                                                chunkWidth,
                                                                                chunkHeight);
             return GetChunk(isoFrame);
         }
-        public Chunk GetChunk(int isoFrameX, int isoFrameY)
+        public Chunk2D GetChunk(int isoFrameX, int isoFrameY)
         {
             Vector2Int isoFrame = new Vector2Int(isoFrameX, isoFrameY);
             if (Chunks.ContainsKey(isoFrame))
@@ -138,7 +121,7 @@ namespace PixelMiner.WorldGen
             }
             return null;
         }
-        public Chunk GetChunk(Vector2Int isoFrame)
+        public Chunk2D GetChunk(Vector2Int isoFrame)
         {
             if (Chunks.ContainsKey(isoFrame))
             {
@@ -146,43 +129,43 @@ namespace PixelMiner.WorldGen
             }
             return null;
         }
-        public void AddNewChunk(Chunk chunk)
+        public void AddNewChunk(Chunk2D chunk)
         {
             Vector2Int isoFrame = new Vector2Int(chunk.IsometricFrameX, chunk.IsometricFrameY);
             Chunks.Add(isoFrame, chunk);
         }
-        public void AddNewChunk(Chunk chunk, Vector2Int isoFrame)
+        public void AddNewChunk(Chunk2D chunk, Vector2Int isoFrame)
         {
             Chunks.Add(isoFrame, chunk);
         }
         #endregion
 
         #region Neighbors
-        public Chunk GetChunkNeighborAbove(Chunk chunk)
+        public Chunk2D GetChunkNeighborAbove(Chunk2D chunk)
         {
             Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX, chunk.IsometricFrameY + 1);
-            return Chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
+            return Chunks.TryGetValue(isoFrameChunkNb, out Chunk2D neighborChunk) ? neighborChunk : null;
         }
-        public Chunk GetChunkNeighborBelow(Chunk chunk)
+        public Chunk2D GetChunkNeighborBelow(Chunk2D chunk)
         {
             Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX, chunk.IsometricFrameY - 1);
-            return Chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
+            return Chunks.TryGetValue(isoFrameChunkNb, out Chunk2D neighborChunk) ? neighborChunk : null;
         }
-        public Chunk GetChunkNeighborLeft(Chunk chunk)
+        public Chunk2D GetChunkNeighborLeft(Chunk2D chunk)
         {
             Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX - 1, chunk.IsometricFrameY);
-            return Chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
+            return Chunks.TryGetValue(isoFrameChunkNb, out Chunk2D neighborChunk) ? neighborChunk : null;
         }
-        public Chunk GetChunkNeighborRight(Chunk chunk)
+        public Chunk2D GetChunkNeighborRight(Chunk2D chunk)
         {
             Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX + 1, chunk.IsometricFrameY);
-            return Chunks.TryGetValue(isoFrameChunkNb, out Chunk neighborChunk) ? neighborChunk : null;
+            return Chunks.TryGetValue(isoFrameChunkNb, out Chunk2D neighborChunk) ? neighborChunk : null;
         }
         #endregion
 
 
         #region Tile Utilities
-        public WorldBuilding.Tile GetTile(Vector2 worldPosition, out Chunk chunk)
+        public WorldBuilding.Tile GetTile(Vector2 worldPosition, out Chunk2D chunk)
         {
             chunk = GetChunk(worldPosition, ChunkWidth, ChunkHeight);
             if (chunk != null)
@@ -197,7 +180,7 @@ namespace PixelMiner.WorldGen
         }
         public void SetTileColor(Vector2 worldPosition, Color color)
         {
-            WorldBuilding.Tile tile = GetTile(worldPosition, out Chunk chunk);
+            WorldBuilding.Tile tile = GetTile(worldPosition, out Chunk2D chunk);
             if(chunk != null && tile != null)
             {
                 chunk.PaintTileColor(tile, color);
@@ -216,7 +199,7 @@ namespace PixelMiner.WorldGen
         /// <returns></returns>
         public Vector2 GetTileWorldPosition(Vector2 worldPosition)
         {
-            WorldBuilding.Tile tile = GetTile(worldPosition, out Chunk chunk);
+            WorldBuilding.Tile tile = GetTile(worldPosition, out Chunk2D chunk);
             if (chunk != null && tile != null)
             {
                 Vector2 offset = chunk.transform.position;
@@ -226,7 +209,7 @@ namespace PixelMiner.WorldGen
         }
         public Vector2 GetNeighborWorldPosition(Vector2 worldPosition, Vector2 direction, Vector2 offset = (default))
         {
-            WorldBuilding.Tile tile = GetTile(worldPosition, out Chunk chunk);
+            WorldBuilding.Tile tile = GetTile(worldPosition, out Chunk2D chunk);
             Vector2 nbWorldPosition = Vector2.zero;
             if (tile != null)
             {

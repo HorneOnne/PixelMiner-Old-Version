@@ -7,9 +7,9 @@ using PixelMiner.DataStructure;
 namespace PixelMiner.WorldBuilding
 {
     [SelectionBase]
-    public class Chunk : MonoBehaviour
+    public class Chunk2D : MonoBehaviour
     {
-        public static System.Action<Chunk> OnChunkFarAway;
+        public static System.Action<Chunk2D> OnChunkFarAway;
 
         [Header("Chunk Settings")]
         public Grid<Tile> ChunkData;
@@ -25,10 +25,10 @@ namespace PixelMiner.WorldBuilding
 
 
         // Neighbors
-        public Chunk Left;
-        public Chunk Right;
-        public Chunk Top;
-        public Chunk Bottom;
+        public Chunk2D Left;
+        public Chunk2D Right;
+        public Chunk2D Top;
+        public Chunk2D Bottom;
 
 
         [Header("Tilemap visualization")]
@@ -112,7 +112,7 @@ namespace PixelMiner.WorldBuilding
      
 
 
-        public void SetTwoSidesChunkNeighbors(Chunk left, Chunk right, Chunk top, Chunk bottom)
+        public void SetTwoSidesChunkNeighbors(Chunk2D left, Chunk2D right, Chunk2D top, Chunk2D bottom)
         {
             this.Left = left;
             this.Right = right;

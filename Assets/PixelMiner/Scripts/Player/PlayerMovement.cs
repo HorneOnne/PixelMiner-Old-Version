@@ -78,7 +78,7 @@ namespace PixelMiner
             if (_moveDirection.x != 0 || _moveDirection.y != 0)
             {
                 SmartMove();
-                Tile curPositionTile = Main.Instance.GetTile(_rb.position, out Chunk chunk);
+                Tile curPositionTile = Main.Instance.GetTile(_rb.position, out Chunk2D chunk);
                 if (!(curPositionTile != null && (
                     curPositionTile.HeightType == HeightType.DeepWater ||
                     curPositionTile.HeightType == HeightType.ShallowWater ||
@@ -158,7 +158,7 @@ namespace PixelMiner
         {
 
             _predictMovePosition = GetPredictMovePosition();
-            _predictTile = Main.Instance.GetTile(_predictMovePosition, out Chunk chunk);
+            _predictTile = Main.Instance.GetTile(_predictMovePosition, out Chunk2D chunk);
             Main.Instance.ToggleTileColor(_predictMovePosition, Color.blue);
 
            
@@ -224,7 +224,7 @@ namespace PixelMiner
 
             foreach (var suggesttion in _moveSuggestions)
             {
-                Tile tile = Main.Instance.GetTile(suggesttion, out Chunk c);
+                Tile tile = Main.Instance.GetTile(suggesttion, out Chunk2D c);
 
                 if (tile != null && (
                     tile.HeightType == HeightType.DeepWater ||
@@ -303,7 +303,7 @@ namespace PixelMiner
         {
             foreach (var suggesttion in _moveSuggestions)
             {
-                Tile tile = Main.Instance.GetTile(suggesttion, out Chunk c);
+                Tile tile = Main.Instance.GetTile(suggesttion, out Chunk2D c);
 
                 if (tile != null && (
                     tile.HeightType == HeightType.DeepWater ||

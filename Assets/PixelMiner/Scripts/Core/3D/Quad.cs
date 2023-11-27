@@ -89,7 +89,6 @@ namespace PixelMiner.Core
             Mesh.SetUVs(0, uvs);
             Mesh.SetUVs(1, uv2s);
       
-           
 
             Mesh.RecalculateBounds();
         }

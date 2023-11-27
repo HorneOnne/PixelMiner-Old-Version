@@ -44,7 +44,7 @@ namespace PixelMiner.WorldGen
                     LoadChunksAroundPositionInSequence(lastChunkISOFrame.x, lastChunkISOFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
             };
 
-            Chunk.OnChunkFarAway += (chunk) =>
+            Chunk2D.OnChunkFarAway += (chunk) =>
             {
                 if (chunk.ChunkHasDrawn && !chunk.Processing
                     && Main.Instance.AutoUnloadChunk)
@@ -85,7 +85,7 @@ namespace PixelMiner.WorldGen
                 for (int y = isoFrameY - offsetHeight; y <= isoFrameY + offsetHeight; y++)
                 {
                     Vector2Int nbIsoFrame = new Vector2Int(x, y);
-                    Chunk chunk = _main.GetChunk(nbIsoFrame);
+                    Chunk2D chunk = _main.GetChunk(nbIsoFrame);
                     if (chunk == null)   // Create new chunk
                     {
                         if (x == isoFrameX && y == isoFrameY)
@@ -94,7 +94,7 @@ namespace PixelMiner.WorldGen
                             // ......
                         }
 
-                        Chunk newChunk = await _worldGen.GenerateNewChunkDataAsync(x, y);
+                        Chunk2D newChunk = await _worldGen.GenerateNewChunkDataAsync(x, y);
 
                         // Cached chunk data
                         if (_main.HasChunk(nbIsoFrame) == false)
@@ -164,7 +164,7 @@ namespace PixelMiner.WorldGen
                 {
                     int index = x - (isoFrameX - offsetWidth) + (y - (isoFrameY - offsetHeight)) * (2 * offsetWidth + 1);
                     Vector2Int nbIsoFrame = new Vector2Int(x, y);
-                    Chunk chunk = _main.GetChunk(nbIsoFrame);
+                    Chunk2D chunk = _main.GetChunk(nbIsoFrame);
 
                     if (chunk == null)   // Create new chunk
                     {
@@ -174,7 +174,7 @@ namespace PixelMiner.WorldGen
                             // ......
                         }
 
-                        Chunk newChunk = await _worldGen.GenerateNewChunkDataAsync(x, y);
+                        Chunk2D newChunk = await _worldGen.GenerateNewChunkDataAsync(x, y);
                         drawChunkTasks[index] = _worldGen.DrawChunkAsync(_main.Chunks[nbIsoFrame]);
 
                         // Cached chunk data
@@ -236,7 +236,7 @@ namespace PixelMiner.WorldGen
             }
         }
 
-        private void UnloadChunk(Chunk chunk)
+        private void UnloadChunk(Chunk2D chunk)
         {
             _main.ActiveChunks.Remove(chunk);
             chunk.gameObject.SetActive(false);

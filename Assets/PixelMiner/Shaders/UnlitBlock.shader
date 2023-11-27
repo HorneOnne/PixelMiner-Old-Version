@@ -2,7 +2,7 @@ Shader "PixelMiner/UnlitBlock"
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
+        _MainTex ("Block Texture", 2D) = "white" {}
         _ColorTex ("Color Map", 2D) = "white" {}
         
         // BlendMode

@@ -25,7 +25,7 @@ namespace PixelMiner
         private void Update()
         {
             Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Tile tile = Main.Instance.GetTile(mousePosition, out Chunk chunk);
+            Tile tile = Main.Instance.GetTile(mousePosition, out Chunk2D chunk);
             Vector2 tileWorldPos = _main.GetTileWorldPosition(mousePosition);
             _cursor.position = tileWorldPos;
 
@@ -50,7 +50,7 @@ namespace PixelMiner
          
         }
 
-        public void SetChunkColor(Chunk chunk, Color color)
+        public void SetChunkColor(Chunk2D chunk, Color color)
         {
             chunk.LandTilemap.color = color;
         }
