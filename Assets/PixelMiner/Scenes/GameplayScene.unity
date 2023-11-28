@@ -1966,11 +1966,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 285238837962715001, guid: e7881158402e9254ea53ae812194e94a, type: 3}
       propertyPath: Depth
-      value: 128
+      value: 32
       objectReference: {fileID: 0}
     - target: {fileID: 285238837962715001, guid: e7881158402e9254ea53ae812194e94a, type: 3}
       propertyPath: Width
-      value: 128
+      value: 32
       objectReference: {fileID: 0}
     - target: {fileID: 285238837962715001, guid: e7881158402e9254ea53ae812194e94a, type: 3}
       propertyPath: Height

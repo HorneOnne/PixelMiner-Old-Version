@@ -7,20 +7,13 @@ namespace PixelMiner.Core
     {
         public MeshData MeshData { get; private set; }
 
-        //public Vector3[] vertices = new Vector3[4];
-        //public Vector3[] normals = new Vector3[4];
-        //public Vector2[] uvs = new Vector2[4];
-        //public Vector2[] uv2s = new Vector2[4];
-        //public int[] triangles = new int[6] { 3, 1, 0, 3, 2, 1 };
-
-
         public Quad(BlockSide side, BlockType blockType, ColorMapType colorMap, Vector3 offset = (default))
         {
             Vector3[] vertices = new Vector3[4];
             Vector3[] normals = new Vector3[4];
             Vector2[] uvs = new Vector2[4];
             Vector2[] uv2s = new Vector2[4];
-            int[] triangles = new int[6] { 3, 1, 0, 3, 2, 1 };
+            int[] triangles = new int[6] { 0,3,1,1,3,2 };
 
             Vector2 uv00 = MeshUtils.BlockUVs[(ushort)blockType, 0];   // Bottom left
             Vector2 uv10 = MeshUtils.BlockUVs[(ushort)blockType, 1];   // Bottom right

@@ -33,5 +33,11 @@ namespace PixelMiner.Core
                 };
             }
         }
+
+
+        public async void InitAsync(Vector3 offset)
+        {
+           
+        }
     }
 }

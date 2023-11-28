@@ -3,10 +3,12 @@ using System.Threading.Tasks;
 using UnityEngine;
 using QFSW.QC;
 using PixelMiner.Enums;
+using System.IO;
 
 //using VertexData = System.Tuple<UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector2>;
 using VertexData = System.Tuple<UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector2, UnityEngine.Vector2>;
-
+using UnityEngine.UI;
+using UnityEngine.Rendering;
 
 namespace PixelMiner.Core
 {
@@ -191,80 +193,74 @@ namespace PixelMiner.Core
             }
             ExtractArrays(pointsOrder, mesh);
             mesh.triangles = tris.ToArray();
+            mesh.indexFormat = IndexFormat.UInt32;
             mesh.RecalculateNormals();
             return mesh;
         }
 
 
-        public static async Task<Mesh> MergeMeshAsync(MeshData[] meshes)
+    
+
+        public static async Task<Mesh> MergeMeshAsync(MeshData[] meshes, IndexFormat format = IndexFormat.UInt32)
         {
-            Mesh mesh = new Mesh();
-            Dictionary<VertexData, int> pointsOrder = new Dictionary<VertexData, int>();
-            List<int> tris = new List<int>();
-            List<Vector3> verts = new List<Vector3>();
-            List<Vector3> norms = new List<Vector3>();
-            List<Vector2> uvs = new List<Vector2>();
-            List<Vector2> uv2s = new List<Vector2>();
-
-            int pIndex = 0;
-
+            Vector3[] verts = new Vector3[0];
+            Vector3[] norms = new Vector3[0];
+            int[] tris = new int[0]; ;
+            Vector2[] uvs = new Vector2[0];
+            Vector2[] uv2s = new Vector2[0];
             await Task.Run(() =>
             {
+                int triCount = 0;
+                int vertCount = 0;
+                int normalCount = 0;
+                int uvCount = 0;
+
+                for (int i = 0; i < meshes.Length; i++)
+                {
+                    triCount += meshes[i].Triangles.Length;
+                    vertCount += meshes[i].Vertices.Length;
+                    normalCount += meshes[i].Normals.Length;
+                    uvCount += meshes[i].UVs.Length;
+                }
+                verts = new Vector3[vertCount];
+                norms = new Vector3[normalCount];
+                tris = new int[triCount];
+                uvs = new Vector2[uvCount];
+                uv2s = new Vector2[uvCount];
+
                 for (int i = 0; i < meshes.Length; i++)  // Loop through each mesh
                 {
-                    for (int j = 0; j < meshes[i].Vertices.Length; j++)  // Loop through each vertex of the current mesh.
+                    for (int j = 0; j < meshes[i].Triangles.Length; j++)
                     {
-                        Vector3 v = meshes[i].Vertices[j];
-                        Vector3 n = meshes[i].Normals[j];
-                        Vector2 uv = meshes[i].UVs[j];
-                        Vector2 uv2 = meshes[i].UV2s[j];
-                        VertexData p = new VertexData(v, n, uv, uv2);
-
-                        if (!pointsOrder.ContainsKey(p))
-                        {
-                            pointsOrder.Add(p, pIndex);
-                            pIndex++;
-                        }
-                        else
-                        {
-                            Debug.Log("B");
-                        }
+                        int triPoint = (i * meshes[i].Vertices.Length + meshes[i].Triangles[j]);
+                        tris[j + i * meshes[i].Triangles.Length] = triPoint;
                     }
 
-                    for (int t = 0; t < meshes[i].Triangles.Length; t++)    // Loop through each trig of the current mesh.
+
+                    for (int v = 0; v < meshes[i].Vertices.Length; v++)
                     {
-                        int triPoint = meshes[i].Triangles[t];
-                        Vector3 v = meshes[i].Vertices[triPoint];
-                        Vector3 n = meshes[i].Normals[triPoint];
-                        Vector2 uv = meshes[i].UVs[triPoint];
-                        Vector2 uv2 = meshes[i].UV2s[triPoint];
-                        VertexData p = new VertexData(v, n, uv, uv2);
-
-                        int index;
-                        pointsOrder.TryGetValue(p, out index);
-                        tris.Add(index);
+                        int vertexIndex = v + i * meshes[i].Vertices.Length;
+                        verts[vertexIndex] = meshes[i].Vertices[v];
+                        norms[vertexIndex] = meshes[i].Normals[v];
+                        uvs[vertexIndex] = meshes[i].UVs[v];
+                        uv2s[vertexIndex] = meshes[i].UV2s[v];
                     }
-                }
-
-                foreach (VertexData v in pointsOrder.Keys)
-                {
-                    verts.Add(v.Item1);
-                    norms.Add(v.Item2);
-                    uvs.Add(v.Item3);
-                    uv2s.Add(v.Item4);
                 }
             });
 
-
-            mesh.vertices = verts.ToArray();
-            mesh.normals = norms.ToArray();
-            mesh.uv = uvs.ToArray();
-            mesh.uv2 = uv2s.ToArray();
-            mesh.triangles = tris.ToArray();
+            Mesh mesh = new Mesh();
+            mesh.indexFormat = format;
+            mesh.vertices = verts;
+            mesh.normals = norms;
+            mesh.uv = uvs;
+            mesh.uv2 = uv2s;
+            mesh.triangles = tris;
 
             mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
             return mesh;
         }
+
 
     }
 }

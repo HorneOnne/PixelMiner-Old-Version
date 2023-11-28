@@ -18,20 +18,20 @@ namespace PixelMiner.Core
         public int Height;
         public int Depth;
         public Block[,,] Blocks;
-
+        List<MeshData> meshDataList = new List<MeshData>();
         private void Awake()
         {
             _meshRenderer = GetComponent<MeshRenderer>();
             _meshFilter = GetComponent<MeshFilter>();
         }
 
-        private void Start()
+        private async void Start()
         {
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
             Blocks = new Block[Width, Height, Depth];
 
-            List<MeshData> meshDataList = new List<MeshData>();
+         
             for (int x = 0; x < Width; x++)
             {
                 for (int z = 0; z < Depth; z++)
@@ -47,8 +47,8 @@ namespace PixelMiner.Core
             Debug.Log($"{sw.ElapsedMilliseconds / 1000f} s");
             sw.Restart();
 
-          
-            _meshFilter.mesh = MeshUtils.MergeMesh(meshDataList.ToArray());
+
+            _meshFilter.mesh = await MeshUtils.MergeMeshAsync(meshDataList.ToArray());
             sw.Stop();
             Debug.Log($"{sw.ElapsedMilliseconds / 1000f} s");
         }
