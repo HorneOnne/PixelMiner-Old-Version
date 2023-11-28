@@ -151,5 +151,120 @@ namespace PixelMiner.Core
 
 
 
+        public static Mesh MergeMesh(MeshData[] meshes)
+        {
+            Mesh mesh = new Mesh();
+            Dictionary<VertexData, int> pointsOrder = new Dictionary<VertexData, int>();
+            List<int> tris = new List<int>();
+
+            int pIndex = 0;
+            for (int i = 0; i < meshes.Length; i++)  // Loop through each mesh
+            {
+                for (int j = 0; j < meshes[i].Vertices.Length; j++)  // Loop through each vertex of the current mesh.
+                {
+                    Vector3 v = meshes[i].Vertices[j];
+                    Vector3 n = meshes[i].Normals[j];
+                    Vector2 uv = meshes[i].UVs[j];
+                    Vector2 uv2 = meshes[i].UV2s[j];
+                    VertexData p = new VertexData(v, n, uv, uv2);
+
+                    if (!pointsOrder.ContainsKey(p))
+                    {
+                        pointsOrder.Add(p, pIndex);
+                        pIndex++;
+                    }
+                }
+
+                for (int t = 0; t < meshes[i].Triangles.Length; t++)    // Loop through each trig of the current mesh.
+                {
+                    int triPoint = meshes[i].Triangles[t];
+                    Vector3 v = meshes[i].Vertices[triPoint];
+                    Vector3 n = meshes[i].Normals[triPoint];
+                    Vector2 uv = meshes[i].UVs[triPoint];
+                    Vector2 uv2 = meshes[i].UV2s[triPoint];
+                    VertexData p = new VertexData(v, n, uv, uv2);
+
+                    int index;
+                    pointsOrder.TryGetValue(p, out index);
+                    tris.Add(index);
+                }
+            }
+            ExtractArrays(pointsOrder, mesh);
+            mesh.triangles = tris.ToArray();
+            mesh.RecalculateNormals();
+            return mesh;
+        }
+
+
+        public static async Task<Mesh> MergeMeshAsync(MeshData[] meshes)
+        {
+            Mesh mesh = new Mesh();
+            Dictionary<VertexData, int> pointsOrder = new Dictionary<VertexData, int>();
+            List<int> tris = new List<int>();
+            List<Vector3> verts = new List<Vector3>();
+            List<Vector3> norms = new List<Vector3>();
+            List<Vector2> uvs = new List<Vector2>();
+            List<Vector2> uv2s = new List<Vector2>();
+
+            int pIndex = 0;
+
+            await Task.Run(() =>
+            {
+                for (int i = 0; i < meshes.Length; i++)  // Loop through each mesh
+                {
+                    for (int j = 0; j < meshes[i].Vertices.Length; j++)  // Loop through each vertex of the current mesh.
+                    {
+                        Vector3 v = meshes[i].Vertices[j];
+                        Vector3 n = meshes[i].Normals[j];
+                        Vector2 uv = meshes[i].UVs[j];
+                        Vector2 uv2 = meshes[i].UV2s[j];
+                        VertexData p = new VertexData(v, n, uv, uv2);
+
+                        if (!pointsOrder.ContainsKey(p))
+                        {
+                            pointsOrder.Add(p, pIndex);
+                            pIndex++;
+                        }
+                        else
+                        {
+                            Debug.Log("B");
+                        }
+                    }
+
+                    for (int t = 0; t < meshes[i].Triangles.Length; t++)    // Loop through each trig of the current mesh.
+                    {
+                        int triPoint = meshes[i].Triangles[t];
+                        Vector3 v = meshes[i].Vertices[triPoint];
+                        Vector3 n = meshes[i].Normals[triPoint];
+                        Vector2 uv = meshes[i].UVs[triPoint];
+                        Vector2 uv2 = meshes[i].UV2s[triPoint];
+                        VertexData p = new VertexData(v, n, uv, uv2);
+
+                        int index;
+                        pointsOrder.TryGetValue(p, out index);
+                        tris.Add(index);
+                    }
+                }
+
+                foreach (VertexData v in pointsOrder.Keys)
+                {
+                    verts.Add(v.Item1);
+                    norms.Add(v.Item2);
+                    uvs.Add(v.Item3);
+                    uv2s.Add(v.Item4);
+                }
+            });
+
+
+            mesh.vertices = verts.ToArray();
+            mesh.normals = norms.ToArray();
+            mesh.uv = uvs.ToArray();
+            mesh.uv2 = uv2s.ToArray();
+            mesh.triangles = tris.ToArray();
+
+            mesh.RecalculateNormals();
+            return mesh;
+        }
+
     }
 }

@@ -458,7 +458,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &314038816
 Transform:
   m_ObjectHideFlags: 0
@@ -1203,7 +1203,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.61, y: 2.38, z: 0.2}
+  m_Size: {x: 1, y: 2.38, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &774158601
 GameObject:
@@ -1966,11 +1966,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 285238837962715001, guid: e7881158402e9254ea53ae812194e94a, type: 3}
       propertyPath: Depth
-      value: 32
+      value: 128
       objectReference: {fileID: 0}
     - target: {fileID: 285238837962715001, guid: e7881158402e9254ea53ae812194e94a, type: 3}
       propertyPath: Width
-      value: 32
+      value: 128
       objectReference: {fileID: 0}
     - target: {fileID: 285238837962715001, guid: e7881158402e9254ea53ae812194e94a, type: 3}
       propertyPath: Height

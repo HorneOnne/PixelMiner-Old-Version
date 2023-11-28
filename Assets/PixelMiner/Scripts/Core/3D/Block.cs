@@ -1,12 +1,17 @@
 ﻿using PixelMiner.Enums;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
 
 namespace PixelMiner.Core
 {
+    [System.Serializable]
     public class Block
     {
-        public Mesh Mesh { get; private set; }  
-        public Block(Vector3 offset = (default))
+        public MeshData[] MesheDataArray { get; private set; } = new MeshData[6];
+
+        public Block(Vector3 offset)
         {
             Quad[] q = new Quad[6];
             q[0] = new Quad(BlockSide.Top, BlockType.GrassTop, ColorMapType.Plains, offset);
@@ -15,13 +20,18 @@ namespace PixelMiner.Core
             q[3] = new Quad(BlockSide.Back, BlockType.GrassSide, ColorMapType.None, offset);
             q[4] = new Quad(BlockSide.Left, BlockType.GrassSide, ColorMapType.None, offset);
             q[5] = new Quad(BlockSide.Right, BlockType.GrassSide, ColorMapType.None, offset);
-            Mesh[] meshes = new Mesh[6];
-            for (int i = 0; i < meshes.Length; i++)
-            {
-                meshes[i] = q[i].Mesh;
-            }
 
-            Mesh = MeshUtils.MergeMesh(meshes);
+            for (int i = 0; i < MesheDataArray.Length; i++)
+            {
+                MesheDataArray[i] = new MeshData()
+                {
+                    Vertices = q[i].MeshData.Vertices,
+                    Normals = q[i].MeshData.Normals,
+                    Triangles = q[i].MeshData.Triangles,
+                    UVs = q[i].MeshData.UVs,
+                    UV2s = q[i].MeshData.UV2s,
+                };
+            }
         }
     }
 }

@@ -1,4 +1,11 @@
 ﻿using UnityEngine;
+using Unity.Jobs;
+using Unity.Mathematics;
+using Unity.Collections;
+using System.Collections.Generic;
+using UnityEngine.Rendering;
+using Unity.Burst;
+using System.Threading.Tasks;
 
 namespace PixelMiner.Core
 {
@@ -16,26 +23,34 @@ namespace PixelMiner.Core
         {
             _meshRenderer = GetComponent<MeshRenderer>();
             _meshFilter = GetComponent<MeshFilter>();
+        }
 
+        private void Start()
+        {
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
             Blocks = new Block[Width, Height, Depth];
-            Mesh[] meshes = new Mesh[Width * Height * Depth];
 
-
-            for(int x= 0 ; x < Width; x++)
+            List<MeshData> meshDataList = new List<MeshData>();
+            for (int x = 0; x < Width; x++)
             {
                 for (int z = 0; z < Depth; z++)
                 {
                     for (int y = 0; y < Height; y++)
                     {
                         Blocks[x, y, z] = new Block(new Vector3(x, y, z));
-
-                        int index = x + Width * (y + Height * z);
-                        meshes[index] = Blocks[x, y, z].Mesh;
+                        meshDataList.AddRange(Blocks[x, y, z].MesheDataArray);
                     }
                 }
             }
+            sw.Stop();
+            Debug.Log($"{sw.ElapsedMilliseconds / 1000f} s");
+            sw.Restart();
 
-            _meshFilter.mesh = MeshUtils.MergeMesh(meshes);
+          
+            _meshFilter.mesh = MeshUtils.MergeMesh(meshDataList.ToArray());
+            sw.Stop();
+            Debug.Log($"{sw.ElapsedMilliseconds / 1000f} s");
         }
     }
 }
