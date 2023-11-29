@@ -270,26 +270,26 @@ namespace PixelMiner.WorldBuilding
             {
                 fluidNeighbors[0] = false;
             }
-            if (!BlockHasFuildNeighbors(x, y - 1, z))
-            {
-                fluidNeighbors[1] = false;
-            }
-            if (!BlockHasFuildNeighbors(x, y, z + 1))
-            {
-                fluidNeighbors[2] = false;
-            }
-            if (!BlockHasFuildNeighbors(x, y, z - 1))
-            {
-                fluidNeighbors[3] = false;
-            }
-            if (!BlockHasFuildNeighbors(x - 1, y, z))
-            {
-                fluidNeighbors[4] = false;
-            }
-            if (!BlockHasFuildNeighbors(x + 1, y, z))
-            {
-                fluidNeighbors[5] = false;
-            }
+            //if (!BlockHasFuildNeighbors(x, y - 1, z))
+            //{
+            //    fluidNeighbors[1] = false;
+            //}
+            //if (!BlockHasFuildNeighbors(x, y, z + 1))
+            //{
+            //    fluidNeighbors[2] = false;
+            //}
+            //if (!BlockHasFuildNeighbors(x, y, z - 1))
+            //{
+            //    fluidNeighbors[3] = false;
+            //}
+            //if (!BlockHasFuildNeighbors(x - 1, y, z))
+            //{
+            //    fluidNeighbors[4] = false;
+            //}
+            //if (!BlockHasFuildNeighbors(x + 1, y, z))
+            //{
+            //    fluidNeighbors[5] = false;
+            //}
 
             return fluidNeighbors;
         }

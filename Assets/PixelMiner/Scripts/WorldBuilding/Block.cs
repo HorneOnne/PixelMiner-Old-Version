@@ -26,14 +26,14 @@ namespace PixelMiner.WorldBuilding
             Draw(blockType, solidNeighbors, offset);
         }
 
-        public void Draw(BlockType blockType, bool[] solidNeighbors, Vector3 offset = (default))
+        public void Draw(BlockType blockType, bool[] neighbors, Vector3 offset = (default))
         {
             if(blockType != BlockType.Air)
             {
                 List<Quad> q = new List<Quad>();
-                for (int i = 0; i < solidNeighbors.Length; i++)
+                for (int i = 0; i < neighbors.Length; i++)
                 {
-                    if (!solidNeighbors[i])
+                    if (!neighbors[i])
                     {
                         if(blockType == BlockType.GrassSide)
                         {
