@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,7 +8,7 @@ using Sirenix.OdinInspector;
 using PixelMiner.Utilities;
 using PixelMiner.Enums;
 using PixelMiner.WorldBuilding;
-
+using System;
 
 namespace PixelMiner.WorldGen
 {
@@ -21,7 +19,7 @@ namespace PixelMiner.WorldGen
         public event System.Action OnWorldGenWhenStartFinished;
 
         #region Fileds and Variables
-        [FoldoutGroup("References"), SerializeField] private Chunk2D _chunkPrefab;
+        [FoldoutGroup("References"), SerializeField] private Chunk _chunkPrefab;
         [FoldoutGroup("References"), SerializeField] private Transform _chunkParent;
 
         // Height map
@@ -31,17 +29,17 @@ namespace PixelMiner.WorldGen
         [FoldoutGroup("Height map"), Indent(1)] public double Frequency = 0.02f;
         [FoldoutGroup("Height map"), Indent(1)] public double Lacunarity = 2.0f;
         [FoldoutGroup("Height map"), Indent(1)] public double Persistence = 0.5f;
-      
+
         [InfoBox("Height map threshold"), Space(10)]
         [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 0f, g: 0f, b: 0.5f, Height = 20)]
         public float DeepWater = 0.2f;
-        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 25/255f, g: 25/255f, b: 150/255f, Height = 20)]
+        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 25 / 255f, g: 25 / 255f, b: 150 / 255f, Height = 20)]
         public float Water = 0.4f;
-        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 240/255f, g: 240/255f, b: 64/255f, Height = 20)]
+        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 240 / 255f, g: 240 / 255f, b: 64 / 255f, Height = 20)]
         public float Sand = 0.5f;
-        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 50/255f, g: 220/255f, b: 20/255f, Height = 20)]
+        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 50 / 255f, g: 220 / 255f, b: 20 / 255f, Height = 20)]
         public float Grass = 0.7f;
-        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 16/255f, g: 160/255f, b: 0f, Height = 20)]
+        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 16 / 255f, g: 160 / 255f, b: 0f, Height = 20)]
         public float Forest = 0.8f;
         [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 0.5f, g: 0.5f, b: 0.5f, Height = 20)]
         public float Rock = 0.9f;
@@ -61,14 +59,14 @@ namespace PixelMiner.WorldGen
         [InfoBox("Gradient map"), Space(10)]
         [FoldoutGroup("Heatmap"), Indent(1)] public ushort GradientHeatmapSize = 256;
         [FoldoutGroup("Heatmap"), Indent(1), Range(0f, 1f)] public float HeatMapBlendFactor = 0.5f;
-            
+
         [InfoBox("Heat map threshold"), Space(10)]
         [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 0f, g: 1.0f, b: 1.0f, Height = 20)] public float ColdestValue = 0.1f;
-        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 170/255f, g: 1f, b: 1f, Height = 20)] public float ColderValue = 0.2f;
-        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 0, g: 229/255f, b: 133/255f, Height = 20)] public float ColdValue = 0.4f;
-        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 1, g:1, b:100/255f, Height = 20)] public float WarmValue = 0.6f;
-        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 1, g: 100/255f, b: 0, Height = 20)] public float WarmerValue = 0.8f;
-        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 241/255f, g: 12/255f, b: 0f, Height = 20)] public float WarmestValue = 1.0f;
+        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 170 / 255f, g: 1f, b: 1f, Height = 20)] public float ColderValue = 0.2f;
+        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 0, g: 229 / 255f, b: 133 / 255f, Height = 20)] public float ColdValue = 0.4f;
+        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 1, g: 1, b: 100 / 255f, Height = 20)] public float WarmValue = 0.6f;
+        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 1, g: 100 / 255f, b: 0, Height = 20)] public float WarmerValue = 0.8f;
+        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 241 / 255f, g: 12 / 255f, b: 0f, Height = 20)] public float WarmestValue = 1.0f;
         private ModuleBase _heatModule;
 
 
@@ -81,12 +79,12 @@ namespace PixelMiner.WorldGen
         [FoldoutGroup("Moisture map"), Indent(1)] public double MoistureLacunarity = 2.0f;
         [FoldoutGroup("Moisture map"), Indent(1)] public double MoisturePersistence = 0.5f;
         [InfoBox("Moisture map noise settings"), Space(10)]
-        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 255/255f, 139/255f, 17/255f, Height = 20)] public float DryestValue = 0.22f;
-        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 245/255f, g: 245/255f, b: 23/255f, Height = 20)] public float DryerValue = 0.35f;
-        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 80/255f, g: 255/255f, b: 0/255f, Height = 20)] public float DryValue = 0.55f;
-        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 85/255f, g: 255/255f, b: 255/255f, Height = 20)] public float WetValue = 0.75f;
-        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 20/255f, g: 70/255f, b: 255/255f, Height = 20)] public float WetterValue = 0.85f;
-        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 0/255f, g: 0/255f, b: 100/255f, Height = 20)] public float WettestValue = 1.0f;
+        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 255 / 255f, 139 / 255f, 17 / 255f, Height = 20)] public float DryestValue = 0.22f;
+        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 245 / 255f, g: 245 / 255f, b: 23 / 255f, Height = 20)] public float DryerValue = 0.35f;
+        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 80 / 255f, g: 255 / 255f, b: 0 / 255f, Height = 20)] public float DryValue = 0.55f;
+        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 85 / 255f, g: 255 / 255f, b: 255 / 255f, Height = 20)] public float WetValue = 0.75f;
+        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 20 / 255f, g: 70 / 255f, b: 255 / 255f, Height = 20)] public float WetterValue = 0.85f;
+        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 0 / 255f, g: 0 / 255f, b: 100 / 255f, Height = 20)] public float WettestValue = 1.0f;
         private ModuleBase _moistureModule;
 
 
@@ -132,6 +130,7 @@ namespace PixelMiner.WorldGen
         private Vector2 _centerPoint;
         private byte _chunkWidth;      // Size of each chunk in tiles
         private byte _chunkHeight;      // Size of each chunk in tiles
+        private byte _chunkDepth;
         private byte _calculateNoiseRangeSampleMultiplier = 15;  // 50 times. 50 * 100000 = 5 mil times.
         private int _calculateNoiseRangeCount = 1000000;    // 1 mil times.
         private float _minWorldNoiseValue = float.MaxValue;
@@ -182,22 +181,23 @@ namespace PixelMiner.WorldGen
 
             _chunkWidth = _main.ChunkWidth;
             _chunkHeight = _main.ChunkHeight;
+            _chunkDepth = _main.ChunkDepth;
 
 
             // Load chunks around the player's starting position
-            _centerPoint = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width / 2f, Screen.height / 2f));
-            lastChunkISOFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(_centerPoint, _chunkWidth, _chunkHeight);
+            //_centerPoint = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width / 2f, Screen.height / 2f));
+            //lastChunkISOFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(_centerPoint, _chunkWidth, _chunkHeight);
 
             // World Initialization
-            InitWorldAsyncInParallel(lastChunkISOFrame.x, lastChunkISOFrame.y, widthInit: _worldLoading.InitWorldWidth, heightInit: _worldLoading.InitWorldHeight, () =>
+            InitWorldAsyncInParallel(0, 0, widthInit: _worldLoading.InitWorldWidth, depthInit: _worldLoading.InitWorldHeight, () =>
             {
                 OnWorldGenWhenStartFinished?.Invoke();
-                
+
             });
 
         }
 
-       
+
         #endregion
 
 
@@ -331,7 +331,7 @@ namespace PixelMiner.WorldGen
 
 
         #region Init Chunks
-        private async void InitWorldAsyncInSequence(int initIsoFrameX, int initIsoFrameY, byte widthInit, byte heightInit, System.Action onFinished = null)
+        private async void InitWorldAsyncInSequence(int initFrameX, int initFrameZ, byte widthInit, byte depthInit, System.Action onFinished = null)
         {
             //UIGameManager.Instance.DisplayWorldGenSlider(true);
             //await ComputeNoiseRangeAsyncInSequence();
@@ -340,13 +340,13 @@ namespace PixelMiner.WorldGen
             Debug.Log($"min: {_minWorldNoiseValue}");
             Debug.Log($"max: {_maxWorldNoiseValue}");
 
-            int totalIterations = (2 * widthInit + 1) * (2 * heightInit + 1);
+            int totalIterations = (2 * widthInit + 1) * (2 * depthInit + 1);
             int currentIteration = 0;
-            for (int x = initIsoFrameX - widthInit; x <= initIsoFrameX + widthInit; x++)
+            for (int x = initFrameX - widthInit; x <= initFrameX + widthInit; x++)
             {
-                for (int y = initIsoFrameY - heightInit; y <= initIsoFrameY + heightInit; y++)
+                for (int z = initFrameZ - depthInit; z <= initFrameZ + depthInit; z++)
                 {
-                    Chunk2D newChunk = await GenerateNewChunkDataAsync(x, y);
+                    Chunk newChunk = await GenerateNewChunkDataAsync(x, 0, z);
                     _main.AddNewChunk(newChunk);
                     newChunk.gameObject.SetActive(false);
 
@@ -363,22 +363,20 @@ namespace PixelMiner.WorldGen
             //UIGameManager.Instance.DisplayWorldGenSlider(false);
             onFinished?.Invoke();
         }
-        private async void InitWorldAsyncInParallel(int initIsoFrameX, int initIsoFrameY, byte widthInit, byte heightInit, System.Action onFinished = null)
+        private async void InitWorldAsyncInParallel(int initFrameX, int initFrameZ, byte widthInit, byte depthInit, System.Action onFinished = null)
         {
             //UIGameManager.Instance.DisplayWorldGenSlider(true);
             await ComputeNoiseRangeAsyncInParallel();
 
             int completedTaskCount = 0;
-            Task<Chunk2D>[] tasks = new Task<Chunk2D>[(widthInit * 2 + 1) * (heightInit * 2 + 1)];
+            Task<Chunk>[] tasks = new Task<Chunk>[(widthInit * 2 + 1) * (depthInit * 2 + 1)];
 
-   
-
-            for (int x = initIsoFrameX - widthInit; x <= initIsoFrameX + widthInit; x++)
+            for (int x = initFrameX - widthInit; x <= initFrameX + widthInit; x++)
             {
-                for (int y = initIsoFrameY - heightInit; y <= initIsoFrameY + heightInit; y++)
+                for (int z = initFrameZ - depthInit; z <= initFrameZ + depthInit; z++)
                 {
-                    int index = x - (initIsoFrameX - widthInit) + (y - (initIsoFrameY - heightInit)) * (2 * widthInit + 1);
-                    tasks[index] = GenerateNewChunkDataAsync(x, y);
+                    int index = x - (initFrameX - widthInit) + (z - (initFrameZ - depthInit)) * (2 * widthInit + 1);
+                    tasks[index] = GenerateNewChunkDataAsync(x, 0, z);
 
                     // Increment the completed tasks counter
                     Interlocked.Increment(ref completedTaskCount);
@@ -397,140 +395,145 @@ namespace PixelMiner.WorldGen
 
             foreach (var task in tasks)
             {
-                Chunk2D newChunk = task.Result;
+                Chunk newChunk = task.Result;
                 _main.AddNewChunk(newChunk);
-                newChunk.gameObject.SetActive(false);
+                //newChunk.gameObject.SetActive(false);
             }
 
             //UIGameManager.Instance.DisplayWorldGenSlider(false);
             onFinished?.Invoke();
         }
-        public async Task<Chunk2D> GenerateNewChunkDataAsync(int isoFrameX, int isoFrameY)
+        public async Task<Chunk> GenerateNewChunkDataAsync(int frameX, int frameY, int frameZ)
         {
-            Vector2 frame = IsometricUtilities.IsometricFrameToWorldFrame(isoFrameX, isoFrameY);
-            Vector3 worldPosition = IsometricUtilities.ConvertIsometricFrameToWorldPosition(isoFrameX, isoFrameY, _chunkWidth, _chunkHeight);
-            Chunk2D newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity, _chunkParent.transform);
-            newChunk.Init(frame.x, frame.y, isoFrameX, isoFrameY, _chunkWidth, _chunkHeight);
+            Vector3Int frame = new Vector3Int(frameX, frameY, frameZ);
+            Vector3 worldPosition = frame * new Vector3Int(Main.Instance.ChunkWidth, Main.Instance.ChunkHeight, Main.Instance.ChunkDepth);
+            Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity, _chunkParent.transform);
+            newChunk.Init(frame.x, frame.y, frameZ, _chunkWidth, _chunkHeight, _chunkDepth);
 
             // Create new data
-            float[,] heightValues = await GetHeightMapDataAsync(isoFrameX, isoFrameY, _chunkWidth, _chunkHeight);
-            float[,] heatValues = await GetHeatMapDataAysnc(isoFrameX, isoFrameY);
-            float[,] moisetureValues = await GetMoistureMapDataAsync(isoFrameX, isoFrameY);
+            //float[] heightValues = await GetHeightMapDataAsync(frameX, frameZ, _chunkWidth, _chunkHeight, _chunkDepth);
+            //float[] heatValues = await GetHeatMapDataAysnc(frameX, frameZ);
+            //float[] moisetureValues = await GetMoistureMapDataAsync(frameX, frameZ);
+            //float[,] riverValues = await GetRiverDataAsync(frameX, frameZ, _chunkWidth, _chunkHeight);
 
-            float[,] riverValues = await GetRiverDataAsync(isoFrameX, isoFrameY, _chunkWidth, _chunkHeight);
+            //if (_main.InitWorldWithHeatmap)
+            //{
+            //    await LoadHeightAndHeatMap(newChunk, heightValues, heatValues);
+            //}
+            //else
+            //{
+            //    await LoadHeightMapDataAsync(newChunk, heightValues);
+            //}
 
-            if (_main.InitWorldWithHeatmap)
-            {
-                await LoadHeightAndHeatMap(newChunk, heightValues, heatValues);
-            }
-            else
-            {
-                await LoadHeightMapDataAsync(newChunk, heightValues);
-            }
+            //if (_main.InitWorldWithMoisturemap)
+            //{
+            //    await LoadMoistureMapDataAsync(newChunk, moisetureValues);
+            //}
+            //else
+            //{
 
-            if (_main.InitWorldWithMoisturemap)
-            {
-                await LoadMoistureMapDataAsync(newChunk, moisetureValues);
-            }
-            else
-            {
+            //}
 
-            }
+            //if (_main.InitWorldWithRiver)
+            //{
+            //    await LoadRiverDataAsync(newChunk, riverValues);
+            //}
 
-            if(_main.InitWorldWithRiver)
-            {
-                await LoadRiverDataAsync(newChunk, riverValues);
-            }
+
+
+
+            float[] heightValues = await GetHeightMapDataAsync(frameX, frameZ, _chunkWidth, _chunkHeight, _chunkDepth);
+            await LoadHeightMapDataAsync(newChunk, heightValues);
+            newChunk.DrawChunkAsync();
 
             return newChunk;
         }
 
-       
+
         #endregion
 
 
 
 
         #region Generate noise map data.
-        public async Task<float[,]> GetHeightMapDataAsync(int isoFrameX, int isoFrameY, int width, int height)
+        public async Task<float[]> GetHeightMapDataAsync(int frameX, int frameZ, byte width, byte height, byte depth)
         {
-            float[,] heightValues = new float[width, height];
+            float[] heightValues = new float[width * depth];
 
             await Task.Run(() =>
             {
                 Parallel.For(0, width, x =>
                 {
-                    for (int y = 0; y < height; y++)
+                    for (int z = 0; z < depth; z++)
                     {
-                        float offsetX = isoFrameX * width + x;
-                        float offsetY = isoFrameY * height + y;
-                        float heightValue = (float)_heightModule.GetValue(offsetX, offsetY, 0);
+                        float offsetX = frameX * width + x;
+                        float offsetZ = frameZ * depth + z;
+                        float heightValue = (float)_heightModule.GetValue(offsetX, 0, offsetZ);
                         float normalizeHeightValue = (heightValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
-                        heightValues[x, y] = normalizeHeightValue;
+                        heightValues[WorldGenUtilities.IndexOf(x, z, width)] = normalizeHeightValue;
                     }
                 });
             });
 
             return heightValues;
         }
-        public async Task<float[,]> GetHeightMapDataAsync(int isoFrameX, int isoFrameY, int width, int height, float zoom = 0, float offsetXOffset = 0, float offsetYOffset = 0)
+        //public async Task<float[]> GetHeightMapDataAsync(int isoFrameX, int isoFrameY, int width, int height, int depth, float zoom = 0, float offsetXOffset = 0, float offsetYOffset = 0)
+        //{
+        //    float[] heightValues = new float[width * height * depth];
+
+        //    await Task.Run(() =>
+        //    {
+        //        Parallel.For(0, width, x =>
+        //        {
+        //            for (int y = 0; y < height; y++)
+        //            {
+        //                // Calculate the offset from the zoom center
+        //                float offsetXFromCenter = x - width / 2.0f;
+        //                float offsetYFromCenter = y - height / 2.0f;
+
+        //                // Apply zoom around the specified center
+        //                offsetXFromCenter *= zoom;
+        //                offsetYFromCenter *= zoom;
+
+        //                // Adjust offsetX and offsetY based on zoom, center, and offsets
+        //                float offsetX = isoFrameX * width + offsetXFromCenter + offsetXOffset;
+        //                float offsetY = isoFrameY * height + offsetYFromCenter + offsetYOffset;
+
+        //                float heightValue = (float)_heightModule.GetValue(offsetX, offsetY, 0);
+        //                float normalizeHeightValue = (heightValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
+        //                heightValues[x, y] = normalizeHeightValue;
+        //            }
+        //        });
+        //    });
+
+        //    return heightValues;
+        //}
+        public async Task<float[]> GetGradientMapDataAsync(int frameX, int frameZ)
         {
-            float[,] heightValues = new float[width, height];
+
+            float[] gradientData = new float[_chunkWidth * _chunkDepth];
+
 
             await Task.Run(() =>
             {
-                Parallel.For(0, width, x =>
-                {
-                    for (int y = 0; y < height; y++)
-                    {
-                        // Calculate the offset from the zoom center
-                        float offsetXFromCenter = x - width / 2.0f;
-                        float offsetYFromCenter = y - height / 2.0f;
-
-                        // Apply zoom around the specified center
-                        offsetXFromCenter *= zoom;
-                        offsetYFromCenter *= zoom;
-
-                        // Adjust offsetX and offsetY based on zoom, center, and offsets
-                        float offsetX = isoFrameX * width + offsetXFromCenter + offsetXOffset;
-                        float offsetY = isoFrameY * height + offsetYFromCenter + offsetYOffset;
-
-                        float heightValue = (float)_heightModule.GetValue(offsetX, offsetY, 0);
-                        float normalizeHeightValue = (heightValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
-                        heightValues[x, y] = normalizeHeightValue;
-                    }
-                });
-            });
-
-            return heightValues;
-        }
-        public async Task<float[,]> GetGradientMapDataAsync(int isoFrameX, int isoFrameY)
-        {
-            //Debug.Log("GetGradientMapAsync Start");
-            float[,] gradientData = new float[_chunkWidth, _chunkHeight];
-            isoFrameX = -isoFrameX;
-            isoFrameY = -isoFrameY;
-
-            await Task.Run(() =>
-            {
-                int gradientFrameX = (int)(isoFrameX * _chunkWidth / (float)GradientHeatmapSize);
-                int gradientFrameY = -Mathf.CeilToInt(isoFrameY * _chunkHeight / (float)GradientHeatmapSize);
+                int gradientFrameX = (int)(frameX * _chunkWidth / (float)GradientHeatmapSize);
+                int gradientFrameZ = -Mathf.CeilToInt(frameZ * _chunkDepth / (float)GradientHeatmapSize);
 
                 // Calculate the center of the texture with the offset
-                Vector2 gradientOffset = new Vector2(gradientFrameX * GradientHeatmapSize, gradientFrameY * GradientHeatmapSize);
-                Vector2 gradientCenterOffset = gradientOffset + new Vector2(isoFrameX * _chunkWidth, isoFrameY * _chunkHeight);
+                Vector2 gradientOffset = new Vector2(gradientFrameX * GradientHeatmapSize, gradientFrameZ * GradientHeatmapSize);
+                Vector2 gradientCenterOffset = gradientOffset + new Vector2(frameX * _chunkWidth, frameZ * _chunkDepth);
 
 
                 for (int x = 0; x < _chunkWidth; x++)
                 {
-                    for (int y = 0; y < _chunkHeight; y++)
+                    for (int z = 0; z < _chunkDepth; z++)
                     {
-                        Vector2 center = new Vector2(Mathf.FloorToInt(x / GradientHeatmapSize), Mathf.FloorToInt(y / GradientHeatmapSize)) * new Vector2(GradientHeatmapSize, GradientHeatmapSize) + new Vector2(GradientHeatmapSize / 2f, GradientHeatmapSize / 2f);
+                        Vector2 center = new Vector2(Mathf.FloorToInt(x / GradientHeatmapSize), Mathf.FloorToInt(z / GradientHeatmapSize)) * new Vector2(GradientHeatmapSize, GradientHeatmapSize) + new Vector2(GradientHeatmapSize / 2f, GradientHeatmapSize / 2f);
                         Vector2 centerWithOffset = center + gradientCenterOffset;
 
-                        float distance = Mathf.Abs(y - centerWithOffset.y);
+                        float distance = Mathf.Abs(z - centerWithOffset.y);
                         float normalizedDistance = 1.0f - Mathf.Clamp01(distance / (GradientHeatmapSize / 2f));
-                        gradientData[x, y] = normalizedDistance;
+                        gradientData[WorldGenUtilities.IndexOf(x, z, _chunkWidth)] = normalizedDistance;
                     }
                 }
             });
@@ -538,24 +541,24 @@ namespace PixelMiner.WorldGen
             //Debug.Log("GetGradientMapAsync Finish");
             return gradientData;
         }
-        public async Task<float[,]> GetFractalHeatMapDataAsync(int isoFrameX, int isoFrameY)
+        public async Task<float[]> GetFractalHeatMapDataAsync(int frameX, int frameZ)
         {
             //Debug.Log("GetFractalHeatMapAsync Start");
 
-            float[,] fractalNoiseData = new float[_chunkWidth, _chunkHeight];
+            float[] fractalNoiseData = new float[_chunkWidth * _chunkDepth];
 
             await Task.Run(() =>
             {
                 for (int x = 0; x < _chunkWidth; x++)
                 {
-                    for (int y = 0; y < _chunkHeight; y++)
+                    for (int z = 0; z < _chunkDepth; z++)
                     {
-                        float offsetX = isoFrameX * _chunkWidth + x;
-                        float offsetY = isoFrameY * _chunkHeight + y;
-                        float heatValue = (float)_heatModule.GetValue(offsetX, offsetY, 0);
+                        float offsetX = frameX * _chunkWidth + x;
+                        float offsetZ = frameZ * _chunkDepth + z;
+                        float heatValue = (float)_heatModule.GetValue(offsetX, 0, offsetZ);
                         float normalizeHeatValue = (heatValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
 
-                        fractalNoiseData[x, y] = normalizeHeatValue;
+                        fractalNoiseData[WorldGenUtilities.IndexOf(x, z, _chunkWidth)] = normalizeHeatValue;
                     }
                 }
             });
@@ -563,7 +566,7 @@ namespace PixelMiner.WorldGen
             //Debug.Log("GetFractalHeatMapAsync Finish");
             return fractalNoiseData;
         }
-        public async Task<float[,]> GetHeatMapDataAysnc(int isoFrameX, int isoFrameY)
+        public async Task<float[]> GetHeatMapDataAysnc(int frameX, int frameZ)
         {
             /*
              * Heatmap created by blend gradient map and fractal noise map.
@@ -578,34 +581,34 @@ namespace PixelMiner.WorldGen
 
             // Simultaneous way
             // ===============
-            Task<float[,]> gradientTask = GetGradientMapDataAsync(isoFrameX, isoFrameY);
-            Task<float[,]> fractalNoiseTask = GetFractalHeatMapDataAsync(isoFrameX, isoFrameY);
+            Task<float[]> gradientTask = GetGradientMapDataAsync(frameX, frameZ);
+            Task<float[]> fractalNoiseTask = GetFractalHeatMapDataAsync(frameX, frameZ);
 
             // Await for both tasks to complete
             await Task.WhenAll(gradientTask, fractalNoiseTask);
-            float[,] gradientValues = gradientTask.Result;
-            float[,] fractalNoiseValues = fractalNoiseTask.Result;
+            float[] gradientValues = gradientTask.Result;
+            float[] fractalNoiseValues = fractalNoiseTask.Result;
 
             // Blend the maps
-            float[,] heatValues = WorldGenUtilities.BlendMapData(gradientValues, fractalNoiseValues, HeatMapBlendFactor);
+            float[] heatValues = WorldGenUtilities.BlendMapData(gradientValues, fractalNoiseValues, HeatMapBlendFactor);
             return heatValues;
         }
-        public async Task<float[,]> GetMoistureMapDataAsync(int isoFrameX, int isoFrameY)
+        public async Task<float[]> GetMoistureMapDataAsync(int frameX, int frameZ)
         {
-            float[,] moistureData = new float[_chunkWidth, _chunkHeight];
+            float[] moistureData = new float[_chunkWidth * _chunkDepth];
 
             await Task.Run(() =>
             {
                 for (int x = 0; x < _chunkWidth; x++)
                 {
-                    for (int y = 0; y < _chunkHeight; y++)
+                    for (int z = 0; z < _chunkDepth; z++)
                     {
-                        float offsetX = isoFrameX * _chunkWidth + x;
-                        float offsetY = isoFrameY * _chunkHeight + y;
-                        float moisetureValue = (float)_moistureModule.GetValue(offsetX, 0, offsetY);
+                        float offsetX = frameX * _chunkWidth + x;
+                        float offsetZ = frameZ * _chunkDepth + z;
+                        float moisetureValue = (float)_moistureModule.GetValue(offsetX, 0, offsetZ);
                         float normalizeMoistureValue = (moisetureValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
 
-                        moistureData[x, y] = normalizeMoistureValue;
+                        moistureData[WorldGenUtilities.IndexOf(x, z, _chunkWidth)] = normalizeMoistureValue;
                     }
                 }
             });
@@ -618,7 +621,7 @@ namespace PixelMiner.WorldGen
 
 
         #region River
-        public async Task<float[,]> GetRiverDataAsync(int isoFrameX, int isoFrameY, int width, int height)
+        public async Task<float[,]> GetRiverDataAsync(int frameX, int frameZ, int width, int height)
         {
             float[,] riverValues = new float[width, height];
 
@@ -628,9 +631,9 @@ namespace PixelMiner.WorldGen
                 {
                     for (int y = 0; y < height; y++)
                     {
-                        float offsetX = isoFrameX * width + x;
-                        float offsetY = isoFrameY * height + y;
-                        float riverValue = (float)_riverModule.GetValue(offsetX, offsetY, 0);
+                        float offsetX = frameX * width + x;
+                        float offsetZ = frameZ * height + y;
+                        float riverValue = (float)_riverModule.GetValue(offsetX, offsetZ, 0);
                         float normalizeRiverValue = (riverValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
                         riverValues[x, y] = normalizeRiverValue;
                     }
@@ -643,8 +646,8 @@ namespace PixelMiner.WorldGen
 
 
 
-        #region Set tiles types
-        public async Task LoadHeightMapDataAsync(Chunk2D chunk, float[,] heightValues, bool updateHeightType = true)
+
+        public async Task LoadHeightMapDataAsync(Chunk chunk, float[] heightValues)
         {
             chunk.Processing = true;
             await Task.Run(() =>
@@ -653,12 +656,40 @@ namespace PixelMiner.WorldGen
                 {
                     for (int y = 0; y < _chunkHeight; y++)
                     {
-                        Tile tile = chunk.ChunkData.GetValue(x, y);
-                        tile.HeightValue = heightValues[x, y];
-
-                        if (updateHeightType)
+                        for(int z = 0; z < _chunkDepth; z++)
                         {
-                            UpdateHeightType(tile);
+                            float heightValue = heightValues[WorldGenUtilities.IndexOf(x, z, _chunkWidth)];
+                            chunk.HeightValues[WorldGenUtilities.IndexOf(x, z, _chunkWidth)] = heightValue;
+
+                            int index3D = WorldGenUtilities.IndexOf(x, y, z, _chunkWidth, _chunkHeight);
+                            if (heightValue < DeepWater)
+                            {
+                                chunk.ChunkData[index3D] = BlockType.Air;
+                            }
+                            else if (heightValue < Water)
+                            {
+                                chunk.ChunkData[index3D] = BlockType.Air;
+                            }
+                            else if (heightValue < Sand)
+                            {
+                                chunk.ChunkData[index3D] = BlockType.Sand;
+                            }
+                            else if (heightValue < Grass)
+                            {
+                                chunk.ChunkData[index3D] = BlockType.GrassSide;
+                            }
+                            else if (heightValue < Forest)
+                            {
+                                chunk.ChunkData[index3D] = BlockType.GrassSide;
+                            }
+                            else if (heightValue < Rock)
+                            {
+                                chunk.ChunkData[index3D] = BlockType.Stone;
+                            }
+                            else
+                            {
+                                chunk.ChunkData[index3D] = BlockType.Stone;
+                            }
                         }
                     }
                 });
@@ -666,7 +697,9 @@ namespace PixelMiner.WorldGen
             });
             chunk.Processing = false;
         }
-        public async Task LoadHeatMapDataAsync(Chunk2D chunk, float[,] heatValues, bool updateHeatType = true)
+
+#if false
+        public async Task LoadHeatMapDataAsync(Chunk chunk, float[,] heatValues, bool updateHeatType = true)
         {
             chunk.Processing = true;
             await Task.Run(() =>
@@ -694,7 +727,7 @@ namespace PixelMiner.WorldGen
         /// </summary>
         /// <param name="heightValues"></param>
         /// <returns></returns>
-        public async Task LoadHeightAndHeatMap(Chunk2D chunk, float[,] heightValues, float[,] heatValues)
+        public async Task LoadHeightAndHeatMap(Chunk chunk, float[,] heightValues, float[,] heatValues)
         {
             chunk.Processing = true;
             Task loadHeightMapDataTask = LoadHeightMapDataAsync(chunk, heightValues, updateHeightType: true);
@@ -736,7 +769,7 @@ namespace PixelMiner.WorldGen
             chunk.Processing = false;
         }
 
-        public async Task LoadMoistureMapDataAsync(Chunk2D chunk, float[,] moisetureValues, bool updateMoistureType = true)
+        public async Task LoadMoistureMapDataAsync(Chunk chunk, float[,] moisetureValues, bool updateMoistureType = true)
         {
             chunk.Processing = true;
             await Task.Run(() =>
@@ -778,7 +811,7 @@ namespace PixelMiner.WorldGen
             });
             chunk.Processing = false;
         }
-        public async Task LoadRiverDataAsync(Chunk2D chunk, float[,] riverValues)
+        public async Task LoadRiverDataAsync(Chunk chunk, float[,] riverValues)
         {
             chunk.Processing = true;
             await Task.Run(() =>
@@ -894,7 +927,7 @@ namespace PixelMiner.WorldGen
                 tile.MoistureType = MoistureType.Wettest;
             }
         }
-        #endregion
+   
 
 
         #region Paint Color
@@ -1186,337 +1219,308 @@ namespace PixelMiner.WorldGen
         }
         #endregion
 
+#endif
 
 
         #region Neighbors
-        public void AddChunkFourDirectionNeighbors(Chunk2D chunk)
-        {
-            Chunk2D nbAbove = _main.GetChunkNeighborAbove(chunk);
-            Chunk2D nbBelow = _main.GetChunkNeighborBelow(chunk);
-            Chunk2D nbLeft = _main.GetChunkNeighborLeft(chunk);
-            Chunk2D nbRight = _main.GetChunkNeighborRight(chunk);
-            chunk.SetTwoSidesChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
-        }
-        public void UpdateChunkTileNeighbors(Chunk2D chunk)
-        {
-            // Find chunk neighbors
-            Chunk2D nbAbove = _main.GetChunkNeighborAbove(chunk);
-            Chunk2D nbBelow = _main.GetChunkNeighborBelow(chunk);
-            Chunk2D nbLeft = _main.GetChunkNeighborLeft(chunk);
-            Chunk2D nbRight = _main.GetChunkNeighborRight(chunk);
-            chunk.SetTwoSidesChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
+        //public void AddChunkFourDirectionNeighbors(Chunk2D chunk)
+        //{
+        //    Chunk2D nbAbove = _main.GetChunkNeighborFront(chunk);
+        //    Chunk2D nbBelow = _main.GetChunkNeighborBack(chunk);
+        //    Chunk2D nbLeft = _main.GetChunkNeighborLeft(chunk);
+        //    Chunk2D nbRight = _main.GetChunkNeighborRight(chunk);
+        //    chunk.SetTwoSidesChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
+        //}
+        //public void UpdateChunkTileNeighbors(Chunk2D chunk)
+        //{
+        //    // Find chunk neighbors
+        //    Chunk2D nbAbove = _main.GetChunkNeighborFront(chunk);
+        //    Chunk2D nbBelow = _main.GetChunkNeighborBack(chunk);
+        //    Chunk2D nbLeft = _main.GetChunkNeighborLeft(chunk);
+        //    Chunk2D nbRight = _main.GetChunkNeighborRight(chunk);
+        //    chunk.SetTwoSidesChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
 
-            if (chunk.HasNeighbors() && !chunk.AllTileHasNeighbors)
-            {
-                chunk.UpdateAllTileNeighbors();
+        //    if (chunk.HasNeighbors() && !chunk.AllTileHasNeighbors)
+        //    {
+        //        chunk.UpdateAllTileNeighbors();
 
-                if (_main.PaintTileNeighbors)
-                    PaintNeighborsColor(chunk);
+        //        if (_main.PaintTileNeighbors)
+        //            PaintNeighborsColor(chunk);
 
-                if (chunk.Waters.Count == 0 && chunk.Lands.Count == 0)
-                {
-                    FloodFill(chunk);
-                    PaintTilegroupMap(chunk);
-                }
-            }
+        //        if (chunk.Waters.Count == 0 && chunk.Lands.Count == 0)
+        //        {
+        //            FloodFill(chunk);
+        //            PaintTilegroupMap(chunk);
+        //        }
+        //    }
 
-            if (nbAbove != null && nbAbove.HasNeighbors() && !nbAbove.AllTileHasNeighbors)
-            {
-                nbAbove.UpdateAllTileNeighbors();
+        //    if (nbAbove != null && nbAbove.HasNeighbors() && !nbAbove.AllTileHasNeighbors)
+        //    {
+        //        nbAbove.UpdateAllTileNeighbors();
 
-                if (_main.PaintTileNeighbors)
-                    PaintNeighborsColor(nbAbove);
+        //        if (_main.PaintTileNeighbors)
+        //            PaintNeighborsColor(nbAbove);
 
-                if (nbAbove.Waters.Count == 0 && nbAbove.Lands.Count == 0)
-                {
-                    FloodFill(nbAbove);
-                    PaintTilegroupMap(nbAbove);
-                }
-            }
-            if (nbBelow != null && nbBelow.HasNeighbors() && !nbBelow.AllTileHasNeighbors)
-            {
-                nbBelow.UpdateAllTileNeighbors();
+        //        if (nbAbove.Waters.Count == 0 && nbAbove.Lands.Count == 0)
+        //        {
+        //            FloodFill(nbAbove);
+        //            PaintTilegroupMap(nbAbove);
+        //        }
+        //    }
+        //    if (nbBelow != null && nbBelow.HasNeighbors() && !nbBelow.AllTileHasNeighbors)
+        //    {
+        //        nbBelow.UpdateAllTileNeighbors();
 
-                if (_main.PaintTileNeighbors)
-                    PaintNeighborsColor(nbBelow);
+        //        if (_main.PaintTileNeighbors)
+        //            PaintNeighborsColor(nbBelow);
 
-                if (nbBelow.Waters.Count == 0 && nbBelow.Lands.Count == 0)
-                {
-                    FloodFill(nbBelow);
-                    PaintTilegroupMap(nbBelow);
-                }
+        //        if (nbBelow.Waters.Count == 0 && nbBelow.Lands.Count == 0)
+        //        {
+        //            FloodFill(nbBelow);
+        //            PaintTilegroupMap(nbBelow);
+        //        }
 
-            }
-            if (nbLeft != null && nbLeft.HasNeighbors() && !nbLeft.AllTileHasNeighbors)
-            {
-                nbLeft.UpdateAllTileNeighbors();
+        //    }
+        //    if (nbLeft != null && nbLeft.HasNeighbors() && !nbLeft.AllTileHasNeighbors)
+        //    {
+        //        nbLeft.UpdateAllTileNeighbors();
 
-                if (_main.PaintTileNeighbors)
-                    PaintNeighborsColor(nbLeft);
+        //        if (_main.PaintTileNeighbors)
+        //            PaintNeighborsColor(nbLeft);
 
-                if (nbLeft.Waters.Count == 0 && nbLeft.Lands.Count == 0)
-                {
-                    FloodFill(nbLeft);
-                    PaintTilegroupMap(nbLeft);
-                }
-            }
-            if (nbRight != null && nbRight.HasNeighbors() && !nbRight.AllTileHasNeighbors)
-            {
-                nbRight.UpdateAllTileNeighbors();
+        //        if (nbLeft.Waters.Count == 0 && nbLeft.Lands.Count == 0)
+        //        {
+        //            FloodFill(nbLeft);
+        //            PaintTilegroupMap(nbLeft);
+        //        }
+        //    }
+        //    if (nbRight != null && nbRight.HasNeighbors() && !nbRight.AllTileHasNeighbors)
+        //    {
+        //        nbRight.UpdateAllTileNeighbors();
 
-                if (_main.PaintTileNeighbors)
-                    PaintNeighborsColor(nbRight);
+        //        if (_main.PaintTileNeighbors)
+        //            PaintNeighborsColor(nbRight);
 
-                if (nbRight.Waters.Count == 0 && nbRight.Lands.Count == 0)
-                {
-                    FloodFill(nbRight);
-                    PaintTilegroupMap(nbRight);
-                }
+        //        if (nbRight.Waters.Count == 0 && nbRight.Lands.Count == 0)
+        //        {
+        //            FloodFill(nbRight);
+        //            PaintTilegroupMap(nbRight);
+        //        }
 
-            }
-        }
-        public async void UpdateChunkTileNeighborsAsync(Chunk2D chunk)
-        {
-            // Find chunk neighbors
-            Chunk2D nbAbove = _main.GetChunkNeighborAbove(chunk);
-            Chunk2D nbBelow = _main.GetChunkNeighborBelow(chunk);
-            Chunk2D nbLeft = _main.GetChunkNeighborLeft(chunk);
-            Chunk2D nbRight = _main.GetChunkNeighborRight(chunk);
-            chunk.SetTwoSidesChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
+        //    }
+        //}
+        //public async void UpdateChunkTileNeighborsAsync(Chunk2D chunk)
+        //{
+        //    // Find chunk neighbors
+        //    Chunk2D nbAbove = _main.GetChunkNeighborFront(chunk);
+        //    Chunk2D nbBelow = _main.GetChunkNeighborBack(chunk);
+        //    Chunk2D nbLeft = _main.GetChunkNeighborLeft(chunk);
+        //    Chunk2D nbRight = _main.GetChunkNeighborRight(chunk);
+        //    chunk.SetTwoSidesChunkNeighbors(nbLeft, nbRight, nbAbove, nbBelow);
 
-            Task[] tasks = new Task[5];
+        //    Task[] tasks = new Task[5];
 
-            if (chunk.HasNeighbors() && !chunk.AllTileHasNeighbors)
-            {
-                tasks[0] = chunk.UpdateAllTileNeighborsAsync();
-            }
-            else
-                tasks[0] = Task.CompletedTask;
+        //    if (chunk.HasNeighbors() && !chunk.AllTileHasNeighbors)
+        //    {
+        //        tasks[0] = chunk.UpdateAllTileNeighborsAsync();
+        //    }
+        //    else
+        //        tasks[0] = Task.CompletedTask;
 
-            if (nbAbove != null && nbAbove.HasNeighbors() && !nbAbove.AllTileHasNeighbors)
-                tasks[1] = nbAbove.UpdateAllTileNeighborsAsync();
-            else
-                tasks[1] = Task.CompletedTask;
+        //    if (nbAbove != null && nbAbove.HasNeighbors() && !nbAbove.AllTileHasNeighbors)
+        //        tasks[1] = nbAbove.UpdateAllTileNeighborsAsync();
+        //    else
+        //        tasks[1] = Task.CompletedTask;
 
-            if (nbBelow != null && nbBelow.HasNeighbors() && !nbBelow.AllTileHasNeighbors)
-                tasks[2] = nbBelow.UpdateAllTileNeighborsAsync();
-            else
-                tasks[2] = Task.CompletedTask;
+        //    if (nbBelow != null && nbBelow.HasNeighbors() && !nbBelow.AllTileHasNeighbors)
+        //        tasks[2] = nbBelow.UpdateAllTileNeighborsAsync();
+        //    else
+        //        tasks[2] = Task.CompletedTask;
 
-            if (nbLeft != null && nbLeft.HasNeighbors() && !nbLeft.AllTileHasNeighbors)
-                tasks[3] = nbLeft.UpdateAllTileNeighborsAsync();
-            else
-                tasks[3] = Task.CompletedTask;
+        //    if (nbLeft != null && nbLeft.HasNeighbors() && !nbLeft.AllTileHasNeighbors)
+        //        tasks[3] = nbLeft.UpdateAllTileNeighborsAsync();
+        //    else
+        //        tasks[3] = Task.CompletedTask;
 
-            if (nbRight != null && nbRight.HasNeighbors() && !nbRight.AllTileHasNeighbors)
-                tasks[4] = nbRight.UpdateAllTileNeighborsAsync();
-            else
-                tasks[4] = Task.CompletedTask;
+        //    if (nbRight != null && nbRight.HasNeighbors() && !nbRight.AllTileHasNeighbors)
+        //        tasks[4] = nbRight.UpdateAllTileNeighborsAsync();
+        //    else
+        //        tasks[4] = Task.CompletedTask;
 
-            await Task.WhenAll(tasks);
+        //    await Task.WhenAll(tasks);
 
 
-            if (chunk.AllTileHasNeighbors)
-            {
-                if (_main.PaintTileNeighbors)
-                    PaintNeighborsColor(chunk);
+        //    if (chunk.AllTileHasNeighbors)
+        //    {
+        //        if (_main.PaintTileNeighbors)
+        //            PaintNeighborsColor(chunk);
 
-                if (chunk.Waters.Count == 0 && chunk.Lands.Count == 0)
-                {
-                    FloodFill(chunk);
-                    PaintTilegroupMap(chunk);
-                }
-            }
-            if (nbAbove != null && nbAbove.AllTileHasNeighbors)
-            {
-                if (_main.PaintTileNeighbors)
-                    PaintNeighborsColor(nbAbove);
+        //        if (chunk.Waters.Count == 0 && chunk.Lands.Count == 0)
+        //        {
+        //            FloodFill(chunk);
+        //            PaintTilegroupMap(chunk);
+        //        }
+        //    }
+        //    if (nbAbove != null && nbAbove.AllTileHasNeighbors)
+        //    {
+        //        if (_main.PaintTileNeighbors)
+        //            PaintNeighborsColor(nbAbove);
 
-                if (nbAbove.Waters.Count == 0 && nbAbove.Lands.Count == 0)
-                {
-                    FloodFill(nbAbove);
-                    PaintTilegroupMap(nbAbove);
-                }
-            }
-            if (nbBelow != null && nbBelow.AllTileHasNeighbors)
-            {
-                if (_main.PaintTileNeighbors)
-                    PaintNeighborsColor(nbBelow);
+        //        if (nbAbove.Waters.Count == 0 && nbAbove.Lands.Count == 0)
+        //        {
+        //            FloodFill(nbAbove);
+        //            PaintTilegroupMap(nbAbove);
+        //        }
+        //    }
+        //    if (nbBelow != null && nbBelow.AllTileHasNeighbors)
+        //    {
+        //        if (_main.PaintTileNeighbors)
+        //            PaintNeighborsColor(nbBelow);
 
-                if (nbBelow.Waters.Count == 0 && nbBelow.Lands.Count == 0)
-                {
-                    FloodFill(nbBelow);
-                    PaintTilegroupMap(nbBelow);
-                }
-            }
-            if (nbLeft != null && nbLeft.AllTileHasNeighbors)
-            {
-                if (_main.PaintTileNeighbors)
-                    PaintNeighborsColor(nbLeft);
+        //        if (nbBelow.Waters.Count == 0 && nbBelow.Lands.Count == 0)
+        //        {
+        //            FloodFill(nbBelow);
+        //            PaintTilegroupMap(nbBelow);
+        //        }
+        //    }
+        //    if (nbLeft != null && nbLeft.AllTileHasNeighbors)
+        //    {
+        //        if (_main.PaintTileNeighbors)
+        //            PaintNeighborsColor(nbLeft);
 
-                if (nbLeft.Waters.Count == 0 && nbLeft.Lands.Count == 0)
-                {
-                    FloodFill(nbLeft);
-                    PaintTilegroupMap(nbLeft);
-                }
-            }
-            if (nbRight != null && nbRight.AllTileHasNeighbors)
-            {
-                if (_main.PaintTileNeighbors)
-                    PaintNeighborsColor(nbRight);
+        //        if (nbLeft.Waters.Count == 0 && nbLeft.Lands.Count == 0)
+        //        {
+        //            FloodFill(nbLeft);
+        //            PaintTilegroupMap(nbLeft);
+        //        }
+        //    }
+        //    if (nbRight != null && nbRight.AllTileHasNeighbors)
+        //    {
+        //        if (_main.PaintTileNeighbors)
+        //            PaintNeighborsColor(nbRight);
 
-                if (nbRight.Waters.Count == 0 && nbRight.Lands.Count == 0)
-                {
-                    FloodFill(nbRight);
-                    PaintTilegroupMap(nbRight);
-                }
-            }
+        //        if (nbRight.Waters.Count == 0 && nbRight.Lands.Count == 0)
+        //        {
+        //            FloodFill(nbRight);
+        //            PaintTilegroupMap(nbRight);
+        //        }
+        //    }
 
-        }
-        public void UpdateAllActiveChunkTileNeighborsAsync()
-        {
-            foreach (Chunk2D activeChunk in _main.ActiveChunks)
-            {
-                if (activeChunk.AllTileHasNeighbors == false)
-                {
-                    UpdateChunkTileNeighborsAsync(activeChunk);
-                }
-            }
-        }
+        //}
+        //public void UpdateAllActiveChunkTileNeighborsAsync()
+        //{
+        //    foreach (Chunk activeChunk in _main.ActiveChunks)
+        //    {
+        //        if (activeChunk.AllTileHasNeighbors == false)
+        //        {
+        //            UpdateChunkTileNeighborsAsync(activeChunk);
+        //        }
+        //    }
+        //}
         #endregion
 
 
 
 
         #region Grid Algorithm
-        private void FloodFill(Chunk2D chunk)
-        {
-            Stack<Tile> stack = new Stack<Tile>();
+        //private void FloodFill(Chunk chunk)
+        //{
+        //    Stack<Tile> stack = new Stack<Tile>();
 
-            for (int x = 0; x < _chunkWidth; x++)
-            {
-                for (int y = 0; y < _chunkHeight; y++)
-                {
-                    Tile t = chunk.ChunkData.GetValue(x, y);
+        //    for (int x = 0; x < _chunkWidth; x++)
+        //    {
+        //        for (int y = 0; y < _chunkHeight; y++)
+        //        {
+        //            Tile t = chunk.ChunkData.GetValue(x, y);
 
-                    // Tile already flood filled, skip
-                    if (t.FloodFilled)
-                    {
-                        continue;
-                    }
+        //            // Tile already flood filled, skip
+        //            if (t.FloodFilled)
+        //            {
+        //                continue;
+        //            }
 
-                    // Land
-                    if (t.Collidable)
-                    {
-                        TileGroup group = new TileGroup();
-                        group.Type = TileGroupType.Land;
-                        stack.Push(t);
+        //            // Land
+        //            if (t.Collidable)
+        //            {
+        //                TileGroup group = new TileGroup();
+        //                group.Type = TileGroupType.Land;
+        //                stack.Push(t);
 
-                        while (stack.Count > 0)
-                        {
-                            Tile tile = stack.Pop();
-                            FloodFill(tile, ref group, ref stack, chunk);
-                        }
+        //                while (stack.Count > 0)
+        //                {
+        //                    Tile tile = stack.Pop();
+        //                    FloodFill(tile, ref group, ref stack, chunk);
+        //                }
 
-                        if (group.Tiles.Count > 0)
-                        {
-                            chunk.Lands.Add(group);
-                        }
-                    }
-                    else // Water
-                    {
-                        TileGroup group = new TileGroup();
-                        group.Type = TileGroupType.Water;
-                        stack.Push(t);
+        //                if (group.Tiles.Count > 0)
+        //                {
+        //                    chunk.Lands.Add(group);
+        //                }
+        //            }
+        //            else // Water
+        //            {
+        //                TileGroup group = new TileGroup();
+        //                group.Type = TileGroupType.Water;
+        //                stack.Push(t);
 
-                        while (stack.Count > 0)
-                        {
-                            Tile tile = stack.Pop();
-                            FloodFill(tile, ref group, ref stack, chunk);
-                        }
+        //                while (stack.Count > 0)
+        //                {
+        //                    Tile tile = stack.Pop();
+        //                    FloodFill(tile, ref group, ref stack, chunk);
+        //                }
 
-                        if (group.Tiles.Count > 0)
-                        {
-                            chunk.Waters.Add(group);
-                        }
-                    }
-                }
-            }
-        }
-        private void FloodFill(Tile tile, ref TileGroup tiles, ref Stack<Tile> stack, Chunk2D chunk)
-        {
-            // Validate
-            if (tile.FloodFilled)
-                return;
-            if (tiles.Type == TileGroupType.Land && tile.Collidable == false)
-                return;
-            if (tiles.Type == TileGroupType.Water && tile.Collidable)
-                return;
+        //                if (group.Tiles.Count > 0)
+        //                {
+        //                    chunk.Waters.Add(group);
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
+        //private void FloodFill(Tile tile, ref TileGroup tiles, ref Stack<Tile> stack, Chunk2D chunk)
+        //{
+        //    // Validate
+        //    if (tile.FloodFilled)
+        //        return;
+        //    if (tiles.Type == TileGroupType.Land && tile.Collidable == false)
+        //        return;
+        //    if (tiles.Type == TileGroupType.Water && tile.Collidable)
+        //        return;
 
-            tiles.Tiles.Add(tile);
-            tile.FloodFilled = true;
+        //    tiles.Tiles.Add(tile);
+        //    tile.FloodFilled = true;
 
 
-            // FloodFill into neighbors
-            Tile nb = chunk.GetTopWithinChunk(tile);
-            if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
-            {
-                stack.Push(nb);
-            }
+        //    // FloodFill into neighbors
+        //    Tile nb = chunk.GetTopWithinChunk(tile);
+        //    if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
+        //    {
+        //        stack.Push(nb);
+        //    }
 
-            nb = chunk.GetBottomWithinChunk(tile);
-            if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
-            {
-                stack.Push(nb);
-            }
+        //    nb = chunk.GetBottomWithinChunk(tile);
+        //    if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
+        //    {
+        //        stack.Push(nb);
+        //    }
 
-            nb = chunk.GetLeftWithinChunk(tile);
-            if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
-            {
-                stack.Push(nb);
-            }
+        //    nb = chunk.GetLeftWithinChunk(tile);
+        //    if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
+        //    {
+        //        stack.Push(nb);
+        //    }
 
-            nb = chunk.GetRightWithinChunk(tile);
-            if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
-            {
-                stack.Push(nb);
-            }
-        }
+        //    nb = chunk.GetRightWithinChunk(tile);
+        //    if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
+        //    {
+        //        stack.Push(nb);
+        //    }
+        //}
         #endregion
 
 
 
         #region Utilities
-
-        /// <summary>
-        /// Sort active chunks fix some isometric chunk has wrong order (Visualization).
-        /// </summary>
-        public void SortActiveChunkByDepth(bool inverse = false)
-        {
-            int depth = 0;
-            List<Chunk2D> chunkList = _main.ActiveChunks.ToList();
-
-            chunkList.Sort((v1, v2) =>
-            {
-                int xComparison = v1.IsometricFrameX.CompareTo(v2.IsometricFrameX);
-                int yComparison = v1.IsometricFrameY.CompareTo(v2.IsometricFrameY);
-
-                if (inverse)
-                {
-                    xComparison = -xComparison; // Reverse xComparison if 'inverse' is true
-                    yComparison = -yComparison; // Reverse yComparison if 'inverse' is true
-                }
-
-                return xComparison != 0 ? xComparison : yComparison;
-            });
-
-            foreach (var chunk in chunkList)
-            {
-                chunk.transform.position = new Vector3(chunk.transform.position.x,
-                    chunk.transform.position.y,
-                    depth++);
-            }
-        }
         public static Color GetGradientColor(float heatValue)
         {
             // predefine heat value threshold

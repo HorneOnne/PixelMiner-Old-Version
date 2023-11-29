@@ -6,7 +6,6 @@ using PixelMiner.Enums;
 using PixelMiner.Utilities;
 using System.Threading.Tasks;
 using PixelMiner.WorldBuilding;
-using PixelMiner.Core;
 
 namespace PixelMiner.WorldGen
 {
@@ -25,8 +24,8 @@ namespace PixelMiner.WorldGen
 
         // Chunk data
         [Header("Data Cached")]
-        public Dictionary<Vector2Int, Chunk2D> Chunks;
-        public HashSet<Chunk2D> ActiveChunks;
+        public Dictionary<Vector3Int, Chunk> Chunks;
+        public HashSet<Chunk> ActiveChunks;
 
         // Tilemap Settings
         [FoldoutGroup("Tilemap Settings"), Indent(1), ShowInInspector, ReadOnly] public readonly float IsometricAngle = 26.565f;
@@ -36,11 +35,11 @@ namespace PixelMiner.WorldGen
 
         public string SeedInput = "7";
 
-        private readonly Vector2 HORIZONTAL_DISTANCE_TO_NB = new Vector2(2.0f, 1.0f);
-        private readonly Vector2 VERTICAL_DISTANCE_TO_NB = new Vector2(1.0f, 0.5f);
+ 
 
         public byte ChunkWidth = 32;
-        public byte ChunkHeight = 32;
+        public byte ChunkHeight = 1;
+        public byte ChunkDepth = 32;
 
         public bool AutoLoadChunk = true;
         public bool AutoUnloadChunk = true;
@@ -59,8 +58,8 @@ namespace PixelMiner.WorldGen
 
 
             // Initialize the chunks data
-            Chunks = new Dictionary<Vector2Int, Chunk2D>();
-            ActiveChunks = new HashSet<Chunk2D>();
+            Chunks = new Dictionary<Vector3Int, Chunk>();
+            ActiveChunks = new HashSet<Chunk>();
         }
         private void Start()
         {
@@ -97,172 +96,191 @@ namespace PixelMiner.WorldGen
         #endregion
 
         #region Get, Set Chunk
-        public bool HasChunk(int isoFrameX, int isoFrameY)
+        public bool HasChunk(int franeX, int frameZ)
         {
-            return Chunks.ContainsKey(new Vector2Int(isoFrameX, isoFrameY));
+            return Chunks.ContainsKey(new Vector3Int(franeX,0, frameZ));
         }
-        public bool HasChunk(Vector2Int isoFrame)
+        public bool HasChunk(Vector3Int frame)
         {
-            return Chunks.ContainsKey(isoFrame);
+            return Chunks.ContainsKey(frame);
         }
-        public Chunk2D GetChunk(Vector2 worldPosition, int chunkWidth, int chunkHeight)
+        public Chunk GetChunk(Vector3 worldPosition)
         {
-            var isoFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(worldPosition,
-                                                                               chunkWidth,
-                                                                               chunkHeight);
-            return GetChunk(isoFrame);
+            Vector3Int frame = new Vector3Int(Mathf.FloorToInt(worldPosition.x / ChunkWidth),
+                Mathf.FloorToInt(worldPosition.y / ChunkHeight), Mathf.FloorToInt(worldPosition.z / ChunkDepth));
+            return GetChunk(frame);
         }
-        public Chunk2D GetChunk(int isoFrameX, int isoFrameY)
+        public Chunk GetChunk(int frameX, int frameZ)
         {
-            Vector2Int isoFrame = new Vector2Int(isoFrameX, isoFrameY);
-            if (Chunks.ContainsKey(isoFrame))
+            Vector3Int frame = new Vector3Int(frameX, 0, frameZ);
+            if (Chunks.ContainsKey(frame))
             {
-                return Chunks[isoFrame];
+                return Chunks[frame];
             }
             return null;
         }
-        public Chunk2D GetChunk(Vector2Int isoFrame)
+        public Chunk GetChunk(Vector3Int frame)
         {
-            if (Chunks.ContainsKey(isoFrame))
+            if (Chunks.ContainsKey(frame))
             {
-                return Chunks[isoFrame];
+                return Chunks[frame];
             }
             return null;
         }
-        public void AddNewChunk(Chunk2D chunk)
+        public void AddNewChunk(Chunk chunk)
         {
-            Vector2Int isoFrame = new Vector2Int(chunk.IsometricFrameX, chunk.IsometricFrameY);
-            Chunks.Add(isoFrame, chunk);
+            Vector3Int frame = new Vector3Int(chunk.FrameX, chunk.FrameY, chunk.FrameZ);
+            Chunks.Add(frame, chunk);
         }
-        public void AddNewChunk(Chunk2D chunk, Vector2Int isoFrame)
+        public void AddNewChunk(Chunk chunk, Vector3Int frame)
         {
-            Chunks.Add(isoFrame, chunk);
+            Chunks.Add(frame, chunk);
         }
         #endregion
 
         #region Neighbors
-        public Chunk2D GetChunkNeighborAbove(Chunk2D chunk)
+        public Chunk GetChunkNeighborFront(Chunk chunk)
         {
-            Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX, chunk.IsometricFrameY + 1);
-            return Chunks.TryGetValue(isoFrameChunkNb, out Chunk2D neighborChunk) ? neighborChunk : null;
+            Vector3Int nbChunkFrame = new Vector3Int(chunk.FrameX, chunk.FrameY, chunk.FrameZ + 1);
+            return Chunks.TryGetValue(nbChunkFrame, out Chunk neighborChunk) ? neighborChunk : null;
         }
-        public Chunk2D GetChunkNeighborBelow(Chunk2D chunk)
+        public Chunk GetChunkNeighborBack(Chunk chunk)
         {
-            Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX, chunk.IsometricFrameY - 1);
-            return Chunks.TryGetValue(isoFrameChunkNb, out Chunk2D neighborChunk) ? neighborChunk : null;
+            Vector3Int nbChunkFrame = new Vector3Int(chunk.FrameX, chunk.FrameY, chunk.FrameZ - 1);
+            return Chunks.TryGetValue(nbChunkFrame, out Chunk neighborChunk) ? neighborChunk : null;
         }
-        public Chunk2D GetChunkNeighborLeft(Chunk2D chunk)
+        public Chunk GetChunkNeighborLeft(Chunk chunk)
         {
-            Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX - 1, chunk.IsometricFrameY);
-            return Chunks.TryGetValue(isoFrameChunkNb, out Chunk2D neighborChunk) ? neighborChunk : null;
+            Vector3Int nbChunkFrame = new Vector3Int(chunk.FrameX - 1, chunk.FrameY, chunk.FrameZ);
+            return Chunks.TryGetValue(nbChunkFrame, out Chunk neighborChunk) ? neighborChunk : null;
         }
-        public Chunk2D GetChunkNeighborRight(Chunk2D chunk)
+        public Chunk GetChunkNeighborRight(Chunk chunk)
         {
-            Vector2Int isoFrameChunkNb = new Vector2Int(chunk.IsometricFrameX + 1, chunk.IsometricFrameY);
-            return Chunks.TryGetValue(isoFrameChunkNb, out Chunk2D neighborChunk) ? neighborChunk : null;
+            Vector3Int nbChunkFrame = new Vector3Int(chunk.FrameX + 1, chunk.FrameY, chunk.FrameZ);
+            return Chunks.TryGetValue(nbChunkFrame, out Chunk neighborChunk) ? neighborChunk : null;
+        }
+        public Chunk GetChunkNeighborTop(Chunk chunk)
+        {
+            Vector3Int nbChunkFrame = new Vector3Int(chunk.FrameX, chunk.FrameY + 1, chunk.FrameZ);
+            return Chunks.TryGetValue(nbChunkFrame, out Chunk neighborChunk) ? neighborChunk : null;
+        }
+        public Chunk GetChunkNeighborBottom(Chunk chunk)
+        {
+            Vector3Int nbChunkFrame = new Vector3Int(chunk.FrameX, chunk.FrameY - 1, chunk.FrameZ);
+            return Chunks.TryGetValue(nbChunkFrame, out Chunk neighborChunk) ? neighborChunk : null;
         }
         #endregion
 
 
         #region Tile Utilities
-        public WorldBuilding.Tile GetTile(Vector2 worldPosition, out Chunk2D chunk)
-        {
-            chunk = GetChunk(worldPosition, ChunkWidth, ChunkHeight);
-            if (chunk != null)
-            {
-                Vector3 localTilePosition = IsometricUtilities.GlobalToLocal(worldPosition.x, worldPosition.y, offsetX: chunk.transform.position.x, offsetY: chunk.transform.position.y);
-                byte tileFrameX = (byte)Mathf.FloorToInt(localTilePosition.x);
-                byte tileFrameY = (byte)Mathf.FloorToInt(localTilePosition.y);
+        //public WorldBuilding.Tile GetTile(Vector2 worldPosition, out Chunk2D chunk)
+        //{
+        //    chunk = GetChunk(worldPosition, ChunkWidth, ChunkHeight);
+        //    if (chunk != null)
+        //    {
+        //        Vector3 localTilePosition = IsometricUtilities.GlobalToLocal(worldPosition.x, worldPosition.y, offsetX: chunk.transform.position.x, offsetY: chunk.transform.position.y);
+        //        byte tileFrameX = (byte)Mathf.FloorToInt(localTilePosition.x);
+        //        byte tileFrameY = (byte)Mathf.FloorToInt(localTilePosition.y);
 
-                return chunk.GetTile(tileFrameX, tileFrameY);
-            }
-            return null;
-        }
-        public void SetTileColor(Vector2 worldPosition, Color color)
-        {
-            WorldBuilding.Tile tile = GetTile(worldPosition, out Chunk2D chunk);
-            if(chunk != null && tile != null)
-            {
-                chunk.PaintTileColor(tile, color);
-            }
-        }
-        public async void ToggleTileColor(Vector2 worldPosition, Color color, int toggleTime = 200)
-        {
-            SetTileColor(worldPosition, color);
-            await Task.Delay(toggleTime);
-            SetTileColor(worldPosition, Color.white);
-        }
-        /// <summary>
-        /// Get world position of a tile at specific position.
-        /// </summary>
-        /// <param name="worldPosition"></param>
-        /// <returns></returns>
-        public Vector2 GetTileWorldPosition(Vector2 worldPosition)
-        {
-            WorldBuilding.Tile tile = GetTile(worldPosition, out Chunk2D chunk);
-            if (chunk != null && tile != null)
-            {
-                Vector2 offset = chunk.transform.position;
-                return IsometricUtilities.LocalToGlobal(tile.FrameX, tile.FrameY, offset.x, offset.y);
-            }
-            return Vector2.zero;
-        }
-        public Vector2 GetNeighborWorldPosition(Vector2 worldPosition, Vector2 direction, Vector2 offset = (default))
-        {
-            WorldBuilding.Tile tile = GetTile(worldPosition, out Chunk2D chunk);
-            Vector2 nbWorldPosition = Vector2.zero;
-            if (tile != null)
-            {
-                if (direction.x < 0 && direction.y == 0)
-                {
-                    // Left
-                    nbWorldPosition = GetTileWorldPosition(worldPosition) + Vector2.left * HORIZONTAL_DISTANCE_TO_NB;
-                }
-                else if (direction.x > 0 && direction.y == 0)
-                {
-                    // Right
-                    nbWorldPosition = GetTileWorldPosition(worldPosition) + Vector2.right * HORIZONTAL_DISTANCE_TO_NB;
-                }
-                else if (direction.x == 0 && direction.y > 0)
-                {
-                    // Up
-                    nbWorldPosition = GetTileWorldPosition(worldPosition) + Vector2.up * HORIZONTAL_DISTANCE_TO_NB;
-                }
-                else if (direction.x == 0 && direction.y < 0)
-                {
-                    // Down
-                    nbWorldPosition = GetTileWorldPosition(worldPosition) + Vector2.down * HORIZONTAL_DISTANCE_TO_NB;
-                }
-                else if (direction.x < 0 && direction.y > 0)
-                {
-                    // Up Left
-                    nbWorldPosition = GetTileWorldPosition(worldPosition) + MathHelper.UpLeftVector * VERTICAL_DISTANCE_TO_NB;
-                }
-                else if (direction.x > 0 && direction.y > 0)
-                {
-                    // Up Right
-                    nbWorldPosition = GetTileWorldPosition(worldPosition) + MathHelper.UpRightVector * VERTICAL_DISTANCE_TO_NB;
-                }
-                else if (direction.x < 0 && direction.y < 0)
-                {
-                    // Down Left
-                    nbWorldPosition = GetTileWorldPosition(worldPosition) + MathHelper.DownLeftVector * VERTICAL_DISTANCE_TO_NB;
-                }
-                else if (direction.x > 0 && direction.y < 0)
-                {
-                    // Down Right
-                    nbWorldPosition = GetTileWorldPosition(worldPosition) + MathHelper.DownRightVector * VERTICAL_DISTANCE_TO_NB;
-                }
+        //        return chunk.GetTile(tileFrameX, tileFrameY);
+        //    }
+        //    return null;
+        //}
+        //public void SetTileColor(Vector2 worldPosition, Color color)
+        //{
+        //    WorldBuilding.Tile tile = GetTile(worldPosition, out Chunk2D chunk);
+        //    if(chunk != null && tile != null)
+        //    {
+        //        chunk.PaintTileColor(tile, color);
+        //    }
+        //}
+        //public async void ToggleTileColor(Vector2 worldPosition, Color color, int toggleTime = 200)
+        //{
+        //    SetTileColor(worldPosition, color);
+        //    await Task.Delay(toggleTime);
+        //    SetTileColor(worldPosition, Color.white);
+        //}
+        ///// <summary>
+        ///// Get world position of a tile at specific position.
+        ///// </summary>
+        ///// <param name="worldPosition"></param>
+        ///// <returns></returns>
+        //public Vector2 GetTileWorldPosition(Vector2 worldPosition)
+        //{
+        //    WorldBuilding.Tile tile = GetTile(worldPosition, out Chunk2D chunk);
+        //    if (chunk != null && tile != null)
+        //    {
+        //        Vector2 offset = chunk.transform.position;
+        //        return IsometricUtilities.LocalToGlobal(tile.FrameX, tile.FrameY, offset.x, offset.y);
+        //    }
+        //    return Vector2.zero;
+        //}
 
-                nbWorldPosition += offset;
-            }
-            return nbWorldPosition;
-        }
+
+        //public Vector2 GetNeighborWorldPosition(Vector2 worldPosition, Vector2 direction, Vector2 offset = (default))
+        //{
+        //    WorldBuilding.Tile tile = GetTile(worldPosition, out Chunk2D chunk);
+        //    Vector2 nbWorldPosition = Vector2.zero;
+        //    if (tile != null)
+        //    {
+        //        if (direction.x < 0 && direction.y == 0)
+        //        {
+        //            // Left
+        //            nbWorldPosition = GetTileWorldPosition(worldPosition) + Vector2.left;
+        //        }
+        //        else if (direction.x > 0 && direction.y == 0)
+        //        {
+        //            // Right
+        //            nbWorldPosition = GetTileWorldPosition(worldPosition) + Vector2.right;
+        //        }
+        //        else if (direction.x == 0 && direction.y > 0)
+        //        {
+        //            // Up
+        //            nbWorldPosition = GetTileWorldPosition(worldPosition) + Vector2.up;
+        //        }
+        //        else if (direction.x == 0 && direction.y < 0)
+        //        {
+        //            // Down
+        //            nbWorldPosition = GetTileWorldPosition(worldPosition) + Vector2.down;
+        //        }
+        //        else if (direction.x < 0 && direction.y > 0)
+        //        {
+        //            // Up Left
+        //            nbWorldPosition = GetTileWorldPosition(worldPosition) + MathHelper.UpLeftVector;
+        //        }
+        //        else if (direction.x > 0 && direction.y > 0)
+        //        {
+        //            // Up Right
+        //            nbWorldPosition = GetTileWorldPosition(worldPosition) + MathHelper.UpRightVector;
+        //        }
+        //        else if (direction.x < 0 && direction.y < 0)
+        //        {
+        //            // Down Left
+        //            nbWorldPosition = GetTileWorldPosition(worldPosition) + MathHelper.DownLeftVector;
+        //        }
+        //        else if (direction.x > 0 && direction.y < 0)
+        //        {
+        //            // Down Right
+        //            nbWorldPosition = GetTileWorldPosition(worldPosition) + MathHelper.DownRightVector;
+        //        }
+
+        //        nbWorldPosition += offset;
+        //    }
+        //    return nbWorldPosition;
+        //}
         #endregion
 
 
         #region Block
-    
+        public Block GetBlock(Vector3 worldPosition)
+        {
+            Chunk chunk = GetChunk(worldPosition);
+            if (chunk != null)
+            {
+                return null;
+            }
+            return null;
+        }
         #endregion
     }
 }

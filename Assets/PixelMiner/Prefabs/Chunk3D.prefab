@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 150561011685154748}
   - component: {fileID: 285238837962715001}
   m_Layer: 0
-  m_Name: Block
+  m_Name: Chunk3D
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -96,6 +96,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1dc937e79d1d15b4b8e11dac39d989b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Width: 0
-  Height: 0
-  Depth: 0
+  FrameX: 0
+  FrameY: 0
+  HasChunkNeighbors: 0
+  AllTileHasNeighbors: 0
+  ChunkHasDrawn: 0
+  ChunkData: 
+  Left: {fileID: 0}
+  Right: {fileID: 0}
+  Front: {fileID: 0}
+  Back: {fileID: 0}
+  Width: 96
+  Height: 1
+  Depth: 96

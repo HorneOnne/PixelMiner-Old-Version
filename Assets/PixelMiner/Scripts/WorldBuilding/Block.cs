@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using PixelMiner.Enums;
 using UnityEngine;
+using PixelMiner.DataStructure;
 
-namespace PixelMiner.Core
+namespace PixelMiner.WorldBuilding
 {
     [System.Serializable]
     public class Block
@@ -34,7 +35,22 @@ namespace PixelMiner.Core
                 {
                     if (!solidNeighbors[i])
                     {
-                        q.Add(new Quad((BlockSide)i, blockType, ColorMapType.None, offset));
+                        if(blockType == BlockType.GrassSide)
+                        {
+                            if (i == (byte)BlockSide.Top)
+                                q.Add(new Quad((BlockSide)i, BlockType.GrassTop, ColorMapType.Plains, offset));
+                            else if (i == (byte)BlockSide.Bottom)
+                                q.Add(new Quad((BlockSide)i, BlockType.Dirt, ColorMapType.None, offset));
+                            else
+                                q.Add(new Quad((BlockSide)i, blockType, ColorMapType.None, offset));
+                        }
+                        else
+                        {
+                            q.Add(new Quad((BlockSide)i, blockType, ColorMapType.None, offset));
+                        }
+
+                      
+
                     }
                 }
                 if (q.Count == 0) return;

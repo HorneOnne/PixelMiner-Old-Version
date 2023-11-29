@@ -1,7 +1,9 @@
 using UnityEngine;
 using PixelMiner.Enums;
+using PixelMiner.Utilities;
+using PixelMiner.DataStructure;
 
-namespace PixelMiner.Core
+namespace PixelMiner.WorldBuilding
 {
     public class Quad
     {

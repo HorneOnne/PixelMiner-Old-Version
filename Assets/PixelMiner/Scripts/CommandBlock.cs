@@ -1,6 +1,7 @@
 ﻿using QFSW.QC;
 using UnityEngine;
 using PixelMiner.UI;
+using PixelMiner.Enums;
 using PixelMiner.WorldGen;
 
 namespace PixelMiner
@@ -47,7 +48,31 @@ namespace PixelMiner
         }
 
 
-       
+
+        [Command("/getUV")]
+        private static void GetUV(int u, int v, ushort blockType = 0)
+        {
+            float tileSize = 1 / 16f;
+            Debug.Log($"\n\n/*{((BlockType)blockType).ToString().ToUpper()}*/" +
+               $"\n{{new Vector2({tileSize * u}f, {tileSize * v}f), " +
+               $"new Vector2({tileSize * u + tileSize}f, {tileSize * v}f)," +
+               $"\nnew Vector2({tileSize * u}f, {tileSize * v + tileSize}f), " +
+               $"new Vector2({tileSize * u + tileSize}f, {tileSize * v + tileSize}f)}}, ");
+        }
+
+        [Command("/getUV2")]
+        private static void GetUV2(int u, int v, ushort blockType = 0)
+        {
+            float tileSize = 1 / 64f;
+            Debug.Log($"\n\n/*{((ColorMapType)blockType).ToString().ToUpper()}*/" +
+               $"\n{{new Vector2({tileSize * u}f, {tileSize * v}f), " +
+               $"new Vector2({tileSize * u + tileSize}f, {tileSize * v}f)," +
+               $"\nnew Vector2({tileSize * u}f, {tileSize * v + tileSize}f), " +
+               $"new Vector2({tileSize * u + tileSize}f, {tileSize * v + tileSize}f)}}, ");
+        }
+
+
+
         [CommandDescription("all commands")]
         [Command("/all")]
         private static string GenerateAllCommandList()

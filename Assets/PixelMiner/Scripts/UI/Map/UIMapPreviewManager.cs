@@ -156,8 +156,8 @@ namespace PixelMiner.UI
         {
             int textureWidth = 288;
             int textureHeight = 162;
-            float[,] heightValues = await WorldGeneration.Instance.GetHeightMapDataAsync(0, 0, textureWidth, textureHeight, zoom, offsetX, offsetY);
-
+            //float[,] heightValues = await WorldGeneration.Instance.GetHeightMapDataAsync(0, 0, textureWidth, textureHeight, zoom, offsetX, offsetY);
+            float[,] heightValues = null;
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
 

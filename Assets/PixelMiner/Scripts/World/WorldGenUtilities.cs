@@ -16,21 +16,17 @@ namespace PixelMiner.WorldGen
         }
 
 
-        public static float[,] BlendMapData(float[,] data01, float[,] data02, float blendFactor)
+        public static float[] BlendMapData(float[] data01, float[] data02, float blendFactor)
         {
-            int width = data01.GetLength(0);
-            int height = data02.GetLength(1);
+            int size = data01.Length;
+      
 
-            float[,] blendedData = new float[width, height];
+            float[] blendedData = new float[size];
 
-            for (int x = 0; x < width; x++)
+            for(int i = 0; i < size; i++)
             {
-                for (int y = 0; y < height; y++)
-                {
-                    blendedData[x, y] = Mathf.Lerp(data01[x, y], data02[x, y], blendFactor);
-                }
+                blendedData[i] = Mathf.Lerp(data01[i], data02[i], blendFactor);
             }
-
             return blendedData;
         }
 
@@ -53,6 +49,29 @@ namespace PixelMiner.WorldGen
 
                 return seedValue;
             }
+        }
+
+        public static int IndexOf(int x, int y, int z, byte width, byte height)
+        {
+            return x + width * (y + height * z);
+        }
+
+        public static int IndexOf(int x, int y, byte width)
+        {
+            return x + y * width;
+        }
+
+        public static void CoordinatesOf(int index, byte width, byte height, out int x, out int y, out int z)
+        {
+            x = index % width;
+            y = (index / width) % height;
+            z = index / (width * height);
+        }
+
+        public static void CoordinatesOf(int index, byte width, out int x, out int y)
+        {
+            x = index % width;
+            y = index / width;
         }
     }
 }

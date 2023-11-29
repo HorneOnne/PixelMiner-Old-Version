@@ -22,7 +22,7 @@ namespace PixelMiner.WorldGen
 
 
         // Cached
-        private Vector2Int lastChunkISOFrame;
+        private Vector3Int lastChunkFrame;
         private Vector2 _centerPoint;
         private Vector2Int _centerPointFrame;
 
@@ -38,13 +38,15 @@ namespace PixelMiner.WorldGen
 
             _worldGen.OnWorldGenWhenStartFinished += () =>
             {
-                if (InitFastDrawChunk)
-                    LoadChunksAroundPositionInParallel(lastChunkISOFrame.x, lastChunkISOFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
-                else
-                    LoadChunksAroundPositionInSequence(lastChunkISOFrame.x, lastChunkISOFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
+                //if (InitFastDrawChunk)
+                //    LoadChunksAroundPositionInParallel(lastChunkFrame.x, lastChunkFrame.y, lastChunkFrame.z, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
+                //else
+                //    LoadChunksAroundPositionInSequence(lastChunkFrame.x, lastChunkFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetDepth: LoadChunkOffsetHeight);
+
+                LoadChunksAroundPositionInSequence(0, 0, 0, offsetWidth: LoadChunkOffsetWidth, offsetDepth: LoadChunkOffsetHeight);
             };
 
-            Chunk2D.OnChunkFarAway += (chunk) =>
+            Chunk.OnChunkFarAway += (chunk) =>
             {
                 if (chunk.ChunkHasDrawn && !chunk.Processing
                     && Main.Instance.AutoUnloadChunk)
@@ -56,17 +58,17 @@ namespace PixelMiner.WorldGen
 
         private void Update()
         {
-            if (_main.AutoLoadChunk)
-            {
-                _centerPoint = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width / 2f, Screen.height / 2f));
-                _centerPointFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(_centerPoint, _main.ChunkWidth, _main.ChunkHeight);
+            //if (_main.AutoLoadChunk)
+            //{
+            //    _centerPoint = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width / 2f, Screen.height / 2f));
+            //    _centerPointFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(_centerPoint, _main.ChunkWidth, _main.ChunkHeight);
 
-                if (_centerPointFrame != lastChunkISOFrame)
-                {
-                    lastChunkISOFrame = _centerPointFrame;
-                    LoadChunksAroundPositionInSequence(_centerPointFrame.x, _centerPointFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
-                }
-            }
+            //    if (_centerPointFrame != lastChunkFrame)
+            //    {
+            //        lastChunkFrame = _centerPointFrame;
+            //        LoadChunksAroundPositionInSequence(_centerPointFrame.x, _centerPointFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetDepth: LoadChunkOffsetHeight);
+            //    }
+            //}
         }
 
   
@@ -74,169 +76,165 @@ namespace PixelMiner.WorldGen
         /// <summary>
         /// Load each chunk in sequence and draw each chunk in sequence. -> Less drop FPS but slow.
         /// </summary>
-        /// <param name="isoFrameX"></param>
-        /// <param name="isoFrameY"></param>
+        /// <param name="frameX"></param>
+        /// <param name="frameZ"></param>
         /// <param name="offsetWidth"></param>
-        /// <param name="offsetHeight"></param>
-        private async void LoadChunksAroundPositionInSequence(int isoFrameX, int isoFrameY, byte offsetWidth = 1, byte offsetHeight = 1)
+        /// <param name="offsetDepth"></param>
+        private async void LoadChunksAroundPositionInSequence(int frameX, int frameY, int frameZ, byte offsetWidth = 1, byte offsetDepth = 1)
         {
-            for (int x = isoFrameX - offsetWidth; x <= isoFrameX + offsetWidth; x++)
+            for (int x = frameX - offsetWidth; x <= frameX + offsetWidth; x++)
             {
-                for (int y = isoFrameY - offsetHeight; y <= isoFrameY + offsetHeight; y++)
+                for (int z = frameZ - offsetDepth; z <= frameZ + offsetDepth; z++)
                 {
-                    Vector2Int nbIsoFrame = new Vector2Int(x, y);
-                    Chunk2D chunk = _main.GetChunk(nbIsoFrame);
+                    Vector3Int nbFrame = new Vector3Int(x,0, z);
+                    Chunk chunk = _main.GetChunk(nbFrame);
                     if (chunk == null)   // Create new chunk
                     {
-                        if (x == isoFrameX && y == isoFrameY)
+                        if (x == frameX && z == frameZ)
                         {
                             // Center
                             // ......
                         }
 
-                        Chunk2D newChunk = await _worldGen.GenerateNewChunkDataAsync(x, y);
+                        Chunk newChunk = await _worldGen.GenerateNewChunkDataAsync(x, 0, z);
 
                         // Cached chunk data
-                        if (_main.HasChunk(nbIsoFrame) == false)
+                        if (_main.HasChunk(nbFrame) == false)
                             _main.AddNewChunk(newChunk);
                         _main.ActiveChunks.Add(newChunk);
 
 
                         if (newChunk.ChunkHasDrawn == false)
                         {
-                            await _worldGen.DrawChunkAsync(newChunk);
+                            newChunk.DrawChunkAsync();
                             //_main.Chunks[nbIsoFrame].ShowTextTest();
 
-                            if (_main.InitWorldWithHeatmap)
-                                _worldGen.PaintHeatMap(newChunk);
-                            if (_main.InitWorldWithMoisturemap)
-                                _worldGen.PaintMoistureMap(newChunk);
+                            //if (_main.InitWorldWithHeatmap)
+                            //    _worldGen.PaintHeatMap(newChunk);
+                            //if (_main.InitWorldWithMoisturemap)
+                            //    _worldGen.PaintMoistureMap(newChunk);
                         }
 
-                        _main.GetChunk(nbIsoFrame).LoadChunk();
+                        //_main.GetChunk(nbFrame).LoadChunk();
                     }
                     else // Load chunk cached.
                     {
-                        if (x == isoFrameX && y == isoFrameY)
+                        if (x == frameX && z == frameZ)
                         {
                             // Center
                             // ......
                         }
 
-                        _main.ActiveChunks.Add(_main.Chunks[nbIsoFrame]);
+                        _main.ActiveChunks.Add(_main.Chunks[nbFrame]);
 
-                        if (_main.Chunks[nbIsoFrame].ChunkHasDrawn == false)
+                        if (_main.Chunks[nbFrame].ChunkHasDrawn == false)
                         {
-                            await _worldGen.DrawChunkAsync(_main.Chunks[nbIsoFrame]);
+                            _main.Chunks[nbFrame].DrawChunkAsync();
                             //_main.Chunks[nbIsoFrame].ShowTextTest();
 
-                            if (_main.InitWorldWithHeatmap)
-                                _worldGen.PaintHeatMap(_main.Chunks[nbIsoFrame]);
-                            if (_main.InitWorldWithMoisturemap)
-                                _worldGen.PaintMoistureMap(_main.Chunks[nbIsoFrame]);
+                            //if (_main.InitWorldWithHeatmap)
+                            //    _worldGen.PaintHeatMap(_main.Chunks[nbFrame]);
+                            //if (_main.InitWorldWithMoisturemap)
+                            //    _worldGen.PaintMoistureMap(_main.Chunks[nbFrame]);
                         }
-                        _main.Chunks[nbIsoFrame].LoadChunk();
+                        //_main.Chunks[nbFrame].LoadChunk();
                     }
                 }
             }
 
-            if (_main.ShowChunksBorder)
-            {
-                _worldGen.SortActiveChunkByDepth();
-            }
 
-            _worldGen.UpdateAllActiveChunkTileNeighborsAsync();
+            //_worldGen.UpdateAllActiveChunkTileNeighborsAsync();
         }
         /// <summary>
         /// Load all chunks and draw all chunks at the same time. -> Fast but drop a bit FPS in low end devices.
         /// </summary>
-        /// <param name="isoFrameX"></param>
-        /// <param name="isoFrameY"></param>
+        /// <param name="frameX"></param>
+        /// <param name="frameZ"></param>
         /// <param name="offsetWidth"></param>
         /// <param name="offsetHeight"></param>
-        private async void LoadChunksAroundPositionInParallel(int isoFrameX, int isoFrameY, byte offsetWidth = 1, byte offsetHeight = 1)
-        {
-            Task[] drawChunkTasks = new Task[(offsetWidth * 2 + 1) * (offsetHeight * 2 + 1)];
+        //private async void LoadChunksAroundPositionInParallel(int frameX, int frameY, int frameZ, byte offsetWidth = 1, byte offsetHeight = 1)
+        //{
+        //    Task[] drawChunkTasks = new Task[(offsetWidth * 2 + 1) * (offsetHeight * 2 + 1)];
 
-            for (int x = isoFrameX - offsetWidth; x <= isoFrameX + offsetWidth; x++)
-            {
-                for (int y = isoFrameY - offsetHeight; y <= isoFrameY + offsetHeight; y++)
-                {
-                    int index = x - (isoFrameX - offsetWidth) + (y - (isoFrameY - offsetHeight)) * (2 * offsetWidth + 1);
-                    Vector2Int nbIsoFrame = new Vector2Int(x, y);
-                    Chunk2D chunk = _main.GetChunk(nbIsoFrame);
+        //    for (int x = frameX - offsetWidth; x <= frameX + offsetWidth; x++)
+        //    {
+        //        for (int z = frameZ - offsetHeight; z <= frameZ + offsetHeight; z++)
+        //        {
+        //            int index = x - (frameX - offsetWidth) + (z - (frameZ - offsetHeight)) * (2 * offsetWidth + 1);
+        //            Vector3Int nbFrame = new Vector3Int(x,0,z);
+        //            Chunk chunk = _main.GetChunk(nbFrame);
 
-                    if (chunk == null)   // Create new chunk
-                    {
-                        if (x == isoFrameX && y == isoFrameY)
-                        {
-                            // Center
-                            // ......
-                        }
+        //            if (chunk == null)   // Create new chunk
+        //            {
+        //                if (x == frameX && z == frameZ)
+        //                {
+        //                    // Center
+        //                    // ......
+        //                }
 
-                        Chunk2D newChunk = await _worldGen.GenerateNewChunkDataAsync(x, y);
-                        drawChunkTasks[index] = _worldGen.DrawChunkAsync(_main.Chunks[nbIsoFrame]);
+        //                Chunk newChunk = await _worldGen.GenerateNewChunkDataAsync(x, 0, z);
+        //                drawChunkTasks[index] = _worldGen.DrawChunkAsync(_main.Chunks[nbFrame]);
 
-                        // Cached chunk data
-                        if (_main.HasChunk(nbIsoFrame) == false)
-                        {
-                            _main.AddNewChunk(newChunk);
-                        }
+        //                // Cached chunk data
+        //                if (_main.HasChunk(nbFrame) == false)
+        //                {
+        //                    _main.AddNewChunk(newChunk);
+        //                }
 
-                        _main.ActiveChunks.Add(newChunk);
-                        _main.Chunks[nbIsoFrame].LoadChunk();
+        //                _main.ActiveChunks.Add(newChunk);
+        //                _main.Chunks[nbFrame].LoadChunk();
 
-                    }
-                    else // Load chunk cached.
-                    {
-                        if (x == isoFrameX && y == isoFrameY)
-                        {
-                            // Center
-                            // ......
-                        }
+        //            }
+        //            else // Load chunk cached.
+        //            {
+        //                if (x == frameX && z == frameZ)
+        //                {
+        //                    // Center
+        //                    // ......
+        //                }
 
-                        _main.GetChunk(nbIsoFrame).LoadChunk();
-                        _main.ActiveChunks.Add(_main.Chunks[nbIsoFrame]);
+        //                _main.GetChunk(nbFrame).LoadChunk();
+        //                _main.ActiveChunks.Add(_main.Chunks[nbFrame]);
 
-                        if (_main.Chunks[nbIsoFrame].ChunkHasDrawn == false)
-                        {
-                            drawChunkTasks[index] = _worldGen.DrawChunkAsync(_main.Chunks[nbIsoFrame]);
-                        }
-                        else
-                        {
-                            drawChunkTasks[index] = Task.CompletedTask;
-                        }
-                    }
+        //                if (_main.Chunks[nbFrame].ChunkHasDrawn == false)
+        //                {
+        //                    drawChunkTasks[index] = _worldGen.DrawChunkAsync(_main.Chunks[nbFrame]);
+        //                }
+        //                else
+        //                {
+        //                    drawChunkTasks[index] = Task.CompletedTask;
+        //                }
+        //            }
 
-                }
-            }
+        //        }
+        //    }
 
-            // When all chunk has drawn.
-            await Task.WhenAll(drawChunkTasks);
-
-
-            foreach (var chunk in _main.Chunks.Values)
-            {
-                if (_main.InitWorldWithHeatmap)
-                    _worldGen.PaintHeatMap(chunk);
-
-                if (_main.InitWorldWithMoisturemap)
-                    _worldGen.PaintMoistureMap(chunk);
-
-                if (!chunk.HasNeighbors())
-                {
-                    _worldGen.UpdateChunkTileNeighbors(chunk);
-                }
-            }
+        //    // When all chunk has drawn.
+        //    await Task.WhenAll(drawChunkTasks);
 
 
-            if (_main.ShowChunksBorder)
-            {
-                _worldGen.SortActiveChunkByDepth();
-            }
-        }
+        //    foreach (var chunk in _main.Chunks.Values)
+        //    {
+        //        if (_main.InitWorldWithHeatmap)
+        //            _worldGen.PaintHeatMap(chunk);
 
-        private void UnloadChunk(Chunk2D chunk)
+        //        if (_main.InitWorldWithMoisturemap)
+        //            _worldGen.PaintMoistureMap(chunk);
+
+        //        if (!chunk.HasNeighbors())
+        //        {
+        //            _worldGen.UpdateChunkTileNeighbors(chunk);
+        //        }
+        //    }
+
+
+        //    if (_main.ShowChunksBorder)
+        //    {
+        //        _worldGen.SortActiveChunkByDepth();
+        //    }
+        //}
+
+        private void UnloadChunk(Chunk chunk)
         {
             _main.ActiveChunks.Remove(chunk);
             chunk.gameObject.SetActive(false);

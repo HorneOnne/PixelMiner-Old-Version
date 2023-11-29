@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace PixelMiner.Core
+namespace PixelMiner.DataStructure
 {
     public struct MeshData
     {
