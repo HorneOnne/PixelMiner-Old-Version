@@ -664,11 +664,11 @@ namespace PixelMiner.WorldGen
                             int index3D = WorldGenUtilities.IndexOf(x, y, z, _chunkWidth, _chunkHeight);
                             if (heightValue < DeepWater)
                             {
-                                chunk.ChunkData[index3D] = BlockType.Air;
+                                chunk.ChunkData[index3D] = BlockType.Water;
                             }
                             else if (heightValue < Water)
                             {
-                                chunk.ChunkData[index3D] = BlockType.Air;
+                                chunk.ChunkData[index3D] = BlockType.Water;
                             }
                             else if (heightValue < Sand)
                             {

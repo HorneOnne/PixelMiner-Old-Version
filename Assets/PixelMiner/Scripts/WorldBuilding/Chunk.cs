@@ -36,8 +36,8 @@ namespace PixelMiner.WorldBuilding
 
 
         // NEW
-        private MeshFilter _meshFilter;
-        private MeshRenderer _meshRenderer;
+        [SerializeField] private MeshFilter _solidMeshFilter;
+        [SerializeField] private MeshFilter _fluidMeshFilter;
 
         public byte Width;
         public byte Height;
@@ -54,24 +54,13 @@ namespace PixelMiner.WorldBuilding
 
         private void Awake()
         {
-            _meshRenderer = GetComponent<MeshRenderer>();
-            _meshFilter = GetComponent<MeshFilter>();
+
+
         }
 
         private void Start()
         {
-            //System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-            //sw.Start();
-            //Blocks = new Block[Width, Height, Depth];
-            //BuildChunk();
-
-            //List<MeshData> meshDataList = await GetMeshDataAsync();
-            //sw.Stop();
-            //Debug.Log($"{sw.ElapsedMilliseconds / 1000f} s");
-
-
-            //DrawChunk(meshDataList.ToArray());
-     
+           
         }
 
         private void Update()
@@ -138,16 +127,18 @@ namespace PixelMiner.WorldBuilding
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
 
-            List<MeshData> meshDataList = await GetMeshDataAsync();
-            _meshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(meshDataList.ToArray());
+            List<MeshData> solidMeshDataList = await GetSolidMeshDataAsync();
+            List<MeshData> fluidMeshDataList = await GetFluidMeshDataAsync();
+            _solidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(solidMeshDataList.ToArray());
+            _fluidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(fluidMeshDataList.ToArray());
 
             sw.Stop();
             Debug.Log($"Draw chunk in: {sw.ElapsedMilliseconds / 1000f} s");
         }
 
-        private async Task<List<MeshData>> GetMeshDataAsync()
+        private async Task<List<MeshData>> GetSolidMeshDataAsync()
         {
-            List<MeshData> meshDataList = new List<MeshData>();
+            List<MeshData> solidMeshDataList = new List<MeshData>();
             await Task.Run(() =>
             {
                 for (int x = 0; x < Width; x++)
@@ -156,19 +147,53 @@ namespace PixelMiner.WorldBuilding
                     {
                         for (int y = 0; y < Height; y++)
                         {
-                            bool[] solidNeighbors = GetSolidBlockNeighbors(x, y, z);
-                            Blocks[x, y, z] = new Block(ChunkData[IndexOf(x, y, z)], solidNeighbors, new Vector3(x, y, z));
-                            if (Blocks[x, y, z].MeshDataArray != null)
+                            BlockType blockType = ChunkData[IndexOf(x, y, z)];
+                            if(blockType != BlockType.Water)
                             {
-                                meshDataList.AddRange(Blocks[x, y, z].MeshDataArray);
-                            }
+                                bool[] solidNeighbors = GetSolidBlockNeighbors(x, y, z);
+                                Blocks[x, y, z] = new Block(ChunkData[IndexOf(x, y, z)], solidNeighbors, new Vector3(x, y, z));
+                                if (Blocks[x, y, z].MeshDataArray != null)
+                                {
+                                    solidMeshDataList.AddRange(Blocks[x, y, z].MeshDataArray);
+                                }
+                            } 
                         }
                     }
                 }
             });
 
-            return meshDataList;
+            return solidMeshDataList;
         }
+        private async Task<List<MeshData>> GetFluidMeshDataAsync()
+        {
+            List<MeshData> fluidMeshDataList = new List<MeshData>();
+            await Task.Run(() =>
+            {
+                for (int x = 0; x < Width; x++)
+                {
+                    for (int z = 0; z < Depth; z++)
+                    {
+                        for (int y = 0; y < Height; y++)
+                        {
+                            BlockType blockType = ChunkData[IndexOf(x, y, z)];
+                            if (blockType == BlockType.Water)
+                            {
+                                bool[] fluidNeighbors = GetFluidBlockNeighbors(x, y, z);
+                                Blocks[x, y, z] = new Block(ChunkData[IndexOf(x, y, z)], fluidNeighbors, new Vector3(x, y, z));
+                                if (Blocks[x, y, z].MeshDataArray != null)
+                                {
+                                    fluidMeshDataList.AddRange(Blocks[x, y, z].MeshDataArray);
+                                }
+                            }
+                                
+                        }
+                    }
+                }
+            });
+
+            return fluidMeshDataList;
+        }
+
 
 
         #region Block
@@ -200,7 +225,6 @@ namespace PixelMiner.WorldBuilding
             switch (blockType)
             {
                 case BlockType.Water:
-                case BlockType.Air:
                     return true;
                 default:
                     return false;
@@ -209,63 +233,65 @@ namespace PixelMiner.WorldBuilding
         public bool[] GetSolidBlockNeighbors(int x, int y, int z)
         {
             bool[] solidNeighbors = new bool[6] { true, true, true, true, true, true }; // maximum 6 neighbors [ Top, Bottom, Front , Back, Left, Right]
-            BlockType blockType = ChunkData[IndexOf(x, y, z)];
-            if(blockType == BlockType.Water)
+    
+            if (!BlockHasSolidNeighbors(x, y + 1, z))
             {
-                if (!BlockHasFuildNeighbors(x, y + 1, z))
-                {
-                    solidNeighbors[0] = false;
-                }
-                if (!BlockHasFuildNeighbors(x, y - 1, z))
-                {
-                    solidNeighbors[1] = false;
-                }
-                if (!BlockHasFuildNeighbors(x, y, z + 1))
-                {
-                    solidNeighbors[2] = false;
-                }
-                if (!BlockHasFuildNeighbors(x, y, z - 1))
-                {
-                    solidNeighbors[3] = false;
-                }
-                if (!BlockHasFuildNeighbors(x - 1, y, z))
-                {
-                    solidNeighbors[4] = false;
-                }
-                if (!BlockHasFuildNeighbors(x + 1, y, z))
-                {
-                    solidNeighbors[5] = false;
-                }
+                solidNeighbors[0] = false;
             }
-            else
+            if (!BlockHasSolidNeighbors(x, y - 1, z))
             {
-                if (!BlockHasSolidNeighbors(x, y + 1, z))
-                {
-                    solidNeighbors[0] = false;
-                }
-                if (!BlockHasSolidNeighbors(x, y - 1, z))
-                {
-                    solidNeighbors[1] = false;
-                }
-                if (!BlockHasSolidNeighbors(x, y, z + 1))
-                {
-                    solidNeighbors[2] = false;
-                }
-                if (!BlockHasSolidNeighbors(x, y, z - 1))
-                {
-                    solidNeighbors[3] = false;
-                }
-                if (!BlockHasSolidNeighbors(x - 1, y, z))
-                {
-                    solidNeighbors[4] = false;
-                }
-                if (!BlockHasSolidNeighbors(x + 1, y, z))
-                {
-                    solidNeighbors[5] = false;
-                }
+                solidNeighbors[1] = false;
             }
-            
+            if (!BlockHasSolidNeighbors(x, y, z + 1))
+            {
+                solidNeighbors[2] = false;
+            }
+            if (!BlockHasSolidNeighbors(x, y, z - 1))
+            {
+                solidNeighbors[3] = false;
+            }
+            if (!BlockHasSolidNeighbors(x - 1, y, z))
+            {
+                solidNeighbors[4] = false;
+            }
+            if (!BlockHasSolidNeighbors(x + 1, y, z))
+            {
+                solidNeighbors[5] = false;
+            }
+
             return solidNeighbors;
+        }
+
+        public bool[] GetFluidBlockNeighbors(int x, int y, int z)
+        {
+            bool[] fluidNeighbors = new bool[6] { true, true, true, true, true, true }; // maximum 6 neighbors [ Top, Bottom, Front , Back, Left, Right]
+          
+            if (!BlockHasFuildNeighbors(x, y + 1, z))
+            {
+                fluidNeighbors[0] = false;
+            }
+            if (!BlockHasFuildNeighbors(x, y - 1, z))
+            {
+                fluidNeighbors[1] = false;
+            }
+            if (!BlockHasFuildNeighbors(x, y, z + 1))
+            {
+                fluidNeighbors[2] = false;
+            }
+            if (!BlockHasFuildNeighbors(x, y, z - 1))
+            {
+                fluidNeighbors[3] = false;
+            }
+            if (!BlockHasFuildNeighbors(x - 1, y, z))
+            {
+                fluidNeighbors[4] = false;
+            }
+            if (!BlockHasFuildNeighbors(x + 1, y, z))
+            {
+                fluidNeighbors[5] = false;
+            }
+
+            return fluidNeighbors;
         }
 
         #endregion
