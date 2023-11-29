@@ -6,9 +6,11 @@
         GrassSide = 1,
         Dirt = 2,
         Stone = 3,
-        Water = 4,
-        Sand = 5,
-        Snow = 6,    
+        Air = 4,
+        Water = 5,
+        Sand = 6,
+        Snow = 7,    
+        
     }
 }
 

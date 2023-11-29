@@ -5,15 +5,28 @@ namespace PixelMiner.Core
 {
     public class Quad
     {
+        /*
+               3--------2
+               |\       |
+               | \      |
+               |  \     |
+               |   \    |
+               |    \   |
+               |     \  |
+               |      \ |
+               |       \|
+               0--------1
+        */
+
         public MeshData MeshData { get; private set; }
 
         public Quad(BlockSide side, BlockType blockType, ColorMapType colorMap, Vector3 offset = (default))
         {
-            Vector3[] vertices = new Vector3[4];
-            Vector3[] normals = new Vector3[4];
-            Vector2[] uvs = new Vector2[4];
-            Vector2[] uv2s = new Vector2[4];
-            int[] triangles = new int[6] { 0,3,1,1,3,2 };
+            Vector3[] vertices;
+            Vector3[] normals;
+            Vector2[] uvs;
+            Vector2[] uv2s;
+            int[] triangles = new int[6] { 0, 3, 1, 1, 3, 2 };
 
             Vector2 uv00 = MeshUtils.BlockUVs[(ushort)blockType, 0];   // Bottom left
             Vector2 uv10 = MeshUtils.BlockUVs[(ushort)blockType, 1];   // Bottom right
@@ -37,6 +50,7 @@ namespace PixelMiner.Core
 
             switch (side)
             {
+                default:
                 case BlockSide.Bottom:
                     vertices = new Vector3[] { p0, p1, p2, p3 };
                     normals = new Vector3[] { Vector3.down, Vector3.down, Vector3.down, Vector3.down };
@@ -79,7 +93,7 @@ namespace PixelMiner.Core
             MeshData = new MeshData()
             {
                 Vertices = vertices,
-                Normals = normals,  
+                Normals = normals,
                 Triangles = triangles,
                 UVs = uvs,
                 UV2s = uv2s,

@@ -31,6 +31,23 @@ namespace PixelMiner.Core
             /*DIRT*/ 
             {new Vector2(0.125f, 0.9375f), new Vector2(0.1875f, 0.9375f),
              new Vector2(0.125f, 1f), new Vector2(0.1875f, 1f)},
+
+            /*STONE*/
+            {new Vector2(0.0625f, 0.9375f), new Vector2(0.125f, 0.9375f),
+            new Vector2(0.0625f, 1f), new Vector2(0.125f, 1f)},
+
+            /*AIR*/
+            {new Vector2(0.4375f, 0.0625f), new Vector2(0.5f, 0.0625f),
+            new Vector2(0.4375f, 0.125f), new Vector2(0.5f, 0.125f)},
+
+
+            /*WATER*/
+            {new Vector2(0.8125f, 0.1875f), new Vector2(0.875f, 0.1875f),
+            new Vector2(0.8125f, 0.25f), new Vector2(0.875f, 0.25f)},
+
+            /*SAND*/
+            {new Vector2(0.125f, 0.875f), new Vector2(0.1875f, 0.875f),
+            new Vector2(0.125f, 0.9375f), new Vector2(0.1875f, 0.9375f)},
         };
 
         public static Vector2[,] BlockUV2s =
@@ -199,9 +216,82 @@ namespace PixelMiner.Core
         }
 
 
-    
 
-        public static async Task<Mesh> MergeMeshAsync(MeshData[] meshes, IndexFormat format = IndexFormat.UInt32)
+
+        public static async Task<Mesh> MergeMeshAsync(MeshData[] mesheDataArray, IndexFormat format = IndexFormat.UInt32)
+        {
+            Vector3[] verts = new Vector3[0];
+            Vector3[] norms = new Vector3[0];
+            int[] tris = new int[0]; ;
+            Vector2[] uvs = new Vector2[0];
+            Vector2[] uv2s = new Vector2[0];
+            await Task.Run(() =>
+            {
+                int triCount = 0;
+                int vertCount = 0;
+                int normalCount = 0;
+                int uvCount = 0;
+
+                for (int i = 0; i < mesheDataArray.Length; i++)
+                {
+                    if (mesheDataArray[i].Equals(default(MeshData)))
+                    {
+                        Debug.Log("Mesh data array is emtpy");
+                        continue;
+                    }
+
+                    triCount += mesheDataArray[i].Triangles.Length;
+                    vertCount += mesheDataArray[i].Vertices.Length;
+                    normalCount += mesheDataArray[i].Normals.Length;
+                    uvCount += mesheDataArray[i].UVs.Length;
+                }
+                verts = new Vector3[vertCount];
+                norms = new Vector3[normalCount];
+                tris = new int[triCount];
+                uvs = new Vector2[uvCount];
+                uv2s = new Vector2[uvCount];
+
+                for (int i = 0; i < mesheDataArray.Length; i++)  // Loop through each mesh
+                {
+                    if (mesheDataArray[i].Equals(default(MeshData)))
+                    {
+                        Debug.Log("Mesh data array is emtpy");
+                        continue;
+                    }
+
+                    for (int j = 0; j < mesheDataArray[i].Triangles.Length; j++)
+                    {
+                        int triPoint = (i * mesheDataArray[i].Vertices.Length + mesheDataArray[i].Triangles[j]);
+                        tris[j + i * mesheDataArray[i].Triangles.Length] = triPoint;
+                    }
+
+
+                    for (int v = 0; v < mesheDataArray[i].Vertices.Length; v++)
+                    {
+                        int vertexIndex = v + i * mesheDataArray[i].Vertices.Length;
+                        verts[vertexIndex] = mesheDataArray[i].Vertices[v];
+                        norms[vertexIndex] = mesheDataArray[i].Normals[v];
+                        uvs[vertexIndex] = mesheDataArray[i].UVs[v];
+                        uv2s[vertexIndex] = mesheDataArray[i].UV2s[v];
+                    }
+                }
+            });
+
+            Mesh mesh = new Mesh();
+            mesh.indexFormat = format;
+            mesh.vertices = verts;
+            mesh.normals = norms;
+            mesh.uv = uvs;
+            mesh.uv2 = uv2s;
+            mesh.triangles = tris;
+
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            return mesh;
+        }
+
+
+        public static async Task<Mesh> MergeMeshAsyncParallel(MeshData[] meshes, IndexFormat format = IndexFormat.UInt32)
         {
             Vector3[] verts = new Vector3[0];
             Vector3[] norms = new Vector3[0];
@@ -228,7 +318,7 @@ namespace PixelMiner.Core
                 uvs = new Vector2[uvCount];
                 uv2s = new Vector2[uvCount];
 
-                for (int i = 0; i < meshes.Length; i++)  // Loop through each mesh
+                Parallel.For(0, meshes.Length, i =>
                 {
                     for (int j = 0; j < meshes[i].Triangles.Length; j++)
                     {
@@ -245,7 +335,7 @@ namespace PixelMiner.Core
                         uvs[vertexIndex] = meshes[i].UVs[v];
                         uv2s[vertexIndex] = meshes[i].UV2s[v];
                     }
-                }
+                });
             });
 
             Mesh mesh = new Mesh();
@@ -260,7 +350,6 @@ namespace PixelMiner.Core
             mesh.RecalculateBounds();
             return mesh;
         }
-
 
     }
 }

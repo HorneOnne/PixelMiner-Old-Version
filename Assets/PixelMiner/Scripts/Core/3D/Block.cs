@@ -1,7 +1,5 @@
-﻿using PixelMiner.Enums;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using UnityEditor;
+﻿using System.Collections.Generic;
+using PixelMiner.Enums;
 using UnityEngine;
 
 namespace PixelMiner.Core
@@ -9,35 +7,50 @@ namespace PixelMiner.Core
     [System.Serializable]
     public class Block
     {
-        public MeshData[] MesheDataArray { get; private set; } = new MeshData[6];
+        /*
+                4--------5
+               /|       /|
+              / |      / |
+             /  |     /  |
+            7--------6   |
+            |  0-----|---1
+            | /      |  /
+            |/       | /
+            3--------2
+         */
+        public MeshData[] MeshDataArray { get; private set; }
 
-        public Block(Vector3 offset)
-        {
-            Quad[] q = new Quad[6];
-            q[0] = new Quad(BlockSide.Top, BlockType.GrassTop, ColorMapType.Plains, offset);
-            q[1] = new Quad(BlockSide.Bottom, BlockType.Dirt, ColorMapType.None, offset);
-            q[2] = new Quad(BlockSide.Front, BlockType.GrassSide, ColorMapType.None, offset);
-            q[3] = new Quad(BlockSide.Back, BlockType.GrassSide, ColorMapType.None, offset);
-            q[4] = new Quad(BlockSide.Left, BlockType.GrassSide, ColorMapType.None, offset);
-            q[5] = new Quad(BlockSide.Right, BlockType.GrassSide, ColorMapType.None, offset);
-
-            for (int i = 0; i < MesheDataArray.Length; i++)
-            {
-                MesheDataArray[i] = new MeshData()
-                {
-                    Vertices = q[i].MeshData.Vertices,
-                    Normals = q[i].MeshData.Normals,
-                    Triangles = q[i].MeshData.Triangles,
-                    UVs = q[i].MeshData.UVs,
-                    UV2s = q[i].MeshData.UV2s,
-                };
-            }
+        public Block(BlockType blockType, bool[] solidNeighbors, Vector3 offset = (default))
+        {        
+            Draw(blockType, solidNeighbors, offset);
         }
 
-
-        public async void InitAsync(Vector3 offset)
+        public void Draw(BlockType blockType, bool[] solidNeighbors, Vector3 offset = (default))
         {
-           
+            if(blockType != BlockType.Air)
+            {
+                List<Quad> q = new List<Quad>();
+                for (int i = 0; i < solidNeighbors.Length; i++)
+                {
+                    if (!solidNeighbors[i])
+                    {
+                        q.Add(new Quad((BlockSide)i, blockType, ColorMapType.None, offset));
+                    }
+                }
+                if (q.Count == 0) return;
+                MeshDataArray = new MeshData[q.Count];
+                for (int i = 0; i < MeshDataArray.Length; i++)
+                {
+                    MeshDataArray[i] = new MeshData()
+                    {
+                        Vertices = q[i].MeshData.Vertices,
+                        Normals = q[i].MeshData.Normals,
+                        Triangles = q[i].MeshData.Triangles,
+                        UVs = q[i].MeshData.UVs,
+                        UV2s = q[i].MeshData.UV2s,
+                    };
+                }
+            }
         }
     }
 }
