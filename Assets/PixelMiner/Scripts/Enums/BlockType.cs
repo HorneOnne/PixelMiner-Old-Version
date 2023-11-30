@@ -1,6 +1,6 @@
 ﻿namespace PixelMiner.Enums
 {
-    public enum BlockType : ushort 
+    public enum BlockType : ushort
     {
         GrassTop = 0,
         GrassSide = 1,
@@ -9,8 +9,8 @@
         Air = 4,
         Water = 5,
         Sand = 6,
-        Snow = 7,    
-        
+        Glass = 7,
+        Snow = 8,
     }
 }
 

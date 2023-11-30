@@ -7,6 +7,7 @@ using PixelMiner.DataStructure;
 
 namespace PixelMiner.WorldBuilding
 {
+    [SelectionBase]
     public class Chunk : MonoBehaviour
     {
         public static System.Action<Chunk> OnChunkFarAway;
@@ -133,7 +134,7 @@ namespace PixelMiner.WorldBuilding
             _fluidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(fluidMeshDataList.ToArray());
 
             sw.Stop();
-            Debug.Log($"Draw chunk in: {sw.ElapsedMilliseconds / 1000f} s");
+            //Debug.Log($"Draw chunk in: {sw.ElapsedMilliseconds / 1000f} s");
         }
 
         private async Task<List<MeshData>> GetSolidMeshDataAsync()
@@ -197,19 +198,44 @@ namespace PixelMiner.WorldBuilding
 
 
         #region Block
+        private bool IsOnEdge(int x, int y, int z, int width, int height, int depth)
+        {
+            // Check if the position is on any edge
+            bool onXEdge = x == 0 || x == width - 1;
+            bool onYEdge = y == 0 || y == height - 1;
+            bool onZEdge = z == 0 || z == depth - 1;
+
+            // Return true if on any edge
+            return onXEdge || onYEdge || onZEdge;
+        }
         public bool BlockHasSolidNeighbors(int x, int y, int z)
         {
             if (x < 0 || x >= Width || y < 0 || y >= Height || z < 0 || z >= Depth)
             {
                 return false;
             }
+
+            //if (x < 0 || x >= Width || z < 0 || z >= Depth)
+            //{
+            //    return true;
+            //}
+            //if (y < 0)
+            //{
+            //    return true;
+            //}
+            //if (y >= Height)
+            //{
+            //    return false;
+            //}
+
+
             BlockType blockType = ChunkData[IndexOf(x, y, z)];
             switch (blockType)
             {
                 case BlockType.Water:
                 case BlockType.Air:
                     return false;
-                default:
+                default:                  
                     return true;
             }
         }

@@ -652,85 +652,179 @@ namespace PixelMiner.WorldGen
             chunk.Processing = true;
             await Task.Run(() =>
             {
-                Parallel.For(0, _chunkWidth, x =>
+                //EMTPY
+                //for (int x = 0; x < _chunkWidth; x++)
+                //{
+                //    for (int z = 0; z < _chunkDepth; z++)
+                //    {
+                //        for (int y = _chunkHeight - 1; y >= 0; y--)
+                //        {
+                //            int index3D = WorldGenUtilities.IndexOf(x, y, z, _chunkWidth, _chunkHeight);
+                //            chunk.ChunkData[index3D] = BlockType.Dirt;
+                //        }
+                //    }
+                //}
+
+
+                Debug.Log($"Ground: {Mathf.FloorToInt(Water * _chunkHeight)}");
+
+                for (int x = 0; x < _chunkWidth; x++)
                 {
-                    for (int y = 0; y < _chunkHeight; y++)
+                    for (int z = 0; z < _chunkDepth; z++)
                     {
-                        for(int z = 0; z < _chunkDepth; z++)
+                        for (int y = _chunkHeight - 1; y >= 0; y--)
                         {
                             float heightValue = heightValues[WorldGenUtilities.IndexOf(x, z, _chunkWidth)];
                             chunk.HeightValues[WorldGenUtilities.IndexOf(x, z, _chunkWidth)] = heightValue;
 
                             int index3D = WorldGenUtilities.IndexOf(x, y, z, _chunkWidth, _chunkHeight);
-                            //if (heightValue < DeepWater)
-                            //{
-                            //    chunk.ChunkData[index3D] = BlockType.Water;
-                            //}
-                            //else if (heightValue < Water)
-                            //{
-                            //    chunk.ChunkData[index3D] = BlockType.Water;
-                            //}
-                            //else if (heightValue < Sand)
-                            //{
-                            //    chunk.ChunkData[index3D] = BlockType.Sand;
-                            //}
-                            //else if (heightValue < Grass)
-                            //{
-                            //    chunk.ChunkData[index3D] = BlockType.GrassSide;
-                            //}
-                            //else if (heightValue < Forest)
-                            //{
-                            //    chunk.ChunkData[index3D] = BlockType.GrassSide;
-                            //}
-                            //else if (heightValue < Rock)
-                            //{
-                            //    chunk.ChunkData[index3D] = BlockType.Stone;
-                            //}
-                            //else
-                            //{
-                            //    chunk.ChunkData[index3D] = BlockType.Stone;
-                            //}
+                           
+                            int indexHighestY = WorldGenUtilities.IndexOf(x, _chunkHeight - 1, z, _chunkWidth, _chunkHeight);
+                            int groundLayer = Mathf.FloorToInt(Water * _chunkHeight);
+                            int indexGround = WorldGenUtilities.IndexOf(x, groundLayer, z, _chunkWidth, _chunkHeight);
+                            int terrainHeight = Mathf.FloorToInt(heightValue * _chunkHeight);
 
-                            float terrainHeight = heightValue * _chunkHeight;
+
                             if (y < terrainHeight)
                             {
-                                if (heightValue < DeepWater)
+                                if (terrainHeight < Sand * _chunkHeight)
                                 {
-                                    chunk.ChunkData[index3D] = BlockType.Water;
+                                    if (y <= groundLayer)
+                                        chunk.ChunkData[indexGround] = BlockType.Sand;
+                                    else
+                                        chunk.ChunkData[index3D] = BlockType.Air;                                   
                                 }
-                                else if (heightValue < Water)
+                                else if(terrainHeight < Grass * _chunkHeight)
                                 {
-                                    chunk.ChunkData[index3D] = BlockType.Water;
+                                    if (y <= groundLayer)
+                                        chunk.ChunkData[indexGround] = BlockType.GrassSide;
+                                    else
+                                        chunk.ChunkData[index3D] = BlockType.Air;
                                 }
-                                else if (heightValue < Sand)
+                                else if (terrainHeight < Rock * _chunkHeight)
                                 {
-                                    chunk.ChunkData[index3D] = BlockType.Sand;
-                                }
-                                else if (heightValue < Grass)
-                                {
-                                    chunk.ChunkData[index3D] = BlockType.GrassSide;
-                                }
-                                else if (heightValue < Forest)
-                                {
-                                    chunk.ChunkData[index3D] = BlockType.GrassSide;
-                                }
-                                else if (heightValue < Rock)
-                                {
-                                    chunk.ChunkData[index3D] = BlockType.Stone;
-                                }
-                                else
-                                {
-                                    chunk.ChunkData[index3D] = BlockType.Stone;
+                                    if (y <= groundLayer)
+                                        chunk.ChunkData[index3D] = BlockType.Stone;
+                                    else
+                                        chunk.ChunkData[index3D] = BlockType.Air;
                                 }
                             }
+                            
                             else
                             {
                                 chunk.ChunkData[index3D] = BlockType.Air;
                             }
+
+
                         }
                     }
-                });
+                }
 
+                //for (int x = 0; x < _chunkWidth; x++)
+                //{
+                //    for (int z = 0; z < _chunkDepth; z++)
+                //    {
+                //        for (int y = 0; y < _chunkHeight; y++)
+                //        {
+                //            float heightValue = heightValues[WorldGenUtilities.IndexOf(x, z, _chunkWidth)];
+                //            chunk.HeightValues[WorldGenUtilities.IndexOf(x, z, _chunkWidth)] = heightValue;
+
+                //            int index3D = WorldGenUtilities.IndexOf(x, y, z, _chunkWidth, _chunkHeight);
+                //            int indexHighestY = WorldGenUtilities.IndexOf(x, _chunkHeight - 1, z, _chunkWidth, _chunkHeight);
+
+
+                //            //if (heightValue < DeepWater)
+                //            //{
+                //            //    chunk.ChunkData[index3D] = BlockType.Water;
+                //            //}
+                //            //else if (heightValue < Water)
+                //            //{
+                //            //    chunk.ChunkData[index3D] = BlockType.Water;
+                //            //}
+                //            //else if (heightValue < Sand)
+                //            //{
+                //            //    chunk.ChunkData[index3D] = BlockType.Sand;
+                //            //}
+                //            //else if (heightValue < Grass)
+                //            //{
+                //            //    chunk.ChunkData[index3D] = BlockType.GrassSide;
+                //            //}
+                //            //else if (heightValue < Forest)
+                //            //{
+                //            //    chunk.ChunkData[index3D] = BlockType.GrassSide;
+                //            //}
+                //            //else if (heightValue < Rock)
+                //            //{
+                //            //    chunk.ChunkData[index3D] = BlockType.Stone;
+                //            //}
+                //            //else
+                //            //{
+                //            //    chunk.ChunkData[index3D] = BlockType.Stone;
+                //            //}
+
+
+
+                //            //int terrainHeight = Mathf.FloorToInt(heightValue * _chunkHeight);
+                //            //if (y == terrainHeight)
+                //            //{
+                //            //    chunk.ChunkData[indexHighestY] = BlockType.GrassSide;
+                //            //    continue;
+                //            //}
+                //            //else if (y < terrainHeight)
+                //            //{
+                //            //    chunk.ChunkData[indexHighestY] = BlockType.Dirt;
+                //            //    continue;
+                //            //}
+                //            //else if (y == _chunkHeight - 1)
+                //            //{
+                //            //    // Top
+                //            //    //chunk.ChunkData[index3D] = BlockType.Glass;
+                //            //}
+                //            //else if (y < _chunkHeight * Water)
+                //            //{
+                //            //    chunk.ChunkData[index3D] = BlockType.Water;
+                //            //    continue;
+                //            //}
+                //            //else
+                //            //{
+                //            //    chunk.ChunkData[index3D] = BlockType.Air;
+                //            //}
+
+
+
+
+                //            //if (heightValue < Water)
+                //            //{
+                //            //    if (y < _chunkHeight * Water)
+                //            //    {
+                //            //        chunk.ChunkData[index3D] = BlockType.Stone;
+                //            //    }
+                //            //    else
+                //            //        chunk.ChunkData[index3D] = BlockType.Water;
+                //            //}
+                //            //else if (heightValue < Sand)
+                //            //{
+                //            //    chunk.ChunkData[index3D] = BlockType.Sand;
+                //            //}
+                //            //else if (heightValue < Grass)
+                //            //{
+                //            //    chunk.ChunkData[index3D] = BlockType.GrassSide;
+                //            //}
+                //            //else if (heightValue < Forest)
+                //            //{
+                //            //    chunk.ChunkData[index3D] = BlockType.GrassSide;
+                //            //}
+                //            //else if (heightValue < Rock)
+                //            //{
+                //            //    chunk.ChunkData[index3D] = BlockType.Stone;
+                //            //}
+                //            //else
+                //            //{
+                //            //    chunk.ChunkData[index3D] = BlockType.Stone;
+                //            //}
+                //        }
+                //    }
+                //}
             });
             chunk.Processing = false;
         }

@@ -41,6 +41,11 @@ namespace PixelMiner.Utilities
             /*SAND*/
             {new Vector2(0.125f, 0.875f), new Vector2(0.1875f, 0.875f),
             new Vector2(0.125f, 0.9375f), new Vector2(0.1875f, 0.9375f)},
+
+            
+/*GLASS*/
+{new Vector2(0.0625f, 0.75f), new Vector2(0.125f, 0.75f),
+new Vector2(0.0625f, 0.8125f), new Vector2(0.125f, 0.8125f)},
         };
 
         public static Vector2[,] BlockUV2s =
