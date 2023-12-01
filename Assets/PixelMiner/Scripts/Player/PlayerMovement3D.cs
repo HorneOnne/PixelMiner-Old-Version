@@ -1,5 +1,4 @@
 ﻿using PixelMiner.WorldGen;
-using System;
 using UnityEngine;
 
 namespace PixelMiner
@@ -44,8 +43,10 @@ namespace PixelMiner
 
         private void FixedUpdate()
         {
-            _rb.velocity = _moveDirection.Iso(_cameraIsometricRot) * _moveSpeed;
-
+            if (_input.Move != Vector2.zero)
+                _rb.velocity = _moveDirection.Iso(_cameraIsometricRot) * _moveSpeed;
+            else
+                _rb.velocity = new Vector3(0,_rb.velocity.y, 0);
 
 
             // Animation

@@ -39,6 +39,7 @@ namespace PixelMiner.WorldBuilding
         // NEW
         [SerializeField] private MeshFilter _solidMeshFilter;
         [SerializeField] private MeshFilter _fluidMeshFilter;
+        private MeshCollider _solidCollider;
 
         public byte Width;
         public byte Height;
@@ -61,7 +62,7 @@ namespace PixelMiner.WorldBuilding
 
         private void Start()
         {
-           
+            _solidCollider = _solidMeshFilter.GetComponent<MeshCollider>();
         }
 
         private void Update()
@@ -100,26 +101,10 @@ namespace PixelMiner.WorldBuilding
             MoistureValues = new float[size2D];
 
 
-            // Build
-            //BuildChunk();
-
-            // Draw
-            //DrawChunkAsync();
-
             Processing = false;
         }
 
         
-
-        private void BuildChunk()
-        {
-            int blockCount = Width * Height * Depth;
-            ChunkData = new BlockType[blockCount];
-            for (int i = 0; i < blockCount; i++)
-            {
-                ChunkData[i] = BlockType.Stone;
-            }
-        }
 
 
 
@@ -132,7 +117,7 @@ namespace PixelMiner.WorldBuilding
             List<MeshData> fluidMeshDataList = await GetFluidMeshDataAsync();
             _solidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(solidMeshDataList.ToArray());
             _fluidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(fluidMeshDataList.ToArray());
-
+            _solidCollider.sharedMesh = _solidMeshFilter.mesh;
             sw.Stop();
             //Debug.Log($"Draw chunk in: {sw.ElapsedMilliseconds / 1000f} s");
         }
