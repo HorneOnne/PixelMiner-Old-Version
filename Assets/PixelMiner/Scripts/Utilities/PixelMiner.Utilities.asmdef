@@ -2,7 +2,8 @@
     "name": "PixelMiner.Utilities",
     "rootNamespace": "PixelMiner.Utilities",
     "references": [
-        "GUID:39448f9fffd102a4aa3c83fa92e21cb8"
+        "GUID:39448f9fffd102a4aa3c83fa92e21cb8",
+        "GUID:83a651e378233fe418e687488e563cf9"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -836,7 +836,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a58c71edb0d04bf46bcf92f608439e59, type: 2}
   SeedInput: 7
   ChunkWidth: 32
-  ChunkHeight: 5
+  ChunkHeight: 10
   ChunkDepth: 32
   AutoLoadChunk: 0
   AutoUnloadChunk: 0
@@ -1469,10 +1469,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22ae457847da8e43877aef4220ef471, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  InitWorldWidth: 1
-  InitWorldHeight: 1
-  LoadChunkOffsetWidth: 1
-  LoadChunkOffsetHeight: 1
+  InitWorldWidth: 5
+  InitWorldHeight: 5
+  LoadChunkOffsetWidth: 5
+  LoadChunkOffsetHeight: 5
   InitFastDrawChunk: 0
 --- !u!1 &1252983687
 GameObject:
@@ -1746,9 +1746,9 @@ MonoBehaviour:
   Frequency: 0.009
   Lacunarity: 2
   Persistence: 0.5
-  DeepWater: 0.40425533
-  Water: 0.5361702
-  Sand: 0.587234
+  DeepWater: 0.34601927
+  Water: 0.4313211
+  Sand: 0.5013124
   Grass: 0.706383
   Forest: 0.79148936
   Rock: 0.9
@@ -2076,7 +2076,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &2046533270
 BoxCollider:
   m_ObjectHideFlags: 0

@@ -152,7 +152,8 @@ namespace PixelMiner.WorldBuilding
                             if(blockType != BlockType.Water)
                             {
                                 bool[] solidNeighbors = GetSolidBlockNeighbors(x, y, z);
-                                Blocks[x, y, z] = new Block(ChunkData[IndexOf(x, y, z)], solidNeighbors, new Vector3(x, y, z));
+                                Blocks[x, y, z] = new Block();
+                                Blocks[x, y, z].DrawSolid(ChunkData[IndexOf(x, y, z)], solidNeighbors, new Vector3(x, y, z));
                                 if (Blocks[x, y, z].MeshDataArray != null)
                                 {
                                     solidMeshDataList.AddRange(Blocks[x, y, z].MeshDataArray);
@@ -180,7 +181,8 @@ namespace PixelMiner.WorldBuilding
                             if (blockType == BlockType.Water)
                             {
                                 bool[] fluidNeighbors = GetFluidBlockNeighbors(x, y, z);
-                                Blocks[x, y, z] = new Block(ChunkData[IndexOf(x, y, z)], fluidNeighbors, new Vector3(x, y, z));
+                                Blocks[x, y, z] = new Block();
+                                Blocks[x, y, z].DrawFluid(ChunkData[IndexOf(x, y, z)], fluidNeighbors, 0.5f, new Vector3(x, y, z));
                                 if (Blocks[x, y, z].MeshDataArray != null)
                                 {
                                     fluidMeshDataList.AddRange(Blocks[x, y, z].MeshDataArray);

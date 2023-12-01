@@ -71,6 +71,16 @@ namespace PixelMiner
                $"new Vector2({tileSize * u + tileSize}f, {tileSize * v + tileSize}f)}}, ");
         }
 
+        [Command("/getUV3")]
+        private static void GetUV3(int u, int v, ushort blockType = 0)
+        {
+            float tileSize = 1 / 8f;
+            Debug.Log($"\n\n/*{((ColorMapType)blockType).ToString().ToUpper()}*/" +
+               $"\n{{new Vector2({tileSize * u}f, {tileSize * v}f), " +
+               $"new Vector2({tileSize * u + tileSize}f, {tileSize * v}f)," +
+               $"\nnew Vector2({tileSize * u}f, {tileSize * v + tileSize}f), " +
+               $"new Vector2({tileSize * u + tileSize}f, {tileSize * v + tileSize}f)}}, ");
+        }
 
 
         [CommandDescription("all commands")]

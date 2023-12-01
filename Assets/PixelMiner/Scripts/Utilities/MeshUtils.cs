@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering;
 using PixelMiner.DataStructure;
+using PixelMiner.Enums;
+
 namespace PixelMiner.Utilities
 {
     public static class MeshUtils
@@ -43,12 +45,12 @@ namespace PixelMiner.Utilities
             new Vector2(0.125f, 0.9375f), new Vector2(0.1875f, 0.9375f)},
 
             
-/*GLASS*/
-{new Vector2(0.0625f, 0.75f), new Vector2(0.125f, 0.75f),
-new Vector2(0.0625f, 0.8125f), new Vector2(0.125f, 0.8125f)},
+            /*GLASS*/
+            {new Vector2(0.0625f, 0.75f), new Vector2(0.125f, 0.75f),
+            new Vector2(0.0625f, 0.8125f), new Vector2(0.125f, 0.8125f)},
         };
 
-        public static Vector2[,] BlockUV2s =
+        public static Vector2[,] ColorMapUVs =
         {
             /*
              * Order: BOTTOM_LEFT -> BOTTOM_RIGHT -> TOP_LEFT -> TOP_RIGHT.
@@ -76,6 +78,39 @@ new Vector2(0.0625f, 0.8125f), new Vector2(0.125f, 0.8125f)},
         };
 
 
+        public static Vector2[,] GetDepthUVs(float depth)
+        {
+            float depthValue = MathHelper.Map(depth, 0.0f, 0.4f, 0.0f, 1.0f);
+
+            return new Vector2[,]
+            {
+                {new Vector2(0f, 0f), new Vector2(0.015625f, 0f),
+                 new Vector2(0f, 0.015625f), new Vector2(0.015625f, 0.015625f)},
+            };
+
+
+        }
+
+
+        public static Vector2[] GetBlockUV(BlockType blockType)
+        {
+            return new Vector2[]
+            {
+                BlockUVs[(ushort)blockType, 0] ,
+                BlockUVs[(ushort)blockType, 1] ,
+                BlockUVs[(ushort)blockType, 2],
+                BlockUVs[(ushort)blockType, 3]};
+        }
+
+        public static Vector2[] GetColorMapUV(ColorMapType colorMapType)
+        {
+            return new Vector2[]
+            {
+                ColorMapUVs[(ushort)colorMapType, 0] ,
+                ColorMapUVs[(ushort)colorMapType, 1] ,
+                ColorMapUVs[(ushort)colorMapType, 2],
+                ColorMapUVs[(ushort)colorMapType, 3]};
+        }
 
 
 

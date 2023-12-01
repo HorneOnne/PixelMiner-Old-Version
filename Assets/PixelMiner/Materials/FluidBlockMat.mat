@@ -21,22 +21,17 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: FluidBlockMat
-  m_Shader: {fileID: 4800000, guid: e7938bc857a1a144582626ef85f4e9cf, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: b1233901a5481954aafd2c05ec9ca6dc, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
-  m_InvalidKeywords:
-  - _ALPHAPREMULTIPLY_ON
-  - _SPECULAR_SETUP
-  - _SURFACE_TYPE_TRANSPARENT
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 1
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 3003
   stringTagMap: {}
-  disabledShaderPasses:
-  - DepthOnly
-  - SHADOWCASTER
+  disabledShaderPasses: []
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -125,6 +120,26 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_048b9eabe70e4c828ada69c0ebea0ff0_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 60532d861e12f614091819cf50e4b6bb, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_1b7f1020e7774652bf992183a55f1d7c_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 60532d861e12f614091819cf50e4b6bb, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_825ea4226eda4819aeede5ad8de906cd_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 240b81a5439455740b0440bd8fb2b6c5, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_ba3be216aba140978abf9bd4e15cea0f_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 240b81a5439455740b0440bd8fb2b6c5, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_ca5cebfa8d354dc0b7e37e1b77d78028_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 2301eeb6c7f1b064da5e0caafbcacb6e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SpecGlossMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -146,6 +161,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TerrainHolesTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Texture2D:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -206,6 +225,7 @@ Material:
     - _NumLayersCount: 1
     - _OcclusionStrength: 1
     - _Parallax: 0.02
+    - _QueueControl: 0
     - _QueueOffset: 3
     - _ReceiveShadows: 1
     - _SampleGI: 0

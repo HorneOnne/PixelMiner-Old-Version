@@ -456,6 +456,15 @@ namespace PixelMiner.WorldGen
 
 
         #region Generate noise map data.
+        /// <summary>
+        /// Return 2D noise height map.
+        /// </summary>
+        /// <param name="frameX"></param>
+        /// <param name="frameZ"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="depth"></param>
+        /// <returns></returns>
         public async Task<float[]> GetHeightMapDataAsync(int frameX, int frameZ, byte width, byte height, byte depth)
         {
             float[] heightValues = new float[width * depth];
@@ -651,69 +660,51 @@ namespace PixelMiner.WorldGen
         {
             chunk.Processing = true;
             await Task.Run(() =>
-            {
-                //EMTPY
-                //for (int x = 0; x < _chunkWidth; x++)
-                //{
-                //    for (int z = 0; z < _chunkDepth; z++)
-                //    {
-                //        for (int y = _chunkHeight - 1; y >= 0; y--)
-                //        {
-                //            int index3D = WorldGenUtilities.IndexOf(x, y, z, _chunkWidth, _chunkHeight);
-                //            chunk.ChunkData[index3D] = BlockType.Dirt;
-                //        }
-                //    }
-                //}
-
-
+            {         
                 Debug.Log($"Ground: {Mathf.FloorToInt(Water * _chunkHeight)}");
-
+                bool flatWorld = false;
                 for (int x = 0; x < _chunkWidth; x++)
                 {
                     for (int z = 0; z < _chunkDepth; z++)
                     {
-                        for (int y = _chunkHeight - 1; y >= 0; y--)
+                        for (int y = 0; y < _chunkHeight; y++)
                         {
                             float heightValue = heightValues[WorldGenUtilities.IndexOf(x, z, _chunkWidth)];
                             chunk.HeightValues[WorldGenUtilities.IndexOf(x, z, _chunkWidth)] = heightValue;
 
                             int index3D = WorldGenUtilities.IndexOf(x, y, z, _chunkWidth, _chunkHeight);
-                           
                             int indexHighestY = WorldGenUtilities.IndexOf(x, _chunkHeight - 1, z, _chunkWidth, _chunkHeight);
                             int groundLayer = Mathf.FloorToInt(Water * _chunkHeight);
                             int indexGround = WorldGenUtilities.IndexOf(x, groundLayer, z, _chunkWidth, _chunkHeight);
                             int terrainHeight = Mathf.FloorToInt(heightValue * _chunkHeight);
 
 
-                            if (y < terrainHeight)
+
+                            if(y <= Water * _chunkHeight)
                             {
-                                if (terrainHeight < Sand * _chunkHeight)
+                                if (y == terrainHeight)
                                 {
-                                    if (y <= groundLayer)
-                                        chunk.ChunkData[indexGround] = BlockType.Sand;
-                                    else
-                                        chunk.ChunkData[index3D] = BlockType.Air;                                   
+                                    chunk.ChunkData[index3D] = BlockType.GrassSide;
                                 }
-                                else if(terrainHeight < Grass * _chunkHeight)
+                                else if (y < terrainHeight)
                                 {
-                                    if (y <= groundLayer)
-                                        chunk.ChunkData[indexGround] = BlockType.GrassSide;
-                                    else
-                                        chunk.ChunkData[index3D] = BlockType.Air;
+
+                                    chunk.ChunkData[index3D] = BlockType.Dirt;
                                 }
-                                else if (terrainHeight < Rock * _chunkHeight)
+                                else if (y < _chunkHeight * Water)
                                 {
-                                    if (y <= groundLayer)
-                                        chunk.ChunkData[index3D] = BlockType.Stone;
-                                    else
-                                        chunk.ChunkData[index3D] = BlockType.Air;
+                                    chunk.ChunkData[index3D] = BlockType.Water;
+                                }
+                                else
+                                {
+                                    chunk.ChunkData[index3D] = BlockType.Air;
                                 }
                             }
-                            
                             else
                             {
                                 chunk.ChunkData[index3D] = BlockType.Air;
                             }
+                            
 
 
                         }
@@ -793,41 +784,44 @@ namespace PixelMiner.WorldGen
 
 
 
-                //            //if (heightValue < Water)
-                //            //{
-                //            //    if (y < _chunkHeight * Water)
-                //            //    {
-                //            //        chunk.ChunkData[index3D] = BlockType.Stone;
-                //            //    }
-                //            //    else
-                //            //        chunk.ChunkData[index3D] = BlockType.Water;
-                //            //}
-                //            //else if (heightValue < Sand)
-                //            //{
-                //            //    chunk.ChunkData[index3D] = BlockType.Sand;
-                //            //}
-                //            //else if (heightValue < Grass)
-                //            //{
-                //            //    chunk.ChunkData[index3D] = BlockType.GrassSide;
-                //            //}
-                //            //else if (heightValue < Forest)
-                //            //{
-                //            //    chunk.ChunkData[index3D] = BlockType.GrassSide;
-                //            //}
-                //            //else if (heightValue < Rock)
-                //            //{
-                //            //    chunk.ChunkData[index3D] = BlockType.Stone;
-                //            //}
-                //            //else
-                //            //{
-                //            //    chunk.ChunkData[index3D] = BlockType.Stone;
-                //            //}
+                //            if (heightValue < Water)
+                //            {
+                //                if (y < _chunkHeight * Water)
+                //                {
+                //                    chunk.ChunkData[index3D] = BlockType.Stone;
+                //                }
+                //                else
+                //                    chunk.ChunkData[index3D] = BlockType.Water;
+                //            }
+                //            else if (heightValue < Sand)
+                //            {
+                //                chunk.ChunkData[index3D] = BlockType.Sand;
+                //            }
+                //            else if (heightValue < Grass)
+                //            {
+                //                chunk.ChunkData[index3D] = BlockType.GrassSide;
+                //            }
+                //            else if (heightValue < Forest)
+                //            {
+                //                chunk.ChunkData[index3D] = BlockType.GrassSide;
+                //            }
+                //            else if (heightValue < Rock)
+                //            {
+                //                chunk.ChunkData[index3D] = BlockType.Stone;
+                //            }
+                //            else
+                //            {
+                //                chunk.ChunkData[index3D] = BlockType.Stone;
+                //            }
                 //        }
                 //    }
                 //}
+
+
             });
             chunk.Processing = false;
         }
+
 
 #if false
         public async Task LoadHeatMapDataAsync(Chunk chunk, float[,] heatValues, bool updateHeatType = true)

@@ -22,23 +22,21 @@ namespace PixelMiner.WorldBuilding
 
         public MeshData MeshData { get; private set; }
 
-        public Quad(BlockSide side, BlockType blockType, ColorMapType colorMap, Vector3 offset = (default))
+        public Quad(BlockSide side, Vector3 offset = (default), Vector2[] uvs = null, Vector2[] uv2s = null)
         {
             Vector3[] vertices;
             Vector3[] normals;
-            Vector2[] uvs;
-            Vector2[] uv2s;
             int[] triangles = new int[6] { 0, 3, 1, 1, 3, 2 };
 
-            Vector2 uv00 = MeshUtils.BlockUVs[(ushort)blockType, 0];   // Bottom left
-            Vector2 uv10 = MeshUtils.BlockUVs[(ushort)blockType, 1];   // Bottom right
-            Vector2 uv01 = MeshUtils.BlockUVs[(ushort)blockType, 2];   // Top left
-            Vector2 uv11 = MeshUtils.BlockUVs[(ushort)blockType, 3];   // Top Right
+            Vector2 uv00 = uvs[0];   // Bottom left
+            Vector2 uv10 = uvs[1];   // Bottom right
+            Vector2 uv01 = uvs[2];   // Top left
+            Vector2 uv11 = uvs[3];   // Top Right
 
-            Vector2 uv2_00 = MeshUtils.BlockUV2s[(ushort)colorMap, 0];    // Bottom left
-            Vector2 uv2_10 = MeshUtils.BlockUV2s[(ushort)colorMap, 1];   // Bottom right
-            Vector2 uv2_01 = MeshUtils.BlockUV2s[(ushort)colorMap, 2];   // Top left
-            Vector2 uv2_11 = MeshUtils.BlockUV2s[(ushort)colorMap, 3];   // Top Right
+            Vector2 uv2_00 = uv2s[0];    // Bottom left
+            Vector2 uv2_10 = uv2s[1];   // Bottom right
+            Vector2 uv2_01 = uv2s[2];   // Top left
+            Vector2 uv2_11 = uv2s[3];   // Top Right
 
 
             Vector3 p0 = new Vector3(-0.5f, -0.5f, 0.5f) + offset;
