@@ -2,7 +2,8 @@
 using UnityEngine;
 using Sirenix.OdinInspector;
 using PixelMiner.WorldBuilding;
-
+using PixelMiner.Utilities;
+using System.Threading;
 
 namespace PixelMiner.WorldGen
 {
@@ -13,18 +14,18 @@ namespace PixelMiner.WorldGen
         private WorldGeneration _worldGen;
 
         [FoldoutGroup("World Settings"), Indent(1)] public byte InitWorldWidth = 3;
-        [FoldoutGroup("World Settings"), Indent(1)] public byte InitWorldHeight = 3;
+        [FoldoutGroup("World Settings"), Indent(1)] public byte InitWorldDepth = 3;
         [FoldoutGroup("World Settings"), Indent(1)] public byte LoadChunkOffsetWidth = 1;
-        [FoldoutGroup("World Settings"), Indent(1)] public byte LoadChunkOffsetHeight = 1;
+        [FoldoutGroup("World Settings"), Indent(1)] public byte LoadChunkOffsetDepth = 1;
 
         [Header("Performance Options")]
         public bool InitFastDrawChunk;
 
 
         // Cached
-        private Vector3Int lastChunkFrame;
-        private Vector2 _centerPoint;
-        private Vector2Int _centerPointFrame;
+        [SerializeField] private Transform _playerTrans;
+        private Vector3Int _lastChunkFrame;
+        private Vector3Int _currentFrame;
 
         private void Awake()
         {
@@ -36,19 +37,28 @@ namespace PixelMiner.WorldGen
             _main = Main.Instance;
             _worldGen = WorldGeneration.Instance;
 
-            _worldGen.OnWorldGenWhenStartFinished += () =>
-            {
-                //if (InitFastDrawChunk)
-                //    LoadChunksAroundPositionInParallel(lastChunkFrame.x, lastChunkFrame.y, lastChunkFrame.z, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
-                //else
-                //    LoadChunksAroundPositionInSequence(lastChunkFrame.x, lastChunkFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetDepth: LoadChunkOffsetHeight);
+            _currentFrame = new Vector3Int(Mathf.FloorToInt(_playerTrans.position.x / Main.Instance.ChunkWidth), 0,
+                    Mathf.FloorToInt(_playerTrans.position.z / Main.Instance.ChunkDepth));
+            _lastChunkFrame = _currentFrame;
 
-                LoadChunksAroundPositionInSequence(0, 0, 0, offsetWidth: LoadChunkOffsetWidth, offsetDepth: LoadChunkOffsetHeight);
-            };
+
+   
+            //_worldGen.OnWorldGenWhenStartFinished += () =>
+            //{
+
+            //    //if (InitFastDrawChunk)
+            //    //    LoadChunksAroundPositionInParallel(lastChunkFrame.x, lastChunkFrame.y, lastChunkFrame.z, offsetWidth: LoadChunkOffsetWidth, offsetHeight: LoadChunkOffsetHeight);
+            //    //else
+            //    //    LoadChunksAroundPositionInSequence(lastChunkFrame.x, lastChunkFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetDepth: LoadChunkOffsetHeight);
+
+            //    //LoadChunksAroundPositionInSequence(_lastChunkFrame.x, 0, _lastChunkFrame.z, offsetWidth: LoadChunkOffsetWidth, offsetDepth: LoadChunkOffsetHeight);
+            //};
+
+       
 
             Chunk.OnChunkFarAway += (chunk) =>
             {
-                if (chunk.ChunkHasDrawn && !chunk.Processing
+                if (!chunk.Processing
                     && Main.Instance.AutoUnloadChunk)
                 {
                     UnloadChunk(chunk);
@@ -58,20 +68,21 @@ namespace PixelMiner.WorldGen
 
         private void Update()
         {
-            //if (_main.AutoLoadChunk)
-            //{
-            //    _centerPoint = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width / 2f, Screen.height / 2f));
-            //    _centerPointFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(_centerPoint, _main.ChunkWidth, _main.ChunkHeight);
+            if (_main.AutoLoadChunk)
+            {
+                _currentFrame = new Vector3Int(
+                    Mathf.FloorToInt(_playerTrans.position.x / Main.Instance.ChunkWidth), 0, 
+                    Mathf.FloorToInt(_playerTrans.position.z / Main.Instance.ChunkDepth));
 
-            //    if (_centerPointFrame != lastChunkFrame)
-            //    {
-            //        lastChunkFrame = _centerPointFrame;
-            //        LoadChunksAroundPositionInSequence(_centerPointFrame.x, _centerPointFrame.y, offsetWidth: LoadChunkOffsetWidth, offsetDepth: LoadChunkOffsetHeight);
-            //    }
-            //}
+
+                if (_currentFrame!= _lastChunkFrame)
+                {
+                    _lastChunkFrame = _currentFrame;
+                    LoadChunksAroundPositionInSequence(_lastChunkFrame.x, 0, _lastChunkFrame.z, offsetWidth: LoadChunkOffsetWidth, offsetDepth: LoadChunkOffsetDepth);
+                }
+            }
         }
 
-  
 
         /// <summary>
         /// Load each chunk in sequence and draw each chunk in sequence. -> Less drop FPS but slow.
@@ -81,7 +92,7 @@ namespace PixelMiner.WorldGen
         /// <param name="offsetWidth"></param>
         /// <param name="offsetDepth"></param>
         private async void LoadChunksAroundPositionInSequence(int frameX, int frameY, int frameZ, byte offsetWidth = 1, byte offsetDepth = 1)
-        {
+        {          
             for (int x = frameX - offsetWidth; x <= frameX + offsetWidth; x++)
             {
                 for (int z = frameZ - offsetDepth; z <= frameZ + offsetDepth; z++)
@@ -100,9 +111,9 @@ namespace PixelMiner.WorldGen
 
                         // Cached chunk data
                         if (_main.HasChunk(nbFrame) == false)
-                            _main.AddNewChunk(newChunk);
+                            _main.Chunks.Add(nbFrame, newChunk);
                         _main.ActiveChunks.Add(newChunk);
-
+                        newChunk.gameObject.SetActive(true);
 
                         if (newChunk.ChunkHasDrawn == false)
                         {
@@ -126,6 +137,7 @@ namespace PixelMiner.WorldGen
                         }
 
                         _main.ActiveChunks.Add(_main.Chunks[nbFrame]);
+                        _main.Chunks[nbFrame].gameObject.SetActive(true);
 
                         if (_main.Chunks[nbFrame].ChunkHasDrawn == false)
                         {
@@ -145,94 +157,8 @@ namespace PixelMiner.WorldGen
 
             //_worldGen.UpdateAllActiveChunkTileNeighborsAsync();
         }
-        /// <summary>
-        /// Load all chunks and draw all chunks at the same time. -> Fast but drop a bit FPS in low end devices.
-        /// </summary>
-        /// <param name="frameX"></param>
-        /// <param name="frameZ"></param>
-        /// <param name="offsetWidth"></param>
-        /// <param name="offsetHeight"></param>
-        //private async void LoadChunksAroundPositionInParallel(int frameX, int frameY, int frameZ, byte offsetWidth = 1, byte offsetHeight = 1)
-        //{
-        //    Task[] drawChunkTasks = new Task[(offsetWidth * 2 + 1) * (offsetHeight * 2 + 1)];
 
-        //    for (int x = frameX - offsetWidth; x <= frameX + offsetWidth; x++)
-        //    {
-        //        for (int z = frameZ - offsetHeight; z <= frameZ + offsetHeight; z++)
-        //        {
-        //            int index = x - (frameX - offsetWidth) + (z - (frameZ - offsetHeight)) * (2 * offsetWidth + 1);
-        //            Vector3Int nbFrame = new Vector3Int(x,0,z);
-        //            Chunk chunk = _main.GetChunk(nbFrame);
-
-        //            if (chunk == null)   // Create new chunk
-        //            {
-        //                if (x == frameX && z == frameZ)
-        //                {
-        //                    // Center
-        //                    // ......
-        //                }
-
-        //                Chunk newChunk = await _worldGen.GenerateNewChunkDataAsync(x, 0, z);
-        //                drawChunkTasks[index] = _worldGen.DrawChunkAsync(_main.Chunks[nbFrame]);
-
-        //                // Cached chunk data
-        //                if (_main.HasChunk(nbFrame) == false)
-        //                {
-        //                    _main.AddNewChunk(newChunk);
-        //                }
-
-        //                _main.ActiveChunks.Add(newChunk);
-        //                _main.Chunks[nbFrame].LoadChunk();
-
-        //            }
-        //            else // Load chunk cached.
-        //            {
-        //                if (x == frameX && z == frameZ)
-        //                {
-        //                    // Center
-        //                    // ......
-        //                }
-
-        //                _main.GetChunk(nbFrame).LoadChunk();
-        //                _main.ActiveChunks.Add(_main.Chunks[nbFrame]);
-
-        //                if (_main.Chunks[nbFrame].ChunkHasDrawn == false)
-        //                {
-        //                    drawChunkTasks[index] = _worldGen.DrawChunkAsync(_main.Chunks[nbFrame]);
-        //                }
-        //                else
-        //                {
-        //                    drawChunkTasks[index] = Task.CompletedTask;
-        //                }
-        //            }
-
-        //        }
-        //    }
-
-        //    // When all chunk has drawn.
-        //    await Task.WhenAll(drawChunkTasks);
-
-
-        //    foreach (var chunk in _main.Chunks.Values)
-        //    {
-        //        if (_main.InitWorldWithHeatmap)
-        //            _worldGen.PaintHeatMap(chunk);
-
-        //        if (_main.InitWorldWithMoisturemap)
-        //            _worldGen.PaintMoistureMap(chunk);
-
-        //        if (!chunk.HasNeighbors())
-        //        {
-        //            _worldGen.UpdateChunkTileNeighbors(chunk);
-        //        }
-        //    }
-
-
-        //    if (_main.ShowChunksBorder)
-        //    {
-        //        _worldGen.SortActiveChunkByDepth();
-        //    }
-        //}
+      
 
         private void UnloadChunk(Chunk chunk)
         {

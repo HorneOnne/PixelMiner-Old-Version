@@ -19,10 +19,10 @@ namespace PixelMiner.WorldBuilding
 
         public bool HasChunkNeighbors = false;
         public bool AllTileHasNeighbors = false;
-        public bool ChunkHasDrawn;
+        public bool ChunkHasDrawn = false;
         public bool Processing { get; set; } = false;
 
-        private float _unloadChunkDistance = 200;
+        private float _unloadChunkDistance = 100;
         private float _updateFrequency = 1.0f;
         private float _updateTimer = 0.0f;
 
@@ -39,8 +39,7 @@ namespace PixelMiner.WorldBuilding
         // NEW
         [SerializeField] private MeshFilter _solidMeshFilter;
         [SerializeField] private MeshFilter _fluidMeshFilter;
-        private MeshCollider _solidCollider;
-
+ 
         public byte Width;
         public byte Height;
         public byte Depth;
@@ -54,6 +53,8 @@ namespace PixelMiner.WorldBuilding
         [HideInInspector] public float[] HeatValues;
         [HideInInspector] public float[] MoistureValues;
 
+        private Transform _playerTrans;
+
         private void Awake()
         {
 
@@ -62,7 +63,10 @@ namespace PixelMiner.WorldBuilding
 
         private void Start()
         {
-            _solidCollider = _solidMeshFilter.GetComponent<MeshCollider>();
+            // Set player for detect unload chunk when player far away.
+            _playerTrans = GameObject.FindGameObjectWithTag("Player").transform;
+            if (_playerTrans == null)
+                _playerTrans = Camera.main.transform;
         }
 
         private void Update()
@@ -70,7 +74,8 @@ namespace PixelMiner.WorldBuilding
             if (Time.time - _updateTimer > _updateFrequency)
             {
                 _updateTimer = Time.time;
-                if (Vector2.Distance(Camera.main.transform.position, transform.position) > _unloadChunkDistance)
+                if (Vector3.Distance(_playerTrans.position, transform.position) > _unloadChunkDistance
+                    && Processing == false)
                 {
                     OnChunkFarAway?.Invoke(this);
                 }
@@ -110,6 +115,10 @@ namespace PixelMiner.WorldBuilding
 
         public async void DrawChunkAsync()
         {
+            if (ChunkHasDrawn) return;
+            Processing = true;
+            ChunkHasDrawn = true;
+
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
 
@@ -117,9 +126,12 @@ namespace PixelMiner.WorldBuilding
             List<MeshData> fluidMeshDataList = await GetFluidMeshDataAsync();
             _solidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(solidMeshDataList.ToArray());
             _fluidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(fluidMeshDataList.ToArray());
-            _solidCollider.sharedMesh = _solidMeshFilter.mesh;
+            var solidCollider = _solidMeshFilter.gameObject.AddComponent<MeshCollider>();
+            solidCollider.sharedMesh = _solidMeshFilter.mesh;
+            
             sw.Stop();
             //Debug.Log($"Draw chunk in: {sw.ElapsedMilliseconds / 1000f} s");
+            Processing = false;
         }
 
         private async Task<List<MeshData>> GetSolidMeshDataAsync()

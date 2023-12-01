@@ -127,15 +127,7 @@ namespace PixelMiner.WorldGen
             }
             return null;
         }
-        public void AddNewChunk(Chunk chunk)
-        {
-            Vector3Int frame = new Vector3Int(chunk.FrameX, chunk.FrameY, chunk.FrameZ);
-            Chunks.Add(frame, chunk);
-        }
-        public void AddNewChunk(Chunk chunk, Vector3Int frame)
-        {
-            Chunks.Add(frame, chunk);
-        }
+
         #endregion
 
         #region Neighbors

@@ -38,11 +38,13 @@ namespace PixelMiner
         {
             _moveDirection.x = _input.Move.x;
             _moveDirection.z = _input.Move.y;
+
             FaceToCamera();
         }
 
         private void FixedUpdate()
         {
+
             if (_input.Move != Vector2.zero)
                 _rb.velocity = _moveDirection.Iso(_cameraIsometricRot) * _moveSpeed;
             else

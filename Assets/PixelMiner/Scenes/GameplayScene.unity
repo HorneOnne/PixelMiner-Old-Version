@@ -451,11 +451,10 @@ GameObject:
   - component: {fileID: 314038819}
   - component: {fileID: 314038821}
   - component: {fileID: 314038818}
-  - component: {fileID: 314038817}
   - component: {fileID: 314038820}
   m_Layer: 0
   m_Name: Character
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -469,30 +468,13 @@ Transform:
   m_GameObject: {fileID: 314038815}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 10, z: 0}
+  m_LocalPosition: {x: -180.32149, y: 4.728181, z: 45.867825}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 749198360}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &314038817
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 314038815}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a24ea02ac60b8c439b2887cb331ee00, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moveSpeed: 15
-  _moveDirection: {x: 0, y: 0, z: 0}
-  _predictMovePosition: {x: 0, y: 0, z: 0}
-  FlyMode: 0
-  ContinuousMove: 0
 --- !u!114 &314038818
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -529,9 +511,9 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 0
   m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
+  m_Interpolate: 1
+  m_Constraints: 112
+  m_CollisionDetection: 1
 --- !u!114 &314038820
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -544,7 +526,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dc3042468c9e7d47b2d01e98e0814de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _moveSpeed: 30
+  _moveSpeed: 50
   _moveDirection: {x: 0, y: 0, z: 0}
 --- !u!65 &314038821
 BoxCollider:
@@ -777,7 +759,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: -61.237244, y: 60.000008, z: -61.23724}
+  m_LocalPosition: {x: -241.55873, y: 54.728188, z: -15.369408}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -860,7 +842,7 @@ MonoBehaviour:
   ChunkWidth: 32
   ChunkHeight: 10
   ChunkDepth: 32
-  AutoLoadChunk: 0
+  AutoLoadChunk: 1
   AutoUnloadChunk: 0
   ShowChunksBorder: 0
   ShowTilegroupMaps: 0
@@ -1469,11 +1451,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22ae457847da8e43877aef4220ef471, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  InitWorldWidth: 5
-  InitWorldHeight: 5
-  LoadChunkOffsetWidth: 5
-  LoadChunkOffsetHeight: 5
+  InitWorldWidth: 1
+  InitWorldHeight: 1
+  LoadChunkOffsetWidth: 1
+  LoadChunkOffsetHeight: 1
   InitFastDrawChunk: 0
+  _playerTrans: {fileID: 314038816}
 --- !u!1 &1252983687
 GameObject:
   m_ObjectHideFlags: 0
@@ -1937,7 +1920,7 @@ Transform:
   m_GameObject: {fileID: 1694405455}
   serializedVersion: 2
   m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: -61.237244, y: 60.000008, z: -61.23724}
+  m_LocalPosition: {x: -241.55873, y: 54.728188, z: -15.369408}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

@@ -126,8 +126,6 @@ namespace PixelMiner.WorldGen
         public static Color Wettest = new Color(0 / 255f, 0 / 255f, 100 / 255f, 1);
 
         // Cached
-        private Vector2Int lastChunkISOFrame;
-        private Vector2 _centerPoint;
         private byte _chunkWidth;      // Size of each chunk in tiles
         private byte _chunkHeight;      // Size of each chunk in tiles
         private byte _chunkDepth;
@@ -161,7 +159,11 @@ namespace PixelMiner.WorldGen
             _minWorldNoiseValue = float.MaxValue;
             _maxWorldNoiseValue = float.MinValue;
 
-
+            // Init noise module
+            _heightModule = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, QualityMode.High);
+            _heatModule = new Perlin(HeatFrequency, HeatLacunarity, HeatPersistence, HeatOctaves, Seed, QualityMode.High);
+            _moistureModule = new Perlin(MoistureFrequency, MoistureLacunarity, MoisturePersistence, MoistureOctaves, Seed, QualityMode.High);
+            _riverModule = new Perlin(RiverFrequency, RiverLacunarity, RiverPersistence, RiverOctaves, Seed, QualityMode.Low);
         }
 
         private void Start()
@@ -172,27 +174,16 @@ namespace PixelMiner.WorldGen
             Seed = WorldGenUtilities.StringToSeed(_main.SeedInput);
             UnityEngine.Random.InitState(Seed);
 
-            // Init noise module
-            _heightModule = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, QualityMode.High);
-            _heatModule = new Perlin(HeatFrequency, HeatLacunarity, HeatPersistence, HeatOctaves, Seed, QualityMode.High);
-            _moistureModule = new Perlin(MoistureFrequency, MoistureLacunarity, MoisturePersistence, MoistureOctaves, Seed, QualityMode.High);
-            _riverModule = new Perlin(RiverFrequency, RiverLacunarity, RiverPersistence, RiverOctaves, Seed, QualityMode.Low);
-
-
+           
             _chunkWidth = _main.ChunkWidth;
             _chunkHeight = _main.ChunkHeight;
             _chunkDepth = _main.ChunkDepth;
 
 
-            // Load chunks around the player's starting position
-            //_centerPoint = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width / 2f, Screen.height / 2f));
-            //lastChunkISOFrame = IsometricUtilities.ReverseConvertWorldPositionToIsometricFrame(_centerPoint, _chunkWidth, _chunkHeight);
-
             // World Initialization
-            InitWorldAsyncInParallel(0, 0, widthInit: _worldLoading.InitWorldWidth, depthInit: _worldLoading.InitWorldHeight, () =>
+            InitWorldAsyncInSequence(0, 0, widthInit: _worldLoading.InitWorldWidth, depthInit: _worldLoading.InitWorldDepth, () =>
             {
                 OnWorldGenWhenStartFinished?.Invoke();
-
             });
 
         }
@@ -347,10 +338,9 @@ namespace PixelMiner.WorldGen
                 for (int z = initFrameZ - depthInit; z <= initFrameZ + depthInit; z++)
                 {
                     Chunk newChunk = await GenerateNewChunkDataAsync(x, 0, z);
-                    _main.AddNewChunk(newChunk);
-                    newChunk.gameObject.SetActive(false);
-
-
+                    _main.Chunks.Add(new Vector3Int(x,0,z), newChunk);
+                    _main.ActiveChunks.Add(newChunk);
+               
                     // Update the slider value based on progress
                     currentIteration++;
                     float progress = (float)currentIteration / totalIterations;
@@ -396,19 +386,21 @@ namespace PixelMiner.WorldGen
             foreach (var task in tasks)
             {
                 Chunk newChunk = task.Result;
-                _main.AddNewChunk(newChunk);
-                //newChunk.gameObject.SetActive(false);
+                _main.Chunks.Add(new Vector3Int(newChunk.FrameX, 0, newChunk.FrameZ), newChunk);
+                _main.ActiveChunks.Add(newChunk);
             }
 
             //UIGameManager.Instance.DisplayWorldGenSlider(false);
             onFinished?.Invoke();
         }
+
+
         public async Task<Chunk> GenerateNewChunkDataAsync(int frameX, int frameY, int frameZ)
         {
             Vector3Int frame = new Vector3Int(frameX, frameY, frameZ);
             Vector3 worldPosition = frame * new Vector3Int(Main.Instance.ChunkWidth, Main.Instance.ChunkHeight, Main.Instance.ChunkDepth);
             Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity, _chunkParent.transform);
-            newChunk.Init(frame.x, frame.y, frameZ, _chunkWidth, _chunkHeight, _chunkDepth);
+            newChunk.Init(frameX, frameY, frameZ, _chunkWidth, _chunkHeight, _chunkDepth);
 
             // Create new data
             //float[] heightValues = await GetHeightMapDataAsync(frameX, frameZ, _chunkWidth, _chunkHeight, _chunkDepth);
