@@ -80,7 +80,7 @@ namespace PixelMiner.WorldBuilding
                     {
                         q.Add(new Quad((BlockSide)i, offset, 
                             uvs: MeshUtils.GetBlockUV(blockType), 
-                            uv2s: MeshUtils.GetColorMapUV(ColorMapType.None)));
+                            uv2s: MeshUtils.GetDepthUVs(height)));
                     }
                 }
                 if (q.Count == 0) return;

@@ -674,22 +674,27 @@ namespace PixelMiner.WorldGen
 
                             int index3D = WorldGenUtilities.IndexOf(x, y, z, _chunkWidth, _chunkHeight);
                             int indexHighestY = WorldGenUtilities.IndexOf(x, _chunkHeight - 1, z, _chunkWidth, _chunkHeight);
-                            int groundLayer = Mathf.FloorToInt(Water * _chunkHeight);
-                            int indexGround = WorldGenUtilities.IndexOf(x, groundLayer, z, _chunkWidth, _chunkHeight);
+                            int averageGroundLayer = Mathf.FloorToInt(Water * _chunkHeight);
+           
                             int terrainHeight = Mathf.FloorToInt(heightValue * _chunkHeight);
-
-
-
-                            if(y <= Water * _chunkHeight)
+                          
+                    
+                            if(y <= averageGroundLayer) 
                             {
-                                if (y == terrainHeight)
+                                if (y < terrainHeight)
                                 {
-                                    chunk.ChunkData[index3D] = BlockType.GrassSide;
-                                }
-                                else if (y < terrainHeight)
-                                {
-
-                                    chunk.ChunkData[index3D] = BlockType.Dirt;
+                                    if (heightValue < Water)
+                                        chunk.ChunkData[index3D] = BlockType.Water;
+                                    if (heightValue < Sand)
+                                        chunk.ChunkData[index3D] = BlockType.Sand;
+                                    else if (heightValue < Grass)
+                                        chunk.ChunkData[index3D] = BlockType.Dirt;
+                                    else if (heightValue < Forest)
+                                        chunk.ChunkData[index3D] = BlockType.GrassSide;
+                                    else if (heightValue < Rock)
+                                        chunk.ChunkData[index3D] = BlockType.Stone;
+                                    else
+                                        chunk.ChunkData[index3D] = BlockType.Glass;
                                 }
                                 else if (y < _chunkHeight * Water)
                                 {

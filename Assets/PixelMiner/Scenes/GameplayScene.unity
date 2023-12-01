@@ -1469,10 +1469,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22ae457847da8e43877aef4220ef471, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  InitWorldWidth: 5
-  InitWorldHeight: 5
-  LoadChunkOffsetWidth: 5
-  LoadChunkOffsetHeight: 5
+  InitWorldWidth: 0
+  InitWorldHeight: 0
+  LoadChunkOffsetWidth: 0
+  LoadChunkOffsetHeight: 0
   InitFastDrawChunk: 0
 --- !u!1 &1252983687
 GameObject:

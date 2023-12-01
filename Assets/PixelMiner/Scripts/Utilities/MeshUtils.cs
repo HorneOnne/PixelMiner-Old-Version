@@ -78,17 +78,18 @@ namespace PixelMiner.Utilities
         };
 
 
-        public static Vector2[,] GetDepthUVs(float depth)
+        public static Vector2[] GetDepthUVs(float depth)
         {
-            float depthValue = MathHelper.Map(depth, 0.0f, 0.4f, 0.0f, 1.0f);
-
-            return new Vector2[,]
+            float depthValue = MathHelper.Map(depth, 0.2f, 0.45f, 0.0f, 0.75f);
+            float offset = 0.05f;
+           // Debug.Log(depthValue);
+            return new Vector2[]
             {
-                {new Vector2(0f, 0f), new Vector2(0.015625f, 0f),
-                 new Vector2(0f, 0.015625f), new Vector2(0.015625f, 0.015625f)},
+                new Vector2(0, depthValue),
+                new Vector2(1, depthValue),
+                 new Vector2(0f, Mathf.Clamp01(depthValue + offset)),
+                new Vector2(1, Mathf.Clamp01(depthValue + offset))
             };
-
-
         }
 
 

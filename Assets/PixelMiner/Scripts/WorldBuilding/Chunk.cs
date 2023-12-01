@@ -182,7 +182,7 @@ namespace PixelMiner.WorldBuilding
                             {
                                 bool[] fluidNeighbors = GetFluidBlockNeighbors(x, y, z);
                                 Blocks[x, y, z] = new Block();
-                                Blocks[x, y, z].DrawFluid(ChunkData[IndexOf(x, y, z)], fluidNeighbors, 0.5f, new Vector3(x, y, z));
+                                Blocks[x, y, z].DrawFluid(ChunkData[IndexOf(x, y, z)], fluidNeighbors, HeightValues[IndexOf(x,z)], new Vector3(x, y, z));
                                 if (Blocks[x, y, z].MeshDataArray != null)
                                 {
                                     fluidMeshDataList.AddRange(Blocks[x, y, z].MeshDataArray);
@@ -328,6 +328,10 @@ namespace PixelMiner.WorldBuilding
         private int IndexOf(int x, int y, int z)
         {
             return x + Width * (y + Height * z);
+        }
+        private int IndexOf(int x, int z)
+        {
+            return x + z * Depth;
         }
         #endregion
     }
