@@ -528,6 +528,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _moveSpeed: 50
   _moveDirection: {x: 0, y: 0, z: 0}
+  ContinuousMove: 1
 --- !u!65 &314038821
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1452,9 +1453,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   InitWorldWidth: 1
-  InitWorldHeight: 1
+  InitWorldDepth: 3
   LoadChunkOffsetWidth: 1
-  LoadChunkOffsetHeight: 1
+  LoadChunkOffsetDepth: 1
   InitFastDrawChunk: 0
   _playerTrans: {fileID: 314038816}
 --- !u!1 &1252983687

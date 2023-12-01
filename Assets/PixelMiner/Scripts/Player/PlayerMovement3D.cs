@@ -14,6 +14,7 @@ namespace PixelMiner
         private Camera _mainCam;
         private Vector3 _cameraIsometricRot = new Vector3(0,45,0);
 
+        public bool ContinuousMove;
         private bool _hasAnimator;
         private bool _facingRight;
         // animation IDs
@@ -36,16 +37,28 @@ namespace PixelMiner
         }
         private void Update()
         {
-            _moveDirection.x = _input.Move.x;
-            _moveDirection.z = _input.Move.y;
+            if (ContinuousMove)
+            {
+                _moveDirection = _input.Move == Vector2.zero ? _moveDirection : new Vector3(_input.Move.x, 0, _input.Move.y);
+            }
+            else
+            {
+                _moveDirection.x = _input.Move.x;
+                _moveDirection.z = _input.Move.y;
+            }
+
+            if (_input.Cancel)
+            {
+                _moveDirection = Vector3.zero;
+            }
+
 
             FaceToCamera();
         }
 
         private void FixedUpdate()
         {
-
-            if (_input.Move != Vector2.zero)
+            if (_moveDirection != Vector3.zero)
                 _rb.velocity = _moveDirection.Iso(_cameraIsometricRot) * _moveSpeed;
             else
                 _rb.velocity = new Vector3(0,_rb.velocity.y, 0);

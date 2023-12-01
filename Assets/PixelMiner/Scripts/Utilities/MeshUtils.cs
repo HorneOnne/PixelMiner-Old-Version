@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering;
 using PixelMiner.DataStructure;
@@ -97,7 +96,7 @@ namespace PixelMiner.Utilities
         {
             return new Vector2[]
             {
-                BlockUVs[(ushort)blockType, 0] ,
+                BlockUVs[(ushort)blockType, 0],
                 BlockUVs[(ushort)blockType, 1] ,
                 BlockUVs[(ushort)blockType, 2],
                 BlockUVs[(ushort)blockType, 3]};

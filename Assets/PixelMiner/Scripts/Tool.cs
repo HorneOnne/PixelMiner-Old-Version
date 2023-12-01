@@ -21,6 +21,7 @@ namespace PixelMiner
             _cursor.gameObject.hideFlags = HideFlags.HideInHierarchy;
         }
 
+
        
         private void Update()
         {

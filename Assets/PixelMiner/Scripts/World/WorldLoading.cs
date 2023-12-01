@@ -26,6 +26,10 @@ namespace PixelMiner.WorldGen
         [SerializeField] private Transform _playerTrans;
         private Vector3Int _lastChunkFrame;
         private Vector3Int _currentFrame;
+        // Performance
+        private float _updateTimer = 0.0f;
+        private float _updateTime = 0.1f;
+
 
         private void Awake()
         {
@@ -68,19 +72,24 @@ namespace PixelMiner.WorldGen
 
         private void Update()
         {
-            if (_main.AutoLoadChunk)
+            if(Time.time - _updateTime >  _updateTimer)
             {
-                _currentFrame = new Vector3Int(
-                    Mathf.FloorToInt(_playerTrans.position.x / Main.Instance.ChunkWidth), 0, 
-                    Mathf.FloorToInt(_playerTrans.position.z / Main.Instance.ChunkDepth));
-
-
-                if (_currentFrame!= _lastChunkFrame)
+                _updateTimer = Time.time;
+                if (_main.AutoLoadChunk)
                 {
-                    _lastChunkFrame = _currentFrame;
-                    LoadChunksAroundPositionInSequence(_lastChunkFrame.x, 0, _lastChunkFrame.z, offsetWidth: LoadChunkOffsetWidth, offsetDepth: LoadChunkOffsetDepth);
+                    _currentFrame = new Vector3Int(
+                        Mathf.FloorToInt(_playerTrans.position.x / _main.ChunkWidth), 0,
+                        Mathf.FloorToInt(_playerTrans.position.z / _main.ChunkDepth));
+
+
+                    if (_currentFrame != _lastChunkFrame)
+                    {
+                        _lastChunkFrame = _currentFrame;
+                        LoadChunksAroundPositionInSequence(_lastChunkFrame.x, 0, _lastChunkFrame.z, offsetWidth: LoadChunkOffsetWidth, offsetDepth: LoadChunkOffsetDepth);
+                    }
                 }
             }
+           
         }
 
 
@@ -108,12 +117,7 @@ namespace PixelMiner.WorldGen
                         }
 
                         Chunk newChunk = await _worldGen.GenerateNewChunkDataAsync(x, 0, z);
-
-                        // Cached chunk data
-                        if (_main.HasChunk(nbFrame) == false)
-                            _main.Chunks.Add(nbFrame, newChunk);
-                        _main.ActiveChunks.Add(newChunk);
-                        newChunk.gameObject.SetActive(true);
+                        LoadChunk(newChunk);
 
                         if (newChunk.ChunkHasDrawn == false)
                         {
@@ -135,9 +139,8 @@ namespace PixelMiner.WorldGen
                             // Center
                             // ......
                         }
-
-                        _main.ActiveChunks.Add(_main.Chunks[nbFrame]);
-                        _main.Chunks[nbFrame].gameObject.SetActive(true);
+                        LoadChunk(_main.Chunks[nbFrame]);
+ 
 
                         if (_main.Chunks[nbFrame].ChunkHasDrawn == false)
                         {
@@ -149,7 +152,6 @@ namespace PixelMiner.WorldGen
                             //if (_main.InitWorldWithMoisturemap)
                             //    _worldGen.PaintMoistureMap(_main.Chunks[nbFrame]);
                         }
-                        //_main.Chunks[nbFrame].LoadChunk();
                     }
                 }
             }
@@ -159,7 +161,14 @@ namespace PixelMiner.WorldGen
         }
 
       
-
+        private void LoadChunk(Chunk chunk)
+        {
+            Vector3Int frame = new Vector3Int(chunk.FrameX, chunk.FrameY, chunk.FrameZ);
+            if (!_main.Chunks.ContainsKey(frame))
+                _main.Chunks.Add(frame, chunk);
+            _main.ActiveChunks.Remove(chunk);
+            chunk.gameObject.SetActive(true);
+        }
         private void UnloadChunk(Chunk chunk)
         {
             _main.ActiveChunks.Remove(chunk);
