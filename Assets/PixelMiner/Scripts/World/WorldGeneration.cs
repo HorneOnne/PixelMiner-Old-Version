@@ -1318,7 +1318,6 @@ namespace PixelMiner.WorldGen
         #region Neighbors
         public void UpdateChunkNeighbors(Chunk chunk)
         {
-            Debug.Log("Updaete chunk nb");
             Vector3Int chunkFrame = new Vector3Int(chunk.FrameX, chunk.FrameY, chunk.FrameZ);
             if (chunk.Left == null)
             {

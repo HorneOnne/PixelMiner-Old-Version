@@ -33,8 +33,8 @@ namespace PixelMiner.WorldBuilding
         // Neighbors
         [ShowInInspector] public Chunk Left { get; private set; }
         [ShowInInspector] public Chunk Right { get; private set; }
-        [ShowInInspector] public Chunk Front {get ; private set; }
-        [ShowInInspector] public Chunk Back {get; private set; }
+        [ShowInInspector] public Chunk Front { get; private set; }
+        [ShowInInspector] public Chunk Back { get; private set; }
 
 
 
@@ -85,7 +85,7 @@ namespace PixelMiner.WorldBuilding
 
             if (Input.GetKeyDown(KeyCode.J))
             {
-                if(HasNeighbors())
+                if (HasNeighbors())
                     DrawChunkAsync();
             }
         }
@@ -118,7 +118,7 @@ namespace PixelMiner.WorldBuilding
         }
 
 
-   
+
 
 
         public async void DrawChunkAsync()
@@ -213,10 +213,55 @@ namespace PixelMiner.WorldBuilding
         }
         public bool BlockHasSolidNeighbors(int x, int y, int z)
         {
-            if (x < 0 || x >= Width || y < 0 || y >= Height || z < 0 || z >= Depth)
-            {
+            if (y < 0 || y >= Height)
+                return true;    
+            if (y >= Height)
                 return false;
+
+            if (x < 0)
+            {
+                var leftNBBType = Left.ChunkData[IndexOf(Width - 1, y, z)];
+                if (leftNBBType == BlockType.Air || leftNBBType == BlockType.Water)
+                    return false;
+                else
+                    return true;
             }
+            if (x >= Width)
+            {
+                var rightNBBType = Right.ChunkData[IndexOf(0, y, z)];
+                if (rightNBBType == BlockType.Air || rightNBBType == BlockType.Water)
+                    return false;
+                else
+                    return true;
+            }
+
+            if (z < 0)
+            {
+                var backNBBType = Back.ChunkData[IndexOf(x, y, Depth - 1)];
+                if (backNBBType == BlockType.Air || backNBBType == BlockType.Water)
+                    return false;
+                else
+                    return true;
+            }
+            if (z >= Depth)
+            {
+                var frontNBBType = Back.ChunkData[IndexOf(x, y, 0)];
+                if (frontNBBType == BlockType.Air || frontNBBType == BlockType.Water)
+                    return false;
+                else
+                    return true;
+            }
+
+            BlockType blockType = ChunkData[IndexOf(x, y, z)];
+            switch (blockType)
+            {
+                case BlockType.Water:
+                case BlockType.Air:
+                    return false;
+                default:
+                    return true;
+            }
+
 
             //if (x < 0 || x >= Width || z < 0 || z >= Depth)
             //{
@@ -232,15 +277,20 @@ namespace PixelMiner.WorldBuilding
             //}
 
 
-            BlockType blockType = ChunkData[IndexOf(x, y, z)];
-            switch (blockType)
-            {
-                case BlockType.Water:
-                case BlockType.Air:
-                    return false;
-                default:
-                    return true;
-            }
+
+            //if (x < 0 || x >= Width || y < 0 || y >= Height || z < 0 || z >= Depth)
+            //{
+            //    return false;
+            //}
+            //BlockType blockType = ChunkData[IndexOf(x, y, z)];
+            //switch (blockType)
+            //{
+            //    case BlockType.Water:
+            //    case BlockType.Air:
+            //        return false;
+            //    default:
+            //        return true;
+            //}
         }
 
         public bool BlockHasFuildNeighbors(int x, int y, int z)
@@ -329,32 +379,32 @@ namespace PixelMiner.WorldBuilding
                 default:
                     throw new System.Exception();
                 case BlockSide.Left:
-                    if(Left == null)
+                    if (Left == null)
                     {
                         Left = neighbour;
                     }
                     break;
                 case BlockSide.Right:
-                    if(Right == null)
+                    if (Right == null)
                     {
                         Right = neighbour;
-                    }           
+                    }
                     break;
                 case BlockSide.Front:
-                    if(Front == null)
+                    if (Front == null)
                     {
                         Front = neighbour;
-                    }             
+                    }
                     break;
                 case BlockSide.Back:
-                    if(Back == null)
+                    if (Back == null)
                     {
                         Back = neighbour;
-                    }                 
+                    }
                     break;
             }
 
-            if(HasNeighbors())
+            if (HasNeighbors())
             {
                 OnChunkHasNeighbors?.Invoke(this);
             }
