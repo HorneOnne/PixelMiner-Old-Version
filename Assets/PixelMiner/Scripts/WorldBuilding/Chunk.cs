@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using PixelMiner.Enums;
 using PixelMiner.Utilities;
 using PixelMiner.DataStructure;
+using Sirenix.OdinInspector;
 
 namespace PixelMiner.WorldBuilding
 {
@@ -11,11 +12,12 @@ namespace PixelMiner.WorldBuilding
     public class Chunk : MonoBehaviour
     {
         public static System.Action<Chunk> OnChunkFarAway;
+        public static System.Action<Chunk> OnChunkHasNeighbors;
 
         // OLD
         public int FrameX;
         public int FrameY;
-        public int FrameZ;   
+        public int FrameZ;
 
         public bool HasChunkNeighbors = false;
         public bool AllTileHasNeighbors = false;
@@ -26,27 +28,27 @@ namespace PixelMiner.WorldBuilding
         private float _updateFrequency = 1.0f;
         private float _updateTimer = 0.0f;
 
-      
+
 
         // Neighbors
-        public Chunk Left;
-        public Chunk Right;
-        public Chunk Front;
-        public Chunk Back;
+        [ShowInInspector] public Chunk Left { get; private set; }
+        [ShowInInspector] public Chunk Right { get; private set; }
+        [ShowInInspector] public Chunk Front {get ; private set; }
+        [ShowInInspector] public Chunk Back {get; private set; }
 
 
 
         // NEW
         [SerializeField] private MeshFilter _solidMeshFilter;
         [SerializeField] private MeshFilter _fluidMeshFilter;
- 
+
         public byte Width;
         public byte Height;
         public byte Depth;
 
         // Data
         [HideInInspector] public Block[,,] Blocks;  // Mesh (create unity mesh)
-        [HideInInspector] public BlockType[] ChunkData; // Block Data (Define block type)
+        public BlockType[] ChunkData; // Block Data (Define block type)
         [HideInInspector] public HeatType[] HeatData;
         [HideInInspector] public MoistureType[] MoistureData;
         [HideInInspector] public float[] HeightValues;
@@ -80,6 +82,12 @@ namespace PixelMiner.WorldBuilding
                     OnChunkFarAway?.Invoke(this);
                 }
             }
+
+            if (Input.GetKeyDown(KeyCode.J))
+            {
+                if(HasNeighbors())
+                    DrawChunkAsync();
+            }
         }
 
         public void Init(int frameX, int frameY, int frameZ, byte width, byte height, byte depth)
@@ -92,7 +100,7 @@ namespace PixelMiner.WorldBuilding
             this.FrameZ = frameZ;
             this.Width = width;
             this.Height = height;
-            this.Depth  = depth;
+            this.Depth = depth;
 
             // Init data
             int size3D = Width * Height * Depth;
@@ -109,18 +117,14 @@ namespace PixelMiner.WorldBuilding
             Processing = false;
         }
 
-        
 
+   
 
 
         public async void DrawChunkAsync()
         {
-            if (ChunkHasDrawn) return;
             Processing = true;
             ChunkHasDrawn = true;
-
-            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-            sw.Start();
 
             List<MeshData> solidMeshDataList = await GetSolidMeshDataAsync();
             List<MeshData> fluidMeshDataList = await GetFluidMeshDataAsync();
@@ -128,14 +132,9 @@ namespace PixelMiner.WorldBuilding
             _solidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(solidMeshDataList.ToArray());
             _fluidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(fluidMeshDataList.ToArray());
 
-
-   
-
             var solidCollider = _solidMeshFilter.gameObject.AddComponent<MeshCollider>();
             solidCollider.sharedMesh = _solidMeshFilter.mesh;
-            
-            sw.Stop();
-            //Debug.Log($"Draw chunk in: {sw.ElapsedMilliseconds / 1000f} s");
+
             Processing = false;
         }
 
@@ -151,7 +150,7 @@ namespace PixelMiner.WorldBuilding
                         for (int y = 0; y < Height; y++)
                         {
                             BlockType blockType = ChunkData[IndexOf(x, y, z)];
-                            if(blockType != BlockType.Water)
+                            if (blockType != BlockType.Water)
                             {
                                 bool[] solidNeighbors = GetSolidBlockNeighbors(x, y, z);
                                 Blocks[x, y, z] = new Block();
@@ -160,7 +159,7 @@ namespace PixelMiner.WorldBuilding
                                 {
                                     solidMeshDataList.AddRange(Blocks[x, y, z].MeshDataArray);
                                 }
-                            } 
+                            }
                         }
                     }
                 }
@@ -184,13 +183,13 @@ namespace PixelMiner.WorldBuilding
                             {
                                 bool[] fluidNeighbors = GetFluidBlockNeighbors(x, y, z);
                                 Blocks[x, y, z] = new Block();
-                                Blocks[x, y, z].DrawFluid(ChunkData[IndexOf(x, y, z)], fluidNeighbors, HeightValues[IndexOf(x,z)], new Vector3(x, y, z));
+                                Blocks[x, y, z].DrawFluid(ChunkData[IndexOf(x, y, z)], fluidNeighbors, HeightValues[IndexOf(x, z)], new Vector3(x, y, z));
                                 if (Blocks[x, y, z].MeshDataArray != null)
                                 {
                                     fluidMeshDataList.AddRange(Blocks[x, y, z].MeshDataArray);
                                 }
                             }
-                                
+
                         }
                     }
                 }
@@ -239,11 +238,11 @@ namespace PixelMiner.WorldBuilding
                 case BlockType.Water:
                 case BlockType.Air:
                     return false;
-                default:                  
+                default:
                     return true;
             }
         }
- 
+
         public bool BlockHasFuildNeighbors(int x, int y, int z)
         {
             if (x < 0 || x >= Width || y < 0 || y >= Height || z < 0 || z >= Depth)
@@ -263,7 +262,6 @@ namespace PixelMiner.WorldBuilding
         public bool[] GetSolidBlockNeighbors(int x, int y, int z)
         {
             bool[] solidNeighbors = new bool[6] { true, true, true, true, true, true }; // maximum 6 neighbors [ Top, Bottom, Front , Back, Left, Right]
-
             if (!BlockHasSolidNeighbors(x, y + 1, z))
             {
                 solidNeighbors[0] = false;
@@ -295,7 +293,7 @@ namespace PixelMiner.WorldBuilding
         public bool[] GetFluidBlockNeighbors(int x, int y, int z)
         {
             bool[] fluidNeighbors = new bool[6] { true, true, true, true, true, true }; // maximum 6 neighbors [ Top, Bottom, Front , Back, Left, Right]
-          
+
             if (!BlockHasFuildNeighbors(x, y + 1, z))
             {
                 fluidNeighbors[0] = false;
@@ -322,6 +320,50 @@ namespace PixelMiner.WorldBuilding
             //}
 
             return fluidNeighbors;
+        }
+
+        public void SetNeighbors(BlockSide side, Chunk neighbour)
+        {
+            switch (side)
+            {
+                default:
+                    throw new System.Exception();
+                case BlockSide.Left:
+                    if(Left == null)
+                    {
+                        Left = neighbour;
+                    }
+                    break;
+                case BlockSide.Right:
+                    if(Right == null)
+                    {
+                        Right = neighbour;
+                    }           
+                    break;
+                case BlockSide.Front:
+                    if(Front == null)
+                    {
+                        Front = neighbour;
+                    }             
+                    break;
+                case BlockSide.Back:
+                    if(Back == null)
+                    {
+                        Back = neighbour;
+                    }                 
+                    break;
+            }
+
+            if(HasNeighbors())
+            {
+                Debug.Log("A");
+                OnChunkHasNeighbors?.Invoke(this);
+            }
+        }
+
+        public bool HasNeighbors()
+        {
+            return Left != null && Right != null && Front != null && Back != null;
         }
 
         #endregion

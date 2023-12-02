@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028408, g: 0.22571467, b: 0.30692267, a: 1}
+  m_IndirectSpecularColor: {r: 0.1762806, g: 0.22062764, b: 0.30295187, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -526,9 +526,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dc3042468c9e7d47b2d01e98e0814de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _moveSpeed: 50
+  _moveSpeed: 30
   _moveDirection: {x: 0, y: 0, z: 0}
-  ContinuousMove: 1
+  ContinuousMove: 0
 --- !u!65 &314038821
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1446,10 +1446,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22ae457847da8e43877aef4220ef471, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  InitWorldWidth: 1
-  InitWorldDepth: 1
-  LoadChunkOffsetWidth: 1
-  LoadChunkOffsetDepth: 1
+  InitWorldWidth: 2
+  InitWorldDepth: 2
+  LoadChunkOffsetWidth: 2
+  LoadChunkOffsetDepth: 2
   InitFastDrawChunk: 0
   _playerTrans: {fileID: 314038816}
 --- !u!1 &1252983687

@@ -9,10 +9,14 @@ using PixelMiner.Utilities;
 using PixelMiner.Enums;
 using PixelMiner.WorldBuilding;
 using System;
-using PlasticPipe.PlasticProtocol.Messages;
 
 namespace PixelMiner.WorldGen
 {
+    /* 
+     * 1. Generate Chunk (Instantiate, Init data, 
+     * 2. Generate and load data into chunk (data include: Height map, heat map, moisture map,...)
+     * 3. Draw chunk - Create mesh object can be shown in Unity Engine.
+     */
     public class WorldGeneration : MonoBehaviour
     {
         private readonly object lockObject = new object(); // Define a lock object for thread safety
@@ -185,13 +189,28 @@ namespace PixelMiner.WorldGen
                 OnWorldGenWhenStartFinished?.Invoke();
             });
 
+            Chunk.OnChunkHasNeighbors += (chunk) =>
+            {
+                //Debug.Log($"chunk: {chunk.FrameX}\t{chunk.FrameZ}");
+                if(!chunk.ChunkHasDrawn)
+                {
+                    _worldLoading.LoadChunk(chunk);
+                    SuperDrawChunk(chunk);
+                }
+            };
+
         }
 
 
         #endregion
 
 
-
+        private async void SuperDrawChunk(Chunk chunk)
+        {
+            float[] heightValues = await GetHeightMapDataAsync(chunk.FrameX, chunk.FrameZ, Main.Instance.ChunkWidth, Main.Instance.ChunkDepth);
+            await LoadHeightMapDataAsync(chunk, heightValues);
+            chunk.DrawChunkAsync();
+        }
 
         #region Compute noise range [min, max] when start
         public async Task ComputeNoiseRangeAsyncInSequence()
@@ -323,86 +342,38 @@ namespace PixelMiner.WorldGen
         #region Init Chunks
         private async void InitWorldAsyncInSequence(int initFrameX, int initFrameZ, byte widthInit, byte depthInit, System.Action onFinished = null)
         {
-            //UIGameManager.Instance.DisplayWorldGenSlider(true);
-            //await ComputeNoiseRangeAsyncInSequence();
             await ComputeNoiseRangeAsyncInParallel();
 
             Debug.Log($"min: {_minWorldNoiseValue}");
             Debug.Log($"max: {_maxWorldNoiseValue}");
 
-            int totalIterations = (2 * widthInit + 1) * (2 * depthInit + 1);
-            int currentIteration = 0;
             for (int x = initFrameX - widthInit; x <= initFrameX + widthInit; x++)
             {
                 for (int z = initFrameZ - depthInit; z <= initFrameZ + depthInit; z++)
                 {
-                    Chunk newChunk = await GenerateNewChunkDataAsync(x, 0, z);
+                    Chunk newChunk = GenerateNewChunk(x,0,z);
+                    _worldLoading.LoadChunk(newChunk);
                     UpdateChunkNeighbors(newChunk);
-                    _main.Chunks.Add(new Vector3Int(x,0,z), newChunk);
-                    _main.ActiveChunks.Add(newChunk);
-               
-                    // Update the slider value based on progress
-                    currentIteration++;
-                    float progress = (float)currentIteration / totalIterations;
-                    float mapProgress = MathHelper.Map(progress, 0f, 1f, 0.1f, 1.0f);
-                    //UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);
+
+                    //float[] heightValues = await GetHeightMapDataAsync(newChunk.FrameX, newChunk.FrameZ, _chunkWidth, _chunkDepth);
+                    //await LoadHeightMapDataAsync(newChunk, heightValues);
+                    //UpdateChunkNeighbors(newChunk);      
                 }
             }
 
-            await Task.Delay(100);
-            //UIGameManager.Instance.DisplayWorldGenSlider(false);
-            onFinished?.Invoke();
-        }
-        private async void InitWorldAsyncInParallel(int initFrameX, int initFrameZ, byte widthInit, byte depthInit, System.Action onFinished = null)
-        {
-            //UIGameManager.Instance.DisplayWorldGenSlider(true);
-            await ComputeNoiseRangeAsyncInParallel();
-
-            int completedTaskCount = 0;
-            Task<Chunk>[] tasks = new Task<Chunk>[(widthInit * 2 + 1) * (depthInit * 2 + 1)];
-
-            for (int x = initFrameX - widthInit; x <= initFrameX + widthInit; x++)
-            {
-                for (int z = initFrameZ - depthInit; z <= initFrameZ + depthInit; z++)
-                {
-                    int index = x - (initFrameX - widthInit) + (z - (initFrameZ - depthInit)) * (2 * widthInit + 1);
-                    tasks[index] = GenerateNewChunkDataAsync(x, 0, z);
-
-                    // Increment the completed tasks counter
-                    Interlocked.Increment(ref completedTaskCount);
-
-                    // Play Slider UI
-                    float progress = (float)completedTaskCount / tasks.Length;
-                    float mapProgress = MathHelper.Map(progress, 0f, 1f, 0.1f, 1.0f);
-                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                    {
-                        //UIGameManager.Instance.CanvasWorldGen.SetWorldGenSlider(mapProgress);
-                    });
-                }
-            }
-
-            await Task.WhenAll(tasks);
-
-            foreach (var task in tasks)
-            {
-                Chunk newChunk = task.Result;
-                _main.Chunks.Add(new Vector3Int(newChunk.FrameX, 0, newChunk.FrameZ), newChunk);
-                _main.ActiveChunks.Add(newChunk);
-                UpdateChunkNeighbors(newChunk);
-            }
-
-            //UIGameManager.Instance.DisplayWorldGenSlider(false);
             onFinished?.Invoke();
         }
 
 
-        public async Task<Chunk> GenerateNewChunkDataAsync(int frameX, int frameY, int frameZ)
+
+        public Chunk GenerateNewChunk(int frameX, int frameY, int frameZ)
         {
             Vector3Int frame = new Vector3Int(frameX, frameY, frameZ);
             Vector3 worldPosition = frame * new Vector3Int(Main.Instance.ChunkWidth, Main.Instance.ChunkHeight, Main.Instance.ChunkDepth);
             Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity, _chunkParent.transform);
             newChunk.Init(frameX, frameY, frameZ, _chunkWidth, _chunkHeight, _chunkDepth);
 
+          
             // Create new data
             //float[] heightValues = await GetHeightMapDataAsync(frameX, frameZ, _chunkWidth, _chunkHeight, _chunkDepth);
             //float[] heatValues = await GetHeatMapDataAysnc(frameX, frameZ);
@@ -432,16 +403,11 @@ namespace PixelMiner.WorldGen
             //    await LoadRiverDataAsync(newChunk, riverValues);
             //}
 
-
-
-
-            float[] heightValues = await GetHeightMapDataAsync(frameX, frameZ, _chunkWidth, _chunkDepth);
-            await LoadHeightMapDataAsync(newChunk, heightValues);
-            newChunk.DrawChunkAsync();
-
             return newChunk;
         }
 
+
+   
 
         #endregion
 
@@ -655,7 +621,6 @@ namespace PixelMiner.WorldGen
             await Task.Run(() =>
             {         
                 //Debug.Log($"Ground: {Mathf.FloorToInt(Water * _chunkHeight)}");
-                bool flatWorld = false;
                 for (int x = 0; x < _chunkWidth; x++)
                 {
                     for (int z = 0; z < _chunkDepth; z++)
@@ -1348,14 +1313,15 @@ namespace PixelMiner.WorldGen
         #region Neighbors
         public void UpdateChunkNeighbors(Chunk chunk)
         {
+            Debug.Log("Updaete chunk nb");
             Vector3Int chunkFrame = new Vector3Int(chunk.FrameX, chunk.FrameY, chunk.FrameZ);
             if (chunk.Left == null)
             {
                 Chunk leftNeighborChunk = Main.Instance.GetChunkNeighborLeft(chunk);
-                if(leftNeighborChunk != null)
+                if (leftNeighborChunk != null)
                 {
-                    chunk.Left = leftNeighborChunk;
-                    leftNeighborChunk.Right = chunk;
+                    chunk.SetNeighbors(BlockSide.Left, leftNeighborChunk);
+                    leftNeighborChunk.SetNeighbors(BlockSide.Right, chunk);
                 }
             }
             if (chunk.Right == null)
@@ -1363,17 +1329,17 @@ namespace PixelMiner.WorldGen
                 Chunk rightNeighborChunk = Main.Instance.GetChunkNeighborRight(chunk);
                 if (rightNeighborChunk != null)
                 {
-                    chunk.Right = rightNeighborChunk;
-                    rightNeighborChunk.Left = chunk;
+                    chunk.SetNeighbors(BlockSide.Right, rightNeighborChunk);
+                    rightNeighborChunk.SetNeighbors(BlockSide.Left, chunk);
                 }
             }
-            if(chunk.Front == null)
+            if (chunk.Front == null)
             {
                 Chunk frontNeighborChunk = Main.Instance.GetChunkNeighborFront(chunk);
                 if (frontNeighborChunk != null)
                 {
-                    chunk.Front = frontNeighborChunk;
-                    frontNeighborChunk.Back = chunk;
+                    chunk.SetNeighbors(BlockSide.Front, frontNeighborChunk);
+                    frontNeighborChunk.SetNeighbors(BlockSide.Back, chunk);
                 }
             }
             if (chunk.Back == null)
@@ -1381,12 +1347,10 @@ namespace PixelMiner.WorldGen
                 Chunk backNeighborChunk = Main.Instance.GetChunkNeighborBack(chunk);
                 if (backNeighborChunk != null)
                 {
-                    chunk.Back = backNeighborChunk;
-                    backNeighborChunk.Front = chunk;
+                    chunk.SetNeighbors(BlockSide.Back, backNeighborChunk);
+                    backNeighborChunk.SetNeighbors(BlockSide.Front, chunk);
                 }
             }
-
-            //chunk.HasChunkNeighbors = chunk.Left != null && chunk.Right != null && chuTop != null && Bottom != null;
         }
 
         //public void AddChunkFourDirectionNeighbors(Chunk2D chunk)

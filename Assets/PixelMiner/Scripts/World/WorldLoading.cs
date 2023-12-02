@@ -114,13 +114,13 @@ namespace PixelMiner.WorldGen
                             // ......
                         }
 
-                        Chunk newChunk = await _worldGen.GenerateNewChunkDataAsync(x, 0, z);
-                        _worldGen.UpdateChunkNeighbors(newChunk);
+                        Chunk newChunk = _worldGen.GenerateNewChunk(x, 0, z);
                         LoadChunk(newChunk);
+                        _worldGen.UpdateChunkNeighbors(newChunk);
 
                         if (newChunk.ChunkHasDrawn == false)
                         {
-                            newChunk.DrawChunkAsync();
+                            //newChunk.DrawChunkAsync();
                             //_main.Chunks[nbIsoFrame].ShowTextTest();
 
                             //if (_main.InitWorldWithHeatmap)
@@ -143,7 +143,8 @@ namespace PixelMiner.WorldGen
 
                         if (_main.Chunks[nbFrame].ChunkHasDrawn == false)
                         {
-                            _main.Chunks[nbFrame].DrawChunkAsync();
+                            //_main.Chunks[nbFrame].DrawChunkAsync();
+
                             //_main.Chunks[nbIsoFrame].ShowTextTest();
 
                             //if (_main.InitWorldWithHeatmap)
@@ -160,15 +161,15 @@ namespace PixelMiner.WorldGen
         }
 
       
-        private void LoadChunk(Chunk chunk)
+        public void LoadChunk(Chunk chunk)
         {
             Vector3Int frame = new Vector3Int(chunk.FrameX, chunk.FrameY, chunk.FrameZ);
             if (!_main.Chunks.ContainsKey(frame))
                 _main.Chunks.Add(frame, chunk);
-            _main.ActiveChunks.Remove(chunk);
+            _main.ActiveChunks.Add(chunk);
             chunk.gameObject.SetActive(true);
         }
-        private void UnloadChunk(Chunk chunk)
+        public void UnloadChunk(Chunk chunk)
         {
             _main.ActiveChunks.Remove(chunk);
             chunk.gameObject.SetActive(false);
