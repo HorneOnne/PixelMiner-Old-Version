@@ -124,8 +124,13 @@ namespace PixelMiner.WorldBuilding
 
             List<MeshData> solidMeshDataList = await GetSolidMeshDataAsync();
             List<MeshData> fluidMeshDataList = await GetFluidMeshDataAsync();
+
             _solidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(solidMeshDataList.ToArray());
             _fluidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(fluidMeshDataList.ToArray());
+
+
+   
+
             var solidCollider = _solidMeshFilter.gameObject.AddComponent<MeshCollider>();
             solidCollider.sharedMesh = _solidMeshFilter.mesh;
             
@@ -258,7 +263,7 @@ namespace PixelMiner.WorldBuilding
         public bool[] GetSolidBlockNeighbors(int x, int y, int z)
         {
             bool[] solidNeighbors = new bool[6] { true, true, true, true, true, true }; // maximum 6 neighbors [ Top, Bottom, Front , Back, Left, Right]
-    
+
             if (!BlockHasSolidNeighbors(x, y + 1, z))
             {
                 solidNeighbors[0] = false;

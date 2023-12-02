@@ -1,9 +1,7 @@
-﻿using System.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 using Sirenix.OdinInspector;
 using PixelMiner.WorldBuilding;
-using PixelMiner.Utilities;
-using System.Threading;
+
 
 namespace PixelMiner.WorldGen
 {
@@ -28,7 +26,7 @@ namespace PixelMiner.WorldGen
         private Vector3Int _currentFrame;
         // Performance
         private float _updateTimer = 0.0f;
-        private float _updateTime = 0.1f;
+        private float _updateTime = 0.5f;
 
 
         private void Awake()
@@ -117,6 +115,7 @@ namespace PixelMiner.WorldGen
                         }
 
                         Chunk newChunk = await _worldGen.GenerateNewChunkDataAsync(x, 0, z);
+                        _worldGen.UpdateChunkNeighbors(newChunk);
                         LoadChunk(newChunk);
 
                         if (newChunk.ChunkHasDrawn == false)

@@ -1,6 +1,6 @@
 ﻿using QFSW.QC;
 using UnityEngine;
-using PixelMiner.UI;
+using PixelMiner.UI.WorldGen;
 using PixelMiner.Enums;
 using PixelMiner.WorldGen;
 

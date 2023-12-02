@@ -51,17 +51,17 @@ namespace PixelMiner.WorldGen
             }
         }
 
-        public static int IndexOf(int x, int y, int z, byte width, byte height)
+        public static int IndexOf(int x, int y, int z, int width, int height)
         {
             return x + width * (y + height * z);
         }
 
-        public static int IndexOf(int x, int y, byte width)
+        public static int IndexOf(int x, int y, int width)
         {
             return x + y * width;
         }
 
-        public static void CoordinatesOf(int index, byte width, byte height, out int x, out int y, out int z)
+        public static void CoordinatesOf(int index, int width, int height, out int x, out int y, out int z)
         {
             x = index % width;
             y = (index / width) % height;

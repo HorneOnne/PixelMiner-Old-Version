@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace PixelMiner.UI
+namespace PixelMiner.UI.WorldGen
 {
     public class UIMapPreview : MonoBehaviour
     {

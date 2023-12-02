@@ -9,6 +9,5 @@ namespace PixelMiner.DataStructure
         public Vector2[] UVs;
         public Vector2[] UV2s;
         public int[] Triangles;
-
     }
 }

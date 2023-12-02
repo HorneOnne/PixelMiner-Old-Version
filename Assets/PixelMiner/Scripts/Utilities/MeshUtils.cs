@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using PixelMiner.DataStructure;
 using PixelMiner.Enums;
+using System;
+using Unity.Collections;
 
 namespace PixelMiner.Utilities
 {
@@ -81,7 +83,7 @@ namespace PixelMiner.Utilities
         {
             float depthValue = MathHelper.Map(depth, 0.2f, 0.45f, 0.0f, 0.75f);
             float offset = 0.05f;
-           // Debug.Log(depthValue);
+            // Debug.Log(depthValue);
             return new Vector2[]
             {
                 new Vector2(0, depthValue),
@@ -114,13 +116,14 @@ namespace PixelMiner.Utilities
 
 
 
-        public static async Task<Mesh> MergeMeshAsync(MeshData[] mesheDataArray, IndexFormat format = IndexFormat.UInt32)
+        public static async Task<Mesh> MergeMeshAsync(MeshData[] mesheDataArray, IndexFormat format = IndexFormat.UInt16)
         {
             Vector3[] verts = new Vector3[0];
             Vector3[] norms = new Vector3[0];
             int[] tris = new int[0]; ;
             Vector2[] uvs = new Vector2[0];
             Vector2[] uv2s = new Vector2[0];
+
             await Task.Run(() =>
             {
                 int triCount = 0;
@@ -187,20 +190,20 @@ namespace PixelMiner.Utilities
         }
 
 
-        public static async Task<Mesh> MergeMeshAsyncParallel(MeshData[] meshes, IndexFormat format = IndexFormat.UInt32)
+        public static async Task<Mesh> MergeMeshAsyncParallel(MeshData[] meshes, IndexFormat format = IndexFormat.UInt16)
         {
-            Vector3[] verts = new Vector3[0];
-            Vector3[] norms = new Vector3[0];
-            int[] tris = new int[0]; ;
-            Vector2[] uvs = new Vector2[0];
-            Vector2[] uv2s = new Vector2[0];
-            await Task.Run(() =>
-            {
-                int triCount = 0;
-                int vertCount = 0;
-                int normalCount = 0;
-                int uvCount = 0;
+            Vector3[] verts = null;
+            Vector3[] norms = null;
+            int[] tris = null; ;
+            Vector2[] uvs = null;
+            Vector2[] uv2s = null;
+            int triCount = 0;
+            int vertCount = 0;
+            int normalCount = 0;
+            int uvCount = 0;
 
+            await Task.Run(() =>
+            {          
                 for (int i = 0; i < meshes.Length; i++)
                 {
                     triCount += meshes[i].Triangles.Length;
@@ -234,6 +237,7 @@ namespace PixelMiner.Utilities
                 });
             });
 
+       
             Mesh mesh = new Mesh();
             mesh.indexFormat = format;
             mesh.vertices = verts;
@@ -241,11 +245,11 @@ namespace PixelMiner.Utilities
             mesh.uv = uvs;
             mesh.uv2 = uv2s;
             mesh.triangles = tris;
-
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
+
+
             return mesh;
         }
-
     }
 }

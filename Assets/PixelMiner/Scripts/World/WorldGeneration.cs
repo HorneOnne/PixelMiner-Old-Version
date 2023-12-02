@@ -9,6 +9,7 @@ using PixelMiner.Utilities;
 using PixelMiner.Enums;
 using PixelMiner.WorldBuilding;
 using System;
+using PlasticPipe.PlasticProtocol.Messages;
 
 namespace PixelMiner.WorldGen
 {
@@ -153,8 +154,6 @@ namespace PixelMiner.WorldGen
         private void Awake()
         {
             Instance = this;
-            IsometricUtilities.CELLSIZE_X = Main.Instance.CELL_SIZE.x;
-            IsometricUtilities.CELLSIZE_Y = Main.Instance.CELL_SIZE.y;
 
             _minWorldNoiseValue = float.MaxValue;
             _maxWorldNoiseValue = float.MinValue;
@@ -338,6 +337,7 @@ namespace PixelMiner.WorldGen
                 for (int z = initFrameZ - depthInit; z <= initFrameZ + depthInit; z++)
                 {
                     Chunk newChunk = await GenerateNewChunkDataAsync(x, 0, z);
+                    UpdateChunkNeighbors(newChunk);
                     _main.Chunks.Add(new Vector3Int(x,0,z), newChunk);
                     _main.ActiveChunks.Add(newChunk);
                
@@ -388,6 +388,7 @@ namespace PixelMiner.WorldGen
                 Chunk newChunk = task.Result;
                 _main.Chunks.Add(new Vector3Int(newChunk.FrameX, 0, newChunk.FrameZ), newChunk);
                 _main.ActiveChunks.Add(newChunk);
+                UpdateChunkNeighbors(newChunk);
             }
 
             //UIGameManager.Instance.DisplayWorldGenSlider(false);
@@ -434,7 +435,7 @@ namespace PixelMiner.WorldGen
 
 
 
-            float[] heightValues = await GetHeightMapDataAsync(frameX, frameZ, _chunkWidth, _chunkHeight, _chunkDepth);
+            float[] heightValues = await GetHeightMapDataAsync(frameX, frameZ, _chunkWidth, _chunkDepth);
             await LoadHeightMapDataAsync(newChunk, heightValues);
             newChunk.DrawChunkAsync();
 
@@ -457,7 +458,7 @@ namespace PixelMiner.WorldGen
         /// <param name="height"></param>
         /// <param name="depth"></param>
         /// <returns></returns>
-        public async Task<float[]> GetHeightMapDataAsync(int frameX, int frameZ, byte width, byte height, byte depth)
+        public async Task<float[]> GetHeightMapDataAsync(int frameX, int frameZ, int width, int depth)
         {
             float[] heightValues = new float[width * depth];
 
@@ -653,7 +654,7 @@ namespace PixelMiner.WorldGen
             chunk.Processing = true;
             await Task.Run(() =>
             {         
-                Debug.Log($"Ground: {Mathf.FloorToInt(Water * _chunkHeight)}");
+                //Debug.Log($"Ground: {Mathf.FloorToInt(Water * _chunkHeight)}");
                 bool flatWorld = false;
                 for (int x = 0; x < _chunkWidth; x++)
                 {
@@ -1345,6 +1346,49 @@ namespace PixelMiner.WorldGen
 
 
         #region Neighbors
+        public void UpdateChunkNeighbors(Chunk chunk)
+        {
+            Vector3Int chunkFrame = new Vector3Int(chunk.FrameX, chunk.FrameY, chunk.FrameZ);
+            if (chunk.Left == null)
+            {
+                Chunk leftNeighborChunk = Main.Instance.GetChunkNeighborLeft(chunk);
+                if(leftNeighborChunk != null)
+                {
+                    chunk.Left = leftNeighborChunk;
+                    leftNeighborChunk.Right = chunk;
+                }
+            }
+            if (chunk.Right == null)
+            {
+                Chunk rightNeighborChunk = Main.Instance.GetChunkNeighborRight(chunk);
+                if (rightNeighborChunk != null)
+                {
+                    chunk.Right = rightNeighborChunk;
+                    rightNeighborChunk.Left = chunk;
+                }
+            }
+            if(chunk.Front == null)
+            {
+                Chunk frontNeighborChunk = Main.Instance.GetChunkNeighborFront(chunk);
+                if (frontNeighborChunk != null)
+                {
+                    chunk.Front = frontNeighborChunk;
+                    frontNeighborChunk.Back = chunk;
+                }
+            }
+            if (chunk.Back == null)
+            {
+                Chunk backNeighborChunk = Main.Instance.GetChunkNeighborBack(chunk);
+                if (backNeighborChunk != null)
+                {
+                    chunk.Back = backNeighborChunk;
+                    backNeighborChunk.Front = chunk;
+                }
+            }
+
+            //chunk.HasChunkNeighbors = chunk.Left != null && chunk.Right != null && chuTop != null && Bottom != null;
+        }
+
         //public void AddChunkFourDirectionNeighbors(Chunk2D chunk)
         //{
         //    Chunk2D nbAbove = _main.GetChunkNeighborFront(chunk);
@@ -1679,63 +1723,6 @@ namespace PixelMiner.WorldGen
             }
         }
         #endregion
-
-
-
-#if DEV_CONSOLE
-        [ConsoleCommand("unload_chunk", value: "0")]
-        private void AutomaticUnloadChunk(int index)
-        {
-            // 0: Disable automatic unloadchunk
-            // 1: Enable automatic unloadchunk
-            switch (index)
-            {
-                case 0:
-                    AutoUnloadChunk = false;
-                    Debug.Log($"Disable auto unload chunk.");
-                    break;
-                case 1:
-                    AutoUnloadChunk = true;
-                    Debug.Log($"Enable auto unload chunk.");
-                    break;
-                default: break;
-            }
-        }
-
-        [ConsoleCommand("show_chunk_border")]
-        private void ShowBorders()
-        {
-            ShowChunksBorder = true;
-            SortActiveChunkByDepth(inverse: true);
-        }
-
-        [ConsoleCommand("hide_chunk_border")]
-        private void HideBorders()
-        {
-            ShowChunksBorder = false;
-            SortActiveChunkByDepth(inverse: false);
-        }
-
-        [ConsoleCommand("show_tilegroup_map")]
-        private void ShowTilegroupMap()
-        {
-            ShowTilegroupMaps = true;
-            foreach (var chunk in ActiveChunks)
-            {
-                chunk.LoadChunk();
-            }
-        }
-
-        [ConsoleCommand("hide_tilegroup_map")]
-        private void HideTilegroupMap()
-        {
-            ShowTilegroupMaps = false;
-            foreach (var chunk in ActiveChunks)
-            {
-                chunk.LoadChunk();
-            }
-        }
-#endif
     }
 }
 

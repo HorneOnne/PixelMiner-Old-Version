@@ -1,4 +1,4 @@
-﻿using PixelMiner.WorldGen;
+﻿using PixelMiner.Utilities;
 using UnityEngine;
 
 namespace PixelMiner

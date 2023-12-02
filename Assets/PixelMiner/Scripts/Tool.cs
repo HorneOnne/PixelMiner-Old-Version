@@ -25,7 +25,21 @@ namespace PixelMiner
        
         private void Update()
         {
-            //Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            if (Input.GetMouseButtonDown(0))
+            {
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                RaycastHit hit;
+                if (Physics.Raycast(ray, out hit))
+                {
+                    if (hit.collider != null)
+                    {
+                        Collider collider = hit.collider;
+                        Debug.Log($"Hit : {hit.point}");
+                        _cursor.transform.position = hit.point;
+                    }
+                }
+            };
+
             //Tile tile = Main.Instance.GetTile(mousePosition, out Chunk2D chunk);
             //Vector2 tileWorldPos = _main.GetTileWorldPosition(mousePosition);
             //_cursor.position = tileWorldPos;
