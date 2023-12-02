@@ -189,19 +189,24 @@ namespace PixelMiner.WorldGen
                 OnWorldGenWhenStartFinished?.Invoke();
             });
 
-            Chunk.OnChunkHasNeighbors += (chunk) =>
-            {
-                //Debug.Log($"chunk: {chunk.FrameX}\t{chunk.FrameZ}");
-                if(!chunk.ChunkHasDrawn)
-                {
-                    _worldLoading.LoadChunk(chunk);
-                    SuperDrawChunk(chunk);
-                }
-            };
+            Chunk.OnChunkHasNeighbors += DrawChunk;
 
         }
 
+        private void OnDestroy()
+        {
+            Chunk.OnChunkHasNeighbors -= DrawChunk;
+        }
 
+
+        private void DrawChunk(Chunk chunk)
+        {
+            if (!chunk.ChunkHasDrawn)
+            {
+                _worldLoading.LoadChunk(chunk);
+                SuperDrawChunk(chunk);
+            }
+        }
         #endregion
 
 

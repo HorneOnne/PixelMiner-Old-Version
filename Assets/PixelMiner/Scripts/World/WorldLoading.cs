@@ -44,7 +44,7 @@ namespace PixelMiner.WorldGen
             _lastChunkFrame = _currentFrame;
 
 
-   
+
             //_worldGen.OnWorldGenWhenStartFinished += () =>
             //{
 
@@ -56,16 +56,14 @@ namespace PixelMiner.WorldGen
             //    //LoadChunksAroundPositionInSequence(_lastChunkFrame.x, 0, _lastChunkFrame.z, offsetWidth: LoadChunkOffsetWidth, offsetDepth: LoadChunkOffsetHeight);
             //};
 
-       
 
-            Chunk.OnChunkFarAway += (chunk) =>
-            {
-                if (!chunk.Processing
-                    && Main.Instance.AutoUnloadChunk)
-                {
-                    UnloadChunk(chunk);
-                }
-            };
+
+            Chunk.OnChunkFarAway += OnChunkFarAway;
+        }
+
+        private void OnDestroy()
+        {
+            Chunk.OnChunkFarAway -= OnChunkFarAway;
         }
 
         private void Update()
@@ -173,6 +171,14 @@ namespace PixelMiner.WorldGen
         {
             _main.ActiveChunks.Remove(chunk);
             chunk.gameObject.SetActive(false);
+        }
+
+        private void OnChunkFarAway(Chunk chunk)
+        {
+            if (!chunk.Processing && Main.Instance.AutoUnloadChunk)
+            {
+                UnloadChunk(chunk);
+            }
         }
     }
 }

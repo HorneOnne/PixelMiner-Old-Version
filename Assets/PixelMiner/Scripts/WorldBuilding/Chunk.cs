@@ -356,7 +356,6 @@ namespace PixelMiner.WorldBuilding
 
             if(HasNeighbors())
             {
-                Debug.Log("A");
                 OnChunkHasNeighbors?.Invoke(this);
             }
         }
