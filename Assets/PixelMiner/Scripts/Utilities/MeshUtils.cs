@@ -95,27 +95,6 @@ namespace PixelMiner.Utilities
         }
 
 
-        public static Vector2[] GetBlockUV(BlockType blockType)
-        {
-            return new Vector2[]
-            {
-                BlockUVs[(ushort)blockType, 0],
-                BlockUVs[(ushort)blockType, 1] ,
-                BlockUVs[(ushort)blockType, 2],
-                BlockUVs[(ushort)blockType, 3]};
-        }
-
-        public static Vector2[] GetColorMapUV(ColorMapType colorMapType)
-        {
-            return new Vector2[]
-            {
-                ColorMapUVs[(ushort)colorMapType, 0] ,
-                ColorMapUVs[(ushort)colorMapType, 1] ,
-                ColorMapUVs[(ushort)colorMapType, 2],
-                ColorMapUVs[(ushort)colorMapType, 3]};
-        }
-
-
 
         public static async Task<Mesh> MergeMeshAsync(MeshData[] mesheDataArray, IndexFormat format = IndexFormat.UInt16)
         {
@@ -248,67 +227,6 @@ namespace PixelMiner.Utilities
             mesh.uv = uvs;
             mesh.uv2 = uv2s;
             mesh.triangles = tris;
-            mesh.RecalculateNormals();
-            mesh.RecalculateBounds();
-            mesh.UploadMeshData(markNoLongerReadable: true);
-
-            return mesh;
-        }
-
-
-        static List<Vector3> verts = new List<Vector3>(0);
-        static List<Vector3> norms = new List<Vector3>(0);
-        static List<int> tris = new List<int>(0);
-        static List<Vector2> uvs = new List<Vector2>(0);
-        static List<Vector2> uv2s = new List<Vector2>(0);
-
-
-        public static Mesh MergeMeshTesting(MeshData[] meshes, IndexFormat format = IndexFormat.UInt16)
-        {
-          
-
-            int triCount = 0;
-            int vertCount = 0;
-            int normalCount = 0;
-            int uvCount = 0;
-
-            verts.Clear();
-            norms.Clear();
-            tris.Clear();
-            uvs.Clear();
-            uv2s.Clear();
-            for (int i = 0; i < meshes.Length; i++)
-            {
-                triCount += meshes[i].Triangles.Length;
-                vertCount += meshes[i].Vertices.Length;
-                normalCount += meshes[i].Normals.Length;
-                uvCount += meshes[i].UVs.Length;
-            }
-
-            for (int i = 0; i < meshes.Length; i++)
-            {
-                for (int j = 0; j < meshes[i].Triangles.Length; j++)
-                {
-                    int triPoint = (i * meshes[i].Vertices.Length + meshes[i].Triangles[j]);
-                    tris.Add(triPoint);
-                }
-
-                verts.AddRange(meshes[i].Vertices);
-                norms.AddRange(meshes[i].Normals);
-                uvs.AddRange(meshes[i].UVs);
-                uv2s.AddRange(meshes[i].UV2s);
-
-            }
-
-
-            Mesh mesh = new Mesh();
-            mesh.indexFormat = format;
-
-            mesh.SetVertices(verts);
-            mesh.SetNormals(norms);
-            mesh.SetUVs(0, uvs);
-            mesh.SetUVs(1, uv2s);
-            mesh.SetTriangles(tris, 0);
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
             mesh.UploadMeshData(markNoLongerReadable: true);

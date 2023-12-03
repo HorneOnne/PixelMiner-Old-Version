@@ -4,7 +4,7 @@ namespace PixelMiner.WorldBuilding
 {
     public static class QuadPool
     {
-        public static ObjectPool<Quad> Pool = new ObjectPool<Quad>(100);
+        public static ObjectPool<Quad> Pool = new ObjectPool<Quad>(20);
 
         public static Quad Get()
         {
@@ -13,7 +13,12 @@ namespace PixelMiner.WorldBuilding
 
         public static void Release(Quad quad)
         {
-            Pool.Release(quad);
+            if(!quad.IsProcessing)
+            {
+                quad.Reset();
+                Pool.Release(quad);
+            }
+            
         }
 
     }
