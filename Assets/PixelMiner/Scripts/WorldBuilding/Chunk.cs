@@ -128,16 +128,16 @@ namespace PixelMiner.WorldBuilding
             Processing = true;
             ChunkHasDrawn = true;
 
-            await GetSolidMeshDataAsync();
-            return;
+            //await GetSolidMeshDataAsync();
+            //return;
             List<MeshData> solidMeshDataList = await GetSolidMeshDataAsync();       
-            List<MeshData> fluidMeshDataList = await GetFluidMeshDataAsync();
-           
-            _solidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(solidMeshDataList.ToArray());
-            _fluidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(fluidMeshDataList.ToArray());
+            //List<MeshData> fluidMeshDataList = await GetFluidMeshDataAsync();
 
-            var solidCollider = _solidMeshFilter.gameObject.AddComponent<MeshCollider>();
-            solidCollider.sharedMesh = _solidMeshFilter.mesh;
+            _solidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(solidMeshDataList.ToArray());
+            //_fluidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(fluidMeshDataList.ToArray());
+
+            //var solidCollider = _solidMeshFilter.gameObject.AddComponent<MeshCollider>();
+            //solidCollider.sharedMesh = _solidMeshFilter.mesh;
 
 
             //_solidMeshFilter.mesh = MeshUtils.MergeMeshTesting(solidMeshDataList.ToArray());
@@ -162,12 +162,16 @@ namespace PixelMiner.WorldBuilding
                             if (blockType != BlockType.Water)
                             {
                                 bool[] solidNeighbors = GetSolidBlockNeighbors(x, y, z, solidNB: _solidNeighbors);
+                                Blocks[x, y, z] = BlockPool.Get();
+
                                 //Blocks[x, y, z] = new Block();
-                                //Blocks[x, y, z].DrawSolid(ChunkData[IndexOf(x, y, z)], solidNeighbors, new Vector3(x, y, z));
-                                //if (Blocks[x, y, z].MeshDataArray != null)
+                                Blocks[x, y, z].DrawSolid(ChunkData[IndexOf(x, y, z)], solidNeighbors, new Vector3(x, y, z));
+                                if (Blocks[x, y, z].MeshDataArray != null)
                                 {
-                                    //solidMeshDataList.AddRange(Blocks[x, y, z].MeshDataArray);
+                                    solidMeshDataList.AddRange(Blocks[x, y, z].MeshDataArray);
                                 }
+
+                                BlockPool.Release(Blocks[x, y, z]);
                             }
                         }
                     }

@@ -21,14 +21,17 @@ namespace PixelMiner.WorldBuilding
             3--------2
          */
         public MeshData[] MeshDataArray { get; private set; }
-
-        public Block() { }
+        private List<Quad> listQuad;
+        public Block() 
+        {
+           
+        }
 
         public void DrawSolid(BlockType blockType, bool[] neighbors, Vector3 offset = (default))
         {
-            bool useObjectPool = true;
-
-            if(useObjectPool)
+            bool useObjectPool = false;
+           
+            if (useObjectPool)
             {
                 if (blockType != BlockType.Air)
                 {
@@ -43,36 +46,32 @@ namespace PixelMiner.WorldBuilding
                             {
                                 if (i == (byte)BlockSide.Top)
                                 {
-                                    //listQuad.Add(new Quad((BlockSide)i, offset, uvs: MeshUtils.GetBlockUV(BlockType.GrassTop), uv2s: MeshUtils.GetColorMapUV(ColorMapType.Plains)));
-
-                                   // Quad q = QuadPool.Pool.Get();
-                                   // q.Init((BlockSide)i, offset, uvs: MeshUtils.GetBlockUV(BlockType.GrassTop), uv2s: MeshUtils.GetColorMapUV(ColorMapType.Plains));
+                                    Quad q = QuadPool.Pool.Get();
+                                    q.Init((BlockSide)i, offset, uvs: MeshUtils.GetBlockUV(BlockType.GrassTop), uv2s: MeshUtils.GetColorMapUV(ColorMapType.Plains));
                                     //listQuad.Add(q);
+                                    QuadPool.Pool.Release(q);
                                 }
                                 else if (i == (byte)BlockSide.Bottom)
                                 {
-                                    //listQuad.Add(new Quad((BlockSide)i, offset, uvs: MeshUtils.GetBlockUV(BlockType.Dirt), uv2s: MeshUtils.GetColorMapUV(ColorMapType.None)));
-
-                                   // Quad q = QuadPool.Pool.Get();
-                                   // q.Init((BlockSide)i, offset, uvs: MeshUtils.GetBlockUV(BlockType.Dirt), uv2s: MeshUtils.GetColorMapUV(ColorMapType.None));
+                                    Quad q = QuadPool.Pool.Get();
+                                    q.Init((BlockSide)i, offset, uvs: MeshUtils.GetBlockUV(BlockType.Dirt), uv2s: MeshUtils.GetColorMapUV(ColorMapType.None));
                                     //listQuad.Add(q);
+                                    QuadPool.Pool.Release(q);
                                 }
                                 else
                                 {
-                                    //listQuad.Add(new Quad((BlockSide)i, offset, uvs: blockUV, uv2s: MeshUtils.GetColorMapUV(ColorMapType.None)));
-
-                                    //Quad q = QuadPool.Pool.Get();
-                                    //q.Init((BlockSide)i, offset, uvs: blockUV, uv2s: MeshUtils.GetColorMapUV(ColorMapType.None));
+                                    Quad q = QuadPool.Pool.Get();
+                                    q.Init((BlockSide)i, offset, uvs: blockUV, uv2s: MeshUtils.GetColorMapUV(ColorMapType.None));
                                     //listQuad.Add(q);
+                                    QuadPool.Pool.Release(q);
                                 }
                             }
                             else
                             {
-                                //listQuad.Add(new Quad((BlockSide)i, offset, uvs: blockUV, uv2s: MeshUtils.GetColorMapUV(ColorMapType.None)));
-
-                               // Quad q = QuadPool.Pool.Get();
-                               // q.Init((BlockSide)i, offset, uvs: blockUV, uv2s: MeshUtils.GetColorMapUV(ColorMapType.None));
+                                Quad q = QuadPool.Pool.Get();
+                                q.Init((BlockSide)i, offset, uvs: blockUV, uv2s: MeshUtils.GetColorMapUV(ColorMapType.None));
                                 //listQuad.Add(q);
+                                QuadPool.Pool.Release(q);
                             }
                         }
                     }
@@ -94,64 +93,66 @@ namespace PixelMiner.WorldBuilding
                     //}
 
 
+         
                     // Release
                     //for (int i = 0; i < listQuad.Count; i++)
                     //{
                     //    QuadPool.Pool.Release(listQuad[i]);
                     //}
+                    listQuad.Clear();
                 }
-                else
+            }
+            else
+            {
+                if (blockType != BlockType.Air)
                 {
-                    if (blockType != BlockType.Air)
+                    List<Quad> listQuad = new List<Quad>();
+                    for (int i = 0; i < neighbors.Length; i++)
                     {
-                        List<Quad> listQuad = new List<Quad>();
-                        for (int i = 0; i < neighbors.Length; i++)
+                        if (!neighbors[i])
                         {
-                            if (!neighbors[i])
-                            {
-                                Vector2[] blockUV = MeshUtils.GetBlockUV(blockType);
+                            Vector2[] blockUV = MeshUtils.GetBlockUV(blockType);
 
-                                if (blockType == BlockType.GrassSide)
+                            if (blockType == BlockType.GrassSide)
+                            {
+                                if (i == (byte)BlockSide.Top)
                                 {
-                                    if (i == (byte)BlockSide.Top)
-                                    {
-                                        listQuad.Add(new Quad((BlockSide)i, offset, uvs: MeshUtils.GetBlockUV(BlockType.GrassTop), uv2s: MeshUtils.GetColorMapUV(ColorMapType.Plains)));
-                                    }
-                                    else if (i == (byte)BlockSide.Bottom)
-                                    {
-                                        listQuad.Add(new Quad((BlockSide)i, offset, uvs: MeshUtils.GetBlockUV(BlockType.Dirt), uv2s: MeshUtils.GetColorMapUV(ColorMapType.None)));
-                                    }
-                                    else
-                                    {
-                                        listQuad.Add(new Quad((BlockSide)i, offset, uvs: blockUV, uv2s: MeshUtils.GetColorMapUV(ColorMapType.None)));
-                                    }
+                                    listQuad.Add(new Quad((BlockSide)i, offset, uvs: MeshUtils.GetBlockUV(BlockType.GrassTop), uv2s: MeshUtils.GetColorMapUV(ColorMapType.Plains)));
+                                }
+                                else if (i == (byte)BlockSide.Bottom)
+                                {
+                                    listQuad.Add(new Quad((BlockSide)i, offset, uvs: MeshUtils.GetBlockUV(BlockType.Dirt), uv2s: MeshUtils.GetColorMapUV(ColorMapType.None)));
                                 }
                                 else
                                 {
                                     listQuad.Add(new Quad((BlockSide)i, offset, uvs: blockUV, uv2s: MeshUtils.GetColorMapUV(ColorMapType.None)));
                                 }
                             }
-                        }
-
-                        if (listQuad.Count != 0)
-                        {
-                            MeshDataArray = new MeshData[listQuad.Count];
-                            for (int i = 0; i < MeshDataArray.Length; i++)
+                            else
                             {
-                                MeshDataArray[i] = new MeshData()
-                                {
-                                    Vertices = listQuad[i].MeshData.Vertices,
-                                    Normals = listQuad[i].MeshData.Normals,
-                                    Triangles = listQuad[i].MeshData.Triangles,
-                                    UVs = listQuad[i].MeshData.UVs,
-                                    UV2s = listQuad[i].MeshData.UV2s,
-                                };
+                                listQuad.Add(new Quad((BlockSide)i, offset, uvs: blockUV, uv2s: MeshUtils.GetColorMapUV(ColorMapType.None)));
                             }
+                        }
+                    }
+
+                    if (listQuad.Count != 0)
+                    {
+                        MeshDataArray = new MeshData[listQuad.Count];
+                        for (int i = 0; i < MeshDataArray.Length; i++)
+                        {
+                            MeshDataArray[i] = new MeshData()
+                            {
+                                Vertices = listQuad[i].MeshData.Vertices,
+                                Normals = listQuad[i].MeshData.Normals,
+                                Triangles = listQuad[i].MeshData.Triangles,
+                                UVs = listQuad[i].MeshData.UVs,
+                                UV2s = listQuad[i].MeshData.UV2s,
+                            };
                         }
                     }
                 }
             }
-            
+
         }
 
         public void DrawFluid(BlockType blockType, bool[] neighbors, float height, Vector3 offset = (default))
@@ -182,6 +183,11 @@ namespace PixelMiner.WorldBuilding
                     };
                 }
             }
+        }
+
+        public void Reset()
+        {
+            MeshDataArray = null;
         }
     }
 }

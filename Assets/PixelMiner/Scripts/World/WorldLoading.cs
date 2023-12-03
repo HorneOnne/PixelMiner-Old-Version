@@ -68,6 +68,7 @@ namespace PixelMiner.WorldGen
 
         private void Update()
         {
+
             if(Time.time - _updateTime >  _updateTimer)
             {
                 _updateTimer = Time.time;

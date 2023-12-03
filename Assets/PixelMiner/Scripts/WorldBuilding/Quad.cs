@@ -22,8 +22,13 @@ namespace PixelMiner.WorldBuilding
         */
 
         public MeshData MeshData { get; private set; }
+        int[] triangles;
 
-        public Quad() { }
+
+        public Quad()
+        {
+           
+        }
 
         public Quad(BlockSide side, Vector3 offset = (default), Vector2[] uvs = null, Vector2[] uv2s = null)
         {
