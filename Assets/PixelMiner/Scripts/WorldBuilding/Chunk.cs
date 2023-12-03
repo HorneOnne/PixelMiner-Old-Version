@@ -29,7 +29,7 @@ namespace PixelMiner.WorldBuilding
         private float _updateTimer = 0.0f;
 
 
-
+        bool[] _solidNeighbors;
         // Neighbors
         [ShowInInspector] public Chunk Left { get; private set; }
         [ShowInInspector] public Chunk Right { get; private set; }
@@ -69,6 +69,8 @@ namespace PixelMiner.WorldBuilding
             _playerTrans = GameObject.FindGameObjectWithTag("Player").transform;
             if (_playerTrans == null)
                 _playerTrans = Camera.main.transform;
+
+            _solidNeighbors = new bool[6];
         }
 
         private void Update()
@@ -126,7 +128,7 @@ namespace PixelMiner.WorldBuilding
             Processing = true;
             ChunkHasDrawn = true;
 
-    
+            await GetSolidMeshDataAsync();
             return;
             List<MeshData> solidMeshDataList = await GetSolidMeshDataAsync();       
             List<MeshData> fluidMeshDataList = await GetFluidMeshDataAsync();
@@ -159,12 +161,12 @@ namespace PixelMiner.WorldBuilding
                             BlockType blockType = ChunkData[IndexOf(x, y, z)];
                             if (blockType != BlockType.Water)
                             {
-                                bool[] solidNeighbors = GetSolidBlockNeighbors(x, y, z);
-                                Blocks[x, y, z] = new Block();
-                                Blocks[x, y, z].DrawSolid(ChunkData[IndexOf(x, y, z)], solidNeighbors, new Vector3(x, y, z));
-                                if (Blocks[x, y, z].MeshDataArray != null)
+                                bool[] solidNeighbors = GetSolidBlockNeighbors(x, y, z, solidNB: _solidNeighbors);
+                                //Blocks[x, y, z] = new Block();
+                                //Blocks[x, y, z].DrawSolid(ChunkData[IndexOf(x, y, z)], solidNeighbors, new Vector3(x, y, z));
+                                //if (Blocks[x, y, z].MeshDataArray != null)
                                 {
-                                    solidMeshDataList.AddRange(Blocks[x, y, z].MeshDataArray);
+                                    //solidMeshDataList.AddRange(Blocks[x, y, z].MeshDataArray);
                                 }
                             }
                         }
@@ -288,35 +290,42 @@ namespace PixelMiner.WorldBuilding
                     return false;
             }
         }
-        public bool[] GetSolidBlockNeighbors(int x, int y, int z)
+
+     
+        public bool[] GetSolidBlockNeighbors(int x, int y, int z, bool[] solidNB)
         {
-            bool[] solidNeighbors = new bool[6] { true, true, true, true, true, true }; // maximum 6 neighbors [ Top, Bottom, Front , Back, Left, Right]
+           
+            //bool[] solidNeighbors = new bool[6] { true, true, true, true, true, true }; // maximum 6 neighbors [ Top, Bottom, Front , Back, Left, Right]
+            // Reset
+            for (int i = 0; i < 6; i++)
+                solidNB[i] = true;
+            
             if (!BlockHasSolidNeighbors(x, y + 1, z))
             {
-                solidNeighbors[0] = false;
+                _solidNeighbors[0] = false;
             }
             if (!BlockHasSolidNeighbors(x, y - 1, z))
             {
-                solidNeighbors[1] = false;
+                _solidNeighbors[1] = false;
             }
             if (!BlockHasSolidNeighbors(x, y, z + 1))
             {
-                solidNeighbors[2] = false;
+                _solidNeighbors[2] = false;
             }
             if (!BlockHasSolidNeighbors(x, y, z - 1))
             {
-                solidNeighbors[3] = false;
+                _solidNeighbors[3] = false;
             }
             if (!BlockHasSolidNeighbors(x - 1, y, z))
             {
-                solidNeighbors[4] = false;
+                _solidNeighbors[4] = false;
             }
             if (!BlockHasSolidNeighbors(x + 1, y, z))
             {
-                solidNeighbors[5] = false;
+                _solidNeighbors[5] = false;
             }
 
-            return solidNeighbors;
+            return _solidNeighbors;
         }
 
         public bool[] GetFluidBlockNeighbors(int x, int y, int z)

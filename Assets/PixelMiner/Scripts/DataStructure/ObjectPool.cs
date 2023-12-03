@@ -1,57 +1,75 @@
+using System;
+using System.Collections.Concurrent;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Collections.Generic;
+
 namespace PixelMiner.DataStructure
 {
     public class ObjectPool<T> where T : new()
     {
-        // list to hold the objects
-        private List<T> _objectsList = new List<T>();
-        //counter keeps track of the number of objects in the pool
-        private int _counter = 0;
-        // max objects allowed in the pool
-        private int _maxObjects = 1000;
+        //private readonly ConcurrentBag<T> _objects;
+        //private readonly Func<T> _objectGenerator;
 
-        // returns the number of objects in the pool
-        public int GetCount()
+        //public ObjectPool(Func<T> objectGenerator)
+        //{
+        //    _objectGenerator = objectGenerator ?? throw new ArgumentNullException(nameof(objectGenerator));
+        //    _objects = new ConcurrentBag<T>();
+        //}
+
+        //public T Get() => _objects.TryTake(out T item) ? item : _objectGenerator();
+
+        //public void Return(T item) => _objects.Add(item);
+
+        // Maximum objects allowed!
+
+
+
+        private readonly Queue<T> objectQueue = new Queue<T>();
+        private readonly object lockObject = new object();
+
+        public ObjectPool() 
         {
-            return _counter;
+            Initialize(1000);
         }
 
-        // method to get object from the pool
-        public T GetObj()
+        // Create objects and add them to the pool
+        public void Initialize(int initialSize)
         {
-            // declare item
-            T objectItem;
-            // check if pool has any objects
-            // if yes, remove the first object and return it
-            // also, decrease the count
-            if (_counter > 0)
+            lock (lockObject)
             {
-                objectItem = _objectsList[0];
-                _objectsList.RemoveAt(0);
-                _counter--;
-                return objectItem;
-            }
-            // if the pool has no objects, create a new one and return it
-            else
-            {
-                T obj = new T();
-                return obj;
+                for (int i = 0; i < initialSize; i++)
+                {
+                    objectQueue.Enqueue(new T());
+                }
             }
         }
 
-        // method to return object to the pool
-        // if counter is less than the max objects allowed, add object to the pool
-        // also, increment counter
-        public void ReleaseObj(T item)
+        // Acquire an object from the pool
+        public T Get()
         {
-            if (_counter < _maxObjects)
+            lock (lockObject)
             {
-                _objectsList.Add(item);
-                _counter++;
+                if (objectQueue.Count > 0)
+                {
+                    return objectQueue.Dequeue();
+                }
+                else
+                {
+                    // If the pool is empty, create a new object
+                    return new T();
+                }
+            }
+        }
+
+        // Release an object back to the pool
+        public void Release(T obj)
+        {
+            lock (lockObject)
+            {
+                objectQueue.Enqueue(obj);
             }
         }
     }
-
-    
 }
 
