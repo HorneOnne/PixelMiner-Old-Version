@@ -96,7 +96,7 @@ namespace PixelMiner.WorldGen
         /// <param name="frameZ"></param>
         /// <param name="offsetWidth"></param>
         /// <param name="offsetDepth"></param>
-        private async void LoadChunksAroundPositionInSequence(int frameX, int frameY, int frameZ, byte offsetWidth = 1, byte offsetDepth = 1)
+        private void LoadChunksAroundPositionInSequence(int frameX, int frameY, int frameZ, byte offsetWidth = 1, byte offsetDepth = 1)
         {          
             for (int x = frameX - offsetWidth; x <= frameX + offsetWidth; x++)
             {

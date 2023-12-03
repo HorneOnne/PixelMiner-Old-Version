@@ -126,17 +126,24 @@ namespace PixelMiner.WorldBuilding
             Processing = true;
             ChunkHasDrawn = true;
 
-            List<MeshData> solidMeshDataList = await GetSolidMeshDataAsync();
+    
+            return;
+            List<MeshData> solidMeshDataList = await GetSolidMeshDataAsync();       
             List<MeshData> fluidMeshDataList = await GetFluidMeshDataAsync();
-
+           
             _solidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(solidMeshDataList.ToArray());
             _fluidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(fluidMeshDataList.ToArray());
 
             var solidCollider = _solidMeshFilter.gameObject.AddComponent<MeshCollider>();
             solidCollider.sharedMesh = _solidMeshFilter.mesh;
 
+
+            //_solidMeshFilter.mesh = MeshUtils.MergeMeshTesting(solidMeshDataList.ToArray());
+            //_fluidMeshFilter.mesh = MeshUtils.MergeMeshTesting(fluidMeshDataList.ToArray());
+
             Processing = false;
         }
+
 
         private async Task<List<MeshData>> GetSolidMeshDataAsync()
         {
@@ -164,7 +171,6 @@ namespace PixelMiner.WorldBuilding
                     }
                 }
             });
-
             return solidMeshDataList;
         }
         private async Task<List<MeshData>> GetFluidMeshDataAsync()
@@ -213,10 +219,13 @@ namespace PixelMiner.WorldBuilding
         }
         public bool BlockHasSolidNeighbors(int x, int y, int z)
         {
-            if (y < 0 || y >= Height)
+            if (y < 0)
                 return true;    
             if (y >= Height)
                 return false;
+
+            //if (x < 0 || x >= Width || z < 0 || z >= Depth)
+            //    return false;
 
             if (x < 0)
             {
@@ -245,7 +254,7 @@ namespace PixelMiner.WorldBuilding
             }
             if (z >= Depth)
             {
-                var frontNBBType = Back.ChunkData[IndexOf(x, y, 0)];
+                var frontNBBType = Front.ChunkData[IndexOf(x, y, 0)];
                 if (frontNBBType == BlockType.Air || frontNBBType == BlockType.Water)
                     return false;
                 else
@@ -261,36 +270,6 @@ namespace PixelMiner.WorldBuilding
                 default:
                     return true;
             }
-
-
-            //if (x < 0 || x >= Width || z < 0 || z >= Depth)
-            //{
-            //    return true;
-            //}
-            //if (y < 0)
-            //{
-            //    return true;
-            //}
-            //if (y >= Height)
-            //{
-            //    return false;
-            //}
-
-
-
-            //if (x < 0 || x >= Width || y < 0 || y >= Height || z < 0 || z >= Depth)
-            //{
-            //    return false;
-            //}
-            //BlockType blockType = ChunkData[IndexOf(x, y, z)];
-            //switch (blockType)
-            //{
-            //    case BlockType.Water:
-            //    case BlockType.Air:
-            //        return false;
-            //    default:
-            //        return true;
-            //}
         }
 
         public bool BlockHasFuildNeighbors(int x, int y, int z)

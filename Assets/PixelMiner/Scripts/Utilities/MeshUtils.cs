@@ -6,6 +6,7 @@ using PixelMiner.Enums;
 using System;
 using System.Collections.Generic;
 
+
 namespace PixelMiner.Utilities
 {
     public static class MeshUtils
@@ -192,6 +193,7 @@ namespace PixelMiner.Utilities
 
         public static async Task<Mesh> MergeMeshAsyncParallel(MeshData[] meshes, IndexFormat format = IndexFormat.UInt16)
         {
+  
             Vector3[] verts = null;
             Vector3[] norms = null;
             int[] tris = null; ;
@@ -240,6 +242,7 @@ namespace PixelMiner.Utilities
        
             Mesh mesh = new Mesh();
             mesh.indexFormat = format;
+            
             mesh.vertices = verts;
             mesh.normals = norms;
             mesh.uv = uvs;
@@ -247,10 +250,70 @@ namespace PixelMiner.Utilities
             mesh.triangles = tris;
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
-
+            mesh.UploadMeshData(markNoLongerReadable: true);
 
             return mesh;
         }
 
+
+        static List<Vector3> verts = new List<Vector3>(0);
+        static List<Vector3> norms = new List<Vector3>(0);
+        static List<int> tris = new List<int>(0);
+        static List<Vector2> uvs = new List<Vector2>(0);
+        static List<Vector2> uv2s = new List<Vector2>(0);
+
+
+        public static Mesh MergeMeshTesting(MeshData[] meshes, IndexFormat format = IndexFormat.UInt16)
+        {
+          
+
+            int triCount = 0;
+            int vertCount = 0;
+            int normalCount = 0;
+            int uvCount = 0;
+
+            verts.Clear();
+            norms.Clear();
+            tris.Clear();
+            uvs.Clear();
+            uv2s.Clear();
+            for (int i = 0; i < meshes.Length; i++)
+            {
+                triCount += meshes[i].Triangles.Length;
+                vertCount += meshes[i].Vertices.Length;
+                normalCount += meshes[i].Normals.Length;
+                uvCount += meshes[i].UVs.Length;
+            }
+
+            for (int i = 0; i < meshes.Length; i++)
+            {
+                for (int j = 0; j < meshes[i].Triangles.Length; j++)
+                {
+                    int triPoint = (i * meshes[i].Vertices.Length + meshes[i].Triangles[j]);
+                    tris.Add(triPoint);
+                }
+
+                verts.AddRange(meshes[i].Vertices);
+                norms.AddRange(meshes[i].Normals);
+                uvs.AddRange(meshes[i].UVs);
+                uv2s.AddRange(meshes[i].UV2s);
+
+            }
+
+
+            Mesh mesh = new Mesh();
+            mesh.indexFormat = format;
+
+            mesh.SetVertices(verts);
+            mesh.SetNormals(norms);
+            mesh.SetUVs(0, uvs);
+            mesh.SetUVs(1, uv2s);
+            mesh.SetTriangles(tris, 0);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            mesh.UploadMeshData(markNoLongerReadable: true);
+
+            return mesh;
+        }
     }
 }

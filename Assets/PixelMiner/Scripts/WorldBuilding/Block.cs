@@ -48,9 +48,6 @@ namespace PixelMiner.WorldBuilding
                         {
                             q.Add(new Quad((BlockSide)i, offset, uvs: blockUV, uv2s: MeshUtils.GetColorMapUV(ColorMapType.None)));
                         }
-
-                      
-
                     }
                 }
                 if (q.Count == 0) return;
@@ -61,7 +58,7 @@ namespace PixelMiner.WorldBuilding
                     {
                         Vertices = q[i].MeshData.Vertices,
                         Normals = q[i].MeshData.Normals,
-                        Triangles = q[i].MeshData.Triangles,
+                        Triangles = q[i].MeshData.Triangles,      
                         UVs = q[i].MeshData.UVs,
                         UV2s = q[i].MeshData.UV2s,
                     };
