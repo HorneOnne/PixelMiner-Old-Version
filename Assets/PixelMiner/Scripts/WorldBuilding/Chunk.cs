@@ -125,6 +125,7 @@ namespace PixelMiner.WorldBuilding
 
         public async void DrawChunkAsync()
         {
+            if (ChunkHasDrawn) return;
             Processing = true;
             ChunkHasDrawn = true;
 
@@ -163,12 +164,11 @@ namespace PixelMiner.WorldBuilding
                             {
                                 bool[] solidNeighbors = GetSolidBlockNeighbors(x, y, z, solidNB: _solidNeighbors);
                                 Blocks[x, y, z] = BlockPool.Get();
-
-                                //Blocks[x, y, z] = new Block();
+                                
                                 Blocks[x, y, z].DrawSolid(ChunkData[IndexOf(x, y, z)], solidNeighbors, new Vector3(x, y, z));
-                                if (Blocks[x, y, z].MeshDataArray != null)
+                                if (Blocks[x, y, z].MeshDataList.Count > 0)
                                 {
-                                    solidMeshDataList.AddRange(Blocks[x, y, z].MeshDataArray);
+                                    solidMeshDataList.AddRange(Blocks[x, y, z].MeshDataList);
                                 }
 
                                 BlockPool.Release(Blocks[x, y, z]);
@@ -196,9 +196,9 @@ namespace PixelMiner.WorldBuilding
                                 bool[] fluidNeighbors = GetFluidBlockNeighbors(x, y, z);
                                 Blocks[x, y, z] = new Block();
                                 Blocks[x, y, z].DrawFluid(ChunkData[IndexOf(x, y, z)], fluidNeighbors, HeightValues[IndexOf(x, z)], new Vector3(x, y, z));
-                                if (Blocks[x, y, z].MeshDataArray != null)
+                                if (Blocks[x, y, z].MeshDataList != null)
                                 {
-                                    fluidMeshDataList.AddRange(Blocks[x, y, z].MeshDataArray);
+                                    fluidMeshDataList.AddRange(Blocks[x, y, z].MeshDataList);
                                 }
                             }
 

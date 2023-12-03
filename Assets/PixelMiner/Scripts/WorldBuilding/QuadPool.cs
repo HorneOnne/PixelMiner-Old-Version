@@ -6,6 +6,15 @@ namespace PixelMiner.WorldBuilding
     {
         public static ObjectPool<Quad> Pool = new ObjectPool<Quad>(100);
 
+        public static Quad Get()
+        {
+            return Pool.Get();
+        }
+
+        public static void Release(Quad quad)
+        {
+            Pool.Release(quad);
+        }
 
     }
 
