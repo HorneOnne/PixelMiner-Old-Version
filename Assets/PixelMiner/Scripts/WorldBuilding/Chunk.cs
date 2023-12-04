@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using PixelMiner.Enums;
-using PixelMiner.Utilities;
 using PixelMiner.DataStructure;
 using Sirenix.OdinInspector;
 
@@ -129,12 +128,15 @@ namespace PixelMiner.WorldBuilding
             Processing = true;
             ChunkHasDrawn = true;
 
-            //await GetSolidMeshDataAsync();
+            ChunkMeshData chunkMeshData = await GetSolidLargeMeshDataAsync();
+           _solidMeshFilter.mesh = await MeshUtils.MergeLargeMeshDataAsyncParallel(chunkMeshData);
+            ChunkMeshDataPool.Release(chunkMeshData);
+
             //return;
-            List<MeshData> solidMeshDataList = await GetSolidMeshDataAsync();       
+            //List<MeshData> solidMeshDataList = await GetSolidMeshDataAsync();       
             //List<MeshData> fluidMeshDataList = await GetFluidMeshDataAsync();
 
-            _solidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(solidMeshDataList.ToArray());
+            //_solidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(solidMeshDataList.ToArray());
             //_fluidMeshFilter.mesh = await MeshUtils.MergeMeshAsyncParallel(fluidMeshDataList.ToArray());
 
             //var solidCollider = _solidMeshFilter.gameObject.AddComponent<MeshCollider>();
@@ -143,6 +145,8 @@ namespace PixelMiner.WorldBuilding
 
             //_solidMeshFilter.mesh = MeshUtils.MergeMeshTesting(solidMeshDataList.ToArray());
             //_fluidMeshFilter.mesh = MeshUtils.MergeMeshTesting(fluidMeshDataList.ToArray());
+
+
 
             Processing = false;
         }
@@ -162,16 +166,16 @@ namespace PixelMiner.WorldBuilding
                             BlockType blockType = ChunkData[IndexOf(x, y, z)];
                             if (blockType != BlockType.Water)
                             {
-                                bool[] solidNeighbors = GetSolidBlockNeighbors(x, y, z, solidNB: _solidNeighbors);
-                                Blocks[x, y, z] = BlockPool.Get();
+                                //bool[] solidNeighbors = GetSolidBlockNeighbors(x, y, z, solidNB: _solidNeighbors);
+                                //Blocks[x, y, z] = BlockPool.Get();
                                 
-                                Blocks[x, y, z].DrawSolid(ChunkData[IndexOf(x, y, z)], solidNeighbors, new Vector3(x, y, z));
-                                if (Blocks[x, y, z].MeshDataList.Count > 0)
-                                {
-                                    solidMeshDataList.AddRange(Blocks[x, y, z].MeshDataList);
-                                }
+                                //Blocks[x, y, z].DrawSolid(ChunkData[IndexOf(x, y, z)], solidNeighbors, new Vector3(x, y, z));
+                                //if (Blocks[x, y, z].MeshDataList.Count > 0)
+                                //{
+                                //    solidMeshDataList.AddRange(Blocks[x, y, z].MeshDataList);
+                                //}
 
-                                BlockPool.Release(Blocks[x, y, z]);
+                                //BlockPool.Release(Blocks[x, y, z]);
                             }
                         }
                     }
@@ -179,6 +183,46 @@ namespace PixelMiner.WorldBuilding
             });
             return solidMeshDataList;
         }
+        private async Task<ChunkMeshData> GetSolidLargeMeshDataAsync()
+        {
+            ChunkMeshData largeMeshData = ChunkMeshDataPool.Get();
+            await Task.Run(() =>
+            {
+                for (int x = 0; x < Width; x++)
+                {
+                    for (int z = 0; z < Depth; z++)
+                    {
+                        for (int y = 0; y < Height; y++)
+                        {
+                            BlockType blockType = ChunkData[IndexOf(x, y, z)];
+                            if (blockType != BlockType.Water)
+                            {
+                                bool[] solidNeighbors = GetSolidBlockNeighbors(x, y, z, solidNB: _solidNeighbors);
+                                Blocks[x, y, z] = BlockPool.Get();
+
+                                Blocks[x, y, z].DrawSolid(ChunkData[IndexOf(x, y, z)], solidNeighbors, new Vector3(x, y, z));
+                                //if (Blocks[x, y, z].MeshDataList.Count > 0)
+                                //{
+                                //    solidMeshDataList.AddRange(Blocks[x, y, z].MeshDataList);
+                                //}
+
+                                if (Blocks[x,y,z].QuadCount > 0)
+                                {
+                                    largeMeshData.Add(Blocks[x, y, z]);
+                                }
+                                
+
+                                BlockPool.Release(Blocks[x, y, z]);
+                            }
+                        }
+                    }
+                }
+            });
+
+   
+            return largeMeshData;
+        }
+
         private async Task<List<MeshData>> GetFluidMeshDataAsync()
         {
             List<MeshData> fluidMeshDataList = new List<MeshData>();
@@ -193,13 +237,13 @@ namespace PixelMiner.WorldBuilding
                             BlockType blockType = ChunkData[IndexOf(x, y, z)];
                             if (blockType == BlockType.Water)
                             {
-                                bool[] fluidNeighbors = GetFluidBlockNeighbors(x, y, z);
-                                Blocks[x, y, z] = new Block();
-                                Blocks[x, y, z].DrawFluid(ChunkData[IndexOf(x, y, z)], fluidNeighbors, HeightValues[IndexOf(x, z)], new Vector3(x, y, z));
-                                if (Blocks[x, y, z].MeshDataList != null)
-                                {
-                                    fluidMeshDataList.AddRange(Blocks[x, y, z].MeshDataList);
-                                }
+                                //bool[] fluidNeighbors = GetFluidBlockNeighbors(x, y, z);
+                                //Blocks[x, y, z] = new Block();
+                                //Blocks[x, y, z].DrawFluid(ChunkData[IndexOf(x, y, z)], fluidNeighbors, HeightValues[IndexOf(x, z)], new Vector3(x, y, z));
+                                //if (Blocks[x, y, z].MeshDataList != null)
+                                //{
+                                //    fluidMeshDataList.AddRange(Blocks[x, y, z].MeshDataList);
+                                //}
                             }
 
                         }

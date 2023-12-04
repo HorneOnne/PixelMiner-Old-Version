@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
 using PixelMiner.Enums;
 using UnityEngine;
-using PixelMiner.DataStructure;
-using PixelMiner.Utilities;
-using System.Linq;
 
 namespace PixelMiner.WorldBuilding
 {
@@ -21,18 +18,29 @@ namespace PixelMiner.WorldBuilding
             |/       | /
             3--------2
          */
-        public List<MeshData> MeshDataList { get; private set; }
-        private List<Quad> _listQuad;
+        //public List<MeshData> MeshDataList { get; private set; }
+
         Vector2[] _blockUVs;
         Vector2[] _colormapUVs;
+        public List<Vector3> _vertices;
+        public List<Vector3> _normals;
+        public List<Vector2> _uvs;
+        public List<Vector2> _uv2s;
+        public int QuadCount = 0;
+
 
         public Block()
         {
             Debug.Log("Create new Block.cs");
-            MeshDataList = new List<MeshData>();
-            _listQuad = new List<Quad>();
+            //MeshDataList = new List<MeshData>();
+
             _blockUVs = new Vector2[4];
             _colormapUVs = new Vector2[4];
+
+            _vertices = new List<Vector3>();
+            _normals = new List<Vector3>(); 
+            _uvs = new List<Vector2>();
+            _uv2s = new List<Vector2>();       
         }
 
         public void DrawSolid(BlockType blockType, bool[] neighbors, Vector3 offset = (default))
@@ -52,9 +60,10 @@ namespace PixelMiner.WorldBuilding
                             {
                                 GetBlockUVs(BlockType.GrassTop, ref _blockUVs);
                                 GetColorMapkUVs(ColorMapType.Plains, ref _colormapUVs);
+                                
                                 Quad q = QuadPool.Get();
                                 q.Init((BlockSide)i, offset, uvs: _blockUVs, uv2s: _colormapUVs);
-                                AddData(q);
+                                AddQuadData(q);
                                 QuadPool.Release(q);
          
                             }
@@ -63,15 +72,14 @@ namespace PixelMiner.WorldBuilding
                                 GetBlockUVs(BlockType.Dirt, ref _blockUVs);
                                 Quad q = QuadPool.Get();
                                 q.Init((BlockSide)i, offset, uvs: _blockUVs, uv2s: _colormapUVs);
-                                AddData(q);
+                                AddQuadData(q);
                                 QuadPool.Release(q);
                             }
                             else
                             {
-                                 Quad q = QuadPool.Get();
-                               // Quad q = new Quad();
+                                Quad q = QuadPool.Get();
                                 q.Init((BlockSide)i, offset, uvs: _blockUVs, uv2s: _colormapUVs);
-                                AddData(q);
+                                AddQuadData(q);
                                 QuadPool.Release(q);
                             }
                         }
@@ -79,14 +87,23 @@ namespace PixelMiner.WorldBuilding
                         {
                             Quad q = QuadPool.Get();
                             q.Init((BlockSide)i, offset, uvs: _blockUVs, uv2s: _colormapUVs);
-                            AddData(q);
+                            AddQuadData(q);
                             QuadPool.Release(q);
                         }
                     }
                 }
-
-
             }
+
+
+            //MeshDataList.Add(new MeshData()
+            //{
+            //    Vertices = _vertices.ToArray(),
+            //    Normals = _normals.ToArray(),
+            //    Triangles = _tris.ToArray(),
+            //    UVs = _uvs.ToArray(),
+            //    UV2s = _uv2s.ToArray(),
+            //});
+
         }
 
         public void DrawFluid(BlockType blockType, bool[] neighbors, float height, Vector3 offset = (default))
@@ -137,31 +154,22 @@ namespace PixelMiner.WorldBuilding
         }
 
 
-        private void AddData(Quad quad)
+        private void AddQuadData(Quad quad)
         {
-            MeshDataList.Add(new MeshData()
-            {
-                //Vertices = quad.MeshData.Vertices,
-                //Normals = quad.MeshData.Normals,
-                //Triangles = quad.MeshData.Triangles,
-                //UVs = quad.MeshData.UVs,
-                //UV2s = quad.MeshData.UV2s,
-
-                Vertices = quad._vertices.ToArray(),
-                Normals = quad._normals.ToArray(),
-                Triangles = quad._triangles.ToArray(),
-                UVs = quad._uvs.ToArray(),
-                UV2s = quad._uv2s.ToArray(),
-            });
-       
-
-            quad.IsProcessing = false;
+            _vertices.AddRange(quad._vertices);
+            _normals.AddRange(quad._normals);
+            _uvs.AddRange(quad._uvs);
+            _uv2s.AddRange(quad._uv2s);
+            QuadCount++;
         }
 
         public void Reset()
         {
-            MeshDataList.Clear();
-            _listQuad.Clear();
+            _vertices.Clear();
+            _normals.Clear();
+            _uvs.Clear();
+            _uv2s.Clear();
+            QuadCount = 0;
         }
     }
 }

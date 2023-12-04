@@ -468,7 +468,7 @@ Transform:
   m_GameObject: {fileID: 314038815}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -187.5616, y: 5.801532, z: -359.99405}
+  m_LocalPosition: {x: 0, y: 5.801532, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -863,7 +863,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: -248.79886, y: 55.801537, z: -421.2313}
+  m_LocalPosition: {x: -61.237244, y: 55.80154, z: -61.23724}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1550,8 +1550,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   InitWorldWidth: 3
-  InitWorldDepth: 2
-  LoadChunkOffsetWidth: 3
+  InitWorldDepth: 3
+  LoadChunkOffsetWidth: 2
   LoadChunkOffsetDepth: 3
   InitFastDrawChunk: 0
   _playerTrans: {fileID: 314038816}
@@ -2019,7 +2019,7 @@ Transform:
   m_GameObject: {fileID: 1694405455}
   serializedVersion: 2
   m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: -248.79886, y: 55.801537, z: -421.2313}
+  m_LocalPosition: {x: -61.237244, y: 55.80154, z: -61.23724}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2306,6 +2306,10 @@ PrefabInstance:
     - target: {fileID: 902266774924554959, guid: fe826b5dc7b8e274e9036be246c91785, type: 3}
       propertyPath: m_Name
       value: Custom Quantum Console (SRP)
+      objectReference: {fileID: 0}
+    - target: {fileID: 902266774924554959, guid: fe826b5dc7b8e274e9036be246c91785, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1574803665049750967, guid: fe826b5dc7b8e274e9036be246c91785, type: 3}
       propertyPath: m_Pivot.x

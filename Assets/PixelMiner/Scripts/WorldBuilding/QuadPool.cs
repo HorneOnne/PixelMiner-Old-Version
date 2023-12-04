@@ -13,12 +13,9 @@ namespace PixelMiner.WorldBuilding
 
         public static void Release(Quad quad)
         {
-            if(!quad.IsProcessing)
-            {
-                quad.Reset();
-                Pool.Release(quad);
-            }
-            
+            quad.Reset();
+            Pool.Release(quad);
+
         }
 
     }
@@ -37,7 +34,21 @@ namespace PixelMiner.WorldBuilding
             block.Reset();
             Pool.Release(block);
         }
+    }
 
+    public static class ChunkMeshDataPool
+    {
+        public static ObjectPool<ChunkMeshData> Pool = new ObjectPool<ChunkMeshData>(20);
 
+        public static ChunkMeshData Get()
+        {
+            return Pool.Get();
+        }
+
+        public static void Release(ChunkMeshData chunkMeshData)
+        {
+            chunkMeshData.Reset();
+            Pool.Release(chunkMeshData);
+        }
     }
 }

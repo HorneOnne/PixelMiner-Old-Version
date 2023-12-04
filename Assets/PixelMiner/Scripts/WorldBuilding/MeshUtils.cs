@@ -2,15 +2,56 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using PixelMiner.DataStructure;
-using PixelMiner.Enums;
-using System;
-using System.Collections.Generic;
+using System.IO;
+using PixelMiner.Utilities;
 
-
-namespace PixelMiner.Utilities
+namespace PixelMiner.WorldBuilding
 {
     public static class MeshUtils
     {
+        // Example method to write Unity Mesh data to a text file
+        public static void WriteMeshToFile(Mesh mesh)
+        {
+            string filePath = @"C:\Users\anhla\Desktop\meshData.txt";
+            using (StreamWriter writer = new StreamWriter(filePath))
+            {
+                // Write vertices
+                writer.WriteLine("Vertices:");
+                foreach (Vector3 vertex in mesh.vertices)
+                {
+                    writer.WriteLine($"{vertex.x}, {vertex.y}, {vertex.z}");
+                }
+
+                // Write normals
+                writer.WriteLine("\nNormals:");
+                foreach (Vector3 normal in mesh.normals)
+                {
+                    writer.WriteLine($"{normal.x}, {normal.y}, {normal.z}");
+                }
+
+                // Write UV coordinates
+                writer.WriteLine("\nUVs:");
+                foreach (Vector2 uv in mesh.uv)
+                {
+                    writer.WriteLine($"{uv.x}, {uv.y}");
+                }
+
+                // Write triangles
+                writer.WriteLine("\nTriangles:");
+                for (int i = 0; i < mesh.triangles.Length; i += 3)
+                {
+                    int index1 = mesh.triangles[i];
+                    int index2 = mesh.triangles[i + 1];
+                    int index3 = mesh.triangles[i + 2];
+
+                    writer.WriteLine($"{index1}, {index2}, {index3}");
+                }
+
+ 
+                Debug.Log($"Mesh data written to file: {filePath}");
+            }
+        }
+
         public static Vector2[,] BlockUVs =
         {
             /*
@@ -166,6 +207,7 @@ namespace PixelMiner.Utilities
 
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
+
             return mesh;
         }
 
@@ -231,6 +273,32 @@ namespace PixelMiner.Utilities
             mesh.RecalculateBounds();
             mesh.UploadMeshData(markNoLongerReadable: true);
 
+            return mesh;
+        }
+
+
+        public static async Task<Mesh> MergeLargeMeshDataAsyncParallel(ChunkMeshData largeMeshData, IndexFormat format = IndexFormat.UInt16)
+        {
+            await Task.Run(() =>
+            {
+                largeMeshData.CalculateTriangleIndexes();
+            });
+
+            Mesh mesh = new Mesh();
+            mesh.indexFormat = format;
+
+            mesh.SetVertices(largeMeshData.Vertices);
+            mesh.SetNormals(largeMeshData.Normals);
+            mesh.SetTriangles(largeMeshData.Tris, 0);
+            mesh.SetUVs(0, largeMeshData.UVs);
+            mesh.SetUVs(1, largeMeshData.UV2s);
+
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            
+            //WriteMeshToFile(mesh);
+
+            mesh.UploadMeshData(markNoLongerReadable: true);
             return mesh;
         }
     }

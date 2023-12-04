@@ -21,7 +21,7 @@ namespace PixelMiner.WorldBuilding
         */
 
         //public MeshData MeshData { get; private set; }
-        public int[] _triangles;
+        public static readonly int[] Triangles = new int[6] { 0,3,1,1,3,2};
         public List<Vector3> _vertices;
         public List<Vector3> _normals;
         public List<Vector2> _uvs;
@@ -34,10 +34,9 @@ namespace PixelMiner.WorldBuilding
         Vector3 p5;
         Vector3 p6;
         Vector3 p7;
-        public bool IsProcessing = false;
+
         public Quad()
         {
-            _triangles = new int[6] { 0, 3, 1, 1, 3, 2 };
             _vertices = new List<Vector3>();
             _normals = new List<Vector3>();
             _uvs = new List<Vector2>();
@@ -48,7 +47,6 @@ namespace PixelMiner.WorldBuilding
 
         public void Init(BlockSide side, Vector3 offset = (default), Vector2[] uvs = null, Vector2[] uv2s = null)
         {
-            IsProcessing = true;
             p0 = new Vector3(-0.5f, -0.5f, 0.5f) + offset;
             p1 = new Vector3(0.5f, -0.5f, 0.5f) + offset;
             p2 = new Vector3(0.5f, -0.5f, -0.5f) + offset;
