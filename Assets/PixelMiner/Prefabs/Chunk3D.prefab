@@ -135,8 +135,8 @@ MonoBehaviour:
   HasChunkNeighbors: 0
   AllTileHasNeighbors: 0
   ChunkHasDrawn: 0
-  _solidMeshFilter: {fileID: 6227397144623573410}
-  _fluidMeshFilter: {fileID: 1053322345327296597}
+  SolidMeshFilter: {fileID: 6227397144623573410}
+  WaterMeshFilter: {fileID: 1053322345327296597}
   Width: 96
   Height: 1
   Depth: 96

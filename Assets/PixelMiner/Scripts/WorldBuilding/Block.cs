@@ -18,7 +18,7 @@ namespace PixelMiner.WorldBuilding
             |/       | /
             3--------2
          */
-        //public List<MeshData> MeshDataList { get; private set; }
+
 
         Vector2[] _blockUVs;
         Vector2[] _colormapUVs;
@@ -26,21 +26,19 @@ namespace PixelMiner.WorldBuilding
         public List<Vector3> _normals;
         public List<Vector2> _uvs;
         public List<Vector2> _uv2s;
-        public int QuadCount = 0;
+        public int QuadCount;
 
 
         public Block()
         {
             Debug.Log("Create new Block.cs");
-            //MeshDataList = new List<MeshData>();
-
             _blockUVs = new Vector2[4];
             _colormapUVs = new Vector2[4];
-
             _vertices = new List<Vector3>();
             _normals = new List<Vector3>(); 
             _uvs = new List<Vector2>();
-            _uv2s = new List<Vector2>();       
+            _uv2s = new List<Vector2>();
+            QuadCount = 0;
         }
 
         public void DrawSolid(BlockType blockType, bool[] neighbors, Vector3 offset = (default))
@@ -93,17 +91,6 @@ namespace PixelMiner.WorldBuilding
                     }
                 }
             }
-
-
-            //MeshDataList.Add(new MeshData()
-            //{
-            //    Vertices = _vertices.ToArray(),
-            //    Normals = _normals.ToArray(),
-            //    Triangles = _tris.ToArray(),
-            //    UVs = _uvs.ToArray(),
-            //    UV2s = _uv2s.ToArray(),
-            //});
-
         }
 
         public void DrawFluid(BlockType blockType, bool[] neighbors, float height, Vector3 offset = (default))

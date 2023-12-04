@@ -4,7 +4,7 @@ namespace PixelMiner.WorldBuilding
 {
     public static class QuadPool
     {
-        public static ObjectPool<Quad> Pool = new ObjectPool<Quad>(20);
+        public static ObjectPool<Quad> Pool = new ObjectPool<Quad>(30);
 
         public static Quad Get()
         {
@@ -22,7 +22,7 @@ namespace PixelMiner.WorldBuilding
 
     public static class BlockPool
     {
-        public static ObjectPool<Block> Pool = new ObjectPool<Block>(23);
+        public static ObjectPool<Block> Pool = new ObjectPool<Block>(30);
 
         public static Block Get()
         {
@@ -38,7 +38,7 @@ namespace PixelMiner.WorldBuilding
 
     public static class ChunkMeshDataPool
     {
-        public static ObjectPool<ChunkMeshData> Pool = new ObjectPool<ChunkMeshData>(20);
+        public static ObjectPool<ChunkMeshData> Pool = new ObjectPool<ChunkMeshData>(25);
 
         public static ChunkMeshData Get()
         {

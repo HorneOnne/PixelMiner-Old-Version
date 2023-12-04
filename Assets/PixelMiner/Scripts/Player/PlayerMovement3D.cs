@@ -39,8 +39,7 @@ namespace PixelMiner
         {
             if (ContinuousMove)
             {
-                //_moveDirection = _input.Move == Vector2.zero ? _moveDirection : new Vector3(_input.Move.x, 0, _input.Move.y);
-                _moveDirection = Vector3.right;
+                _moveDirection = _input.Move == Vector2.zero ? _moveDirection : new Vector3(_input.Move.x, 0, _input.Move.y);
             }
             else
             {

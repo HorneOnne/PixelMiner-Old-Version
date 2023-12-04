@@ -41,6 +41,8 @@ namespace PixelMiner.WorldBuilding
             _normals = new List<Vector3>();
             _uvs = new List<Vector2>();
             _uv2s = new List<Vector2>();
+
+            Debug.Log("Create new Quad.cs");
         }
 
 

@@ -178,7 +178,11 @@ namespace PixelMiner.WorldGen
         {
             if (!chunk.Processing && Main.Instance.AutoUnloadChunk)
             {
-                UnloadChunk(chunk);
+                //UnloadChunk(chunk);
+
+                _main.ActiveChunks.Remove(chunk);
+                _main.Chunks.Remove(new Vector3Int(chunk.FrameX, chunk.FrameY, chunk.FrameZ));
+                Destroy(chunk.gameObject);
             }
         }
     }

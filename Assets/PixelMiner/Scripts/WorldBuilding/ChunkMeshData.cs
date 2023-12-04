@@ -22,9 +22,11 @@ namespace PixelMiner.WorldBuilding
             UV2s = new List<Vector2>();
             Tris = new List<int>();
             QuadCount = 0;
+
+            Debug.Log("Create new ChunkMeshData.cs");
         }
 
-        public void Add(Block block)
+        public void AddData(Block block)
         {
             Vertices.AddRange(block._vertices);
             Normals.AddRange(block._normals);
@@ -40,7 +42,6 @@ namespace PixelMiner.WorldBuilding
             for (int i = 0; i < QuadCount; i++)
             {
                 int baseIndex = i * 4;  // Each quad has 4 vertices      
-                int offset = i * 6;  // Each quad has 6 indices (2 triangles)
                 Tris.Add(baseIndex + 0);
                 Tris.Add(baseIndex + 3);
                 Tris.Add(baseIndex + 1);
