@@ -1,18 +1,21 @@
-﻿using PixelMiner.Utilities;
+﻿using PixelMiner.Camera;
+using PixelMiner.Utilities;
 using UnityEngine;
 
 namespace PixelMiner
 {
     public class PlayerMovement3D : MonoBehaviour
     {
+        private CameraLogicHandler _cameraLogicHandler;
         private InputHander _input;
         private Rigidbody _rb;
         private Animator _anim;
         private SpriteRenderer _sr;
+
+
         [SerializeField] private float _moveSpeed;
         [SerializeField] private Vector3 _moveDirection;
-        private Camera _mainCam;
-        private Vector3 _cameraIsometricRot = new Vector3(0,45,0);
+        private Vector3 _cameraIsometricRot = new Vector3(0, 45, 0);
 
         public bool ContinuousMove;
         private bool _hasAnimator;
@@ -29,12 +32,15 @@ namespace PixelMiner
             _hasAnimator = _anim != null;
         }
 
+
         private void Start()
         {
             _input = InputHander.Instance;
-            _mainCam = Camera.main;
+            _cameraLogicHandler = CameraLogicHandler.Instance;
             AssignAnimationIDs();
         }
+     
+
         private void Update()
         {
             if (ContinuousMove)
@@ -59,9 +65,9 @@ namespace PixelMiner
         private void FixedUpdate()
         {
             if (_moveDirection != Vector3.zero)
-                _rb.velocity = _moveDirection.Iso(_cameraIsometricRot) * _moveSpeed;
+                _rb.velocity = _moveDirection.Iso(new Vector3(0, _cameraLogicHandler.CurrentYRotAngle ,0)) * _moveSpeed;
             else
-                _rb.velocity = new Vector3(0,_rb.velocity.y, 0);
+                _rb.velocity = new Vector3(0, _rb.velocity.y, 0);
 
 
             // Animation
@@ -77,8 +83,9 @@ namespace PixelMiner
 
         private void FaceToCamera()
         {
-            transform.forward = _mainCam.transform.forward;
+            transform.forward = _cameraLogicHandler.MainCam.transform.forward;
         }
+     
 
         private void AssignAnimationIDs()
         {

@@ -1,0 +1,17 @@
+{
+    "name": "PixelMiner.Camera",
+    "rootNamespace": "PixelMiner.Camera",
+    "references": [
+        "GUID:4307f53044263cf4b835bd812fc161a4",
+        "GUID:4f7f34825068e144d80372aea14b6aa5"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

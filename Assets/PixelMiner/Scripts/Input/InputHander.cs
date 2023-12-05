@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
-
+using UnityEngine.InputSystem;
 namespace PixelMiner
 {
     public class InputHander : MonoBehaviour
     {
         public static InputHander Instance { get; private set; }
- 
+        public event System.Action<float> OnRotateDetected;
+
         private PlayerInput playerInput;
 
         [Header("Character Input Values")]
@@ -13,6 +14,8 @@ namespace PixelMiner
         public float MouseScrollY;
         public bool Cancel;
         public float Fire;
+        public float Rot;
+
 
         private void Awake()
         {
@@ -29,6 +32,9 @@ namespace PixelMiner
 
 
             playerInput.Player.Fire.performed += x => { Fire = x.ReadValue<float>(); };
+
+
+            playerInput.Player.Rotate.performed += OnRotatePerformed;
 
             playerInput.UI.ScrollWheel.performed += x => { MouseScrollY = x.ReadValue<Vector2>().y; };
         }
@@ -70,6 +76,13 @@ namespace PixelMiner
         //{
         //    MoveInput(value.Get<Vector2>());
         //}
+
+        private void OnRotatePerformed(InputAction.CallbackContext context)
+        {
+            Debug.Log("OnRotatePerformed");
+            Rot = context.ReadValue<float>();
+            OnRotateDetected?.Invoke(Rot);
+        }
 #endif
 
         //public void MoveInput(Vector2 newMoveDirection)
