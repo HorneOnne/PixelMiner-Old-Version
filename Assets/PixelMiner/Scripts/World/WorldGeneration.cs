@@ -786,8 +786,6 @@ namespace PixelMiner.WorldGen
                 //        }
                 //    }
                 //}
-
-                chunk.HasData = true;
             });
         }
 

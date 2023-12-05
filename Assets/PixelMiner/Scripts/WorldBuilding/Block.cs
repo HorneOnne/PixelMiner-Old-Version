@@ -121,6 +121,55 @@ namespace PixelMiner.WorldBuilding
             //        };
             //    }
             //}
+
+            if (blockType != BlockType.Air)
+            {
+                for (int i = 0; i < neighbors.Length; i++)
+                {
+                    if (!neighbors[i])
+                    {
+                        GetBlockUVs(blockType, ref _blockUVs);
+                        GetColorMapkUVs(ColorMapType.None, ref _colormapUVs);
+
+                        if (blockType == BlockType.GrassSide)
+                        {
+                            if (i == (byte)BlockSide.Top)
+                            {
+                                GetBlockUVs(BlockType.GrassTop, ref _blockUVs);
+                                GetColorMapkUVs(ColorMapType.Plains, ref _colormapUVs);
+
+                                Quad q = QuadPool.Get();
+                                q.Init((BlockSide)i, offset, uvs: _blockUVs, uv2s: _colormapUVs);
+                                AddQuadData(q);
+                                QuadPool.Release(q);
+
+                            }
+                            else if (i == (byte)BlockSide.Bottom)
+                            {
+                                GetBlockUVs(BlockType.Dirt, ref _blockUVs);
+                                Quad q = QuadPool.Get();
+                                q.Init((BlockSide)i, offset, uvs: _blockUVs, uv2s: _colormapUVs);
+                                AddQuadData(q);
+                                QuadPool.Release(q);
+                            }
+                            else
+                            {
+                                Quad q = QuadPool.Get();
+                                q.Init((BlockSide)i, offset, uvs: _blockUVs, uv2s: _colormapUVs);
+                                AddQuadData(q);
+                                QuadPool.Release(q);
+                            }
+                        }
+                        else
+                        {
+                            Quad q = QuadPool.Get();
+                            q.Init((BlockSide)i, offset, uvs: _blockUVs, uv2s: _colormapUVs);
+                            AddQuadData(q);
+                            QuadPool.Release(q);
+                        }
+                    }
+                }
+            }
         }
 
         private void GetBlockUVs(BlockType blockType, ref Vector2[] blockUVs)
