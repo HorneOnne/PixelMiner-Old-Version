@@ -184,7 +184,7 @@ namespace PixelMiner.WorldGen
 
 
             // World Initialization
-            InitWorldAsyncInSequence(0, 0, widthInit: _worldLoading.InitWorldWidth, depthInit: _worldLoading.InitWorldDepth, () =>
+            InitWorldAsyncInSequence(_worldLoading.LastChunkFrame.x, _worldLoading.LastChunkFrame.z, widthInit: _worldLoading.InitWorldWidth, depthInit: _worldLoading.InitWorldDepth, () =>
             {
                 OnWorldGenWhenStartFinished?.Invoke();
             });
@@ -199,23 +199,27 @@ namespace PixelMiner.WorldGen
         }
 
 
-        private void DrawChunk(Chunk chunk)
+        private async void DrawChunk(Chunk chunk)
         {
+            chunk.State = Chunk.ChunkState.Processing;
+            chunk.Left.State = Chunk.ChunkState.Processing;
+            chunk.Right.State = Chunk.ChunkState.Processing;
+            chunk.Front.State = Chunk.ChunkState.Processing;
+            chunk.Back.State = Chunk.ChunkState.Processing;
             if (!chunk.ChunkHasDrawn)
             {
-                _worldLoading.LoadChunk(chunk);
-                SuperDrawChunk(chunk);
+               
+                chunk.DrawChunkAsync();
             }
+            chunk.State = Chunk.ChunkState.Stable;
+            chunk.Left.State = Chunk.ChunkState.Stable;
+            chunk.Right.State = Chunk.ChunkState.Stable;
+            chunk.Front.State = Chunk.ChunkState.Stable;
+            chunk.Back.State = Chunk.ChunkState.Stable;
         }
         #endregion
 
 
-        private async void SuperDrawChunk(Chunk chunk)
-        {
-            float[] heightValues = await GetHeightMapDataAsync(chunk.FrameX, chunk.FrameZ, Main.Instance.ChunkWidth, Main.Instance.ChunkDepth);
-            await LoadHeightMapDataAsync(chunk, heightValues);
-            chunk.DrawChunkAsync();
-        }
 
         #region Compute noise range [min, max] when start
         public async Task ComputeNoiseRangeAsyncInSequence()
@@ -356,7 +360,7 @@ namespace PixelMiner.WorldGen
             {
                 for (int z = initFrameZ - depthInit; z <= initFrameZ + depthInit; z++)
                 {
-                    Chunk newChunk = GenerateNewChunk(x,0,z);
+                    Chunk newChunk = await GenerateNewChunk(x,0,z);
                     _worldLoading.LoadChunk(newChunk);
                     UpdateChunkNeighbors(newChunk);
 
@@ -371,14 +375,16 @@ namespace PixelMiner.WorldGen
 
 
 
-        public Chunk GenerateNewChunk(int frameX, int frameY, int frameZ)
+        public async Task<Chunk> GenerateNewChunk(int frameX, int frameY, int frameZ)
         {
             Vector3Int frame = new Vector3Int(frameX, frameY, frameZ);
             Vector3 worldPosition = frame * new Vector3Int(Main.Instance.ChunkWidth, Main.Instance.ChunkHeight, Main.Instance.ChunkDepth);
             Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity, _chunkParent.transform);
             newChunk.Init(frameX, frameY, frameZ, _chunkWidth, _chunkHeight, _chunkDepth);
 
-          
+            float[] heightValues = await GetHeightMapDataAsync(newChunk.FrameX, newChunk.FrameZ, Main.Instance.ChunkWidth, Main.Instance.ChunkDepth);
+            await LoadHeightMapDataAsync(newChunk, heightValues);
+
             // Create new data
             //float[] heightValues = await GetHeightMapDataAsync(frameX, frameZ, _chunkWidth, _chunkHeight, _chunkDepth);
             //float[] heatValues = await GetHeatMapDataAysnc(frameX, frameZ);
@@ -622,7 +628,6 @@ namespace PixelMiner.WorldGen
 
         public async Task LoadHeightMapDataAsync(Chunk chunk, float[] heightValues)
         {
-            chunk.Processing = true;
             await Task.Run(() =>
             {         
                 //Debug.Log($"Ground: {Mathf.FloorToInt(Water * _chunkHeight)}");
@@ -671,10 +676,7 @@ namespace PixelMiner.WorldGen
                             else
                             {
                                 chunk.ChunkData[index3D] = BlockType.Air;
-                            }
-                            
-
-
+                            }                            
                         }
                     }
                 }
@@ -785,9 +787,8 @@ namespace PixelMiner.WorldGen
                 //    }
                 //}
 
-
+                chunk.HasData = true;
             });
-            chunk.Processing = false;
         }
 
 

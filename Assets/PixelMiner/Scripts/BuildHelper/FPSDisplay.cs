@@ -6,9 +6,12 @@ namespace PixelMiner.BuildHelper
     {
         float deltaTime = 0.0f;
 
+
         private void Awake()
         {
-            //Application.targetFrameRate = 60;
+#if UNITY_ANDROID && !UNITY_EDITOR
+            Application.targetFrameRate = 60;
+#endif
         }
         private void Update()
         {

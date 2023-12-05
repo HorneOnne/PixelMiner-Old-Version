@@ -468,7 +468,7 @@ Transform:
   m_GameObject: {fileID: 314038815}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 5.801532, z: 0}
+  m_LocalPosition: {x: -133.484, y: 5.801532, z: -685.66284}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -528,7 +528,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _moveSpeed: 50
   _moveDirection: {x: 0, y: 0, z: 0}
-  ContinuousMove: 1
+  ContinuousMove: 0
 --- !u!65 &314038821
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -863,7 +863,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: -61.237244, y: 55.80154, z: -61.23724}
+  m_LocalPosition: {x: -194.72125, y: 55.80153, z: -746.9001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1551,7 +1551,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   InitWorldWidth: 3
   InitWorldDepth: 3
-  LoadChunkOffsetWidth: 2
+  LoadChunkOffsetWidth: 3
   LoadChunkOffsetDepth: 3
   InitFastDrawChunk: 0
   _playerTrans: {fileID: 314038816}
@@ -2019,7 +2019,7 @@ Transform:
   m_GameObject: {fileID: 1694405455}
   serializedVersion: 2
   m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: -61.237244, y: 55.80154, z: -61.23724}
+  m_LocalPosition: {x: -194.72125, y: 55.80153, z: -746.9001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

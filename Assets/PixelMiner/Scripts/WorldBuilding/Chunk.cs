@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using PixelMiner.Enums;
 using PixelMiner.DataStructure;
 using Sirenix.OdinInspector;
-using Mono.CSharp;
+
 
 namespace PixelMiner.WorldBuilding
 {
@@ -14,15 +14,21 @@ namespace PixelMiner.WorldBuilding
         public static System.Action<Chunk> OnChunkFarAway;
         public static System.Action<Chunk> OnChunkHasNeighbors;
 
+        public enum ChunkState
+        {
+            Init, Processing, Stable
+        }
+        public ChunkState State;
+        public bool HasData = false;
+
         // OLD
         public int FrameX;
         public int FrameY;
         public int FrameZ;
 
-        public bool HasChunkNeighbors = false;
-        public bool AllTileHasNeighbors = false;
+
         public bool ChunkHasDrawn = false;
-        public bool Processing { get; set; } = false;
+
 
         private float _unloadChunkDistance = 100;
         private float _updateFrequency = 1.0f;
@@ -42,13 +48,12 @@ namespace PixelMiner.WorldBuilding
         [SerializeField] public MeshFilter SolidMeshFilter;
         [SerializeField] public MeshFilter WaterMeshFilter;
 
-        public byte Width;
-        public byte Height;
-        public byte Depth;
+        public byte _width;
+        public byte _height;
+        public byte _depth;
 
-        // Data
-        //[HideInInspector] public Block[,,] Blocks;  // Mesh (create unity mesh)
-        public BlockType[] ChunkData; // Block Data (Define block type)
+
+        [HideInInspector] public BlockType[] ChunkData;
         [HideInInspector] public HeatType[] HeatData;
         [HideInInspector] public MoistureType[] MoistureData;
         [HideInInspector] public float[] HeightValues;
@@ -56,7 +61,6 @@ namespace PixelMiner.WorldBuilding
         [HideInInspector] public float[] MoistureValues;
 
         private Transform _playerTrans;
-
 
 
         private void Start()
@@ -71,8 +75,18 @@ namespace PixelMiner.WorldBuilding
 
         private void OnDestroy()
         {
+            //ChunkData = null;
+            //HeatData = null;
+            //MoistureData = null;
+            //HeightValues = null;
+            //HeatValues = null;
+            //MoistureValues = null;
+            //_solidNeighbors = null;
+
             Object.Destroy(SolidMeshFilter.sharedMesh);
-            Object.Destroy(WaterMeshFilter.sharedMesh); 
+            Object.Destroy(WaterMeshFilter.sharedMesh);
+            //Destroy(SolidMeshFilter);
+            //Destroy(WaterMeshFilter);
         }
 
         private void Update()
@@ -80,35 +94,30 @@ namespace PixelMiner.WorldBuilding
             if (Time.time - _updateTimer > _updateFrequency)
             {
                 _updateTimer = Time.time;
+
                 if (Vector3.Distance(_playerTrans.position, transform.position) > _unloadChunkDistance
-                    && Processing == false)
+                    && State == ChunkState.Stable)
                 {
                     OnChunkFarAway?.Invoke(this);
                 }
-            }
-
-            if (Input.GetKeyDown(KeyCode.J))
-            {
-                if (HasNeighbors())
-                    DrawChunkAsync();
             }
         }
 
         public void Init(int frameX, int frameY, int frameZ, byte width, byte height, byte depth)
         {
-            Processing = true;
+            State = ChunkState.Init;
 
             // Set properties
             this.FrameX = frameX;
             this.FrameY = frameY;
             this.FrameZ = frameZ;
-            this.Width = width;
-            this.Height = height;
-            this.Depth = depth;
+            this._width = width;
+            this._height = height;
+            this._depth = depth;
 
             // Init data
-            int size3D = Width * Height * Depth;
-            int size2D = Width * Depth;
+            int size3D = _width * _height * _depth;
+            int size2D = _width * _depth;
             //Blocks = new Block[Width, Height, Depth];
             ChunkData = new BlockType[size3D];
             HeatData = new HeatType[size3D];
@@ -117,22 +126,18 @@ namespace PixelMiner.WorldBuilding
             HeatValues = new float[size2D];
             MoistureValues = new float[size2D];
 
-
-            Processing = false;
+            State = ChunkState.Stable;
         }
 
 
 
-
-
         public async void DrawChunkAsync()
-        {
+        {      
             if (ChunkHasDrawn) return;
-            Processing = true;
-            ChunkHasDrawn = true;
-
+    
+  
             ChunkMeshData chunkMeshData = await GetSolidLargeMeshDataAsync();
-           SolidMeshFilter.sharedMesh = await MeshUtils.MergeLargeMeshDataAsyncParallel(chunkMeshData);
+            SolidMeshFilter.sharedMesh = await MeshUtils.MergeLargeMeshDataAsyncParallel(chunkMeshData);
             ChunkMeshDataPool.Release(chunkMeshData);
 
             //return;
@@ -149,9 +154,7 @@ namespace PixelMiner.WorldBuilding
             //_solidMeshFilter.mesh = MeshUtils.MergeMeshTesting(solidMeshDataList.ToArray());
             //_fluidMeshFilter.mesh = MeshUtils.MergeMeshTesting(fluidMeshDataList.ToArray());
 
-
-
-            Processing = false;
+            ChunkHasDrawn = true;
         }
 
 
@@ -160,11 +163,11 @@ namespace PixelMiner.WorldBuilding
             List<MeshData> solidMeshDataList = new List<MeshData>();
             await Task.Run(() =>
             {
-                for (int x = 0; x < Width; x++)
+                for (int x = 0; x < _width; x++)
                 {
-                    for (int z = 0; z < Depth; z++)
+                    for (int z = 0; z < _depth; z++)
                     {
-                        for (int y = 0; y < Height; y++)
+                        for (int y = 0; y < _height; y++)
                         {
                             BlockType blockType = ChunkData[IndexOf(x, y, z)];
                             if (blockType != BlockType.Water)
@@ -188,38 +191,35 @@ namespace PixelMiner.WorldBuilding
         }
         private async Task<ChunkMeshData> GetSolidLargeMeshDataAsync()
         {
-            Processing = true;
             ChunkMeshData largeMeshData = ChunkMeshDataPool.Get();
             await Task.Run(() =>
             {
-                for (int x = 0; x < Width; x++)
+                for (int x = 0; x < _width; x++)
                 {
-                    for (int z = 0; z < Depth; z++)
+                    for (int z = 0; z < _depth; z++)
                     {
-                        for (int y = 0; y < Height; y++)
+                        for (int y = 0; y < _height; y++)
                         {
                             BlockType blockType = ChunkData[IndexOf(x, y, z)];
                             if (blockType != BlockType.Water)
                             {
-                                bool[] solidNeighbors = GetSolidBlockNeighbors(x, y, z, solidNB: _solidNeighbors);
+                                GetSolidBlockNeighbors(x, y, z, solidNB: _solidNeighbors);
                                 Block block = BlockPool.Get();
 
-                                block.DrawSolid(ChunkData[IndexOf(x, y, z)], solidNeighbors, new Vector3(x, y, z));
-     
+                                block.DrawSolid(ChunkData[IndexOf(x, y, z)], _solidNeighbors, new Vector3(x, y, z));
+
 
                                 if (block.QuadCount > 0)
                                 {
                                     largeMeshData.AddData(block);
                                 }
-                                
+
                                 BlockPool.Release(block);
                             }
                         }
                     }
                 }
             });
-
-            Processing = false;
             return largeMeshData;
         }
 
@@ -228,11 +228,11 @@ namespace PixelMiner.WorldBuilding
             List<MeshData> fluidMeshDataList = new List<MeshData>();
             await Task.Run(() =>
             {
-                for (int x = 0; x < Width; x++)
+                for (int x = 0; x < _width; x++)
                 {
-                    for (int z = 0; z < Depth; z++)
+                    for (int z = 0; z < _depth; z++)
                     {
-                        for (int y = 0; y < Height; y++)
+                        for (int y = 0; y < _height; y++)
                         {
                             BlockType blockType = ChunkData[IndexOf(x, y, z)];
                             if (blockType == BlockType.Water)
@@ -269,23 +269,20 @@ namespace PixelMiner.WorldBuilding
         }
         public bool BlockHasSolidNeighbors(int x, int y, int z)
         {
-            if (y < 0)
-                return true;    
-            if (y >= Height)
-                return false;
+            if (!HasNeighbors()) return false;
 
-            //if (x < 0 || x >= Width || z < 0 || z >= Depth)
-            //    return false;
+            
 
+ 
             if (x < 0)
             {
-                var leftNBBType = Left.ChunkData[IndexOf(Width - 1, y, z)];
+                var leftNBBType = Left.ChunkData[IndexOf(_width - 1, y, z)];
                 if (leftNBBType == BlockType.Air || leftNBBType == BlockType.Water)
                     return false;
                 else
                     return true;
             }
-            if (x >= Width)
+            if (x >= _width)
             {
                 var rightNBBType = Right.ChunkData[IndexOf(0, y, z)];
                 if (rightNBBType == BlockType.Air || rightNBBType == BlockType.Water)
@@ -296,13 +293,13 @@ namespace PixelMiner.WorldBuilding
 
             if (z < 0)
             {
-                var backNBBType = Back.ChunkData[IndexOf(x, y, Depth - 1)];
+                var backNBBType = Back.ChunkData[IndexOf(x, y, _depth - 1)];
                 if (backNBBType == BlockType.Air || backNBBType == BlockType.Water)
                     return false;
                 else
                     return true;
             }
-            if (z >= Depth)
+            if (z >= _depth)
             {
                 var frontNBBType = Front.ChunkData[IndexOf(x, y, 0)];
                 if (frontNBBType == BlockType.Air || frontNBBType == BlockType.Water)
@@ -310,6 +307,11 @@ namespace PixelMiner.WorldBuilding
                 else
                     return true;
             }
+
+            if (y < 0)
+                return true;
+            if (y >= _height)
+                return false;
 
             BlockType blockType = ChunkData[IndexOf(x, y, z)];
             switch (blockType)
@@ -320,11 +322,13 @@ namespace PixelMiner.WorldBuilding
                 default:
                     return true;
             }
+
+         
         }
 
         public bool BlockHasFuildNeighbors(int x, int y, int z)
         {
-            if (x < 0 || x >= Width || y < 0 || y >= Height || z < 0 || z >= Depth)
+            if (x < 0 || x >= _width || y < 0 || y >= _height || z < 0 || z >= _depth)
             {
                 return false;
             }
@@ -342,7 +346,6 @@ namespace PixelMiner.WorldBuilding
      
         public bool[] GetSolidBlockNeighbors(int x, int y, int z, bool[] solidNB)
         {
-           
             //bool[] solidNeighbors = new bool[6] { true, true, true, true, true, true }; // maximum 6 neighbors [ Top, Bottom, Front , Back, Left, Right]
             // Reset
             for (int i = 0; i < 6; i++)
@@ -456,11 +459,11 @@ namespace PixelMiner.WorldBuilding
         #region Utilities
         private int IndexOf(int x, int y, int z)
         {
-            return x + Width * (y + Height * z);
+            return x + _width * (y + _height * z);
         }
         private int IndexOf(int x, int z)
         {
-            return x + z * Depth;
+            return x + z * _depth;
         }
         #endregion
     }

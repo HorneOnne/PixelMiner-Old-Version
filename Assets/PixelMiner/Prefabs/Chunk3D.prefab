@@ -41,7 +41,7 @@ MeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2692345483025723582}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
@@ -129,17 +129,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1dc937e79d1d15b4b8e11dac39d989b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  State: 0
   FrameX: 0
   FrameY: 0
   FrameZ: 0
-  HasChunkNeighbors: 0
-  AllTileHasNeighbors: 0
   ChunkHasDrawn: 0
   SolidMeshFilter: {fileID: 6227397144623573410}
   WaterMeshFilter: {fileID: 1053322345327296597}
-  Width: 96
-  Height: 1
-  Depth: 96
+  _width: 0
+  _height: 0
+  _depth: 0
   ChunkData: 
   HeatData: 
   MoistureData: 
@@ -187,7 +186,7 @@ MeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4778986418883693240}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0

@@ -22,7 +22,7 @@ namespace PixelMiner.WorldGen
 
         // Cached
         [SerializeField] private Transform _playerTrans;
-        private Vector3Int _lastChunkFrame;
+        public Vector3Int LastChunkFrame {get; private set;}
         private Vector3Int _currentFrame;
         // Performance
         private float _updateTimer = 0.0f;
@@ -32,6 +32,9 @@ namespace PixelMiner.WorldGen
         private void Awake()
         {
             Instance = this;
+            _currentFrame = new Vector3Int(Mathf.FloorToInt(_playerTrans.position.x / Main.Instance.ChunkWidth), 0,
+                   Mathf.FloorToInt(_playerTrans.position.z / Main.Instance.ChunkDepth));
+            LastChunkFrame = _currentFrame;
         }
 
         private void Start()
@@ -39,9 +42,7 @@ namespace PixelMiner.WorldGen
             _main = Main.Instance;
             _worldGen = WorldGeneration.Instance;
 
-            _currentFrame = new Vector3Int(Mathf.FloorToInt(_playerTrans.position.x / Main.Instance.ChunkWidth), 0,
-                    Mathf.FloorToInt(_playerTrans.position.z / Main.Instance.ChunkDepth));
-            _lastChunkFrame = _currentFrame;
+           
 
 
 
@@ -79,10 +80,10 @@ namespace PixelMiner.WorldGen
                         Mathf.FloorToInt(_playerTrans.position.z / _main.ChunkDepth));
 
 
-                    if (_currentFrame != _lastChunkFrame)
+                    if (_currentFrame != LastChunkFrame)
                     {
-                        _lastChunkFrame = _currentFrame;
-                        LoadChunksAroundPositionInSequence(_lastChunkFrame.x, 0, _lastChunkFrame.z, offsetWidth: LoadChunkOffsetWidth, offsetDepth: LoadChunkOffsetDepth);
+                        LastChunkFrame = _currentFrame;
+                        LoadChunksAroundPositionInSequence(LastChunkFrame.x, 0, LastChunkFrame.z, offsetWidth: LoadChunkOffsetWidth, offsetDepth: LoadChunkOffsetDepth);
                     }
                 }
             }
@@ -97,7 +98,7 @@ namespace PixelMiner.WorldGen
         /// <param name="frameZ"></param>
         /// <param name="offsetWidth"></param>
         /// <param name="offsetDepth"></param>
-        private void LoadChunksAroundPositionInSequence(int frameX, int frameY, int frameZ, byte offsetWidth = 1, byte offsetDepth = 1)
+        private async void LoadChunksAroundPositionInSequence(int frameX, int frameY, int frameZ, byte offsetWidth = 1, byte offsetDepth = 1)
         {          
             for (int x = frameX - offsetWidth; x <= frameX + offsetWidth; x++)
             {
@@ -113,7 +114,7 @@ namespace PixelMiner.WorldGen
                             // ......
                         }
 
-                        Chunk newChunk = _worldGen.GenerateNewChunk(x, 0, z);
+                        Chunk newChunk = await _worldGen.GenerateNewChunk(x, 0, z);
                         LoadChunk(newChunk);
                         _worldGen.UpdateChunkNeighbors(newChunk);
 
@@ -176,13 +177,13 @@ namespace PixelMiner.WorldGen
 
         private void OnChunkFarAway(Chunk chunk)
         {
-            if (!chunk.Processing && Main.Instance.AutoUnloadChunk)
+            if (Main.Instance.AutoUnloadChunk)
             {
-                //UnloadChunk(chunk);
+                UnloadChunk(chunk);
 
-                _main.ActiveChunks.Remove(chunk);
-                _main.Chunks.Remove(new Vector3Int(chunk.FrameX, chunk.FrameY, chunk.FrameZ));
-                Destroy(chunk.gameObject);
+                //_main.ActiveChunks.Remove(chunk);
+                //_main.Chunks.Remove(new Vector3Int(chunk.FrameX, chunk.FrameY, chunk.FrameZ));
+                //Destroy(chunk.gameObject);
             }
         }
     }
