@@ -484,7 +484,7 @@ Transform:
   m_GameObject: {fileID: 314038815}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -133.484, y: 4.1, z: -685.66284}
+  m_LocalPosition: {x: -84.26217, y: 4.1, z: -685.2385}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -852,8 +852,8 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 12
-  orthographic: 0
+  field of view: 34
+  orthographic: 1
   orthographic size: 10
   m_Depth: -1
   m_CullingMask:
@@ -878,8 +878,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.2588191, y: -0, z: -0, w: 0.9659258}
-  m_LocalPosition: {x: -133.484, y: 54.100006, z: -772.2654}
+  m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
+  m_LocalPosition: {x: -145.49942, y: 54.099987, z: -746.4758}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -963,7 +963,7 @@ MonoBehaviour:
   ChunkHeight: 10
   ChunkDepth: 32
   AutoLoadChunk: 1
-  AutoUnloadChunk: 1
+  AutoUnloadChunk: 0
   ShowChunksBorder: 0
   ShowTilegroupMaps: 0
   InitWorldWithHeatmap: 0
@@ -1565,10 +1565,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22ae457847da8e43877aef4220ef471, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  InitWorldWidth: 3
-  InitWorldDepth: 3
-  LoadChunkOffsetWidth: 3
-  LoadChunkOffsetDepth: 3
+  InitWorldWidth: 1
+  InitWorldDepth: 1
+  LoadChunkOffsetWidth: 1
+  LoadChunkOffsetDepth: 1
   InitFastDrawChunk: 0
   _playerTrans: {fileID: 314038816}
 --- !u!1 &1252983687
@@ -1672,7 +1672,7 @@ Transform:
   m_GameObject: {fileID: 1334762261}
   serializedVersion: 2
   m_LocalRotation: {x: 0.2588191, y: 0, z: 0, w: 0.9659258}
-  m_LocalPosition: {x: -133.484, y: 54.100006, z: -772.2654}
+  m_LocalPosition: {x: -84.26217, y: 54.100025, z: -771.84106}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2229,7 +2229,7 @@ Transform:
   m_GameObject: {fileID: 1694405455}
   serializedVersion: 2
   m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: -194.72125, y: 54.09999, z: -746.9001}
+  m_LocalPosition: {x: -145.49942, y: 54.099987, z: -746.4758}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

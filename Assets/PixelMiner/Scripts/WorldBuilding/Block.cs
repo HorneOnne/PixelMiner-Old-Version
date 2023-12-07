@@ -22,11 +22,12 @@ namespace PixelMiner.WorldBuilding
 
         Vector2[] _blockUVs;
         Vector2[] _colormapUVs;
-        public List<Vector3> _vertices;
-        public List<Vector3> _normals;
-        public List<Vector2> _uvs;
-        public List<Vector2> _uv2s;
-        public int QuadCount;
+        //public List<Vector3> _vertices;
+        //public List<Vector3> _normals;
+        //public List<Vector2> _uvs;
+        //public List<Vector2> _uv2s;
+        //public int QuadCount;
+        public List<Quad> Quads = new List<Quad>();
 
 
         public Block()
@@ -34,11 +35,11 @@ namespace PixelMiner.WorldBuilding
             Debug.Log("Create new Block.cs");
             _blockUVs = new Vector2[4];
             _colormapUVs = new Vector2[4];
-            _vertices = new List<Vector3>();
-            _normals = new List<Vector3>(); 
-            _uvs = new List<Vector2>();
-            _uv2s = new List<Vector2>();
-            QuadCount = 0;
+            //_vertices = new List<Vector3>();
+            //_normals = new List<Vector3>(); 
+            //_uvs = new List<Vector2>();
+            //_uv2s = new List<Vector2>();
+            //QuadCount = 0;
         }
 
         public void DrawSolid(BlockType blockType, bool[] neighbors, Vector3 offset = (default))
@@ -62,7 +63,7 @@ namespace PixelMiner.WorldBuilding
                                 Quad q = QuadPool.Get();
                                 q.Init((BlockSide)i, offset, uvs: _blockUVs, uv2s: _colormapUVs);
                                 AddQuadData(q);
-                                QuadPool.Release(q);
+                               // QuadPool.Release(q);
          
                             }
                             else if (i == (byte)BlockSide.Bottom)
@@ -71,14 +72,14 @@ namespace PixelMiner.WorldBuilding
                                 Quad q = QuadPool.Get();
                                 q.Init((BlockSide)i, offset, uvs: _blockUVs, uv2s: _colormapUVs);
                                 AddQuadData(q);
-                                QuadPool.Release(q);
+                                //QuadPool.Release(q);
                             }
                             else
                             {
                                 Quad q = QuadPool.Get();
                                 q.Init((BlockSide)i, offset, uvs: _blockUVs, uv2s: _colormapUVs);
                                 AddQuadData(q);
-                                QuadPool.Release(q);
+                                //QuadPool.Release(q);
                             }
                         }
                         else
@@ -86,7 +87,7 @@ namespace PixelMiner.WorldBuilding
                             Quad q = QuadPool.Get();
                             q.Init((BlockSide)i, offset, uvs: _blockUVs, uv2s: _colormapUVs);
                             AddQuadData(q);
-                            QuadPool.Release(q);
+                            //QuadPool.Release(q);
                         }
                     }
                 }
@@ -192,20 +193,24 @@ namespace PixelMiner.WorldBuilding
 
         private void AddQuadData(Quad quad)
         {
-            _vertices.AddRange(quad._vertices);
-            _normals.AddRange(quad._normals);
-            _uvs.AddRange(quad._uvs);
-            _uv2s.AddRange(quad._uv2s);
-            QuadCount++;
+            Quads.Add(quad);
+
+            //_vertices.AddRange(quad._vertices);
+            //_normals.AddRange(quad._normals);
+            //_uvs.AddRange(quad._uvs);
+            //_uv2s.AddRange(quad._uv2s);
+            //QuadCount++;
         }
 
         public void Reset()
         {
-            _vertices.Clear();
-            _normals.Clear();
-            _uvs.Clear();
-            _uv2s.Clear();
-            QuadCount = 0;
+            //_vertices.Clear();
+            //_normals.Clear();
+            //_uvs.Clear();
+            //_uv2s.Clear();
+            //QuadCount = 0;
+
+            Quads.Clear();
         }
     }
 }

@@ -125,16 +125,23 @@ namespace PixelMiner.WorldBuilding
         public async void DrawChunkAsync()
         {      
             if (ChunkHasDrawn) return;
-    
-  
-            ChunkMeshData solidChunkMeshData = await GetSolidChunkMeshDataAsync();
-            ChunkMeshData fluidChunkMeshData = await GetFluidChunkMeshDataAsync();
 
-            SolidMeshFilter.sharedMesh = await MeshUtils.MergeLargeMeshDataAsyncParallel(solidChunkMeshData);
-            WaterMeshFilter.sharedMesh = await MeshUtils.MergeLargeMeshDataAsyncParallel(fluidChunkMeshData);
 
-            ChunkMeshDataPool.Release(solidChunkMeshData);
-            ChunkMeshDataPool.Release(fluidChunkMeshData);
+            List<Quad> quads = await GetSolidChunkMeshDataAsync02();
+            SolidMeshFilter.sharedMesh = await MeshUtils.MergeLargeMeshDataAsyncParallel(quads);
+            for (int i = 0; i < quads.Count; i++)
+            {
+                QuadPool.Release(quads[i]);
+            }
+
+            //ChunkMeshData solidChunkMeshData = await GetSolidChunkMeshDataAsync();
+            //ChunkMeshData fluidChunkMeshData = await GetFluidChunkMeshDataAsync();
+
+            //SolidMeshFilter.sharedMesh = await MeshUtils.MergeLargeMeshDataAsyncParallel(solidChunkMeshData);
+            //WaterMeshFilter.sharedMesh = await MeshUtils.MergeLargeMeshDataAsyncParallel(fluidChunkMeshData);
+
+            //ChunkMeshDataPool.Release(solidChunkMeshData);
+            //ChunkMeshDataPool.Release(fluidChunkMeshData);
 
             //var solidCollider = _solidMeshFilter.gameObject.AddComponent<MeshCollider>();
             //solidCollider.sharedMesh = _solidMeshFilter.mesh;
@@ -147,6 +154,37 @@ namespace PixelMiner.WorldBuilding
         private async Task<ChunkMeshData> GetSolidChunkMeshDataAsync()
         {
             ChunkMeshData largeMeshData = ChunkMeshDataPool.Get();
+            //await Task.Run(() =>
+            //{
+            //    for (int x = 0; x < _width; x++)
+            //    {
+            //        for (int z = 0; z < _depth; z++)
+            //        {
+            //            for (int y = 0; y < _height; y++)
+            //            {
+            //                BlockType blockType = ChunkData[IndexOf(x, y, z)];
+            //                if (blockType != BlockType.Water)
+            //                {
+            //                    GetSolidBlockNeighbors(x, y, z, neighbors: _neighbors);
+            //                    Block block = BlockPool.Get();
+            //                    block.DrawSolid(ChunkData[IndexOf(x, y, z)], _neighbors, new Vector3(x, y, z));
+            //                    if (block.QuadCount > 0)
+            //                    {
+            //                        largeMeshData.AddData(block);
+            //                    }
+
+            //                    BlockPool.Release(block);
+            //                }
+            //            }
+            //        }
+            //    }
+            //});
+            return largeMeshData;
+        }
+
+        private async Task<List<Quad>> GetSolidChunkMeshDataAsync02()
+        {
+            List<Quad> Quads = new List<Quad>();    
             await Task.Run(() =>
             {
                 for (int x = 0; x < _width; x++)
@@ -161,9 +199,9 @@ namespace PixelMiner.WorldBuilding
                                 GetSolidBlockNeighbors(x, y, z, neighbors: _neighbors);
                                 Block block = BlockPool.Get();
                                 block.DrawSolid(ChunkData[IndexOf(x, y, z)], _neighbors, new Vector3(x, y, z));
-                                if (block.QuadCount > 0)
+                                if (block.Quads.Count > 0)
                                 {
-                                    largeMeshData.AddData(block);
+                                    Quads.AddRange(block.Quads);
                                 }
 
                                 BlockPool.Release(block);
@@ -172,7 +210,7 @@ namespace PixelMiner.WorldBuilding
                     }
                 }
             });
-            return largeMeshData;
+            return Quads;
         }
 
         private async Task<ChunkMeshData> GetFluidChunkMeshDataAsync()
@@ -180,28 +218,28 @@ namespace PixelMiner.WorldBuilding
             ChunkMeshData largeMeshData = ChunkMeshDataPool.Get();
             await Task.Run(() =>
             {
-                for (int x = 0; x < _width; x++)
-                {
-                    for (int z = 0; z < _depth; z++)
-                    {
-                        for (int y = 0; y < _height; y++)
-                        {
-                            BlockType blockType = ChunkData[IndexOf(x, y, z)];
-                            if (blockType == BlockType.Water)
-                            {
-                                GetFluidBlockNeighbors(x, y, z,_neighbors);
-                                Block block = BlockPool.Get();
-                                block.DrawFluid(ChunkData[IndexOf(x, y, z)], _neighbors, 1, new Vector3(x, y, z));
-                                if (block.QuadCount > 0)
-                                {
-                                    largeMeshData.AddData(block);
-                                }
-                                BlockPool.Release(block);
-                            }
+                //for (int x = 0; x < _width; x++)
+                //{
+                //    for (int z = 0; z < _depth; z++)
+                //    {
+                //        for (int y = 0; y < _height; y++)
+                //        {
+                //            BlockType blockType = ChunkData[IndexOf(x, y, z)];
+                //            if (blockType == BlockType.Water)
+                //            {
+                //                GetFluidBlockNeighbors(x, y, z,_neighbors);
+                //                Block block = BlockPool.Get();
+                //                block.DrawFluid(ChunkData[IndexOf(x, y, z)], _neighbors, 1, new Vector3(x, y, z));
+                //                if (block.QuadCount > 0)
+                //                {
+                //                    largeMeshData.AddData(block);
+                //                }
+                //                BlockPool.Release(block);
+                //            }
 
-                        }
-                    }
-                }
+                //        }
+                //    }
+                //}
             });
 
             return largeMeshData;

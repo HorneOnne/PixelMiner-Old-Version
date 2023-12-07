@@ -28,11 +28,11 @@ namespace PixelMiner.WorldBuilding
 
         public void AddData(Block block)
         {
-            Vertices.AddRange(block._vertices);
-            Normals.AddRange(block._normals);
-            UVs.AddRange(block._uvs);
-            UV2s.AddRange(block._uv2s);
-            QuadCount += block.QuadCount;
+            //Vertices.AddRange(block._vertices);
+            //Normals.AddRange(block._normals);
+            //UVs.AddRange(block._uvs);
+            //UV2s.AddRange(block._uv2s);
+            //QuadCount += block.QuadCount;
         }
 
 

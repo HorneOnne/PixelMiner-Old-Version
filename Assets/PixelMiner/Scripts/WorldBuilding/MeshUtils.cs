@@ -4,6 +4,10 @@ using UnityEngine.Rendering;
 using PixelMiner.DataStructure;
 using System.IO;
 using PixelMiner.Utilities;
+using JetBrains.Annotations;
+using System.Collections.Generic;
+using UnityEditor.Animations;
+using Codice.Client.Common.GameUI;
 
 namespace PixelMiner.WorldBuilding
 {
@@ -279,13 +283,50 @@ namespace PixelMiner.WorldBuilding
 
         public static async Task<Mesh> MergeLargeMeshDataAsyncParallel(ChunkMeshData largeMeshData, IndexFormat format = IndexFormat.UInt16)
         {
+            //await Task.Run(() =>
+            //{
+            //    largeMeshData.CalculateTriangleIndexes();
+            //});
+
+            //Mesh mesh = new Mesh();
+            //mesh.indexFormat = format;
+
+            //mesh.SetVertices(largeMeshData.Vertices);
+            //mesh.SetNormals(largeMeshData.Normals);
+            //mesh.SetTriangles(largeMeshData.Tris, 0);
+            //mesh.SetUVs(0, largeMeshData.UVs);
+            //mesh.SetUVs(1, largeMeshData.UV2s);
+
+            //mesh.RecalculateNormals();
+            //mesh.RecalculateBounds();
+
+            //mesh.UploadMeshData(markNoLongerReadable: true);
+            //return mesh;
+
+
+
             await Task.Run(() =>
             {
                 largeMeshData.CalculateTriangleIndexes();
             });
+            if (largeMeshData.QuadCount == 0)
+                return null;
 
             Mesh mesh = new Mesh();
             mesh.indexFormat = format;
+
+            int numOfQuad = 50;
+            int numOfVertices = numOfQuad * 4;
+            int numOfTris = numOfQuad * 6;
+
+
+            largeMeshData.Vertices.RemoveRange(numOfVertices, largeMeshData.Vertices.Count - numOfVertices);
+            largeMeshData.Normals.RemoveRange(numOfVertices, largeMeshData.Normals.Count - numOfVertices);
+            largeMeshData.UVs.RemoveRange(numOfVertices, largeMeshData.UVs.Count - numOfVertices);
+            largeMeshData.UV2s.RemoveRange(numOfVertices, largeMeshData.UV2s.Count - numOfVertices);
+            largeMeshData.Tris.RemoveRange(numOfTris, largeMeshData.Tris.Count - numOfTris);
+
+  
 
             mesh.SetVertices(largeMeshData.Vertices);
             mesh.SetNormals(largeMeshData.Normals);
@@ -295,11 +336,59 @@ namespace PixelMiner.WorldBuilding
 
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
-            
-            //WriteMeshToFile(mesh);
 
             mesh.UploadMeshData(markNoLongerReadable: true);
             return mesh;
+
+        }
+
+        public static async Task<Mesh> MergeLargeMeshDataAsyncParallel(List<Quad> quads, IndexFormat format = IndexFormat.UInt16)
+        {
+            List<Vector3> verts = new List<Vector3>();
+            List<Vector3> norms = new List<Vector3>();
+            List<Vector2> uvs = new List<Vector2>();
+            List<Vector2> uv2s = new List<Vector2>();
+            List<int> tris = new List<int>();
+
+            Debug.Log(quads.Count);
+            await Task.Run(() =>
+            {
+               for(int i = 0; i < 2; i++)
+                {
+                    verts.AddRange(quads[i]._vertices);
+                    norms.AddRange(quads[i]._normals);
+                    uvs.AddRange(quads[i]._uvs);
+                    uv2s.AddRange(quads[i]._uv2s);
+      
+    
+                    int baseIndex = i * 4;  // Each quad has 4 vertices      
+                    tris.Add(baseIndex + 0);
+                    tris.Add(baseIndex + 3);
+                    tris.Add(baseIndex + 1);
+                    tris.Add(baseIndex + 1);
+                    tris.Add(baseIndex + 3);
+                    tris.Add(baseIndex + 2);
+                }
+            });
+
+            Mesh mesh = new Mesh();
+            mesh.indexFormat = format;
+
+
+            Debug.Log(tris.Count);
+            mesh.SetVertices(verts);
+            mesh.SetNormals(norms);
+            mesh.SetTriangles(tris, 0);
+            mesh.SetUVs(0, uvs);
+            mesh.SetUVs(1, uv2s);
+
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+
+            mesh.UploadMeshData(markNoLongerReadable: true);
+            return mesh;
+
+
         }
     }
 }
