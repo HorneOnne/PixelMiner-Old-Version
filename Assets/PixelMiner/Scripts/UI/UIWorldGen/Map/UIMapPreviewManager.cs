@@ -67,7 +67,7 @@ namespace PixelMiner.UI.WorldGen
 
         private async void UpdateHeightMapPreview()
         {
-            Texture2D texture = await GetHeightmapTextureAsync();
+            Texture2D texture = await GetHeatTextureAsync();
             HeightMapPreview.SetImage(texture);
         }
 
@@ -77,6 +77,60 @@ namespace PixelMiner.UI.WorldGen
             int textureWidth = 960;
             int textureHeight = 540;
             float[] heightValues = await WorldGeneration.Instance.GetHeightMapDataAsync(0, 0, textureWidth, textureHeight);
+            Texture2D texture = new Texture2D(textureWidth, textureHeight);
+            Color[] pixels = new Color[textureWidth * textureHeight];
+            int x;
+            int y;
+            await Task.Run(() =>
+            {
+                Parallel.For(0, heightValues.Length, i =>
+                {
+                    float heightValue = heightValues[i];
+                    x = i % textureWidth;
+                    y = i / textureHeight;
+                    if (heightValue < WorldGeneration.Instance.DeepWater)
+                    {
+                        pixels[i] = WorldGeneration.DeepColor;
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Water)
+                    {
+                        pixels[i] = WorldGeneration.ShallowColor;
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Sand)
+                    {
+                        pixels[i] = WorldGeneration.SandColor;
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Grass)
+                    {
+                        pixels[i] = WorldGeneration.GrassColor;
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Forest)
+                    {
+                        pixels[i] = WorldGeneration.ForestColor;
+                    }
+                    else if (heightValue < WorldGeneration.Instance.Rock)
+                    {
+                        pixels[i] = WorldGeneration.RockColor;
+                    }
+                    else
+                    {
+                        pixels[i] = WorldGeneration.SnowColor;
+                    }
+                });
+            });
+
+            texture.SetPixels(pixels);
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.filterMode = FilterMode.Bilinear;
+            texture.Apply();
+            return texture;
+        }
+
+        private async Task<Texture2D> GetHeatTextureAsync()
+        {
+            int textureWidth = 960;
+            int textureHeight = 540;
+            float[] heightValues = await WorldGeneration.Instance.GetHeatMapDataAysnc(0, 0);
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
             int x;
