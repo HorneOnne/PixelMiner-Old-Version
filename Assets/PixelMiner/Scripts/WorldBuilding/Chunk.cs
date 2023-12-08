@@ -122,13 +122,13 @@ namespace PixelMiner.WorldBuilding
 
 
 
-        public async void DrawChunkAsync()
+        public async void DrawChunkAsync(bool drawHiddenFace = true)
         {      
             if (ChunkHasDrawn) return;
 
 
-            List<Quad> quads = await GetSolidChunkMeshDataAsync02();
-            SolidMeshFilter.sharedMesh = await MeshUtils.MergeLargeMeshDataAsyncParallel(quads);
+            List<Quad> quads = await GetSolidChunkMeshDataAsync02(drawHiddenFace);
+            SolidMeshFilter.sharedMesh = await MeshUtils.MergeLargeMeshDataAsyncParallel(quads, ChunkData);
             for (int i = 0; i < quads.Count; i++)
             {
                 QuadPool.Release(quads[i]);
@@ -182,7 +182,7 @@ namespace PixelMiner.WorldBuilding
             return largeMeshData;
         }
 
-        private async Task<List<Quad>> GetSolidChunkMeshDataAsync02()
+        private async Task<List<Quad>> GetSolidChunkMeshDataAsync02(bool drawHiddenFace)
         {
             List<Quad> Quads = new List<Quad>();    
             await Task.Run(() =>
@@ -196,7 +196,7 @@ namespace PixelMiner.WorldBuilding
                             BlockType blockType = ChunkData[IndexOf(x, y, z)];
                             if (blockType != BlockType.Water)
                             {
-                                GetSolidBlockNeighbors(x, y, z, neighbors: _neighbors);
+                                GetSolidBlockNeighbors(x, y, z, neighbors: _neighbors, drawHiddenFace);
                                 Block block = BlockPool.Get();
                                 block.DrawSolid(ChunkData[IndexOf(x, y, z)], _neighbors, new Vector3(x, y, z));
                                 if (block.Quads.Count > 0)
@@ -332,35 +332,42 @@ namespace PixelMiner.WorldBuilding
         }
 
      
-        public void GetSolidBlockNeighbors(int x, int y, int z, bool[] neighbors)
+        public void GetSolidBlockNeighbors(int x, int y, int z, bool[] neighbors, bool drawHiddenFace)
         {
-            for (int i = 0; i < 6; i++)
-                neighbors[i] = true;
-            
-            if (!BlockHasSolidNeighbors(x, y + 1, z))
+            if(drawHiddenFace)
             {
-                _neighbors[0] = false;
+                for (int i = 0; i < 6; i++)
+                    neighbors[i] = false;
             }
-            if (!BlockHasSolidNeighbors(x, y - 1, z))
+            else
             {
-                _neighbors[1] = false;
-            }
-            if (!BlockHasSolidNeighbors(x, y, z + 1))
-            {
-                _neighbors[2] = false;
-            }
-            if (!BlockHasSolidNeighbors(x, y, z - 1))
-            {
-                _neighbors[3] = false;
-            }
-            if (!BlockHasSolidNeighbors(x - 1, y, z))
-            {
-                _neighbors[4] = false;
-            }
-            if (!BlockHasSolidNeighbors(x + 1, y, z))
-            {
-                _neighbors[5] = false;
-            }
+                for (int i = 0; i < 6; i++)
+                    neighbors[i] = true;
+                if (!BlockHasSolidNeighbors(x, y + 1, z))
+                {
+                    _neighbors[0] = false;
+                }
+                if (!BlockHasSolidNeighbors(x, y - 1, z))
+                {
+                    _neighbors[1] = false;
+                }
+                if (!BlockHasSolidNeighbors(x, y, z + 1))
+                {
+                    _neighbors[2] = false;
+                }
+                if (!BlockHasSolidNeighbors(x, y, z - 1))
+                {
+                    _neighbors[3] = false;
+                }
+                if (!BlockHasSolidNeighbors(x - 1, y, z))
+                {
+                    _neighbors[4] = false;
+                }
+                if (!BlockHasSolidNeighbors(x + 1, y, z))
+                {
+                    _neighbors[5] = false;
+                }
+            }      
         }
 
         public void GetFluidBlockNeighbors(int x, int y, int z, bool[] neighbors)

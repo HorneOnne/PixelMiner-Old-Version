@@ -1,6 +1,7 @@
 using UnityEngine;
 using PixelMiner.Enums;
 using System.Collections.Generic;
+using System;
 
 namespace PixelMiner.WorldBuilding
 {
@@ -103,7 +104,7 @@ namespace PixelMiner.WorldBuilding
         }
 
 
-        private void SetVertices(Vector3 v0, Vector3 v1, Vector3 v2, Vector3 v3)
+        public void SetVertices(Vector3 v0, Vector3 v1, Vector3 v2, Vector3 v3)
         {
             _vertices.Add(v0);
             _vertices.Add(v1);
@@ -111,7 +112,7 @@ namespace PixelMiner.WorldBuilding
             _vertices.Add(v3);
         }
 
-        private void SetNormals(Vector3 v0, Vector3 v1, Vector3 v2, Vector3 v3)
+        public void SetNormals(Vector3 v0, Vector3 v1, Vector3 v2, Vector3 v3)
         {
             _normals.Add(v0);
             _normals.Add(v1);
@@ -119,7 +120,7 @@ namespace PixelMiner.WorldBuilding
             _normals.Add(v3);
         }
 
-        private void SetUVs(Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3)
+        public void SetUVs(Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3)
         {
             _uvs.Add(v0);
             _uvs.Add(v1);
@@ -127,7 +128,7 @@ namespace PixelMiner.WorldBuilding
             _uvs.Add(v3);
         }
 
-        private void SetUV2s(Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3)
+        public void SetUV2s(Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3)
         {
             _uv2s.Add(v0);
             _uv2s.Add(v1);
@@ -135,12 +136,43 @@ namespace PixelMiner.WorldBuilding
             _uv2s.Add(v3);
         }
 
+
         public void Reset()
         {
             _vertices.Clear();
             _normals.Clear();
             _uvs.Clear();
             _uv2s.Clear();
+        }
+
+        public WorldBuilding.Egde GetEdge(int  edgeIndex)
+        {
+            int nextIndex = (edgeIndex + 1) % 4;
+
+            return new WorldBuilding.Egde
+            {
+                Start = _vertices[edgeIndex],
+                End = _vertices[nextIndex]
+            };
+        }
+    }
+
+    public class Egde
+    {
+        public Vector3 Start;
+        public Vector3 End;
+
+        public override bool Equals(object obj)
+        {
+            WorldBuilding.Egde otherEdge = (WorldBuilding.Egde)obj;
+            // Check equality based on Start and End vectors
+            return (Start == (otherEdge.Start) && End == (otherEdge.End)) || (Start == (otherEdge.End) && End == (otherEdge.Start));
+        }
+
+        public override int GetHashCode()
+        {
+            // Generate a hash code based on the vectors
+            return HashCode.Combine(Start, End);
         }
     }
 }

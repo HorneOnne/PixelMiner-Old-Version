@@ -2,59 +2,20 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using PixelMiner.DataStructure;
-using System.IO;
 using PixelMiner.Utilities;
-using JetBrains.Annotations;
 using System.Collections.Generic;
-using UnityEditor.Animations;
-using Codice.Client.Common.GameUI;
+using System.Linq;
+using Sirenix.OdinInspector.Editor;
+using System;
+using PixelMiner.Enums;
 
 namespace PixelMiner.WorldBuilding
 {
+
+
     public static class MeshUtils
     {
         // Example method to write Unity Mesh data to a text file
-        public static void WriteMeshToFile(Mesh mesh)
-        {
-            string filePath = @"C:\Users\anhla\Desktop\meshData.txt";
-            using (StreamWriter writer = new StreamWriter(filePath))
-            {
-                // Write vertices
-                writer.WriteLine("Vertices:");
-                foreach (Vector3 vertex in mesh.vertices)
-                {
-                    writer.WriteLine($"{vertex.x}, {vertex.y}, {vertex.z}");
-                }
-
-                // Write normals
-                writer.WriteLine("\nNormals:");
-                foreach (Vector3 normal in mesh.normals)
-                {
-                    writer.WriteLine($"{normal.x}, {normal.y}, {normal.z}");
-                }
-
-                // Write UV coordinates
-                writer.WriteLine("\nUVs:");
-                foreach (Vector2 uv in mesh.uv)
-                {
-                    writer.WriteLine($"{uv.x}, {uv.y}");
-                }
-
-                // Write triangles
-                writer.WriteLine("\nTriangles:");
-                for (int i = 0; i < mesh.triangles.Length; i += 3)
-                {
-                    int index1 = mesh.triangles[i];
-                    int index2 = mesh.triangles[i + 1];
-                    int index3 = mesh.triangles[i + 2];
-
-                    writer.WriteLine($"{index1}, {index2}, {index3}");
-                }
-
- 
-                Debug.Log($"Mesh data written to file: {filePath}");
-            }
-        }
 
         public static Vector2[,] BlockUVs =
         {
@@ -218,7 +179,7 @@ namespace PixelMiner.WorldBuilding
 
         public static async Task<Mesh> MergeMeshAsyncParallel(MeshData[] meshes, IndexFormat format = IndexFormat.UInt16)
         {
-  
+
             Vector3[] verts = null;
             Vector3[] norms = null;
             int[] tris = null; ;
@@ -230,7 +191,7 @@ namespace PixelMiner.WorldBuilding
             int uvCount = 0;
 
             await Task.Run(() =>
-            {          
+            {
                 for (int i = 0; i < meshes.Length; i++)
                 {
                     triCount += meshes[i].Triangles.Length;
@@ -264,10 +225,10 @@ namespace PixelMiner.WorldBuilding
                 });
             });
 
-       
+
             Mesh mesh = new Mesh();
             mesh.indexFormat = format;
-            
+
             mesh.vertices = verts;
             mesh.normals = norms;
             mesh.uv = uvs;
@@ -326,7 +287,7 @@ namespace PixelMiner.WorldBuilding
             largeMeshData.UV2s.RemoveRange(numOfVertices, largeMeshData.UV2s.Count - numOfVertices);
             largeMeshData.Tris.RemoveRange(numOfTris, largeMeshData.Tris.Count - numOfTris);
 
-  
+
 
             mesh.SetVertices(largeMeshData.Vertices);
             mesh.SetNormals(largeMeshData.Normals);
@@ -342,7 +303,7 @@ namespace PixelMiner.WorldBuilding
 
         }
 
-        public static async Task<Mesh> MergeLargeMeshDataAsyncParallel(List<Quad> quads, IndexFormat format = IndexFormat.UInt16)
+        public static async Task<Mesh> MergeLargeMeshDataAsyncParallel(List<Quad> quads, BlockType[] chunkData, IndexFormat format = IndexFormat.UInt16)
         {
             List<Vector3> verts = new List<Vector3>();
             List<Vector3> norms = new List<Vector3>();
@@ -350,17 +311,33 @@ namespace PixelMiner.WorldBuilding
             List<Vector2> uv2s = new List<Vector2>();
             List<int> tris = new List<int>();
 
-            Debug.Log(quads.Count);
+            int[] dims = new int[] { 3, 3, 3 };
+            Debug.Log($"Length: {chunkData.Length}");
+            int[] volumes = new int[chunkData.Length];
+            for (int i = 0; i < volumes.Length; i++)
+            {
+                volumes[i] = (int)chunkData[i];
+            }
+            var greedy = GreedyMeshing(volumes, dims);
+            LogUtils.Log(greedy, "Greedy.txt");
+   
+
             await Task.Run(() =>
             {
-               for(int i = 0; i < 2; i++)
+                foreach(var quad in greedy)
                 {
-                    verts.AddRange(quads[i]._vertices);
-                    norms.AddRange(quads[i]._normals);
-                    uvs.AddRange(quads[i]._uvs);
-                    uv2s.AddRange(quads[i]._uv2s);
-      
-    
+                    verts.AddRange(quad);
+                }
+
+                for (int i = 0; i < greedy.Count; i++)
+                {
+                    for(int j = 0; j < greedy[i].Length; j++)
+                    {
+                        verts.Add(greedy[i][j]);
+
+                    
+                    }
+
                     int baseIndex = i * 4;  // Each quad has 4 vertices      
                     tris.Add(baseIndex + 0);
                     tris.Add(baseIndex + 3);
@@ -375,20 +352,201 @@ namespace PixelMiner.WorldBuilding
             mesh.indexFormat = format;
 
 
-            Debug.Log(tris.Count);
             mesh.SetVertices(verts);
-            mesh.SetNormals(norms);
+            //mesh.SetNormals(norms);
             mesh.SetTriangles(tris, 0);
-            mesh.SetUVs(0, uvs);
-            mesh.SetUVs(1, uv2s);
+            //mesh.SetUVs(0, uvs);
+            //mesh.SetUVs(1, uv2s);
 
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
 
+
+            LogUtils.WriteMeshToFile(mesh, "MeshData.txt");
             mesh.UploadMeshData(markNoLongerReadable: true);
             return mesh;
+        }
 
 
+        public static List<Vector3[]> GreedyMeshing(int[] volumes, int[] dims)
+        {
+            // helper function to access volume data.
+            int f(int i, int j, int k)
+            {
+                return volumes[i + dims[0] * (j + dims[1] * k)];
+            }
+
+            // Swap over 3 -axes
+            List<Vector3[]> quads = new List<Vector3[]>();
+            for (int d = 0; d < 3; d++)
+            {
+                // i, j: used to iterated over the X and Y dimensions of the 3D volume
+                // k, l: used as a loop counter for addition iterations within the inner loops
+                // w, h: used to represent the width and height of a quad, respectively
+                int i, j, k, l, w, h;
+                int u = (d + 1) % 3;        // These variables are used to determine the other two dimensions (axes) based on the current dimension
+                int v = (d + 2) % 3;        // `d`. They are computed using modular arithmetic to ensure that `u` and `v` are distinct form `d`
+                                            // and each other. This is important for selecting the correct neighboring voxel in the subsequent code.
+
+                int[] x = { 0, 0, 0 };  // This array represents the current position in the 3D volume along the X, Y and Z axes. It is used
+                                        // to iterate over the entire volume.
+
+                int[] q = { 0, 0, 0 };   // This array is used to specify the direction of the neighboring voxel in the current dimension
+                                         // `d`. It is set to {0, 0, 0} initially and later modified to have `1` in the `d`-th dimension.
+
+
+                int[] mask = new int[dims[u] * dims[v]];    // This array is used to store a binary mask representing whether each voxel in 
+                                                            // a 2D slice of the 3D volume is part of the surface. The size of the mask is
+                                                            // determined by the dimensions `dims[u]` and `dims[v]` in the plane orthogonal
+                                                            // to the current dimentsion `d`.
+
+
+                q[d] = 1;   // Indicating the direction of the neighboring voxel along the current dimension `d`. This is used to check the
+                            // voxel value at the neighboring position in the volume.
+
+
+
+                // Check each slide of chunk one at a time
+                for (x[d] = -1; x[d] < dims[d];)
+                {
+                    // Compute mask
+                    int n = 0;
+                    for (x[v] = 0; x[v] < dims[v]; ++x[v])
+                        for (x[u] = 0; x[u] < dims[u]; ++x[u])
+                        {
+                            // Store whether the voxel is solid (not zero) or not
+                            var result = (0 <= x[d] ? f(x[0], x[1], x[2]) : 0) !=
+                                        (x[d] < dims[d] - 1 ? f(x[0] + q[0], x[1] + q[1], x[2] + q[2]) : 0);
+
+
+                            if (result == false)
+                                mask[n++] = 0;
+                            else
+                                mask[n++] = 1;
+
+                            Debug.Log(n);
+                        }
+
+
+                    // Increment x[d]
+                    ++x[d];
+
+                    // Generate mesh for mask using lexicographic ordering
+                    n = 0;
+                    for (j = 0; j < dims[v]; j++)
+                    {
+                        for (i = 0; i < dims[u];)
+                        {
+                            if (mask[n] != 0)
+                            {
+                                // Compute width
+                                for (w = 1; mask[n + v] != 0 && i + w < dims[u]; w++)
+                                {
+
+                                }
+
+
+                                // Compute height
+                                bool done = false;
+                                for (h = 1; j + h < dims[v]; h++)
+                                {
+                                    for (k = 0; k < w; k++)
+                                    {
+                                        // Check if the voxel in the height is solid
+                                        if (mask[n + k + h * dims[u]] == 0)
+                                        {
+                                            done = true;
+                                            break;
+                                        }
+                                    }
+
+
+                                    if (done)
+                                    {
+                                        break;
+                                    }
+
+                                }
+
+                                // Add quad vertices
+                                x[u] = i;
+                                x[v] = j;
+                                int[] du = { 0, 0, 0 };
+                                du[u] = w;
+                                int[] dv = { 0, 0, 0 };
+                                dv[v] = h;
+                                quads.Add(new Vector3[]
+                                {
+                                        new Vector3(x[0], x[1], x[2]),
+                                        new Vector3(x[0] + du[0], x[1] + du[1], x[2] + du[2]),
+                                        new Vector3(x[0] + du[0] + dv[0], x[1] + du[1] + dv[1], x[2] + du[2] + dv[2]),
+                                        new Vector3(x[0] + dv[0], x[1] + dv[1], x[2] + dv[2])
+                                });
+
+
+                                // Zero-out mask
+                                for (l = 0; l < h; l++)
+                                {
+                                    for (k = 0; k < w; k++)
+                                    {
+                                        mask[n + k + l * dims[u]] = 0;
+                                    }
+                                }
+
+                                // Increment counter and continue
+                                i += w;
+                                n += w;
+                            }
+                            else
+                            {
+                                // Move to the next voxel
+                                i++;
+                                n++;
+                            }
+                        }
+                    }
+                }
+
+            }
+
+            return quads;
+        }
+
+        private static bool IsVoxelSolid(int[] x, int d, Func<int, int, int, int> f, int[] dims, int[] q)
+        {
+            // Determine the coordinates for the current voxel
+            int voxelX = x[0];
+            int voxelY = x[1];
+            int voxelZ = x[2];
+
+
+            // Determine the value of the current voxel (at coordinates voxelX, voxelY, voxelZ)
+            int currentVoxelValue;
+            if (voxelX > 0)
+            {
+                currentVoxelValue = f(voxelX, voxelY, voxelZ);
+            }
+            else
+            {
+                currentVoxelValue = 0;
+            }
+
+
+            // Determine the value of the neighboring voxel along the specified axis `d`
+            int neighborVoxelValue;
+            if (voxelX < dims[d] - 1)
+            {
+                neighborVoxelValue = f(voxelX + q[0], voxelY + q[1], voxelZ + q[2]);
+            }
+            else
+            {
+                neighborVoxelValue = 0;
+            }
+
+            // Check if the voxel is solid (not zero) or not
+            return currentVoxelValue != neighborVoxelValue;
         }
     }
+
+
 }
