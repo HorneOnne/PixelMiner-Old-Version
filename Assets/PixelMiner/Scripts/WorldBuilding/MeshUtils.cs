@@ -398,7 +398,8 @@ namespace PixelMiner.WorldBuilding
 
             Vector3Int startPos, currPos, quadSize, m, n, offsetPos;
             Vector3[] vertices;
-            BlockType startBlock;
+            Vector2[] uvs = new Vector2[4];
+ 
             int d, u, v;
             Vector3Int dimensions = chunk.Dimensions;
 
@@ -424,6 +425,8 @@ namespace PixelMiner.WorldBuilding
                 * BackFace -> Face that drawn in clockwise direction. (Need detect which face is clockwise in order to draw it on 
                 * Unity scene).
                 */
+                if(voxelFace == 4) continue;
+
                 bool isBackFace = voxelFace > 2;
                 d = voxelFace % 3;
                 u = (d + 1) % 3;
@@ -508,7 +511,8 @@ namespace PixelMiner.WorldBuilding
                                 offsetPos + n
                             };
 
-                            builder.AddQuadFace(vertices, isBackFace);
+                            GetBlockUVs(chunk.GetBlock(startPos), ref uvs);
+                            builder.AddQuadFace(vertices, uvs, isBackFace);
 
 
                             // Mark at this position has been merged
@@ -529,5 +533,13 @@ namespace PixelMiner.WorldBuilding
             return builder.ToMeshData();
         }
 
+
+        private static void GetBlockUVs(BlockType blockType, ref Vector2[] uvs)
+        {
+            uvs[0] = BlockUVs[(ushort)BlockType.Stone, 0];
+            uvs[1] = BlockUVs[(ushort)BlockType.Stone, 1];
+            uvs[2] = BlockUVs[(ushort)BlockType.Stone, 2];
+            uvs[3] = BlockUVs[(ushort)BlockType.Stone, 3];
+        }
     }
 }

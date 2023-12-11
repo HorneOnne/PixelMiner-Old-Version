@@ -51,6 +51,7 @@ namespace PixelMiner.WorldBuilding
                     writer.WriteLine($"{index1}, {index2}, {index3}");
                 }
 
+                OpenFileWithDefaultApplication(filePath);
                 Debug.Log($"Mesh data written to file: {filePath}");
             }
         }
@@ -83,6 +84,18 @@ namespace PixelMiner.WorldBuilding
                 }
 
                 Debug.Log($"Mesh data written to file: {filePath}");
+            }
+        }
+
+        private static void OpenFileWithDefaultApplication(string filePath)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(filePath);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Error opening file: {e.Message}");
             }
         }
     }

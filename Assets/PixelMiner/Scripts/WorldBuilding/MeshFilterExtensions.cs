@@ -9,13 +9,12 @@ namespace PixelMiner.WorldBuilding
             meshFilter.mesh.Clear();
             meshFilter.mesh.vertices = meshData.Vertices;
             meshFilter.mesh.triangles = meshData.Triangles;
+            meshFilter.mesh.uv = meshData.UVs;
 
             // Color mesh and calculate normals
             meshFilter.mesh.RecalculateNormals();
 
-
-            Debug.Log(meshData.Vertices.Length);
-            Debug.Log(meshData.Triangles.Length);
+            LogUtils.WriteMeshToFile(meshFilter.mesh, "MeshData.txt");
         }
     }
 }
