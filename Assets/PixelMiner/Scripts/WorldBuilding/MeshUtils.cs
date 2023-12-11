@@ -8,6 +8,7 @@ using System.Linq;
 using Sirenix.OdinInspector.Editor;
 using System;
 using PixelMiner.Enums;
+using Sirenix.Reflection.Editor;
 
 namespace PixelMiner.WorldBuilding
 {
@@ -22,6 +23,9 @@ namespace PixelMiner.WorldBuilding
             /*
              * Order: BOTTOM_LEFT -> BOTTOM_RIGHT -> TOP_LEFT -> TOP_RIGHT.
              */
+            /*AIR*/
+            {new Vector2(0.4375f, 0.0625f), new Vector2(0.5f, 0.0625f),
+            new Vector2(0.4375f, 0.125f), new Vector2(0.5f, 0.125f)},
 
             /*GRASSTOP*/  
             { new Vector2(0.5f, 0.8125f), new Vector2(0.5625f, 0.8125f),
@@ -39,9 +43,7 @@ namespace PixelMiner.WorldBuilding
             {new Vector2(0.0625f, 0.9375f), new Vector2(0.125f, 0.9375f),
             new Vector2(0.0625f, 1f), new Vector2(0.125f, 1f)},
 
-            /*AIR*/
-            {new Vector2(0.4375f, 0.0625f), new Vector2(0.5f, 0.0625f),
-            new Vector2(0.4375f, 0.125f), new Vector2(0.5f, 0.125f)},
+         
 
 
             /*WATER*/
@@ -102,144 +104,144 @@ namespace PixelMiner.WorldBuilding
 
 
 
-        public static async Task<Mesh> MergeMeshAsync(MeshData[] mesheDataArray, IndexFormat format = IndexFormat.UInt16)
-        {
-            Vector3[] verts = new Vector3[0];
-            Vector3[] norms = new Vector3[0];
-            int[] tris = new int[0]; ;
-            Vector2[] uvs = new Vector2[0];
-            Vector2[] uv2s = new Vector2[0];
+        //public static async Task<Mesh> MergeMeshAsync(MeshData[] mesheDataArray, IndexFormat format = IndexFormat.UInt16)
+        //{
+        //    Vector3[] verts = new Vector3[0];
+        //    Vector3[] norms = new Vector3[0];
+        //    int[] tris = new int[0]; ;
+        //    Vector2[] uvs = new Vector2[0];
+        //    Vector2[] uv2s = new Vector2[0];
 
-            await Task.Run(() =>
-            {
-                int triCount = 0;
-                int vertCount = 0;
-                int normalCount = 0;
-                int uvCount = 0;
+        //    await Task.Run(() =>
+        //    {
+        //        int triCount = 0;
+        //        int vertCount = 0;
+        //        int normalCount = 0;
+        //        int uvCount = 0;
 
-                for (int i = 0; i < mesheDataArray.Length; i++)
-                {
-                    if (mesheDataArray[i].Equals(default(MeshData)))
-                    {
-                        Debug.Log("Mesh data array is emtpy");
-                        continue;
-                    }
+        //        for (int i = 0; i < mesheDataArray.Length; i++)
+        //        {
+        //            if (mesheDataArray[i].Equals(default(MeshData)))
+        //            {
+        //                Debug.Log("Mesh data array is emtpy");
+        //                continue;
+        //            }
 
-                    triCount += mesheDataArray[i].Triangles.Length;
-                    vertCount += mesheDataArray[i].Vertices.Length;
-                    normalCount += mesheDataArray[i].Normals.Length;
-                    uvCount += mesheDataArray[i].UVs.Length;
-                }
-                verts = new Vector3[vertCount];
-                norms = new Vector3[normalCount];
-                tris = new int[triCount];
-                uvs = new Vector2[uvCount];
-                uv2s = new Vector2[uvCount];
+        //            triCount += mesheDataArray[i].Triangles.Length;
+        //            vertCount += mesheDataArray[i].Vertices.Length;
+        //            normalCount += mesheDataArray[i].Normals.Length;
+        //            uvCount += mesheDataArray[i].UVs.Length;
+        //        }
+        //        verts = new Vector3[vertCount];
+        //        norms = new Vector3[normalCount];
+        //        tris = new int[triCount];
+        //        uvs = new Vector2[uvCount];
+        //        uv2s = new Vector2[uvCount];
 
-                for (int i = 0; i < mesheDataArray.Length; i++)  // Loop through each mesh
-                {
-                    if (mesheDataArray[i].Equals(default(MeshData)))
-                    {
-                        Debug.Log("Mesh data array is emtpy");
-                        continue;
-                    }
+        //        for (int i = 0; i < mesheDataArray.Length; i++)  // Loop through each mesh
+        //        {
+        //            if (mesheDataArray[i].Equals(default(MeshData)))
+        //            {
+        //                Debug.Log("Mesh data array is emtpy");
+        //                continue;
+        //            }
 
-                    for (int j = 0; j < mesheDataArray[i].Triangles.Length; j++)
-                    {
-                        int triPoint = (i * mesheDataArray[i].Vertices.Length + mesheDataArray[i].Triangles[j]);
-                        tris[j + i * mesheDataArray[i].Triangles.Length] = triPoint;
-                    }
-
-
-                    for (int v = 0; v < mesheDataArray[i].Vertices.Length; v++)
-                    {
-                        int vertexIndex = v + i * mesheDataArray[i].Vertices.Length;
-                        verts[vertexIndex] = mesheDataArray[i].Vertices[v];
-                        norms[vertexIndex] = mesheDataArray[i].Normals[v];
-                        uvs[vertexIndex] = mesheDataArray[i].UVs[v];
-                        uv2s[vertexIndex] = mesheDataArray[i].UV2s[v];
-                    }
-                }
-            });
-
-            Mesh mesh = new Mesh();
-            mesh.indexFormat = format;
-            mesh.vertices = verts;
-            mesh.normals = norms;
-            mesh.uv = uvs;
-            mesh.uv2 = uv2s;
-            mesh.triangles = tris;
-
-            mesh.RecalculateNormals();
-            mesh.RecalculateBounds();
-
-            return mesh;
-        }
+        //            for (int j = 0; j < mesheDataArray[i].Triangles.Length; j++)
+        //            {
+        //                int triPoint = (i * mesheDataArray[i].Vertices.Length + mesheDataArray[i].Triangles[j]);
+        //                tris[j + i * mesheDataArray[i].Triangles.Length] = triPoint;
+        //            }
 
 
-        public static async Task<Mesh> MergeMeshAsyncParallel(MeshData[] meshes, IndexFormat format = IndexFormat.UInt16)
-        {
+        //            for (int v = 0; v < mesheDataArray[i].Vertices.Length; v++)
+        //            {
+        //                int vertexIndex = v + i * mesheDataArray[i].Vertices.Length;
+        //                verts[vertexIndex] = mesheDataArray[i].Vertices[v];
+        //                norms[vertexIndex] = mesheDataArray[i].Normals[v];
+        //                uvs[vertexIndex] = mesheDataArray[i].UVs[v];
+        //                uv2s[vertexIndex] = mesheDataArray[i].UV2s[v];
+        //            }
+        //        }
+        //    });
 
-            Vector3[] verts = null;
-            Vector3[] norms = null;
-            int[] tris = null; ;
-            Vector2[] uvs = null;
-            Vector2[] uv2s = null;
-            int triCount = 0;
-            int vertCount = 0;
-            int normalCount = 0;
-            int uvCount = 0;
+        //    Mesh mesh = new Mesh();
+        //    mesh.indexFormat = format;
+        //    mesh.vertices = verts;
+        //    mesh.normals = norms;
+        //    mesh.uv = uvs;
+        //    mesh.uv2 = uv2s;
+        //    mesh.triangles = tris;
 
-            await Task.Run(() =>
-            {
-                for (int i = 0; i < meshes.Length; i++)
-                {
-                    triCount += meshes[i].Triangles.Length;
-                    vertCount += meshes[i].Vertices.Length;
-                    normalCount += meshes[i].Normals.Length;
-                    uvCount += meshes[i].UVs.Length;
-                }
-                verts = new Vector3[vertCount];
-                norms = new Vector3[normalCount];
-                tris = new int[triCount];
-                uvs = new Vector2[uvCount];
-                uv2s = new Vector2[uvCount];
+        //    mesh.RecalculateNormals();
+        //    mesh.RecalculateBounds();
 
-                Parallel.For(0, meshes.Length, i =>
-                {
-                    for (int j = 0; j < meshes[i].Triangles.Length; j++)
-                    {
-                        int triPoint = (i * meshes[i].Vertices.Length + meshes[i].Triangles[j]);
-                        tris[j + i * meshes[i].Triangles.Length] = triPoint;
-                    }
+        //    return mesh;
+        //}
 
 
-                    for (int v = 0; v < meshes[i].Vertices.Length; v++)
-                    {
-                        int vertexIndex = v + i * meshes[i].Vertices.Length;
-                        verts[vertexIndex] = meshes[i].Vertices[v];
-                        norms[vertexIndex] = meshes[i].Normals[v];
-                        uvs[vertexIndex] = meshes[i].UVs[v];
-                        uv2s[vertexIndex] = meshes[i].UV2s[v];
-                    }
-                });
-            });
+        //public static async Task<Mesh> MergeMeshAsyncParallel(MeshData[] meshes, IndexFormat format = IndexFormat.UInt16)
+        //{
+
+            //Vector3[] verts = null;
+            //Vector3[] norms = null;
+            //int[] tris = null; ;
+            //Vector2[] uvs = null;
+            //Vector2[] uv2s = null;
+            //int triCount = 0;
+            //int vertCount = 0;
+            //int normalCount = 0;
+            //int uvCount = 0;
+
+            //await Task.Run(() =>
+            //{
+            //    for (int i = 0; i < meshes.Length; i++)
+            //    {
+            //        triCount += meshes[i].Triangles.Length;
+            //        vertCount += meshes[i].Vertices.Length;
+            //        normalCount += meshes[i].Normals.Length;
+            //        uvCount += meshes[i].UVs.Length;
+            //    }
+            //    verts = new Vector3[vertCount];
+            //    norms = new Vector3[normalCount];
+            //    tris = new int[triCount];
+            //    uvs = new Vector2[uvCount];
+            //    uv2s = new Vector2[uvCount];
+
+            //    Parallel.For(0, meshes.Length, i =>
+            //    {
+            //        for (int j = 0; j < meshes[i].Triangles.Length; j++)
+            //        {
+            //            int triPoint = (i * meshes[i].Vertices.Length + meshes[i].Triangles[j]);
+            //            tris[j + i * meshes[i].Triangles.Length] = triPoint;
+            //        }
 
 
-            Mesh mesh = new Mesh();
-            mesh.indexFormat = format;
+            //        for (int v = 0; v < meshes[i].Vertices.Length; v++)
+            //        {
+            //            int vertexIndex = v + i * meshes[i].Vertices.Length;
+            //            verts[vertexIndex] = meshes[i].Vertices[v];
+            //            norms[vertexIndex] = meshes[i].Normals[v];
+            //            uvs[vertexIndex] = meshes[i].UVs[v];
+            //            uv2s[vertexIndex] = meshes[i].UV2s[v];
+            //        }
+            //    });
+            //});
 
-            mesh.vertices = verts;
-            mesh.normals = norms;
-            mesh.uv = uvs;
-            mesh.uv2 = uv2s;
-            mesh.triangles = tris;
-            mesh.RecalculateNormals();
-            mesh.RecalculateBounds();
-            mesh.UploadMeshData(markNoLongerReadable: true);
 
-            return mesh;
-        }
+            //Mesh mesh = new Mesh();
+            //mesh.indexFormat = format;
+
+            //mesh.vertices = verts;
+            //mesh.normals = norms;
+            //mesh.uv = uvs;
+            //mesh.uv2 = uv2s;
+            //mesh.triangles = tris;
+            //mesh.RecalculateNormals();
+            //mesh.RecalculateBounds();
+            //mesh.UploadMeshData(markNoLongerReadable: true);
+
+            //return mesh;
+        //}
 
 
         public static async Task<Mesh> MergeLargeMeshDataAsyncParallel(ChunkMeshData largeMeshData, IndexFormat format = IndexFormat.UInt16)
@@ -311,32 +313,52 @@ namespace PixelMiner.WorldBuilding
             List<Vector2> uv2s = new List<Vector2>();
             List<int> tris = new List<int>();
 
-            int[] dims = new int[] { 3, 3, 3 };
-            Debug.Log($"Length: {chunkData.Length}");
-            int[] volumes = new int[chunkData.Length];
-            for (int i = 0; i < volumes.Length; i++)
-            {
-                volumes[i] = (int)chunkData[i];
-            }
-            var greedy = GreedyMeshing(volumes, dims);
-            LogUtils.Log(greedy, "Greedy.txt");
-   
+            //int[] dims = new int[] { 1, 3, 2 };
+            //Debug.Log($"Length: {chunkData.Length}");
+            //int[] volumes = new int[chunkData.Length];
+            //for (int i = 0; i < volumes.Length; i++)
+            //{
+            //    volumes[i] = 1;
+            //}
+            //var greedy = GreedyMeshing2(volumes, dims,1,3,2);
+            //LogUtils.Log(greedy, "Greedy.txt");
+
+
+            //await Task.Run(() =>
+            //{
+            //    foreach (var quad in greedy)
+            //    {
+            //        verts.AddRange(quad);
+            //    }
+
+            //    for (int i = 0; i < greedy.Count; i++)
+            //    {
+            //        for (int j = 0; j < greedy[i].Length; j++)
+            //        {
+            //            verts.Add(greedy[i][j]);
+
+
+            //        }
+
+            //        int baseIndex = i * 4;  // Each quad has 4 vertices      
+            //        tris.Add(baseIndex + 0);
+            //        tris.Add(baseIndex + 3);
+            //        tris.Add(baseIndex + 1);
+            //        tris.Add(baseIndex + 1);
+            //        tris.Add(baseIndex + 3);
+            //        tris.Add(baseIndex + 2);
+            //    }
+            //});
 
             await Task.Run(() =>
             {
-                foreach(var quad in greedy)
-                {
-                    verts.AddRange(quad);
-                }
 
-                for (int i = 0; i < greedy.Count; i++)
-                {
-                    for(int j = 0; j < greedy[i].Length; j++)
-                    {
-                        verts.Add(greedy[i][j]);
 
-                    
-                    }
+                for (int i = 0; i < quads.Count; i++)
+                {
+
+                    verts.AddRange(quads[i]._vertices);
+
 
                     int baseIndex = i * 4;  // Each quad has 4 vertices      
                     tris.Add(baseIndex + 0);
@@ -362,191 +384,150 @@ namespace PixelMiner.WorldBuilding
             mesh.RecalculateBounds();
 
 
-            LogUtils.WriteMeshToFile(mesh, "MeshData.txt");
+            //LogUtils.WriteMeshToFile(mesh, "MeshData.txt");
             mesh.UploadMeshData(markNoLongerReadable: true);
             return mesh;
         }
 
 
-        public static List<Vector3[]> GreedyMeshing(int[] volumes, int[] dims)
+
+        public static MeshData GreedyMeshing(Chunk chunk)
         {
-            // helper function to access volume data.
-            int f(int i, int j, int k)
+            ChunkMeshBuilder builder = new ChunkMeshBuilder();
+            bool[,] merged;
+
+            Vector3Int startPos, currPos, quadSize, m, n, offsetPos;
+            Vector3[] vertices;
+            BlockType startBlock;
+            int d, u, v;
+            Vector3Int dimensions = chunk.Dimensions;
+
+            bool GreedyCompareLogic(Vector3Int a, Vector3Int b, int dimension, bool isBackFace)
             {
-                return volumes[i + dims[0] * (j + dims[1] * k)];
+                BlockType blockA = chunk.GetBlock(a);
+                BlockType blockB = chunk.GetBlock(b);
+
+                return blockA == blockB && chunk.IsSolid(b) && chunk.IsBlockFaceVisible(b, dimension, isBackFace);
             }
 
-            // Swap over 3 -axes
-            List<Vector3[]> quads = new List<Vector3[]>();
-            for (int d = 0; d < 3; d++)
+            // Iterate over each aface of the blocks.
+            for (int voxelFace = 0; voxelFace < 6; voxelFace++)
             {
-                // i, j: used to iterated over the X and Y dimensions of the 3D volume
-                // k, l: used as a loop counter for addition iterations within the inner loops
-                // w, h: used to represent the width and height of a quad, respectively
-                int i, j, k, l, w, h;
-                int u = (d + 1) % 3;        // These variables are used to determine the other two dimensions (axes) based on the current dimension
-                int v = (d + 2) % 3;        // `d`. They are computed using modular arithmetic to ensure that `u` and `v` are distinct form `d`
-                                            // and each other. This is important for selecting the correct neighboring voxel in the subsequent code.
+                /* Voxel Face Index
+                * 0: Right
+                * 1: Up
+                * 2: Front
+                * 3: Left
+                * 4: Down 
+                * 5: Back
+                * 
+                * BackFace -> Face that drawn in clockwise direction. (Need detect which face is clockwise in order to draw it on 
+                * Unity scene).
+                */
+                bool isBackFace = voxelFace > 2;
+                d = voxelFace % 3;
+                u = (d + 1) % 3;
+                v = (d + 2) % 3;
 
-                int[] x = { 0, 0, 0 };  // This array represents the current position in the 3D volume along the X, Y and Z axes. It is used
-                                        // to iterate over the entire volume.
+                startPos = new Vector3Int();
+                currPos = new Vector3Int();
 
-                int[] q = { 0, 0, 0 };   // This array is used to specify the direction of the neighboring voxel in the current dimension
-                                         // `d`. It is set to {0, 0, 0} initially and later modified to have `1` in the `d`-th dimension.
-
-
-                int[] mask = new int[dims[u] * dims[v]];    // This array is used to store a binary mask representing whether each voxel in 
-                                                            // a 2D slice of the 3D volume is part of the surface. The size of the mask is
-                                                            // determined by the dimensions `dims[u]` and `dims[v]` in the plane orthogonal
-                                                            // to the current dimentsion `d`.
-
-
-                q[d] = 1;   // Indicating the direction of the neighboring voxel along the current dimension `d`. This is used to check the
-                            // voxel value at the neighboring position in the volume.
-
-
-
-                // Check each slide of chunk one at a time
-                for (x[d] = -1; x[d] < dims[d];)
+                for (startPos[d] = 0; startPos[d] < dimensions[d]; startPos[d]++)
                 {
-                    // Compute mask
-                    int n = 0;
-                    for (x[v] = 0; x[v] < dims[v]; ++x[v])
-                        for (x[u] = 0; x[u] < dims[u]; ++x[u])
-                        {
-                            // Store whether the voxel is solid (not zero) or not
-                            var result = (0 <= x[d] ? f(x[0], x[1], x[2]) : 0) !=
-                                        (x[d] < dims[d] - 1 ? f(x[0] + q[0], x[1] + q[1], x[2] + q[2]) : 0);
+                    merged = new bool[dimensions[u], dimensions[v]];
 
-
-                            if (result == false)
-                                mask[n++] = 0;
-                            else
-                                mask[n++] = 1;
-
-                            Debug.Log(n);
-                        }
-
-
-                    // Increment x[d]
-                    ++x[d];
-
-                    // Generate mesh for mask using lexicographic ordering
-                    n = 0;
-                    for (j = 0; j < dims[v]; j++)
+                    // Build the slices of mesh.
+                    for (startPos[u] = 0; startPos[u] < dimensions[u]; startPos[u]++)
                     {
-                        for (i = 0; i < dims[u];)
+                        for (startPos[v] = 0; startPos[v] < dimensions[v]; startPos[v]++)
                         {
-                            if (mask[n] != 0)
+                            
+                            // If this block has already been merged, is air, or not visible -> skip it.
+                            if (chunk.IsSolid(startPos) == false ||
+                                chunk.IsBlockFaceVisible(startPos, d, isBackFace) == false ||
+                                merged[startPos[u], startPos[v]])
                             {
-                                // Compute width
-                                for (w = 1; mask[n + v] != 0 && i + w < dims[u]; w++)
-                                {
-
-                                }
-
-
-                                // Compute height
-                                bool done = false;
-                                for (h = 1; j + h < dims[v]; h++)
-                                {
-                                    for (k = 0; k < w; k++)
-                                    {
-                                        // Check if the voxel in the height is solid
-                                        if (mask[n + k + h * dims[u]] == 0)
-                                        {
-                                            done = true;
-                                            break;
-                                        }
-                                    }
-
-
-                                    if (done)
-                                    {
-                                        break;
-                                    }
-
-                                }
-
-                                // Add quad vertices
-                                x[u] = i;
-                                x[v] = j;
-                                int[] du = { 0, 0, 0 };
-                                du[u] = w;
-                                int[] dv = { 0, 0, 0 };
-                                dv[v] = h;
-                                quads.Add(new Vector3[]
-                                {
-                                        new Vector3(x[0], x[1], x[2]),
-                                        new Vector3(x[0] + du[0], x[1] + du[1], x[2] + du[2]),
-                                        new Vector3(x[0] + du[0] + dv[0], x[1] + du[1] + dv[1], x[2] + du[2] + dv[2]),
-                                        new Vector3(x[0] + dv[0], x[1] + dv[1], x[2] + dv[2])
-                                });
-
-
-                                // Zero-out mask
-                                for (l = 0; l < h; l++)
-                                {
-                                    for (k = 0; k < w; k++)
-                                    {
-                                        mask[n + k + l * dims[u]] = 0;
-                                    }
-                                }
-
-                                // Increment counter and continue
-                                i += w;
-                                n += w;
+                                continue;
                             }
-                            else
+                   
+
+                            quadSize = new Vector3Int();
+
+                            // Next step is loop to figure out width and height of the new merged quad.
+                            for (currPos = startPos, currPos[u]++;
+                                currPos[u] < dimensions[u] &&
+                                GreedyCompareLogic(startPos, currPos, d, isBackFace) &&
+                                !merged[currPos[u], currPos[v]];
+                                currPos[u]++)
+                            { }
+                            quadSize[u] = currPos[u] - startPos[u];
+
+
+                            for (currPos = startPos, currPos[v]++;
+                                currPos[v] < dimensions[v] &&
+                                GreedyCompareLogic(startPos, currPos, d, isBackFace) &&
+                                !merged[currPos[u], currPos[v]];
+                                currPos[v]++)
                             {
-                                // Move to the next voxel
-                                i++;
-                                n++;
+                                for (currPos[u] = startPos[u];
+                                    currPos[u] < dimensions[u] &&
+                                    GreedyCompareLogic(startPos, currPos, d, isBackFace) &&
+                                    !merged[currPos[u], currPos[v]];
+                                    currPos[u]++)
+                                { }
+
+
+                                if (currPos[u] - startPos[u] < quadSize[u])
+                                {
+                                    break;
+                                }
+                                else
+                                {
+                                    currPos[u] = startPos[u];
+                                }
                             }
+
+                            quadSize[v] = currPos[v] - startPos[v];
+
+
+                            // Add new quad to mesh data.
+                            m = new Vector3Int();
+                            n = new Vector3Int();
+
+                            m[u] = quadSize[u];
+                            n[v] = quadSize[v];
+
+                            offsetPos = startPos;
+                            offsetPos[d] += isBackFace ? 0 : 1;
+
+                            vertices = new Vector3[]
+                            {
+                                offsetPos,
+                                offsetPos + m,
+                                offsetPos + m + n,
+                                offsetPos + n
+                            };
+
+                            builder.AddQuadFace(vertices, isBackFace);
+
+
+                            // Mark at this position has been merged
+                            for (int g = 0; g < quadSize[u]; g++)
+                            {
+                                for (int h = 0; h < quadSize[v]; h++)
+                                {
+                                    merged[startPos[u] + g, startPos[v] + h] = true;
+                                }
+                            }
+
                         }
                     }
+
+
                 }
-
             }
-
-            return quads;
+            return builder.ToMeshData();
         }
 
-        private static bool IsVoxelSolid(int[] x, int d, Func<int, int, int, int> f, int[] dims, int[] q)
-        {
-            // Determine the coordinates for the current voxel
-            int voxelX = x[0];
-            int voxelY = x[1];
-            int voxelZ = x[2];
-
-
-            // Determine the value of the current voxel (at coordinates voxelX, voxelY, voxelZ)
-            int currentVoxelValue;
-            if (voxelX > 0)
-            {
-                currentVoxelValue = f(voxelX, voxelY, voxelZ);
-            }
-            else
-            {
-                currentVoxelValue = 0;
-            }
-
-
-            // Determine the value of the neighboring voxel along the specified axis `d`
-            int neighborVoxelValue;
-            if (voxelX < dims[d] - 1)
-            {
-                neighborVoxelValue = f(voxelX + q[0], voxelY + q[1], voxelZ + q[2]);
-            }
-            else
-            {
-                neighborVoxelValue = 0;
-            }
-
-            // Check if the voxel is solid (not zero) or not
-            return currentVoxelValue != neighborVoxelValue;
-        }
     }
-
-
 }

@@ -2,11 +2,12 @@
 {
     public enum BlockType : ushort
     {
-        GrassTop = 0,
-        GrassSide = 1,
-        Dirt = 2,
-        Stone = 3,
-        Air = 4,
+        Air = 0,
+        GrassTop = 1,
+        GrassSide = 2,
+        Dirt = 3,
+        Stone = 4,
+        
         Water = 5,
         Sand = 6,
         Glass = 7,

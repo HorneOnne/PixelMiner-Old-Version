@@ -1,7 +1,6 @@
 using UnityEngine;
 using PixelMiner.Enums;
 using System.Collections.Generic;
-using System;
 
 namespace PixelMiner.WorldBuilding
 {
@@ -43,7 +42,7 @@ namespace PixelMiner.WorldBuilding
             _uvs = new List<Vector2>();
             _uv2s = new List<Vector2>();
 
-            Debug.Log("Create new Quad.cs");
+            //Debug.Log("Create new Quad.cs");
         }
 
 
@@ -143,36 +142,6 @@ namespace PixelMiner.WorldBuilding
             _normals.Clear();
             _uvs.Clear();
             _uv2s.Clear();
-        }
-
-        public WorldBuilding.Egde GetEdge(int  edgeIndex)
-        {
-            int nextIndex = (edgeIndex + 1) % 4;
-
-            return new WorldBuilding.Egde
-            {
-                Start = _vertices[edgeIndex],
-                End = _vertices[nextIndex]
-            };
-        }
-    }
-
-    public class Egde
-    {
-        public Vector3 Start;
-        public Vector3 End;
-
-        public override bool Equals(object obj)
-        {
-            WorldBuilding.Egde otherEdge = (WorldBuilding.Egde)obj;
-            // Check equality based on Start and End vectors
-            return (Start == (otherEdge.Start) && End == (otherEdge.End)) || (Start == (otherEdge.End) && End == (otherEdge.Start));
-        }
-
-        public override int GetHashCode()
-        {
-            // Generate a hash code based on the vectors
-            return HashCode.Combine(Start, End);
         }
     }
 }

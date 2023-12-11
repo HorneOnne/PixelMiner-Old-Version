@@ -18,13 +18,16 @@ namespace PixelMiner.WorldBuilding
         [SerializeField] public MeshFilter WaterMeshFilter;
 
         private Transform _playerTrans;
+        private const int DRAW_HIDDEN_BLOCK = 1 << 0;
+        private const int DRAW_HIDDEN_SURFACE = 1 << 1;
+        private int DRAW_PERMISSION = 0;
 
         public enum ChunkState
         {
             Init, Processing, Stable
         }
         public ChunkState State;
-  
+
 
         public int FrameX;
         public int FrameY;
@@ -32,6 +35,7 @@ namespace PixelMiner.WorldBuilding
         public byte _width;
         public byte _height;
         public byte _depth;
+        public Vector3Int Dimensions;
         private float _unloadChunkDistance = 100;
         private float _updateFrequency = 1.0f;
         private float _updateTimer = 0.0f;
@@ -116,23 +120,52 @@ namespace PixelMiner.WorldBuilding
             HeightValues = new float[size2D];
             HeatValues = new float[size2D];
             MoistureValues = new float[size2D];
+            Dimensions = new Vector3Int(_width, _height, _depth);
 
             State = ChunkState.Stable;
         }
 
 
+        public bool IsSolid(Vector3Int position)
+        {
+            BlockType block = GetBlock(position);
+            return block != BlockType.Air &&
+                   block != BlockType.Water;
+        }
+        public BlockType GetBlock(byte x, byte y, byte z)
+        {
+            return ChunkData[IndexOf(x, y, z)];
+        }
+        public BlockType GetBlock(Vector3Int position)
+        {
+            if (position.x < 0 || position.x >= Dimensions[0] ||
+                position.y < 0 || position.y >= Dimensions[1] ||
+                position.z < 0 || position.z >= Dimensions[2])
+            {
+                return BlockType.Air;
+            }
 
-        public async void DrawChunkAsync(bool drawHiddenFace = true)
-        {      
+            return ChunkData[IndexOf(position.x, position.y, position.z)];
+        }
+        public bool IsBlockFaceVisible(Vector3Int position, int dimension, bool isBackFace)
+        {
+            position[dimension] += isBackFace ? -1 : 1;
+            return IsSolid(position) == false;
+        }
+
+        public async void DrawChunkAsync()
+        {
             if (ChunkHasDrawn) return;
 
+            var meshData = MeshUtils.GreedyMeshing(this);
+            SolidMeshFilter.ApplyMeshData(meshData);
 
-            List<Quad> quads = await GetSolidChunkMeshDataAsync02(drawHiddenFace);
-            SolidMeshFilter.sharedMesh = await MeshUtils.MergeLargeMeshDataAsyncParallel(quads, ChunkData);
-            for (int i = 0; i < quads.Count; i++)
-            {
-                QuadPool.Release(quads[i]);
-            }
+            //List<Quad> quads = await GetSolidChunkMeshDataAsync02();
+            //SolidMeshFilter.sharedMesh = await MeshUtils.MergeLargeMeshDataAsyncParallel(quads, ChunkData);
+            //for (int i = 0; i < quads.Count; i++)
+            //{
+            //    QuadPool.Release(quads[i]);
+            //}
 
             //ChunkMeshData solidChunkMeshData = await GetSolidChunkMeshDataAsync();
             //ChunkMeshData fluidChunkMeshData = await GetFluidChunkMeshDataAsync();
@@ -182,9 +215,9 @@ namespace PixelMiner.WorldBuilding
             return largeMeshData;
         }
 
-        private async Task<List<Quad>> GetSolidChunkMeshDataAsync02(bool drawHiddenFace)
+        private async Task<List<Quad>> GetSolidChunkMeshDataAsync02()
         {
-            List<Quad> Quads = new List<Quad>();    
+            List<Quad> Quads = new List<Quad>();
             await Task.Run(() =>
             {
                 for (int x = 0; x < _width; x++)
@@ -196,7 +229,7 @@ namespace PixelMiner.WorldBuilding
                             BlockType blockType = ChunkData[IndexOf(x, y, z)];
                             if (blockType != BlockType.Water)
                             {
-                                GetSolidBlockNeighbors(x, y, z, neighbors: _neighbors, drawHiddenFace);
+                                GetSolidBlockNeighbors(x, y, z, neighbors: _neighbors);
                                 Block block = BlockPool.Get();
                                 block.DrawSolid(ChunkData[IndexOf(x, y, z)], _neighbors, new Vector3(x, y, z));
                                 if (block.Quads.Count > 0)
@@ -262,57 +295,78 @@ namespace PixelMiner.WorldBuilding
         {
             if (!HasNeighbors()) return false;
 
-           
-            if (x < 0)
+            if ((DRAW_PERMISSION & DRAW_HIDDEN_SURFACE) != 0)
             {
-                var leftNBBType = Left.ChunkData[IndexOf(_width - 1, y, z)];
-                if (leftNBBType == BlockType.Air || leftNBBType == BlockType.Water)
+                if (x < 0 || x >= _width || y < 0 || y >= _height || z < 0 || z >= _depth)
+                {
                     return false;
-                else
-                    return true;
+                }
+
+
+                BlockType blockType = ChunkData[IndexOf(x, y, z)];
+                switch (blockType)
+                {
+                    case BlockType.Water:
+                    case BlockType.Air:
+                        return false;
+                    default:
+                        return true;
+                }
             }
-            if (x >= _width)
+            else
             {
-                var rightNBBType = Right.ChunkData[IndexOf(0, y, z)];
-                if (rightNBBType == BlockType.Air || rightNBBType == BlockType.Water)
-                    return false;
-                else
+                if (x < 0)
+                {
+                    var leftNBBType = Left.ChunkData[IndexOf(_width - 1, y, z)];
+                    if (leftNBBType == BlockType.Air || leftNBBType == BlockType.Water)
+                        return false;
+                    else
+                        return true;
+                }
+                if (x >= _width)
+                {
+                    var rightNBBType = Right.ChunkData[IndexOf(0, y, z)];
+                    if (rightNBBType == BlockType.Air || rightNBBType == BlockType.Water)
+                        return false;
+                    else
+                        return true;
+                }
+
+                if (z < 0)
+                {
+                    var backNBBType = Back.ChunkData[IndexOf(x, y, _depth - 1)];
+                    if (backNBBType == BlockType.Air || backNBBType == BlockType.Water)
+                        return false;
+                    else
+                        return true;
+                }
+                if (z >= _depth)
+                {
+                    var frontNBBType = Front.ChunkData[IndexOf(x, y, 0)];
+                    if (frontNBBType == BlockType.Air || frontNBBType == BlockType.Water)
+                        return false;
+                    else
+                        return true;
+                }
+
+                if (y < 0)
                     return true;
+                if (y >= _height)
+                    return false;
+
+                BlockType blockType = ChunkData[IndexOf(x, y, z)];
+                switch (blockType)
+                {
+                    case BlockType.Water:
+                    case BlockType.Air:
+                        return false;
+                    default:
+                        return true;
+                }
             }
 
-            if (z < 0)
-            {
-                var backNBBType = Back.ChunkData[IndexOf(x, y, _depth - 1)];
-                if (backNBBType == BlockType.Air || backNBBType == BlockType.Water)
-                    return false;
-                else
-                    return true;
-            }
-            if (z >= _depth)
-            {
-                var frontNBBType = Front.ChunkData[IndexOf(x, y, 0)];
-                if (frontNBBType == BlockType.Air || frontNBBType == BlockType.Water)
-                    return false;
-                else
-                    return true;
-            }
 
-            if (y < 0)
-                return true;
-            if (y >= _height)
-                return false;
 
-            BlockType blockType = ChunkData[IndexOf(x, y, z)];
-            switch (blockType)
-            {
-                case BlockType.Water:
-                case BlockType.Air:
-                    return false;
-                default:
-                    return true;
-            }
-
-         
         }
         public bool BlockHasFuildNeighbors(int x, int y, int z)
         {
@@ -331,10 +385,10 @@ namespace PixelMiner.WorldBuilding
             }
         }
 
-     
-        public void GetSolidBlockNeighbors(int x, int y, int z, bool[] neighbors, bool drawHiddenFace)
+
+        public void GetSolidBlockNeighbors(int x, int y, int z, bool[] neighbors)
         {
-            if(drawHiddenFace)
+            if ((DRAW_PERMISSION & DRAW_HIDDEN_BLOCK) != 0)
             {
                 for (int i = 0; i < 6; i++)
                     neighbors[i] = false;
@@ -367,12 +421,12 @@ namespace PixelMiner.WorldBuilding
                 {
                     _neighbors[5] = false;
                 }
-            }      
+            }
         }
 
         public void GetFluidBlockNeighbors(int x, int y, int z, bool[] neighbors)
         {
-            for(int i = 0; i < neighbors.Length; i++)
+            for (int i = 0; i < neighbors.Length; i++)
             {
                 neighbors[i] = true;
             }

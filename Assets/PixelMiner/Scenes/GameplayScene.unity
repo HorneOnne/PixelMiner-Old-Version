@@ -852,8 +852,8 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 12
-  orthographic: 0
+  field of view: 34
+  orthographic: 1
   orthographic size: 10
   m_Depth: -1
   m_CullingMask:
@@ -878,8 +878,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.2588191, y: -0, z: -0, w: 0.9659258}
-  m_LocalPosition: {x: -84.26217, y: 54.100025, z: -771.84106}
+  m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
+  m_LocalPosition: {x: -145.49942, y: 54.099987, z: -746.4758}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -959,9 +959,9 @@ MonoBehaviour:
   AnimatedTileBaseList:
   - {fileID: 11400000, guid: a58c71edb0d04bf46bcf92f608439e59, type: 2}
   SeedInput: 7
-  ChunkWidth: 3
-  ChunkHeight: 3
-  ChunkDepth: 3
+  ChunkWidth: 32
+  ChunkHeight: 10
+  ChunkDepth: 32
   AutoLoadChunk: 0
   AutoUnloadChunk: 0
   ShowChunksBorder: 0
