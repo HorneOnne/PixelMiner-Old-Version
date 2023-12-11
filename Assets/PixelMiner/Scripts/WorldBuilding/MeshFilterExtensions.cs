@@ -9,7 +9,7 @@ namespace PixelMiner.WorldBuilding
             meshFilter.mesh.Clear();
             meshFilter.mesh.vertices = meshData.Vertices;
             meshFilter.mesh.triangles = meshData.Triangles;
-            meshFilter.mesh.uv = meshData.UVs;
+            meshFilter.mesh.SetUVs(0, meshData.UVs);
 
             // Color mesh and calculate normals
             meshFilter.mesh.RecalculateNormals();

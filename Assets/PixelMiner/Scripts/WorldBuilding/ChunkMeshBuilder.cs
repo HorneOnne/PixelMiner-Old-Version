@@ -8,16 +8,16 @@ namespace PixelMiner.WorldBuilding
     {
         private readonly List<Vector3> _vertices;
         private readonly List<int> _triangles;
-        private readonly List<Vector2> _uvs;
+        private readonly List<Vector3> _uvs;
 
         public ChunkMeshBuilder()
         {
             _vertices = new List<Vector3>();
             _triangles = new List<int>();
-            _uvs = new List<Vector2>();
+            _uvs = new List<Vector3>();
         }
 
-        public void AddQuadFace(Vector3[] vertices, Vector2[] uvs, bool isBackFace)
+        public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, bool isBackFace)
         {
             if (vertices.Length != 4)
             {

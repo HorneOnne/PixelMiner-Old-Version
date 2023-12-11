@@ -398,7 +398,7 @@ namespace PixelMiner.WorldBuilding
 
             Vector3Int startPos, currPos, quadSize, m, n, offsetPos;
             Vector3[] vertices;
-            Vector2[] uvs = new Vector2[4];
+            Vector3[] uvs = new Vector3[4];
  
             int d, u, v;
             Vector3Int dimensions = chunk.Dimensions;
@@ -511,7 +511,17 @@ namespace PixelMiner.WorldBuilding
                                 offsetPos + n
                             };
 
-                            GetBlockUVs(chunk.GetBlock(startPos), ref uvs);
+                            //GetBlockUVs(chunk.GetBlock(startPos), ref uvs);
+
+                            uvs = new Vector3[]
+                            {
+                                new Vector3(0,0,4),
+                                new Vector3(quadSize[u], 0,4),
+                                new Vector3(quadSize[u], quadSize[v],4),
+                                new Vector3(0, quadSize[v],4)
+                            };
+
+
                             builder.AddQuadFace(vertices, uvs, isBackFace);
 
 

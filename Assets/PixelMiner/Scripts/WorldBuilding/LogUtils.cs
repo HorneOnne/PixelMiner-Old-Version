@@ -35,9 +35,11 @@ namespace PixelMiner.WorldBuilding
 
                 // Write UV coordinates
                 writer.WriteLine("\nUVs:");
-                foreach (Vector2 uv in mesh.uv)
+                List<Vector3> uvs = new List<Vector3>();
+                mesh.GetUVs(0, uvs);
+                foreach (Vector3 uv in uvs)
                 {
-                    writer.WriteLine($"{uv.x}, {uv.y}");
+                    writer.WriteLine($"{uv.x}, {uv.y}, {uv.z}");
                 }
 
                 // Write triangles

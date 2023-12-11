@@ -6,10 +6,10 @@ namespace PixelMiner.WorldBuilding
     {
         public Vector3[] Vertices { get; }
         public int[] Triangles { get; }
-        public Vector2[] UVs { get; }
+        public Vector3[] UVs { get; }
 
 
-        public MeshData(Vector3[] vertices, int[] triangles, Vector2[] uvs)
+        public MeshData(Vector3[] vertices, int[] triangles, Vector3[] uvs)
         {
             Vertices = vertices;
             Triangles = triangles;
