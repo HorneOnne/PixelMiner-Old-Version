@@ -91,7 +91,7 @@ namespace PixelMiner.WorldBuilding
                     * BackFace -> Face that drawn in clockwise direction. (Need detect which face is clockwise in order to draw it on 
                     * Unity scene).
                     */
-                    //if(voxelFace == 4) continue;
+                    if(voxelFace == 4) continue;    // Don't draw down face (because player cannot see it).
 
                     bool isBackFace = voxelFace > 2;
                     d = voxelFace % 3;

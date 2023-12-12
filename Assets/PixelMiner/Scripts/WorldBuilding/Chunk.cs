@@ -148,6 +148,25 @@ namespace PixelMiner.WorldBuilding
                 position.y < 0 || position.y >= Dimensions[1] ||
                 position.z < 0 || position.z >= Dimensions[2])
             {
+
+                if (position.x < 0)
+                {
+                    return Left.ChunkData[IndexOf(_width - 1, position.y, position.z)]; 
+                }
+                if (position.x >= _width)
+                {
+                    return Right.ChunkData[IndexOf(0, position.y, position.z)];
+                }
+
+                if (position.z < 0)
+                {
+                    return Back.ChunkData[IndexOf(position.x, position.y, _depth - 1)];
+                }
+                if (position.z >= _depth)
+                {
+                    return Front.ChunkData[IndexOf(position.x, position.y, 0)];
+                }
+
                 return BlockType.Air;
             }
 
