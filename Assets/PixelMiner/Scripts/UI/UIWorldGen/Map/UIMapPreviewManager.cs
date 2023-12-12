@@ -53,6 +53,8 @@ namespace PixelMiner.UI.WorldGen
             if (HasHeightMap()) HeightMapPreview.gameObject.SetActive(false);
             if (HasHeatMap()) HeatMapPreview.gameObject.SetActive(false);
             if (HasMoistureMap()) MoistureMapPreview.gameObject.SetActive(true);
+
+            UpdateMoistureMapPreview();
         }
 
 
@@ -77,6 +79,11 @@ namespace PixelMiner.UI.WorldGen
         {
             Texture2D texture = await GetHeatTextureAsync();
             HeatMapPreview.SetImage(texture);
+        }
+        private async void UpdateMoistureMapPreview()
+        {
+            Texture2D texture = await GetMoistureMapTextureAsync();
+            MoistureMapPreview.SetImage(texture);
         }
 
 
@@ -173,6 +180,55 @@ namespace PixelMiner.UI.WorldGen
                     else
                     {
                         pixels[i] = WorldGeneration.WarmestColor;
+                    }
+                });
+            });
+
+            texture.SetPixels(pixels);
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.filterMode = FilterMode.Bilinear;
+            texture.Apply();
+            return texture;
+        }
+        private async Task<Texture2D> GetMoistureMapTextureAsync()
+        {
+            int textureWidth = 960;
+            int textureHeight = 540;
+            float[] heightValues = await WorldGeneration.Instance.GetMoistureMapDataAsync(0, 0, textureWidth, textureHeight);
+            Texture2D texture = new Texture2D(textureWidth, textureHeight);
+            Color[] pixels = new Color[textureWidth * textureHeight];
+            int x;
+            int y;
+            await Task.Run(() =>
+            {
+                Parallel.For(0, heightValues.Length, i =>
+                {
+                    float heightValue = heightValues[i];
+                    x = i % textureWidth;
+                    y = i / textureHeight;
+                    if (heightValue < WorldGeneration.Instance.DryestValue)
+                    {
+                        pixels[i] = WorldGeneration.Dryest;
+                    }
+                    else if (heightValue < WorldGeneration.Instance.DryerValue)
+                    {
+                        pixels[i] = WorldGeneration.Dryer;
+                    }
+                    else if (heightValue < WorldGeneration.Instance.DryValue)
+                    {
+                        pixels[i] = WorldGeneration.Dry;
+                    }
+                    else if (heightValue < WorldGeneration.Instance.WetValue)
+                    {
+                        pixels[i] = WorldGeneration.Wet;
+                    }
+                    else if (heightValue < WorldGeneration.Instance.WetterValue)
+                    {
+                        pixels[i] = WorldGeneration.Wetter;
+                    }
+                    else
+                    {
+                        pixels[i] = WorldGeneration.Wettest;
                     }
                 });
             });

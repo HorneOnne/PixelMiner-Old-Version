@@ -55,7 +55,15 @@ namespace PixelMiner
                 UIMapPreviewManager.Instance.SetActiveHeatMap();
             }
         }
-
+        [Command("/preview_moisturemap")]
+        private static void PreviewMoisturemap()
+        {
+            if (UIMapPreviewManager.Instance.HasMoistureMap())
+            {
+                InputHander.Instance.ActiveUIMap();
+                UIMapPreviewManager.Instance.SetActiveMoistureMap();
+            }
+        }
 
         [Command("/getUV")]
         private static void GetUV(int u, int v, ushort blockType = 0)
