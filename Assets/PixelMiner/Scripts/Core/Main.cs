@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Tilemaps;
-using Sirenix.OdinInspector;
-using PixelMiner.Enums;
 using PixelMiner.WorldBuilding;
+using PixelMiner;
 
 namespace PixelMiner.WorldGen
 {

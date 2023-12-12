@@ -88,6 +88,37 @@ namespace PixelMiner.WorldBuilding
                 Debug.Log($"Mesh data written to file: {filePath}");
             }
         }
+        public static void Log(bool[,] list, string filename)
+        {
+            string directoryPath = @"C:\Users\anhla\Desktop\PixelMinerLog\";
+            string filePath = Path.Combine(directoryPath, filename);
+
+            // Check if the directory exists; if not, create it
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+
+            using (StreamWriter writer = new StreamWriter(filePath, append: true))
+            {
+                // Write List
+                writer.WriteLine();
+                for (int i = 0; i < list.GetLength(0); i++)
+                {
+                    for (int j = 0; j < list.GetLength(1); j++)
+                    {
+                        writer.Write(list[i, j] ? "1 " : "0 ");
+                    }
+                    writer.WriteLine(); // Move to the next row
+                }
+
+
+               
+                Debug.Log($"Mesh data written to file: {filePath}");
+            }
+            OpenFileWithDefaultApplication(filePath);
+        }
+
 
         private static void OpenFileWithDefaultApplication(string filePath)
         {

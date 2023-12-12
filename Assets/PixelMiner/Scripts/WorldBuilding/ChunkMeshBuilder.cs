@@ -1,21 +1,42 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+
 namespace PixelMiner.WorldBuilding
 {
     public class ChunkMeshBuilder
     {
-        private readonly List<Vector3> _vertices;
-        private readonly List<int> _triangles;
-        private readonly List<Vector3> _uvs;
-        private readonly List<Vector2> _uv2s;
+        private List<Vector3> _vertices;
+        private List<int> _triangles;
+        private List<Vector3> _uvs;
+        private List<Vector2> _uv2s;
+        public bool[][,] Merged;
+        private bool _isInit = false;
 
         public ChunkMeshBuilder()
         {
-            _vertices = new List<Vector3>();
-            _triangles = new List<int>();
-            _uvs = new List<Vector3>();
-            _uv2s = new List<Vector2>();
+            Debug.Log("Create ChunkMeshBuilder");
+            _isInit = false;
+        }
+
+        public void InitOrLoad(Vector3Int dimensions)
+        {
+            if (_isInit) return;
+            Debug.Log("Init ChunkMeshBuilder");
+
+            _vertices = new List<Vector3>(100);
+            _triangles = new List<int>(100);
+            _uvs = new List<Vector3>(100);
+            _uv2s = new List<Vector2>(100);
+
+            Merged = new bool[][,]
+            {
+                 new bool[dimensions[1], dimensions[2]],
+                 new bool[dimensions[2], dimensions[0]],
+                 new bool[dimensions[0], dimensions[1]]
+            };
+
+            _isInit = true;
         }
 
         public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, Vector2[] uv2s, bool isBackFace)
@@ -65,12 +86,17 @@ namespace PixelMiner.WorldBuilding
 
         public MeshData ToMeshData()
         {
-            MeshData data = new MeshData(_vertices.ToArray(), _triangles.ToArray(), _uvs.ToArray(), _uv2s.ToArray());
+            MeshData data = MeshDataPool.Get();
+            data.Init(_vertices, _triangles, _uvs, _uv2s);
+            return data;
+        }
+
+        public void Reset()
+        {
             _vertices.Clear();
             _triangles.Clear();
             _uvs.Clear();
             _uv2s.Clear();
-            return data;
         }
     }
 }

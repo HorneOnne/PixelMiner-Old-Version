@@ -1,21 +1,41 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 namespace PixelMiner.WorldBuilding
 {
     public class MeshData
     {
-        public Vector3[] Vertices { get; }
-        public int[] Triangles { get; }
-        public Vector3[] UVs { get; }
-        public Vector2[] UV2s { get; }
+        public List<Vector3> Vertices { get; private set; }
+        public List<int> Triangles { get; private set; }
+        public List<Vector3> UVs { get; private set; }
+        public List<Vector2> UV2s { get; private set; }
 
 
-        public MeshData(Vector3[] vertices, int[] triangles, Vector3[] uvs, Vector2[] uv2s)
+
+        public MeshData() 
+        { 
+            Debug.Log("Create MeshData.cs");
+            Vertices = new List<Vector3>(4);
+            Triangles = new List<int>(6);
+            UVs = new List<Vector3>(4);
+            UV2s = new List<Vector2>(4);
+        }
+
+        public void Init(List<Vector3> vertices, List<int> triangles, List<Vector3> uvs, List<Vector2> uv2s)
         {
-            Vertices = vertices;
-            Triangles = triangles;
-            UVs = uvs;
-            UV2s = uv2s;
+            Vertices.AddRange(vertices);
+            Triangles.AddRange(triangles);
+            UVs.AddRange(uvs);
+            UV2s.AddRange(uv2s);
+        }
+
+
+        public void Reset()
+        {
+            Vertices.Clear();
+            Triangles.Clear();
+            UVs.Clear();
+            UV2s.Clear();
         }
     }
 }

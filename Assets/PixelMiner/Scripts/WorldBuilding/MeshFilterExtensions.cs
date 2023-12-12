@@ -20,6 +20,8 @@ namespace PixelMiner.WorldBuilding
             meshFilter.sharedMesh = mesh;
 
             //LogUtils.WriteMeshToFile(meshFilter.mesh, "MeshData.txt");
+
+            MeshDataPool.Release(meshData);
         }
     }
 }

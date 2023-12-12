@@ -1,0 +1,20 @@
+﻿using PixelMiner.DataStructure;
+
+namespace PixelMiner.WorldBuilding
+{
+    public static class MeshDataPool
+    {
+        public static ObjectPool<MeshData> Pool = new ObjectPool<MeshData>(5);
+
+        public static MeshData Get()
+        {
+            return Pool.Get();
+        }
+
+        public static void Release(MeshData meshData)
+        {
+            meshData.Reset();
+            Pool.Release(meshData);
+        }
+    }
+}
