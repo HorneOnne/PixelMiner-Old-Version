@@ -131,9 +131,7 @@ namespace PixelMiner.WorldGen
         public static Color Wettest = new Color(0 / 255f, 0 / 255f, 100 / 255f, 1);
 
         // Cached
-        private byte _chunkWidth;      // Size of each chunk in tiles
-        private byte _chunkHeight;      // Size of each chunk in tiles
-        private byte _chunkDepth;
+        private Vector3Int _chunkDimension;
         private byte _calculateNoiseRangeSampleMultiplier = 15;  // 50 times. 50 * 100000 = 5 mil times.
         private int _calculateNoiseRangeCount = 1000000;    // 1 mil times.
         private float _minWorldNoiseValue = float.MaxValue;
@@ -177,10 +175,7 @@ namespace PixelMiner.WorldGen
             Seed = WorldGenUtilities.StringToSeed(_main.SeedInput);
             UnityEngine.Random.InitState(Seed);
 
-           
-            _chunkWidth = _main.ChunkWidth;
-            _chunkHeight = _main.ChunkHeight;
-            _chunkDepth = _main.ChunkDepth;
+           _chunkDimension = _main.ChunkDimension;
 
 
             // World Initialization
@@ -378,11 +373,11 @@ namespace PixelMiner.WorldGen
         public async Task<Chunk> GenerateNewChunk(int frameX, int frameY, int frameZ)
         {
             Vector3Int frame = new Vector3Int(frameX, frameY, frameZ);
-            Vector3 worldPosition = frame * new Vector3Int(Main.Instance.ChunkWidth, Main.Instance.ChunkHeight, Main.Instance.ChunkDepth);
+            Vector3 worldPosition = frame * new Vector3Int(_main.ChunkDimension[0], _main.ChunkDimension[1], _main.ChunkDimension[2]);
             Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity, _chunkParent.transform);
-            newChunk.Init(frameX, frameY, frameZ, _chunkWidth, _chunkHeight, _chunkDepth);
+            newChunk.Init(frameX, frameY, frameZ, (byte)_chunkDimension[0], (byte)_chunkDimension[1], (byte)_chunkDimension[2]);
 
-            float[] heightValues = await GetHeightMapDataAsync(newChunk.FrameX, newChunk.FrameZ, Main.Instance.ChunkWidth, Main.Instance.ChunkDepth);
+            float[] heightValues = await GetHeightMapDataAsync(newChunk.FrameX, newChunk.FrameZ, _main.ChunkDimension[0], _main.ChunkDimension[2]);
             await LoadHeightMapDataAsync(newChunk, heightValues);
 
             // Create new data
@@ -490,29 +485,29 @@ namespace PixelMiner.WorldGen
         public async Task<float[]> GetGradientMapDataAsync(int frameX, int frameZ)
         {
 
-            float[] gradientData = new float[_chunkWidth * _chunkDepth];
+            float[] gradientData = new float[_chunkDimension[0] * _chunkDimension[2]];
 
 
             await Task.Run(() =>
             {
-                int gradientFrameX = (int)(frameX * _chunkWidth / (float)GradientHeatmapSize);
-                int gradientFrameZ = -Mathf.CeilToInt(frameZ * _chunkDepth / (float)GradientHeatmapSize);
+                int gradientFrameX = (int)(frameX * _chunkDimension[0] / (float)GradientHeatmapSize);
+                int gradientFrameZ = -Mathf.CeilToInt(frameZ * _chunkDimension[2] / (float)GradientHeatmapSize);
 
                 // Calculate the center of the texture with the offset
                 Vector2 gradientOffset = new Vector2(gradientFrameX * GradientHeatmapSize, gradientFrameZ * GradientHeatmapSize);
-                Vector2 gradientCenterOffset = gradientOffset + new Vector2(frameX * _chunkWidth, frameZ * _chunkDepth);
+                Vector2 gradientCenterOffset = gradientOffset + new Vector2(frameX * _chunkDimension[0], frameZ * _chunkDimension[2]);
 
 
-                for (int x = 0; x < _chunkWidth; x++)
+                for (int x = 0; x < _chunkDimension[0]; x++)
                 {
-                    for (int z = 0; z < _chunkDepth; z++)
+                    for (int z = 0; z < _chunkDimension[2]; z++)
                     {
                         Vector2 center = new Vector2(Mathf.FloorToInt(x / GradientHeatmapSize), Mathf.FloorToInt(z / GradientHeatmapSize)) * new Vector2(GradientHeatmapSize, GradientHeatmapSize) + new Vector2(GradientHeatmapSize / 2f, GradientHeatmapSize / 2f);
                         Vector2 centerWithOffset = center + gradientCenterOffset;
 
                         float distance = Mathf.Abs(z - centerWithOffset.y);
                         float normalizedDistance = 1.0f - Mathf.Clamp01(distance / (GradientHeatmapSize / 2f));
-                        gradientData[WorldGenUtilities.IndexOf(x, z, _chunkWidth)] = normalizedDistance;
+                        gradientData[WorldGenUtilities.IndexOf(x, z, _chunkDimension[0])] = normalizedDistance;
                     }
                 }
             });
@@ -524,20 +519,20 @@ namespace PixelMiner.WorldGen
         {
             //Debug.Log("GetFractalHeatMapAsync Start");
 
-            float[] fractalNoiseData = new float[_chunkWidth * _chunkDepth];
+            float[] fractalNoiseData = new float[_chunkDimension[0] * _chunkDimension[2]];
 
             await Task.Run(() =>
             {
-                for (int x = 0; x < _chunkWidth; x++)
+                for (int x = 0; x < _chunkDimension[0]; x++)
                 {
-                    for (int z = 0; z < _chunkDepth; z++)
+                    for (int z = 0; z < _chunkDimension[2]; z++)
                     {
-                        float offsetX = frameX * _chunkWidth + x;
-                        float offsetZ = frameZ * _chunkDepth + z;
+                        float offsetX = frameX * _chunkDimension[0] + x;
+                        float offsetZ = frameZ * _chunkDimension[2] + z;
                         float heatValue = (float)_heatModule.GetValue(offsetX, 0, offsetZ);
                         float normalizeHeatValue = (heatValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
 
-                        fractalNoiseData[WorldGenUtilities.IndexOf(x, z, _chunkWidth)] = normalizeHeatValue;
+                        fractalNoiseData[WorldGenUtilities.IndexOf(x, z, _chunkDimension[0])] = normalizeHeatValue;
                     }
                 }
             });
@@ -574,20 +569,20 @@ namespace PixelMiner.WorldGen
         }
         public async Task<float[]> GetMoistureMapDataAsync(int frameX, int frameZ)
         {
-            float[] moistureData = new float[_chunkWidth * _chunkDepth];
+            float[] moistureData = new float[_chunkDimension[0] * _chunkDimension[2]];
 
             await Task.Run(() =>
             {
-                for (int x = 0; x < _chunkWidth; x++)
+                for (int x = 0; x < _chunkDimension[0]; x++)
                 {
-                    for (int z = 0; z < _chunkDepth; z++)
+                    for (int z = 0; z < _chunkDimension[2]; z++)
                     {
-                        float offsetX = frameX * _chunkWidth + x;
-                        float offsetZ = frameZ * _chunkDepth + z;
+                        float offsetX = frameX * _chunkDimension[0] + x;
+                        float offsetZ = frameZ * _chunkDimension[2] + z;
                         float moisetureValue = (float)_moistureModule.GetValue(offsetX, 0, offsetZ);
                         float normalizeMoistureValue = (moisetureValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
 
-                        moistureData[WorldGenUtilities.IndexOf(x, z, _chunkWidth)] = normalizeMoistureValue;
+                        moistureData[WorldGenUtilities.IndexOf(x, z, _chunkDimension[0])] = normalizeMoistureValue;
                     }
                 }
             });
@@ -631,20 +626,20 @@ namespace PixelMiner.WorldGen
             await Task.Run(() =>
             {         
                 //Debug.Log($"Ground: {Mathf.FloorToInt(Water * _chunkHeight)}");
-                for (int x = 0; x < _chunkWidth; x++)
+                for (int x = 0; x < _chunkDimension[0]; x++)
                 {
-                    for (int z = 0; z < _chunkDepth; z++)
+                    for (int z = 0; z < _chunkDimension[2]; z++)
                     {
-                        for (int y = 0; y < _chunkHeight; y++)
+                        for (int y = 0; y < _chunkDimension[1]; y++)
                         {
-                            float heightValue = heightValues[WorldGenUtilities.IndexOf(x, z, _chunkWidth)];
-                            chunk.HeightValues[WorldGenUtilities.IndexOf(x, z, _chunkWidth)] = heightValue;
+                            float heightValue = heightValues[WorldGenUtilities.IndexOf(x, z, _chunkDimension[0])];
+                            chunk.HeightValues[WorldGenUtilities.IndexOf(x, z, _chunkDimension[0])] = heightValue;
 
-                            int index3D = WorldGenUtilities.IndexOf(x, y, z, _chunkWidth, _chunkHeight);
-                            int indexHighestY = WorldGenUtilities.IndexOf(x, _chunkHeight - 1, z, _chunkWidth, _chunkHeight);
-                            int averageGroundLayer = Mathf.FloorToInt(Water * _chunkHeight);
+                            int index3D = WorldGenUtilities.IndexOf(x, y, z, _chunkDimension[0], _chunkDimension[1]);
+                            int indexHighestY = WorldGenUtilities.IndexOf(x, _chunkDimension[1] - 1, z, _chunkDimension[0], _chunkDimension[1]);
+                            int averageGroundLayer = Mathf.FloorToInt(Water * _chunkDimension[1]);
            
-                            int terrainHeight = Mathf.FloorToInt(heightValue * _chunkHeight);
+                            int terrainHeight = Mathf.FloorToInt(heightValue * _chunkDimension[1]);
                           
                     
                             if(y <= averageGroundLayer) 
@@ -664,7 +659,7 @@ namespace PixelMiner.WorldGen
                                     else
                                         chunk.ChunkData[index3D] = BlockType.Glass;
                                 }
-                                else if (y < _chunkHeight * Water)
+                                else if (y < _chunkDimension[1] * Water)
                                 {
                                     chunk.ChunkData[index3D] = BlockType.Water;
                                 }

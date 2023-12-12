@@ -3,8 +3,6 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using Sirenix.OdinInspector;
 using PixelMiner.Enums;
-using PixelMiner.Utilities;
-using System.Threading.Tasks;
 using PixelMiner.WorldBuilding;
 
 namespace PixelMiner.WorldGen
@@ -13,33 +11,17 @@ namespace PixelMiner.WorldGen
     {
         public static Main Instance { get; private set; }
 
-        // Tiles data
-        [AssetList(Path = "/PixelMiner/Tiles/")]
-        public List<CustomTileBase> TileBaseList = new List<CustomTileBase>();
-        [AssetList(Path = "/PixelMiner/Tiles/Animated Tiles")]
-        public List<CustomAnimatedTileBase> AnimatedTileBaseList = new List<CustomAnimatedTileBase>();
-        private Dictionary<TileType, CustomTileBase> _tileBaseDict = new Dictionary<TileType, CustomTileBase>();
-        private Dictionary<TileType, CustomAnimatedTileBase> _animatedTileBaseDict = new Dictionary<TileType, CustomAnimatedTileBase>();
-
-
         // Chunk data
         [Header("Data Cached")]
         public Dictionary<Vector3Int, Chunk> Chunks;
         public HashSet<Chunk> ActiveChunks;
-
-        // Tilemap Settings
-        [FoldoutGroup("Tilemap Settings"), Indent(1), ShowInInspector, ReadOnly] public readonly float IsometricAngle = 26.565f;
-        [FoldoutGroup("Tilemap Settings"), Indent(1), ShowInInspector, ReadOnly] public readonly Vector3 CELL_SIZE = new Vector3(2.0f, 1.0f, 1.0f);
-        [FoldoutGroup("Tilemap Settings"), Indent(1), ShowInInspector, ReadOnly] public readonly Vector3 CELL_GAP = new Vector3(0.0f, 0.0f, 0.0f);
-
-
         public string SeedInput = "7";
 
- 
 
-        public byte ChunkWidth = 32;
-        public byte ChunkHeight = 1;
-        public byte ChunkDepth = 32;
+        public Vector3Int ChunkDimension;
+        //public byte ChunkWidth = 32;
+        //public byte ChunkHeight = 1;
+        //public byte ChunkDepth = 32;
 
         public bool AutoLoadChunk = true;
         public bool AutoUnloadChunk = true;
@@ -54,9 +36,7 @@ namespace PixelMiner.WorldGen
         private void Awake()
         {
             Instance = this;
-            LoadTileBaseDictionary();
-
-
+ 
             // Initialize the chunks data
             Chunks = new Dictionary<Vector3Int, Chunk>();
             ActiveChunks = new HashSet<Chunk>();
@@ -66,34 +46,7 @@ namespace PixelMiner.WorldGen
             
         }
 
-       
-        #region Initialize tile data
-        private void LoadTileBaseDictionary()
-        {
-            foreach (var tilebase in TileBaseList)
-            {
-                _tileBaseDict.Add(tilebase.Type, tilebase);
-            }
-
-            foreach (var animatedTile in AnimatedTileBaseList)
-            {
-                _animatedTileBaseDict.Add(animatedTile.Type, animatedTile);
-            }
-        }
-        public TileBase GetTileBase(TileType tileType)
-        {
-            if (_tileBaseDict.ContainsKey(tileType))
-            {
-                return _tileBaseDict[tileType];
-            }
-            if (_animatedTileBaseDict.ContainsKey(tileType))
-            {
-                return _animatedTileBaseDict[tileType];
-            }
-            return null;
-        }
-
-        #endregion
+      
 
         #region Get, Set Chunk
         public bool HasChunk(int franeX, int frameZ)
@@ -106,8 +59,8 @@ namespace PixelMiner.WorldGen
         }
         public Chunk GetChunk(Vector3 worldPosition)
         {
-            Vector3Int frame = new Vector3Int(Mathf.FloorToInt(worldPosition.x / ChunkWidth),
-                Mathf.FloorToInt(worldPosition.y / ChunkHeight), Mathf.FloorToInt(worldPosition.z / ChunkDepth));
+            Vector3Int frame = new Vector3Int(Mathf.FloorToInt(worldPosition.x / ChunkDimension[0]),
+                Mathf.FloorToInt(worldPosition.y / ChunkDimension[1]), Mathf.FloorToInt(worldPosition.z / ChunkDimension[2]));
             return GetChunk(frame);
         }
         public Chunk GetChunk(int frameX, int frameZ)
@@ -260,19 +213,6 @@ namespace PixelMiner.WorldGen
         //    }
         //    return nbWorldPosition;
         //}
-        #endregion
-
-
-        #region Block
-        public Block GetBlock(Vector3 worldPosition)
-        {
-            Chunk chunk = GetChunk(worldPosition);
-            if (chunk != null)
-            {
-                return null;
-            }
-            return null;
-        }
         #endregion
     }
 }

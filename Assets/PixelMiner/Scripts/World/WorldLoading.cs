@@ -32,8 +32,8 @@ namespace PixelMiner.WorldGen
         private void Awake()
         {
             Instance = this;
-            _currentFrame = new Vector3Int(Mathf.FloorToInt(_playerTrans.position.x / Main.Instance.ChunkWidth), 0,
-                   Mathf.FloorToInt(_playerTrans.position.z / Main.Instance.ChunkDepth));
+            _currentFrame = new Vector3Int(Mathf.FloorToInt(_playerTrans.position.x / Main.Instance.ChunkDimension[0]), 0,
+                   Mathf.FloorToInt(_playerTrans.position.z / Main.Instance.ChunkDimension[2]));
             LastChunkFrame = _currentFrame;
         }
 
@@ -76,8 +76,8 @@ namespace PixelMiner.WorldGen
                 if (_main.AutoLoadChunk)
                 {
                     _currentFrame = new Vector3Int(
-                        Mathf.FloorToInt(_playerTrans.position.x / _main.ChunkWidth), 0,
-                        Mathf.FloorToInt(_playerTrans.position.z / _main.ChunkDepth));
+                        Mathf.FloorToInt(_playerTrans.position.x / _main.ChunkDimension[0]), 0,
+                        Mathf.FloorToInt(_playerTrans.position.z / _main.ChunkDimension[2]));
 
 
                     if (_currentFrame != LastChunkFrame)
