@@ -46,7 +46,15 @@ namespace PixelMiner
                 UIMapPreviewManager.Instance.SetActiveHeightMap();
             }
         }
-
+        [Command("/preview_heatmap")]
+        private static void PreviewHeatmap()
+        {
+            if (UIMapPreviewManager.Instance.HasHeatMap())
+            {
+                InputHander.Instance.ActiveUIMap();
+                UIMapPreviewManager.Instance.SetActiveHeatMap();
+            }
+        }
 
 
         [Command("/getUV")]

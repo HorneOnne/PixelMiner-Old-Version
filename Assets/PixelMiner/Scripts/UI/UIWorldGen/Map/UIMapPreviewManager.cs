@@ -44,6 +44,8 @@ namespace PixelMiner.UI.WorldGen
             if (HasHeightMap()) HeightMapPreview.gameObject.SetActive(false);
             if (HasHeatMap()) HeatMapPreview.gameObject.SetActive(true);
             if (HasMoistureMap()) MoistureMapPreview.gameObject.SetActive(false);
+
+            UpdateHeatMapPreview();
         }
 
         public void SetActiveMoistureMap()
@@ -67,8 +69,14 @@ namespace PixelMiner.UI.WorldGen
 
         private async void UpdateHeightMapPreview()
         {
-            Texture2D texture = await GetHeatTextureAsync();
+            Texture2D texture = await GetHeightmapTextureAsync();
             HeightMapPreview.SetImage(texture);
+        }
+
+        private async void UpdateHeatMapPreview()
+        {
+            Texture2D texture = await GetHeatTextureAsync();
+            HeatMapPreview.SetImage(texture);
         }
 
 
@@ -130,45 +138,42 @@ namespace PixelMiner.UI.WorldGen
         {
             int textureWidth = 960;
             int textureHeight = 540;
-            float[] heightValues = await WorldGeneration.Instance.GetHeatMapDataAysnc(0, 0);
+            float[] gradientValues = await WorldGeneration.Instance.GetGradientMapDataAsync(0, 0, textureWidth, textureHeight);
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
             int x;
             int y;
+            Debug.Log(gradientValues.Length);
             await Task.Run(() =>
             {
-                Parallel.For(0, heightValues.Length, i =>
+                Parallel.For(0, gradientValues.Length, i =>
                 {
-                    float heightValue = heightValues[i];
+                    float gradientValue = gradientValues[i];
                     x = i % textureWidth;
                     y = i / textureHeight;
-                    if (heightValue < WorldGeneration.Instance.DeepWater)
+                    if (gradientValue < WorldGeneration.Instance.ColdestValue)
                     {
-                        pixels[i] = WorldGeneration.DeepColor;
+                        pixels[i] = WorldGeneration.ColdestColor;
                     }
-                    else if (heightValue < WorldGeneration.Instance.Water)
+                    else if (gradientValue < WorldGeneration.Instance.ColderValue)
                     {
-                        pixels[i] = WorldGeneration.ShallowColor;
+                        pixels[i] = WorldGeneration.ColderColor;
                     }
-                    else if (heightValue < WorldGeneration.Instance.Sand)
+                    else if (gradientValue < WorldGeneration.Instance.ColdValue)
                     {
-                        pixels[i] = WorldGeneration.SandColor;
+                        pixels[i] = WorldGeneration.ColdColor;
                     }
-                    else if (heightValue < WorldGeneration.Instance.Grass)
+                    else if (gradientValue < WorldGeneration.Instance.WarmValue)
                     {
-                        pixels[i] = WorldGeneration.GrassColor;
+                        pixels[i] = WorldGeneration.WarmColor;
                     }
-                    else if (heightValue < WorldGeneration.Instance.Forest)
+                    else if (gradientValue < WorldGeneration.Instance.WarmerValue)
                     {
-                        pixels[i] = WorldGeneration.ForestColor;
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Rock)
-                    {
-                        pixels[i] = WorldGeneration.RockColor;
+                        pixels[i] = WorldGeneration.WarmerColor;
                     }
                     else
                     {
-                        pixels[i] = WorldGeneration.SnowColor;
+                        pixels[i] = WorldGeneration.WarmestColor;
                     }
                 });
             });

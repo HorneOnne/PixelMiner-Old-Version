@@ -482,32 +482,32 @@ namespace PixelMiner.WorldGen
 
         //    return heightValues;
         //}
-        public async Task<float[]> GetGradientMapDataAsync(int frameX, int frameZ)
+        public async Task<float[]> GetGradientMapDataAsync(int frameX, int frameZ, int width, int height)
         {
 
-            float[] gradientData = new float[_chunkDimension[0] * _chunkDimension[2]];
+            float[] gradientData = new float[width * height];
 
-
+            Debug.Log(GradientHeatmapSize);
             await Task.Run(() =>
             {
-                int gradientFrameX = (int)(frameX * _chunkDimension[0] / (float)GradientHeatmapSize);
-                int gradientFrameZ = -Mathf.CeilToInt(frameZ * _chunkDimension[2] / (float)GradientHeatmapSize);
+                int gradientFrameX = (int)(frameX * width / (float)GradientHeatmapSize);
+                int gradientFrameZ = -Mathf.CeilToInt(frameZ * height / (float)GradientHeatmapSize);
 
                 // Calculate the center of the texture with the offset
                 Vector2 gradientOffset = new Vector2(gradientFrameX * GradientHeatmapSize, gradientFrameZ * GradientHeatmapSize);
-                Vector2 gradientCenterOffset = gradientOffset + new Vector2(frameX * _chunkDimension[0], frameZ * _chunkDimension[2]);
+                Vector2 gradientCenterOffset = gradientOffset + new Vector2(frameX * width, frameZ * height);
 
 
-                for (int x = 0; x < _chunkDimension[0]; x++)
+                for (int x = 0; x < width; x++)
                 {
-                    for (int z = 0; z < _chunkDimension[2]; z++)
+                    for (int z = 0; z < height; z++)
                     {
                         Vector2 center = new Vector2(Mathf.FloorToInt(x / GradientHeatmapSize), Mathf.FloorToInt(z / GradientHeatmapSize)) * new Vector2(GradientHeatmapSize, GradientHeatmapSize) + new Vector2(GradientHeatmapSize / 2f, GradientHeatmapSize / 2f);
                         Vector2 centerWithOffset = center + gradientCenterOffset;
 
                         float distance = Mathf.Abs(z - centerWithOffset.y);
                         float normalizedDistance = 1.0f - Mathf.Clamp01(distance / (GradientHeatmapSize / 2f));
-                        gradientData[WorldGenUtilities.IndexOf(x, z, _chunkDimension[0])] = normalizedDistance;
+                        gradientData[WorldGenUtilities.IndexOf(x, z, width)] = normalizedDistance;
                     }
                 }
             });
@@ -555,7 +555,7 @@ namespace PixelMiner.WorldGen
 
             // Simultaneous way
             // ===============
-            Task<float[]> gradientTask = GetGradientMapDataAsync(frameX, frameZ);
+            Task<float[]> gradientTask = GetGradientMapDataAsync(frameX, frameZ, _chunkDimension[0], _chunkDimension[2]);
             Task<float[]> fractalNoiseTask = GetFractalHeatMapDataAsync(frameX, frameZ);
 
             // Await for both tasks to complete
