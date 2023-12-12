@@ -1,22 +1,16 @@
 ﻿using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering;
-using PixelMiner.DataStructure;
 using PixelMiner.Utilities;
 using System.Collections.Generic;
-using System.Linq;
-using Sirenix.OdinInspector.Editor;
-using System;
 using PixelMiner.Enums;
-using Sirenix.Reflection.Editor;
+
 
 namespace PixelMiner.WorldBuilding
 {
-
-
     public static class MeshUtils
     {
-        // Example method to write Unity Mesh data to a text file
+        private static ChunkMeshBuilder _builder = new ChunkMeshBuilder();
 
         public static Vector2[,] BlockUVs =
         {
@@ -393,16 +387,6 @@ namespace PixelMiner.WorldBuilding
 
         public static MeshData GreedyMeshing(Chunk chunk)
         {
-            ChunkMeshBuilder builder = new ChunkMeshBuilder();
-            bool[,] merged;
-
-            Vector3Int startPos, currPos, quadSize, m, n, offsetPos;
-            Vector3[] vertices;
-            Vector3[] uvs = new Vector3[4];
- 
-            int d, u, v;
-            Vector3Int dimensions = chunk.Dimensions;
-
             bool GreedyCompareLogic(Vector3Int a, Vector3Int b, int dimension, bool isBackFace)
             {
                 BlockType blockA = chunk.GetBlock(a);
@@ -411,6 +395,19 @@ namespace PixelMiner.WorldBuilding
                 return blockA == blockB && chunk.IsSolid(b) && chunk.IsBlockFaceVisible(b, dimension, isBackFace);
             }
 
+            //ChunkMeshBuilder _builder = new ChunkMeshBuilder();
+
+            bool[,] merged;
+
+            Vector3Int startPos, currPos, quadSize, m, n, offsetPos;
+            Vector3[] vertices;
+            Vector3[] uvs = new Vector3[4];
+            Vector2[] uv2s = new Vector2[4];
+            BlockType currBlock;
+            int d, u, v;
+            Vector3Int dimensions = chunk.Dimensions;
+
+          
             // Iterate over each aface of the blocks.
             for (int voxelFace = 0; voxelFace < 6; voxelFace++)
             {
@@ -425,7 +422,7 @@ namespace PixelMiner.WorldBuilding
                 * BackFace -> Face that drawn in clockwise direction. (Need detect which face is clockwise in order to draw it on 
                 * Unity scene).
                 */
-                if(voxelFace == 4) continue;
+                //if(voxelFace == 4) continue;
 
                 bool isBackFace = voxelFace > 2;
                 d = voxelFace % 3;
@@ -444,7 +441,8 @@ namespace PixelMiner.WorldBuilding
                     {
                         for (startPos[v] = 0; startPos[v] < dimensions[v]; startPos[v]++)
                         {
-                            
+                            currBlock = chunk.GetBlock(startPos);
+
                             // If this block has already been merged, is air, or not visible -> skip it.
                             if (chunk.IsSolid(startPos) == false ||
                                 chunk.IsBlockFaceVisible(startPos, d, isBackFace) == false ||
@@ -511,18 +509,8 @@ namespace PixelMiner.WorldBuilding
                                 offsetPos + n
                             };
 
-                            //GetBlockUVs(chunk.GetBlock(startPos), ref uvs);
-
-                            uvs = new Vector3[]
-                            {
-                                new Vector3(0,0,4),
-                                new Vector3(quadSize[u], 0,4),
-                                new Vector3(quadSize[u], quadSize[v],4),
-                                new Vector3(0, quadSize[v],4)
-                            };
-
-
-                            builder.AddQuadFace(vertices, uvs, isBackFace);
+                            GetBlockUVs(currBlock, voxelFace, quadSize[u], quadSize[v], ref uvs, ref uv2s);
+                            _builder.AddQuadFace(vertices, uvs, uv2s, isBackFace);
 
 
                             // Mark at this position has been merged
@@ -540,16 +528,57 @@ namespace PixelMiner.WorldBuilding
 
                 }
             }
-            return builder.ToMeshData();
+            return _builder.ToMeshData();
         }
 
 
-        private static void GetBlockUVs(BlockType blockType, ref Vector2[] uvs)
+        private static void GetBlockUVs(BlockType blockType, int face, int width, int height, ref Vector3[] uvs, ref Vector2[] uv2s)
         {
-            uvs[0] = BlockUVs[(ushort)BlockType.Stone, 0];
-            uvs[1] = BlockUVs[(ushort)BlockType.Stone, 1];
-            uvs[2] = BlockUVs[(ushort)BlockType.Stone, 2];
-            uvs[3] = BlockUVs[(ushort)BlockType.Stone, 3];
+            int blockIndex;
+            ColorMapType colorMapType;
+            if (blockType == BlockType.GrassSide)
+            {
+                if(face == 1)
+                {
+                    blockIndex = (ushort)BlockType.GrassTop;
+                    colorMapType = ColorMapType.Plains;
+                }
+                else if (face == 4)
+                {
+                    blockIndex = (ushort)BlockType.Dirt;
+                }
+                else
+                {
+                    blockIndex = (ushort)blockType;
+                }
+            }
+            else
+            {
+                blockIndex = (ushort)blockType;
+            }
+
+            if (blockType == BlockType.GrassSide && face == 1)
+            {
+                colorMapType = ColorMapType.Plains;
+            }
+            else
+            {
+                colorMapType = ColorMapType.None;
+            }
+
+            uvs[0] = new Vector3(0, 0, blockIndex);
+            uvs[1] = new Vector3(width, 0, blockIndex);
+            uvs[2] = new Vector3(width, height, blockIndex);
+            uvs[3] = new Vector3(0, height, blockIndex);
+
+            GetColorMapkUVs(colorMapType, ref uv2s);
+        }
+        private static void GetColorMapkUVs(ColorMapType colormapType, ref Vector2[] colormapUVs)
+        {
+            colormapUVs[0] = ColorMapUVs[(ushort)colormapType, 0];
+            colormapUVs[1] = ColorMapUVs[(ushort)colormapType, 1];
+            colormapUVs[2] = ColorMapUVs[(ushort)colormapType, 2];
+            colormapUVs[3] = ColorMapUVs[(ushort)colormapType, 3];
         }
     }
 }

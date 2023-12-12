@@ -6,15 +6,20 @@ namespace PixelMiner.WorldBuilding
     {
         public static void ApplyMeshData(this MeshFilter meshFilter, MeshData meshData)
         {
-            meshFilter.mesh.Clear();
-            meshFilter.mesh.vertices = meshData.Vertices;
-            meshFilter.mesh.triangles = meshData.Triangles;
-            meshFilter.mesh.SetUVs(0, meshData.UVs);
+            Mesh mesh = new Mesh();
+            mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
+            mesh.SetVertices(meshData.Vertices);
+            mesh.SetTriangles(meshData.Triangles, 0);
+            mesh.SetUVs(0, meshData.UVs);
+            mesh.SetUVs(1, meshData.UV2s);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+         
+    
 
-            // Color mesh and calculate normals
-            meshFilter.mesh.RecalculateNormals();
+            meshFilter.sharedMesh = mesh;
 
-            LogUtils.WriteMeshToFile(meshFilter.mesh, "MeshData.txt");
+            //LogUtils.WriteMeshToFile(meshFilter.mesh, "MeshData.txt");
         }
     }
 }
