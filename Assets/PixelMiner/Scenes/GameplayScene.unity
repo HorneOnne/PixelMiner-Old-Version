@@ -851,9 +851,9 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1000
-  field of view: 34
-  orthographic: 1
+  far clip plane: 500
+  field of view: 10
+  orthographic: 0
   orthographic size: 10
   m_Depth: -1
   m_CullingMask:
@@ -935,7 +935,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &587489645
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -948,20 +948,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8593c6e4278cda4985fa5b70809e948, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TileBaseList:
-  - {fileID: 11400000, guid: 5e8ce47f5051ce44cb0eda7a9b9b0c9b, type: 2}
-  - {fileID: 11400000, guid: 82bfe6101539e2c45ba994135eaa37c2, type: 2}
-  - {fileID: 11400000, guid: db66ce82e87609047acf2658ee711dd3, type: 2}
-  - {fileID: 11400000, guid: 51388d31ef1a62c4aaa80d34657a11d1, type: 2}
-  - {fileID: 11400000, guid: 602b6981fc7af8c458643a97f56dd44a, type: 2}
-  - {fileID: 11400000, guid: 2330028cec4a2cc46835c427bb00746f, type: 2}
-  - {fileID: 11400000, guid: 297b38560dae32e4f9a448153e53378c, type: 2}
-  AnimatedTileBaseList:
-  - {fileID: 11400000, guid: a58c71edb0d04bf46bcf92f608439e59, type: 2}
   SeedInput: 7
-  ChunkWidth: 32
-  ChunkHeight: 10
-  ChunkDepth: 32
+  ChunkDimension: {x: 32, y: 10, z: 32}
   AutoLoadChunk: 1
   AutoUnloadChunk: 1
   ShowChunksBorder: 0
@@ -2258,12 +2246,12 @@ MonoBehaviour:
   m_LookAt: {fileID: 0}
   m_Follow: {fileID: 314038816}
   m_Lens:
-    FieldOfView: 34
+    FieldOfView: 10
     OrthographicSize: 10
     NearClipPlane: 0.3
-    FarClipPlane: 1000
+    FarClipPlane: 500
     Dutch: 0
-    ModeOverride: 1
+    ModeOverride: 2
     LensShift: {x: 0, y: 0}
     GateFit: 2
     FocusDistance: 10
