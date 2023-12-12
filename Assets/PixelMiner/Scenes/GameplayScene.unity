@@ -484,7 +484,7 @@ Transform:
   m_GameObject: {fileID: 314038815}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -84.26217, y: 4.1, z: -685.2385}
+  m_LocalPosition: {x: -134.0273, y: 4.75, z: -660.07153}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -584,7 +584,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &333124103
 RectTransform:
   m_ObjectHideFlags: 0
@@ -879,7 +879,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: -145.49942, y: 54.099987, z: -746.4758}
+  m_LocalPosition: {x: -195.26453, y: 54.749985, z: -721.3088}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -962,8 +962,8 @@ MonoBehaviour:
   ChunkWidth: 32
   ChunkHeight: 10
   ChunkDepth: 32
-  AutoLoadChunk: 0
-  AutoUnloadChunk: 0
+  AutoLoadChunk: 1
+  AutoUnloadChunk: 1
   ShowChunksBorder: 0
   ShowTilegroupMaps: 0
   InitWorldWithHeatmap: 0
@@ -1672,7 +1672,7 @@ Transform:
   m_GameObject: {fileID: 1334762261}
   serializedVersion: 2
   m_LocalRotation: {x: 0.2588191, y: 0, z: 0, w: 0.9659258}
-  m_LocalPosition: {x: -84.26217, y: 54.100025, z: -771.84106}
+  m_LocalPosition: {x: -134.0273, y: 54.750023, z: -746.6741}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2229,7 +2229,7 @@ Transform:
   m_GameObject: {fileID: 1694405455}
   serializedVersion: 2
   m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: -145.49942, y: 54.099987, z: -746.4758}
+  m_LocalPosition: {x: -195.26453, y: 54.749985, z: -721.3088}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

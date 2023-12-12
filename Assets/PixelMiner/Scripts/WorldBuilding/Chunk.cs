@@ -56,7 +56,7 @@ namespace PixelMiner.WorldBuilding
         [HideInInspector] public float[] HeatValues;
         [HideInInspector] public float[] MoistureValues;
 
-
+        private BlockType[] WaterTypes = new BlockType[] { BlockType.Water };
 
         private void Start()
         {
@@ -129,9 +129,15 @@ namespace PixelMiner.WorldBuilding
         public bool IsSolid(Vector3Int position)
         {
             BlockType block = GetBlock(position);
-            return block != BlockType.Air &&
-                   block != BlockType.Water;
+            return block != BlockType.Air && block != BlockType.Water;
         }
+        public bool IsWater(Vector3Int position)
+        {
+            BlockType block = GetBlock(position);
+            return block == BlockType.Water;
+        }
+
+
         public BlockType GetBlock(byte x, byte y, byte z)
         {
             return ChunkData[IndexOf(x, y, z)];
@@ -152,13 +158,21 @@ namespace PixelMiner.WorldBuilding
             position[dimension] += isBackFace ? -1 : 1;
             return IsSolid(position) == false;
         }
+        public bool IsWaterFaceVisible(Vector3Int position, int dimension, bool isBackFace)
+        {
+            position[dimension] += isBackFace ? -1 : 1;
+            return IsWater(position) == false;
+        }
 
         public async void DrawChunkAsync()
         {
             if (ChunkHasDrawn) return;
 
-            var meshData = MeshUtils.GreedyMeshing(this);
-            SolidMeshFilter.ApplyMeshData(meshData);
+            var solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this);
+            var waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(this);
+
+            SolidMeshFilter.ApplyMeshData(solidMeshData);
+            WaterMeshFilter.ApplyMeshData(waterMeshData);
 
             //List<Quad> quads = await GetSolidChunkMeshDataAsync02();
             //SolidMeshFilter.sharedMesh = await MeshUtils.MergeLargeMeshDataAsyncParallel(quads, ChunkData);
