@@ -138,12 +138,11 @@ namespace PixelMiner.UI.WorldGen
         {
             int textureWidth = 960;
             int textureHeight = 540;
-            float[] gradientValues = await WorldGeneration.Instance.GetGradientMapDataAsync(0, 0, textureWidth, textureHeight);
+            float[] gradientValues = await WorldGeneration.Instance.GetHeatMapDataAysnc(0, 0, textureWidth, textureHeight);
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
             int x;
             int y;
-            Debug.Log(gradientValues.Length);
             await Task.Run(() =>
             {
                 Parallel.For(0, gradientValues.Length, i =>

@@ -515,24 +515,24 @@ namespace PixelMiner.WorldGen
             //Debug.Log("GetGradientMapAsync Finish");
             return gradientData;
         }
-        public async Task<float[]> GetFractalHeatMapDataAsync(int frameX, int frameZ)
+        public async Task<float[]> GetFractalHeatMapDataAsync(int frameX, int frameZ, int width, int height)
         {
             //Debug.Log("GetFractalHeatMapAsync Start");
 
-            float[] fractalNoiseData = new float[_chunkDimension[0] * _chunkDimension[2]];
+            float[] fractalNoiseData = new float[width * height];
 
             await Task.Run(() =>
             {
-                for (int x = 0; x < _chunkDimension[0]; x++)
+                for (int x = 0; x < width; x++)
                 {
-                    for (int z = 0; z < _chunkDimension[2]; z++)
+                    for (int z = 0; z < height; z++)
                     {
-                        float offsetX = frameX * _chunkDimension[0] + x;
-                        float offsetZ = frameZ * _chunkDimension[2] + z;
+                        float offsetX = frameX * width + x;
+                        float offsetZ = frameZ * height + z;
                         float heatValue = (float)_heatModule.GetValue(offsetX, 0, offsetZ);
                         float normalizeHeatValue = (heatValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
 
-                        fractalNoiseData[WorldGenUtilities.IndexOf(x, z, _chunkDimension[0])] = normalizeHeatValue;
+                        fractalNoiseData[WorldGenUtilities.IndexOf(x, z, width)] = normalizeHeatValue;
                     }
                 }
             });
@@ -540,23 +540,13 @@ namespace PixelMiner.WorldGen
             //Debug.Log("GetFractalHeatMapAsync Finish");
             return fractalNoiseData;
         }
-        public async Task<float[]> GetHeatMapDataAysnc(int frameX, int frameZ)
+        public async Task<float[]> GetHeatMapDataAysnc(int frameX, int frameZ, int width, int height)
         {
             /*
              * Heatmap created by blend gradient map and fractal noise map.
              */
-
-            // Sequence way
-            // ===========
-            //float[,] gradientValues = await GetGradientMapAsync(isoFrameX, isoFrameY);
-            //float[,] fractalNoiseValues = await GetFractalHeatMapAsync(isoFrameX, isoFrameY);
-            //float[,] heatValues = BlendMapData(gradientValues, fractalNoiseValues, HeatMapBlendFactor);
-
-
-            // Simultaneous way
-            // ===============
-            Task<float[]> gradientTask = GetGradientMapDataAsync(frameX, frameZ, _chunkDimension[0], _chunkDimension[2]);
-            Task<float[]> fractalNoiseTask = GetFractalHeatMapDataAsync(frameX, frameZ);
+            Task<float[]> gradientTask = GetGradientMapDataAsync(frameX, frameZ, width, height);
+            Task<float[]> fractalNoiseTask = GetFractalHeatMapDataAsync(frameX, frameZ, width, height);
 
             // Await for both tasks to complete
             await Task.WhenAll(gradientTask, fractalNoiseTask);
