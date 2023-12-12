@@ -56,12 +56,12 @@ namespace PixelMiner
             }
         }
         [Command("/preview_moisturemap")]
-        private static void PreviewMoisturemap()
+        private static void PreviewMoisturemap(bool value)
         {
             if (UIMapPreviewManager.Instance.HasMoistureMap())
             {
                 InputHander.Instance.ActiveUIMap();
-                UIMapPreviewManager.Instance.SetActiveMoistureMap();
+                UIMapPreviewManager.Instance.SetActiveMoistureMap(value);
             }
         }
 

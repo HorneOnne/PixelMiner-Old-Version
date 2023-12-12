@@ -438,11 +438,11 @@ namespace PixelMiner.WorldBuilding
         #endregion
 
         #region Utilities
-        private int IndexOf(int x, int y, int z)
+        public int IndexOf(int x, int y, int z)
         {
             return x + _width * (y + _height * z);
         }
-        private int IndexOf(int x, int z)
+        public int IndexOf(int x, int z)
         {
             return x + z * _depth;
         }
