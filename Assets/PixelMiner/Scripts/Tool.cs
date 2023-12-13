@@ -12,36 +12,43 @@ namespace PixelMiner
 
         private Transform _cursor;
 
+        private float _timer;
+        private float _time = 0.02f;
+        private Camera _mainCam;
+        private Ray _ray;
+        private RaycastHit _hit;
+
         private void Start()
         {
             _main = Main.Instance;
+            _mainCam = Camera.main;
 
             // Cursor
             _cursor = Instantiate(_cursorPrefab).transform;
-            //_cursor.gameObject.hideFlags = HideFlags.HideInHierarchy;
+            _cursor.gameObject.hideFlags = HideFlags.HideInHierarchy;
         }
 
 
        
         private void Update()
         {
-            if (Input.GetMouseButton(0))
+            if(Time.time - _timer > _time)
             {
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                RaycastHit hit;
-                if (Physics.Raycast(ray, out hit))
+                _timer = Time.time;
+
+                _ray = _mainCam.ScreenPointToRay(Input.mousePosition);
+                if (Physics.Raycast(_ray, out _hit))
                 {
-                    if (hit.collider != null)
+                    if (_hit.collider != null)
                     {
-                        Collider collider = hit.collider;
-                        Vector3Int hitPosition = new Vector3Int(Mathf.FloorToInt(hit.point.x),
-                                                                Mathf.FloorToInt(hit.point.y), 
-                                                                Mathf.FloorToInt(hit.point.z));
-                        Debug.Log($"Hit : {hit.point}");
+                        Vector3Int hitPosition = new Vector3Int(Mathf.FloorToInt(_hit.point.x),
+                                                                Mathf.FloorToInt(_hit.point.y),
+                                                                Mathf.FloorToInt(_hit.point.z));
                         _cursor.transform.position = hitPosition;
                     }
                 }
-            };
+            }
+ 
 
             //Tile tile = Main.Instance.GetTile(mousePosition, out Chunk2D chunk);
             //Vector2 tileWorldPos = _main.GetTileWorldPosition(mousePosition);

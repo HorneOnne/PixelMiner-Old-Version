@@ -707,7 +707,7 @@ namespace PixelMiner.WorldGen
 
                         if(riverValue > 0.5f && riverValue < 0.6f && heightValue >= Water)
                         {
-                            heightValues[index] -= 0.45f * riverValue;
+                            heightValues[index] -= 0.6f * riverValue;
                             heightValues[index] = Mathf.Clamp(heightValues[index], 0.4f, 1f);
                         }
 
