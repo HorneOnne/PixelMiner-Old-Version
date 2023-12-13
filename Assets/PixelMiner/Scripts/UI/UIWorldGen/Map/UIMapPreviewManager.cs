@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
 using System.Threading.Tasks;
-using UnityEngine.EventSystems;
-using Sirenix.OdinInspector;
 using PixelMiner.WorldGen;
+using PixelMiner.WorldBuilding;
 
 namespace PixelMiner.UI.WorldGen
 {
@@ -94,8 +93,12 @@ namespace PixelMiner.UI.WorldGen
 
             if(digRiver)
             {
+                Debug.Log("Dig river");
                 float[] riverValues = await WorldGeneration.Instance.GetRiverDataAsync(0, 0, textureWidth, textureHeight);
-                riverValues = await WorldGeneration.Instance.DigRiver(heightValues, riverValues, textureWidth, textureHeight);
+                heightValues = await WorldGeneration.Instance.DigRiverAsync(heightValues, riverValues, textureWidth, textureHeight);
+
+                //LogUtils.Log(riverValues, "River.txt");
+                
             }
 
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
@@ -200,7 +203,7 @@ namespace PixelMiner.UI.WorldGen
             if (applyHeight)
             {
                 float[] heightValues = await WorldGeneration.Instance.GetHeightMapDataAsync(0, 0, textureWidth, textureHeight);
-                moistureValues = await WorldGeneration.Instance.ApplyHeightDataToMoistureData(heightValues, moistureValues, textureWidth, textureHeight);
+                moistureValues = await WorldGeneration.Instance.ApplyHeightDataToMoistureDataAsync(heightValues, moistureValues, textureWidth, textureHeight);
             }
 
    

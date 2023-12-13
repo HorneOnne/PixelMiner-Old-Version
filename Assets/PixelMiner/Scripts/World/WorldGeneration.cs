@@ -11,6 +11,7 @@ using PixelMiner.WorldBuilding;
 using System;
 using JetBrains.Annotations;
 using TMPro;
+using UnityEditor.Graphs;
 
 namespace PixelMiner.WorldGen
 {
@@ -100,10 +101,13 @@ namespace PixelMiner.WorldGen
         // =====
         [FoldoutGroup("River"), Indent(1)] public int RiverOctaves = 4;
         [FoldoutGroup("River"), Indent(1)] public double RiverFrequency = 0.02;
+        [FoldoutGroup("River"), Indent(1)] public double RiverDisplacement = 1.0f;
+        [FoldoutGroup("River"), Indent(1)] public bool RiverDistance = false;
         [FoldoutGroup("River"), Indent(1)] public double RiverLacunarity = 2.0f;
         [FoldoutGroup("River"), Indent(1)] public double RiverPersistence = 0.5f;
         [FoldoutGroup("River"), Indent(1), MinMaxSlider(0f, 1f, true)] public Vector2 RiverRange = new Vector2(0.7f, 0.75f);
-        private ModuleBase _riverModule;
+        private ModuleBase _riverModuleVoronoi;
+        private ModuleBase _riverModulePerlin;
 
 
 
@@ -166,7 +170,9 @@ namespace PixelMiner.WorldGen
             _heightModule = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, QualityMode.High);
             _heatModule = new Perlin(HeatFrequency, HeatLacunarity, HeatPersistence, HeatOctaves, Seed, QualityMode.High);
             _moistureModule = new Perlin(MoistureFrequency, MoistureLacunarity, MoisturePersistence, MoistureOctaves, Seed, QualityMode.High);
-            _riverModule = new Perlin(RiverFrequency, RiverLacunarity, RiverPersistence, RiverOctaves, Seed, QualityMode.Low);
+            
+            _riverModulePerlin = new Perlin(RiverFrequency, RiverLacunarity, RiverPersistence, RiverOctaves, Seed, QualityMode.Medium);
+            _riverModuleVoronoi = new Voronoi(RiverFrequency, RiverDisplacement , Seed, RiverDistance);
         }
 
         private void Start()
@@ -382,17 +388,14 @@ namespace PixelMiner.WorldGen
             float[] heatValues = await GetHeatMapDataAysnc(newChunk.FrameX, newChunk.FrameZ, _main.ChunkDimension[0], _main.ChunkDimension[2]);
             float[] moistureValues = await GetMoistureMapDataAsync(newChunk.FrameX, newChunk.FrameZ, _main.ChunkDimension[0], _main.ChunkDimension[2]);
             float[] riverValues = await GetRiverDataAsync(newChunk.FrameX, newChunk.FrameZ, _main.ChunkDimension[0], _main.ChunkDimension[2]);
+            heightValues = await DigRiverAsync(heightValues, riverValues, _main.ChunkDimension[0], _main.ChunkDimension[2]);
+            moistureValues = await ApplyHeightDataToMoistureDataAsync(heightValues, moistureValues, _main.ChunkDimension[0], _main.ChunkDimension[2]);
 
             await LoadHeightMapDataAsync(newChunk, heightValues);
-            //moistureValues = await ApplyHeightDataToMoistureData(heightValues, moistureValues);
 
 
 
             // Create new data
-            //float[] heightValues = await GetHeightMapDataAsync(frameX, frameZ, _chunkWidth, _chunkHeight, _chunkDepth);
-            //float[] heatValues = await GetHeatMapDataAysnc(frameX, frameZ);
-            //float[] moisetureValues = await GetMoistureMapDataAsync(frameX, frameZ);
-            //float[,] riverValues = await GetRiverDataAsync(frameX, frameZ, _chunkWidth, _chunkHeight);
 
             //if (_main.InitWorldWithHeatmap)
             //{
@@ -561,9 +564,11 @@ namespace PixelMiner.WorldGen
                     {
                         float offsetX = frameX * width + x;
                         float offsetZ = frameZ * height + y;
-                        float riverValue = (float)_riverModule.GetValue(offsetX, offsetZ, 0);
+                        float riverValue = (float)_riverModulePerlin.GetValue(offsetX, 0, offsetZ);
                         float normalizeRiverValue = (riverValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
-                        riverValues[x + y * width] = normalizeRiverValue > 0.4f && normalizeRiverValue < 0.5f ? normalizeRiverValue : 0;
+
+                        riverValues[x + y * width] = normalizeRiverValue;
+                        //riverValues[x + y * width] = normalizeRiverValue > 0.3f && normalizeRiverValue < 0.4f ? normalizeRiverValue : 0;
                     }
                 });
             });
@@ -631,7 +636,7 @@ namespace PixelMiner.WorldGen
                 }
             });
         }
-        public async Task<float[]> ApplyHeightDataToMoistureData(float[] heightValues, float[] moistureValues, int width, int height)
+        public async Task<float[]> ApplyHeightDataToMoistureDataAsync(float[] heightValues, float[] moistureValues, int width, int height)
         {
             await Task.Run(() =>
             {
@@ -676,7 +681,7 @@ namespace PixelMiner.WorldGen
 
             return moistureValues;
         }
-        public async Task<float[]> DigRiver(float[] heightValues, float[] riverValues, int width, int height)
+        public async Task<float[]> DigRiverAsync(float[] heightValues, float[] riverValues, int width, int height)
         {
             await Task.Run(() =>
             {
@@ -685,8 +690,15 @@ namespace PixelMiner.WorldGen
                     for (int z = 0; z < height; z++)
                     {
                         int index = x + z * width;
-                        if (heightValues[index] < 0.7f)
-                            heightValues[index] = Mathf.Clamp01(heightValues[index] - riverValues[index]);            
+                        float heightValue = heightValues[index];
+                        float riverValue = riverValues[index];
+
+                        if(riverValue > 0.5f && riverValue < 0.6f && heightValue >= Water)
+                        {
+                            heightValues[index] -= 0.45f * riverValue;
+                            heightValues[index] = Mathf.Clamp(heightValues[index], 0.4f, 1f);
+                        }
+
                     }
                 }
 

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace PixelMiner.WorldBuilding
 {
@@ -118,7 +119,32 @@ namespace PixelMiner.WorldBuilding
             }
             OpenFileWithDefaultApplication(filePath);
         }
+        public static void Log(float[] list, string filename)
+        {
+            string directoryPath = @"C:\Users\anhla\Desktop\PixelMinerLog\";
+            string filePath = Path.Combine(directoryPath, filename);
 
+            // Check if the directory exists; if not, create it
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+
+            using (StreamWriter writer = new StreamWriter(filePath))
+            {
+                // Write List
+                writer.WriteLine();
+                for (int i = 0; i < list.Length; i++)
+                {
+                    writer.WriteLine(list[i]);
+                }
+
+
+
+                Debug.Log($"Data written to file: {filePath}");
+            }
+            OpenFileWithDefaultApplication(filePath);
+        }
 
         private static void OpenFileWithDefaultApplication(string filePath)
         {
