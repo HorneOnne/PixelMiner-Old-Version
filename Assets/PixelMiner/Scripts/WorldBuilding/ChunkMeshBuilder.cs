@@ -51,14 +51,23 @@ namespace PixelMiner.WorldBuilding
             {
                 this._vertices.Add(vertices[i]);
             }
-            for(int i = 0; i < uvs.Length; i++)
+
+            if(uvs != null)
             {
-                this._uvs.Add(uvs[i]);
+                for (int i = 0; i < uvs.Length; i++)
+                {
+                    this._uvs.Add(uvs[i]);
+                }
             }
-            for(int i = 0; i < uv2s.Length; i++)
+           
+            if(uv2s != null)
             {
-                this._uv2s.Add(uv2s[i]);
+                for (int i = 0; i < uv2s.Length; i++)
+                {
+                    this._uv2s.Add(uv2s[i]);
+                }
             }
+            
 
 
             if (!isBackFace)

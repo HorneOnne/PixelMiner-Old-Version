@@ -201,7 +201,6 @@ namespace PixelMiner.WorldBuilding
             ChunkMeshBuilderPool.Release(_builder);
             return meshData;
         }
-
         public static async Task<MeshData> WaterGreedyMeshingAsync(Chunk chunk)
         {
             bool GreedyCompareLogic(Vector3Int a, Vector3Int b, int dimension, bool isBackFace)
@@ -398,6 +397,150 @@ namespace PixelMiner.WorldBuilding
             colormapUVs[1] = ColorMapUVs[(ushort)colormapType, 1];
             colormapUVs[2] = ColorMapUVs[(ushort)colormapType, 2];
             colormapUVs[3] = ColorMapUVs[(ushort)colormapType, 3];
+        }
+
+
+
+        public static async Task<MeshData> SolidGreedyMeshingForColliderAsync(Chunk chunk)
+        {
+            bool GreedyCompareLogic(Vector3Int a, Vector3Int b, int dimension, bool isBackFace)
+            {
+                return chunk.IsSolid(b) && chunk.IsBlockFaceVisible(b, dimension, isBackFace);
+            }
+
+            ChunkMeshBuilder _builder = ChunkMeshBuilderPool.Get();
+            _builder.InitOrLoad(chunk.Dimensions);
+
+            Vector3Int startPos, currPos, quadSize, m, n, offsetPos;
+            Vector3[] vertices = new Vector3[4];
+            BlockType currBlock;
+            int d, u, v;
+            Vector3Int dimensions = chunk.Dimensions;
+
+            await Task.Run(() =>
+            {
+                // Iterate over each aface of the blocks.
+                for (int voxelFace = 0; voxelFace < 6; voxelFace++)
+                {
+                    /* Voxel Face Index
+                    * 0: Right
+                    * 1: Up
+                    * 2: Front
+                    * 3: Left
+                    * 4: Down 
+                    * 5: Back
+                    * 
+                    * BackFace -> Face that drawn in clockwise direction. (Need detect which face is clockwise in order to draw it on 
+                    * Unity scene).
+                    */
+                    if (voxelFace == 4) continue;    // Don't draw down face (because player cannot see it).
+
+                    bool isBackFace = voxelFace > 2;
+                    d = voxelFace % 3;
+                    u = (d + 1) % 3;
+                    v = (d + 2) % 3;
+
+                    startPos = new Vector3Int();
+                    currPos = new Vector3Int();
+
+                    for (startPos[d] = 0; startPos[d] < dimensions[d]; startPos[d]++)
+                    {
+                        Array.Clear(_builder.Merged[d], 0, _builder.Merged[d].Length);
+
+                        // Build the slices of mesh.
+                        for (startPos[u] = 0; startPos[u] < dimensions[u]; startPos[u]++)
+                        {
+                            for (startPos[v] = 0; startPos[v] < dimensions[v]; startPos[v]++)
+                            {
+                                currBlock = chunk.GetBlock(startPos);
+
+
+                                // If this block has already been merged, is air, or not visible -> skip it.
+                                if (chunk.IsSolid(startPos) == false ||
+                                    chunk.IsBlockFaceVisible(startPos, d, isBackFace) == false ||
+                                    _builder.Merged[d][startPos[u], startPos[v]])
+                                {
+                                    continue;
+                                }
+
+
+                                quadSize = new Vector3Int();
+
+                                // Next step is loop to figure out width and height of the new merged quad.
+                                for (currPos = startPos, currPos[u]++;
+                                    currPos[u] < dimensions[u] &&
+                                    GreedyCompareLogic(startPos, currPos, d, isBackFace) &&
+                                    !_builder.Merged[d][currPos[u], currPos[v]];
+                                    currPos[u]++)
+                                { }
+                                quadSize[u] = currPos[u] - startPos[u];
+
+
+                                for (currPos = startPos, currPos[v]++;
+                                    currPos[v] < dimensions[v] &&
+                                    GreedyCompareLogic(startPos, currPos, d, isBackFace) &&
+                                    !_builder.Merged[d][currPos[u], currPos[v]];
+                                    currPos[v]++)
+                                {
+
+
+                                    for (currPos[u] = startPos[u];
+                                        currPos[u] < dimensions[u] &&
+                                        GreedyCompareLogic(startPos, currPos, d, isBackFace) &&
+                                        !_builder.Merged[d][currPos[u], currPos[v]];
+                                        currPos[u]++)
+                                    { }
+
+
+                                    if (currPos[u] - startPos[u] < quadSize[u])
+                                    {
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        currPos[u] = startPos[u];
+                                    }
+                                }
+
+                                quadSize[v] = currPos[v] - startPos[v];
+
+
+                                // Add new quad to mesh data.
+                                m = new Vector3Int();
+                                n = new Vector3Int();
+
+                                m[u] = quadSize[u];
+                                n[v] = quadSize[v];
+
+                                offsetPos = startPos;
+                                offsetPos[d] += isBackFace ? 0 : 1;
+
+                                vertices[0] = offsetPos;
+                                vertices[1] = offsetPos + m;
+                                vertices[2] = offsetPos + m + n;
+                                vertices[3] = offsetPos + n;
+
+                                _builder.AddQuadFace(vertices, null, null, isBackFace);
+
+                                // Mark at this position has been merged
+                                for (int g = 0; g < quadSize[u]; g++)
+                                {
+                                    for (int h = 0; h < quadSize[v]; h++)
+                                    {
+                                        _builder.Merged[d][startPos[u] + g, startPos[v] + h] = true;
+                                    }
+                                }
+                            }
+                        }
+
+
+                    }
+                }
+            });
+
+            MeshData meshData = _builder.ToMeshData();
+            ChunkMeshBuilderPool.Release(_builder);
+            return meshData;
         }
     }
 }

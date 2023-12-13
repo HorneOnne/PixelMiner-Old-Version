@@ -192,8 +192,10 @@ namespace PixelMiner.WorldBuilding
         {
             if (ChunkHasDrawn) return;
 
+            //MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this);
             MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this);
             MeshData waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(this);
+            MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(this);
 
             SolidMeshFilter.sharedMesh =  CreateMesh(solidMeshData);
             WaterMeshFilter.sharedMesh =  CreateMesh(waterMeshData);
@@ -201,12 +203,13 @@ namespace PixelMiner.WorldBuilding
 
 
             _meshCollider.sharedMesh = null;
-            _meshCollider.sharedMesh= CreateColliderMesh(solidMeshData);
+            _meshCollider.sharedMesh= CreateColliderMesh(colliderMeshData);
 
 
             // Release mesh data
             MeshDataPool.Release(solidMeshData);
             MeshDataPool.Release(waterMeshData);
+            MeshDataPool.Release(colliderMeshData);
 
             ChunkHasDrawn = true;
         }
