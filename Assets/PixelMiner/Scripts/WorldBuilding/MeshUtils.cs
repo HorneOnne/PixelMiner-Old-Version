@@ -111,6 +111,7 @@ namespace PixelMiner.WorldBuilding
                             for (startPos[v] = 0; startPos[v] < dimensions[v]; startPos[v]++)
                             {
                                 currBlock = chunk.GetBlock(startPos);
+ 
 
                                 // If this block has already been merged, is air, or not visible -> skip it.
                                 if (chunk.IsSolid(startPos) == false ||
@@ -176,7 +177,8 @@ namespace PixelMiner.WorldBuilding
                                 vertices[1] = offsetPos + m;
                                 vertices[2] = offsetPos + m + n;
                                 vertices[3] = offsetPos + n;
-                  
+
+
                                 GetBlockUVs(currBlock, voxelFace, quadSize[u], quadSize[v], ref uvs, ref uv2s);
                                 _builder.AddQuadFace(vertices, uvs, uv2s, isBackFace);
 
