@@ -38,12 +38,12 @@ namespace PixelMiner
         }
 
         [Command("/preview_heightmap")]
-        private static void PreviewHeightmap()
+        private static void PreviewHeightmap(bool value)
         {
             if(UIMapPreviewManager.Instance.HasHeightMap())
             {
                 InputHander.Instance.ActiveUIMap();
-                UIMapPreviewManager.Instance.SetActiveHeightMap();
+                UIMapPreviewManager.Instance.SetActiveHeightMap(value);
             }
         }
         [Command("/preview_heatmap")]

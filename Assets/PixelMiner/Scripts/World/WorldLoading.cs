@@ -43,9 +43,6 @@ namespace PixelMiner.WorldGen
             _worldGen = WorldGeneration.Instance;
 
            
-
-
-
             //_worldGen.OnWorldGenWhenStartFinished += () =>
             //{
 

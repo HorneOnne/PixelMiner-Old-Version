@@ -30,13 +30,13 @@ namespace PixelMiner.UI.WorldGen
         public bool HasMoistureMap() => MoistureMapPreview != null;
 
 
-        public void SetActiveHeightMap()
+        public void SetActiveHeightMap(bool digRiver)
         {
             if (HasHeightMap()) HeightMapPreview.gameObject.SetActive(true);
             if (HasHeatMap()) HeatMapPreview.gameObject.SetActive(false);
             if (HasMoistureMap()) MoistureMapPreview.gameObject.SetActive(false);
 
-            UpdateHeightMapPreview();
+            UpdateHeightMapPreview(digRiver);
         }
 
         public void SetActiveHeatMap()
@@ -69,12 +69,11 @@ namespace PixelMiner.UI.WorldGen
 
 
 
-        private async void UpdateHeightMapPreview()
+        private async void UpdateHeightMapPreview(bool digRiver)
         {
-            Texture2D texture = await GetHeightmapTextureAsync();
+            Texture2D texture = await GetHeightmapTextureAsync(digRiver);
             HeightMapPreview.SetImage(texture);
         }
-
         private async void UpdateHeatMapPreview()
         {
             Texture2D texture = await GetHeatTextureAsync();
@@ -87,11 +86,18 @@ namespace PixelMiner.UI.WorldGen
         }
 
 
-        private async Task<Texture2D> GetHeightmapTextureAsync()
+        private async Task<Texture2D> GetHeightmapTextureAsync(bool digRiver)
         {
             int textureWidth = 960;
             int textureHeight = 540;
             float[] heightValues = await WorldGeneration.Instance.GetHeightMapDataAsync(0, 0, textureWidth, textureHeight);
+
+            if(digRiver)
+            {
+                float[] riverValues = await WorldGeneration.Instance.GetRiverDataAsync(0, 0, textureWidth, textureHeight);
+                riverValues = await WorldGeneration.Instance.DigRiver(heightValues, riverValues, textureWidth, textureHeight);
+            }
+
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
 

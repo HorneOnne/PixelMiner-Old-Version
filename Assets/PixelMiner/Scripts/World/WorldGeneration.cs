@@ -196,7 +196,7 @@ namespace PixelMiner.WorldGen
         }
 
 
-        private async void DrawChunk(Chunk chunk)
+        private void DrawChunk(Chunk chunk)
         {
             chunk.State = Chunk.ChunkState.Processing;
             chunk.Left.State = Chunk.ChunkState.Processing;
@@ -205,7 +205,6 @@ namespace PixelMiner.WorldGen
             chunk.Back.State = Chunk.ChunkState.Processing;
             if (!chunk.ChunkHasDrawn)
             {
-
                 chunk.DrawChunkAsync();
             }
             chunk.State = Chunk.ChunkState.Stable;
@@ -382,6 +381,7 @@ namespace PixelMiner.WorldGen
             float[] heightValues = await GetHeightMapDataAsync(newChunk.FrameX, newChunk.FrameZ, _main.ChunkDimension[0], _main.ChunkDimension[2]);
             float[] heatValues = await GetHeatMapDataAysnc(newChunk.FrameX, newChunk.FrameZ, _main.ChunkDimension[0], _main.ChunkDimension[2]);
             float[] moistureValues = await GetMoistureMapDataAsync(newChunk.FrameX, newChunk.FrameZ, _main.ChunkDimension[0], _main.ChunkDimension[2]);
+            float[] riverValues = await GetRiverDataAsync(newChunk.FrameX, newChunk.FrameZ, _main.ChunkDimension[0], _main.ChunkDimension[2]);
 
             await LoadHeightMapDataAsync(newChunk, heightValues);
             //moistureValues = await ApplyHeightDataToMoistureData(heightValues, moistureValues);
@@ -549,15 +549,9 @@ namespace PixelMiner.WorldGen
 
             return moistureData;
         }
-        #endregion
-
-
-
-
-        #region River
-        public async Task<float[,]> GetRiverDataAsync(int frameX, int frameZ, int width, int height)
+        public async Task<float[]> GetRiverDataAsync(int frameX, int frameZ, int width, int height)
         {
-            float[,] riverValues = new float[width, height];
+            float[] riverValues = new float[width * height];
 
             await Task.Run(() =>
             {
@@ -569,7 +563,7 @@ namespace PixelMiner.WorldGen
                         float offsetZ = frameZ * height + y;
                         float riverValue = (float)_riverModule.GetValue(offsetX, offsetZ, 0);
                         float normalizeRiverValue = (riverValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
-                        riverValues[x, y] = normalizeRiverValue;
+                        riverValues[x + y * width] = normalizeRiverValue > 0.4f && normalizeRiverValue < 0.5f ? normalizeRiverValue : 0;
                     }
                 });
             });
@@ -577,6 +571,9 @@ namespace PixelMiner.WorldGen
             return riverValues;
         }
         #endregion
+
+
+
 
         public async Task LoadHeightMapDataAsync(Chunk chunk, float[] heightValues)
         {
@@ -679,7 +676,24 @@ namespace PixelMiner.WorldGen
 
             return moistureValues;
         }
+        public async Task<float[]> DigRiver(float[] heightValues, float[] riverValues, int width, int height)
+        {
+            await Task.Run(() =>
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    for (int z = 0; z < height; z++)
+                    {
+                        int index = x + z * width;
+                        if (heightValues[index] < 0.7f)
+                            heightValues[index] = Mathf.Clamp01(heightValues[index] - riverValues[index]);            
+                    }
+                }
 
+            });
+
+            return heightValues;
+        }
 
 #if false
         public async Task LoadRiverDataAsync(Chunk chunk, float[,] riverValues)
