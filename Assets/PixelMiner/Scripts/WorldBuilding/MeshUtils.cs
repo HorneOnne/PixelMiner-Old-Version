@@ -1,8 +1,6 @@
 ﻿using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Rendering;
 using PixelMiner.Utilities;
-using System.Collections.Generic;
 using PixelMiner.Enums;
 using System;
 

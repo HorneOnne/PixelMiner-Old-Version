@@ -16,6 +16,7 @@ namespace PixelMiner.WorldBuilding
         // NEW
         [SerializeField] public MeshFilter SolidMeshFilter;
         [SerializeField] public MeshFilter WaterMeshFilter;
+        private MeshCollider _meshCollider;
 
         private Transform _playerTrans;
         private const int DRAW_HIDDEN_BLOCK = 1 << 0;
@@ -56,7 +57,11 @@ namespace PixelMiner.WorldBuilding
         [HideInInspector] public float[] HeatValues;
         [HideInInspector] public float[] MoistureValues;
 
-        private BlockType[] WaterTypes = new BlockType[] { BlockType.Water };
+
+        private void Awake()
+        {
+            _meshCollider = SolidMeshFilter.GetComponent<MeshCollider>();
+        }
 
         private void Start()
         {
@@ -187,21 +192,48 @@ namespace PixelMiner.WorldBuilding
         {
             if (ChunkHasDrawn) return;
 
-            var solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this);
-            var waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(this);
+            MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this);
+            MeshData waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(this);
 
-            SolidMeshFilter.ApplyMeshData(solidMeshData);
-            WaterMeshFilter.ApplyMeshData(waterMeshData);
+            SolidMeshFilter.sharedMesh =  CreateMesh(solidMeshData);
+            WaterMeshFilter.sharedMesh =  CreateMesh(waterMeshData);
 
-            //var solidCollider = _solidMeshFilter.gameObject.AddComponent<MeshCollider>();
-            //solidCollider.sharedMesh = _solidMeshFilter.mesh;
+
+
+            _meshCollider.sharedMesh = null;
+            _meshCollider.sharedMesh= CreateColliderMesh(solidMeshData);
+
+
+            // Release mesh data
+            MeshDataPool.Release(solidMeshData);
+            MeshDataPool.Release(waterMeshData);
 
             ChunkHasDrawn = true;
         }
 
+        public Mesh CreateMesh(MeshData meshData)
+        {
+            Mesh mesh = new Mesh();
+            mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
+            mesh.SetVertices(meshData.Vertices);
+            mesh.SetTriangles(meshData.Triangles, 0);
+            mesh.SetUVs(0, meshData.UVs);
+            mesh.SetUVs(1, meshData.UV2s);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            return mesh;
+        }
 
-        #region Block
-      
+        private Mesh CreateColliderMesh(MeshData meshData)
+        {
+            Mesh colliderMesh = new Mesh();
+            colliderMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
+            colliderMesh.SetVertices(meshData.Vertices);
+            colliderMesh.SetTriangles(meshData.Triangles, 0);
+            return colliderMesh;
+        }
+
+
         public void SetNeighbors(BlockSide side, Chunk neighbour)
         {
             switch (side)
@@ -239,13 +271,17 @@ namespace PixelMiner.WorldBuilding
                 OnChunkHasNeighbors?.Invoke(this);
             }
         }
-
         public bool HasNeighbors()
         {
             return Left != null && Right != null && Front != null && Back != null;
         }
 
-        #endregion
+
+
+
+
+
+
 
         #region Utilities
         public int IndexOf(int x, int y, int z)

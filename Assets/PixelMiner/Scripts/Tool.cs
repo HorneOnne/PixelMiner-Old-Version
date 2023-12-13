@@ -18,14 +18,14 @@ namespace PixelMiner
 
             // Cursor
             _cursor = Instantiate(_cursorPrefab).transform;
-            _cursor.gameObject.hideFlags = HideFlags.HideInHierarchy;
+            //_cursor.gameObject.hideFlags = HideFlags.HideInHierarchy;
         }
 
 
        
         private void Update()
         {
-            if (Input.GetMouseButtonDown(0))
+            if (Input.GetMouseButton(0))
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
@@ -34,8 +34,11 @@ namespace PixelMiner
                     if (hit.collider != null)
                     {
                         Collider collider = hit.collider;
+                        Vector3Int hitPosition = new Vector3Int(Mathf.FloorToInt(hit.point.x),
+                                                                Mathf.FloorToInt(hit.point.y), 
+                                                                Mathf.FloorToInt(hit.point.z));
                         Debug.Log($"Hit : {hit.point}");
-                        _cursor.transform.position = hit.point;
+                        _cursor.transform.position = hitPosition;
                     }
                 }
             };

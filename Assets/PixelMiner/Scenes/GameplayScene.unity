@@ -20,7 +20,7 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+  m_AmbientSkyColor: {r: 0, g: 0, b: 0, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
@@ -35,10 +35,10 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 1
+  m_ReflectionIntensity: 0
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.1762806, g: 0.22062764, b: 0.30295187, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 0}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -484,7 +484,7 @@ Transform:
   m_GameObject: {fileID: 314038815}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -80.61, y: 4.75, z: -495.05}
+  m_LocalPosition: {x: 0, y: 5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -528,7 +528,7 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 1
-  m_Constraints: 112
+  m_Constraints: 84
   m_CollisionDetection: 1
 --- !u!114 &314038820
 MonoBehaviour:
@@ -564,8 +564,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 2.38, z: 1}
-  m_Center: {x: 0, y: 1.5, z: 0}
+  m_Size: {x: 1, y: 2.0395622, z: 1}
+  m_Center: {x: 0, y: 1.670219, z: 0}
 --- !u!1 &333124102
 GameObject:
   m_ObjectHideFlags: 0
@@ -879,7 +879,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: -141.84726, y: 54.750004, z: -556.2873}
+  m_LocalPosition: {x: -61.237244, y: 55.000008, z: -61.23724}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -951,7 +951,7 @@ MonoBehaviour:
   SeedInput: 7
   ChunkDimension: {x: 32, y: 10, z: 32}
   AutoLoadChunk: 1
-  AutoUnloadChunk: 0
+  AutoUnloadChunk: 1
   ShowChunksBorder: 0
   ShowTilegroupMaps: 0
   InitWorldWithHeatmap: 0
@@ -1004,7 +1004,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43612efcd8e494c4cb2b446a8c7d5077, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cursorPrefab: {fileID: 6310503570441621038, guid: 2805234a585423c41b59eb6383d0d862, type: 3}
+  _cursorPrefab: {fileID: 3585415114566771963, guid: 2805234a585423c41b59eb6383d0d862, type: 3}
 --- !u!4 &677337752
 Transform:
   m_ObjectHideFlags: 0
@@ -1750,7 +1750,7 @@ Transform:
   m_GameObject: {fileID: 1334762261}
   serializedVersion: 2
   m_LocalRotation: {x: 0.2588191, y: 0, z: 0, w: 0.9659258}
-  m_LocalPosition: {x: -80.61, y: 54.750004, z: -581.6525}
+  m_LocalPosition: {x: 0, y: 55.00001, z: -86.60253}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2398,7 +2398,7 @@ Transform:
   m_GameObject: {fileID: 1694405455}
   serializedVersion: 2
   m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: -141.84726, y: 54.750004, z: -556.2873}
+  m_LocalPosition: {x: -61.237244, y: 55.000008, z: -61.23724}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

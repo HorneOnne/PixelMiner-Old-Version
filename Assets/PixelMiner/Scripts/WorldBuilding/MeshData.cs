@@ -11,7 +11,6 @@ namespace PixelMiner.WorldBuilding
         public List<Vector2> UV2s { get; private set; }
 
 
-
         public MeshData() 
         { 
             Debug.Log("Create MeshData.cs");
@@ -19,6 +18,8 @@ namespace PixelMiner.WorldBuilding
             Triangles = new List<int>(6);
             UVs = new List<Vector3>(4);
             UV2s = new List<Vector2>(4);
+
+
         }
 
         public void Init(List<Vector3> vertices, List<int> triangles, List<Vector3> uvs, List<Vector2> uv2s)

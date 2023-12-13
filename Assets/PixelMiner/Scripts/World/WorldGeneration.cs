@@ -9,9 +9,6 @@ using PixelMiner.Utilities;
 using PixelMiner.Enums;
 using PixelMiner.WorldBuilding;
 using System;
-using JetBrains.Annotations;
-using TMPro;
-using UnityEditor.Graphs;
 
 namespace PixelMiner.WorldGen
 {
@@ -135,6 +132,21 @@ namespace PixelMiner.WorldGen
         public static Color Wet = new Color(85 / 255f, 255 / 255f, 255 / 255f, 1);
         public static Color Wetter = new Color(20 / 255f, 70 / 255f, 255 / 255f, 1);
         public static Color Wettest = new Color(0 / 255f, 0 / 255f, 100 / 255f, 1);
+
+
+        // BIOMES
+        public BiomeType[,] BiomeTable = new BiomeType[6,6]
+        {
+              //COLDEST         //COLDER            //COLD                  //HOT                          //HOTTER                       //HOTTEST
+		    { BiomeType.Ice,    BiomeType.Tundra,   BiomeType.Grassland,    BiomeType.Desert,              BiomeType.Desert,              BiomeType.Desert },              //DRYEST
+		    { BiomeType.Ice,    BiomeType.Tundra,   BiomeType.Grassland,    BiomeType.Desert,              BiomeType.Desert,              BiomeType.Desert },              //DRYER
+		    { BiomeType.Ice,    BiomeType.Tundra,   BiomeType.Woodland,     BiomeType.Woodland,            BiomeType.Savanna,             BiomeType.Savanna },             //DRY
+		    { BiomeType.Ice,    BiomeType.Tundra,   BiomeType.BorealForest, BiomeType.Woodland,            BiomeType.Savanna,             BiomeType.Savanna },             //WET
+		    { BiomeType.Ice,    BiomeType.Tundra,   BiomeType.BorealForest, BiomeType.SeasonalForest,      BiomeType.TropicalRainforest,  BiomeType.TropicalRainforest },  //WETTER
+		    { BiomeType.Ice,    BiomeType.Tundra,   BiomeType.BorealForest, BiomeType.TemperateRainforest, BiomeType.TropicalRainforest,  BiomeType.TropicalRainforest }   //WETTEST
+        };
+
+
 
         // Cached
         private Vector3Int _chunkDimension;
@@ -707,6 +719,27 @@ namespace PixelMiner.WorldGen
             return heightValues;
         }
 
+
+
+        #region BIOMES
+
+        public BiomeType GetBiome(Vector3 globalPosition)
+        {
+            Chunk chunk = _main.GetChunk(globalPosition);
+            if(chunk != null)
+            {
+                int localBlockX = Mathf.FloorToInt(globalPosition.x) % _chunkDimension.x;
+                int localBlockY = Mathf.FloorToInt(globalPosition.y) % _chunkDimension.y;
+                int localBlockZ = Mathf.FloorToInt(globalPosition.z) % _chunkDimension.z;
+                int index = chunk.IndexOf(localBlockX, localBlockY, localBlockZ);
+
+                return BiomeTable[(int)chunk.MoistureData[index], (int)chunk.HeatData[index]];
+            }
+
+            return default;
+        }
+
+        #endregion
 #if false
         public async Task LoadRiverDataAsync(Chunk chunk, float[,] riverValues)
         {
