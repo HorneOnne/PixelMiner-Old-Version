@@ -192,7 +192,6 @@ namespace PixelMiner.WorldBuilding
         {
             if (ChunkHasDrawn) return;
 
-            //MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this);
             MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this);
             MeshData waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(this);
             MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(this);

@@ -90,11 +90,29 @@ namespace PixelMiner.WorldBuilding
                     * Unity scene).
                     */
                     if(voxelFace == 4) continue;    // Don't draw down face (because player cannot see it).
-
+ 
                     bool isBackFace = voxelFace > 2;
                     d = voxelFace % 3;
                     u = (d + 1) % 3;
                     v = (d + 2) % 3;
+
+                    if (d == 0)
+                    {
+                        u = 2;
+                        v = 1;
+                    }
+                    else if(d == 1)
+                    {
+                        u = 0;
+                        v = 2;
+                    }
+                    else
+                    {
+                        u = 0;
+                        v = 1;
+                    }
+
+
 
                     startPos = new Vector3Int();
                     currPos = new Vector3Int();
@@ -176,9 +194,8 @@ namespace PixelMiner.WorldBuilding
                                 vertices[2] = offsetPos + m + n;
                                 vertices[3] = offsetPos + n;
 
-
                                 GetBlockUVs(currBlock, voxelFace, quadSize[u], quadSize[v], ref uvs, ref uv2s);
-                                _builder.AddQuadFace(vertices, uvs, uv2s, isBackFace);
+                                _builder.AddQuadFace(vertices, uvs, uv2s, voxelFace);
 
 
                                 // Mark at this position has been merged
@@ -244,8 +261,21 @@ namespace PixelMiner.WorldBuilding
 
                     bool isBackFace = voxelFace > 2;
                     d = voxelFace % 3;
-                    u = (d + 1) % 3;
-                    v = (d + 2) % 3;
+                    if (d == 0)
+                    {
+                        u = 2;
+                        v = 1;
+                    }
+                    else if (d == 1)
+                    {
+                        u = 0;
+                        v = 2;
+                    }
+                    else
+                    {
+                        u = 0;
+                        v = 1;
+                    }
 
                     startPos = new Vector3Int();
                     currPos = new Vector3Int();
@@ -327,7 +357,7 @@ namespace PixelMiner.WorldBuilding
                                 vertices[3] = offsetPos + n;
 
                                 GetBlockUVs(currBlock, voxelFace, quadSize[u], quadSize[v], ref uvs, ref uv2s);
-                                _builder.AddQuadFace(vertices, uvs, uv2s, isBackFace);
+                                _builder.AddQuadFace(vertices, uvs, uv2s, voxelFace);
 
 
                                 // Mark at this position has been merged
@@ -437,8 +467,21 @@ namespace PixelMiner.WorldBuilding
 
                     bool isBackFace = voxelFace > 2;
                     d = voxelFace % 3;
-                    u = (d + 1) % 3;
-                    v = (d + 2) % 3;
+                    if (d == 0)
+                    {
+                        u = 2;
+                        v = 1;
+                    }
+                    else if (d == 1)
+                    {
+                        u = 0;
+                        v = 2;
+                    }
+                    else
+                    {
+                        u = 0;
+                        v = 1;
+                    }
 
                     startPos = new Vector3Int();
                     currPos = new Vector3Int();
@@ -520,7 +563,7 @@ namespace PixelMiner.WorldBuilding
                                 vertices[2] = offsetPos + m + n;
                                 vertices[3] = offsetPos + n;
 
-                                _builder.AddQuadFace(vertices, null, null, isBackFace);
+                                _builder.AddQuadFace(vertices, null, null, voxelFace);
 
                                 // Mark at this position has been merged
                                 for (int g = 0; g < quadSize[u]; g++)

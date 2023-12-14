@@ -31,15 +31,15 @@ namespace PixelMiner.WorldBuilding
 
             Merged = new bool[][,]
             {
-                 new bool[dimensions[1], dimensions[2]],
-                 new bool[dimensions[2], dimensions[0]],
+                 new bool[dimensions[2], dimensions[1]],
+                 new bool[dimensions[0], dimensions[2]],
                  new bool[dimensions[0], dimensions[1]]
             };
 
             _isInit = true;
         }
 
-        public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, Vector2[] uv2s, bool isBackFace)
+        public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, Vector2[] uv2s, int voxelFace = 0)
         {
             if (vertices.Length != 4)
             {
@@ -67,10 +67,31 @@ namespace PixelMiner.WorldBuilding
                     this._uv2s.Add(uv2s[i]);
                 }
             }
-            
 
 
-            if (!isBackFace)
+
+            if (voxelFace == 1)
+            {
+                _triangles.Add(this._vertices.Count - 2);
+                _triangles.Add(this._vertices.Count - 3);
+                _triangles.Add(this._vertices.Count - 4);
+
+                _triangles.Add(this._vertices.Count - 1);
+                _triangles.Add(this._vertices.Count - 2);
+                _triangles.Add(this._vertices.Count - 4);
+            }
+            else if (voxelFace == 4)
+            {
+                _triangles.Add(this._vertices.Count - 4);
+                _triangles.Add(this._vertices.Count - 3);
+                _triangles.Add(this._vertices.Count - 2);
+
+
+                _triangles.Add(this._vertices.Count - 2);
+                _triangles.Add(this._vertices.Count - 1);
+                _triangles.Add(this._vertices.Count - 4);
+            }
+            else if (voxelFace == 3)
             {
                 _triangles.Add(this._vertices.Count - 4);
                 _triangles.Add(this._vertices.Count - 3);
@@ -79,6 +100,27 @@ namespace PixelMiner.WorldBuilding
                 _triangles.Add(this._vertices.Count - 4);
                 _triangles.Add(this._vertices.Count - 2);
                 _triangles.Add(this._vertices.Count - 1);
+            }
+            else if (voxelFace == 0)
+            {
+                _triangles.Add(this._vertices.Count - 2);
+                _triangles.Add(this._vertices.Count - 3);
+                _triangles.Add(this._vertices.Count - 4);
+
+                _triangles.Add(this._vertices.Count - 1);
+                _triangles.Add(this._vertices.Count - 2);
+                _triangles.Add(this._vertices.Count - 4);
+            }
+            else if(voxelFace == 2)
+            {
+                _triangles.Add(this._vertices.Count - 4);
+                _triangles.Add(this._vertices.Count - 3);
+                _triangles.Add(this._vertices.Count - 2);
+
+
+                _triangles.Add(this._vertices.Count - 2);
+                _triangles.Add(this._vertices.Count - 1);
+                _triangles.Add(this._vertices.Count - 4);
             }
             else
             {
@@ -90,6 +132,7 @@ namespace PixelMiner.WorldBuilding
                 _triangles.Add(this._vertices.Count - 2);
                 _triangles.Add(this._vertices.Count - 4);
             }
+
         }
 
 
