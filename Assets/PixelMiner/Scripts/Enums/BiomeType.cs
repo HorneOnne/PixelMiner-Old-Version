@@ -12,6 +12,7 @@
         BorealForest = 7,
         Tundra = 8,
         Ice = 9,
+        Ocean = 10,
     }
 }
 

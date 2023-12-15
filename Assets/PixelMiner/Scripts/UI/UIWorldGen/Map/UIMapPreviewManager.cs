@@ -2,6 +2,11 @@
 using System.Threading.Tasks;
 using PixelMiner.WorldGen;
 using PixelMiner.WorldBuilding;
+using PixelMiner.Enums;
+using System.Xml.Resolvers;
+using System.Runtime.InteropServices.WindowsRuntime;
+using JetBrains.Annotations;
+using Codice.Client.Common;
 
 namespace PixelMiner.UI.WorldGen
 {
@@ -11,6 +16,7 @@ namespace PixelMiner.UI.WorldGen
         public UIMapPreview HeightMapPreview { get; private set; }
         public UIMapPreview HeatMapPreview { get; private set; }
         public UIMapPreview MoistureMapPreview { get; private set; }
+        public UIMapPreview BiomeMapPreview { get; private set; }
 
 
 
@@ -21,47 +27,47 @@ namespace PixelMiner.UI.WorldGen
             HeightMapPreview = transform.Find("HeightMapPreview")?.GetComponent<UIMapPreview>();
             HeatMapPreview = transform.Find("HeatMapPreview")?.GetComponent<UIMapPreview>();
             MoistureMapPreview = transform.Find("MoistureMapPreview")?.GetComponent<UIMapPreview>();
+            BiomeMapPreview = transform.Find("BiomeMapPreview")?.GetComponent<UIMapPreview>();
         }
 
 
         public bool HasHeightMap() => HeightMapPreview != null;
         public bool HasHeatMap() => HeatMapPreview != null;
         public bool HasMoistureMap() => MoistureMapPreview != null;
+        public bool HasBiomeMap() => BiomeMapPreview != null;
 
 
         public void SetActiveHeightMap(bool digRiver)
         {
-            if (HasHeightMap()) HeightMapPreview.gameObject.SetActive(true);
-            if (HasHeatMap()) HeatMapPreview.gameObject.SetActive(false);
-            if (HasMoistureMap()) MoistureMapPreview.gameObject.SetActive(false);
+            CloseAllMap();
 
             UpdateHeightMapPreview(digRiver);
         }
-
         public void SetActiveHeatMap()
         {
-            if (HasHeightMap()) HeightMapPreview.gameObject.SetActive(false);
-            if (HasHeatMap()) HeatMapPreview.gameObject.SetActive(true);
-            if (HasMoistureMap()) MoistureMapPreview.gameObject.SetActive(false);
+            CloseAllMap(); ;
 
             UpdateHeatMapPreview();
         }
-
         public void SetActiveMoistureMap(bool applyHeight)
         {
-            if (HasHeightMap()) HeightMapPreview.gameObject.SetActive(false);
-            if (HasHeatMap()) HeatMapPreview.gameObject.SetActive(false);
-            if (HasMoistureMap()) MoistureMapPreview.gameObject.SetActive(true);
+            CloseAllMap();
 
             UpdateMoistureMapPreview(applyHeight);
         }
+        public void SetActiveBiomeMap()
+        {
+            CloseAllMap();
 
+            UpdateBiomeMapPreview();
+        }
 
         public void CloseAllMap()
         {
-            if (HasHeightMap()) HeightMapPreview.gameObject.SetActive(false);
-            if (HasHeatMap()) HeatMapPreview.gameObject.SetActive(false);
-            if (HasMoistureMap()) MoistureMapPreview.gameObject.SetActive(false);
+            if (HasHeightMap()) HeightMapPreview.Image.enabled = false;
+            if (HasHeatMap()) HeatMapPreview.Image.enabled = false;
+            if (HasMoistureMap()) MoistureMapPreview.Image.enabled = false;
+            if (HasBiomeMap()) BiomeMapPreview.Image.enabled = false;
         }
 
 
@@ -83,22 +89,28 @@ namespace PixelMiner.UI.WorldGen
             Texture2D texture = await GetMoistureMapTextureAsync(applyHeight);
             MoistureMapPreview.SetImage(texture);
         }
+        private async void UpdateBiomeMapPreview()
+        {
+            Texture2D texture = await GetBiomesMapTextureAsync();
+            BiomeMapPreview.SetImage(texture);
+        }
+
 
 
         private async Task<Texture2D> GetHeightmapTextureAsync(bool digRiver)
         {
-            int textureWidth = 960;
-            int textureHeight = 540;
+            int textureWidth = 1920;
+            int textureHeight = 1080;
             float[] heightValues = await WorldGeneration.Instance.GetHeightMapDataAsync(0, 0, textureWidth, textureHeight);
 
-            if(digRiver)
+            if (digRiver)
             {
                 Debug.Log("Dig river");
                 float[] riverValues = await WorldGeneration.Instance.GetRiverDataAsync(0, 0, textureWidth, textureHeight);
                 heightValues = await WorldGeneration.Instance.DigRiverAsync(heightValues, riverValues, textureWidth, textureHeight);
 
                 //LogUtils.Log(riverValues, "River.txt");
-                
+
             }
 
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
@@ -148,35 +160,35 @@ namespace PixelMiner.UI.WorldGen
         }
         private async Task<Texture2D> GetHeatTextureAsync()
         {
-            int textureWidth = 960;
-            int textureHeight = 540;
-            float[] gradientValues = await WorldGeneration.Instance.GetHeatMapDataAysnc(0, 0, textureWidth, textureHeight);
+            int textureWidth = 1920;
+            int textureHeight = 1080;
+            float[] heatValues = await WorldGeneration.Instance.GetHeatMapDataAysnc(0, 0, textureWidth, textureHeight);
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
 
             await Task.Run(() =>
             {
-                Parallel.For(0, gradientValues.Length, i =>
+                Parallel.For(0, heatValues.Length, i =>
                 {
-                    float gradientValue = gradientValues[i];
-  
-                    if (gradientValue < WorldGeneration.Instance.ColdestValue)
+                    float heatValue = heatValues[i];
+
+                    if (heatValue < WorldGeneration.Instance.ColdestValue)
                     {
                         pixels[i] = WorldGeneration.ColdestColor;
                     }
-                    else if (gradientValue < WorldGeneration.Instance.ColderValue)
+                    else if (heatValue < WorldGeneration.Instance.ColderValue)
                     {
                         pixels[i] = WorldGeneration.ColderColor;
                     }
-                    else if (gradientValue < WorldGeneration.Instance.ColdValue)
+                    else if (heatValue < WorldGeneration.Instance.ColdValue)
                     {
                         pixels[i] = WorldGeneration.ColdColor;
                     }
-                    else if (gradientValue < WorldGeneration.Instance.WarmValue)
+                    else if (heatValue < WorldGeneration.Instance.WarmValue)
                     {
                         pixels[i] = WorldGeneration.WarmColor;
                     }
-                    else if (gradientValue < WorldGeneration.Instance.WarmerValue)
+                    else if (heatValue < WorldGeneration.Instance.WarmerValue)
                     {
                         pixels[i] = WorldGeneration.WarmerColor;
                     }
@@ -195,18 +207,18 @@ namespace PixelMiner.UI.WorldGen
         }
         private async Task<Texture2D> GetMoistureMapTextureAsync(bool applyHeight = true)
         {
-            int textureWidth = 960;
-            int textureHeight = 540;
+            int textureWidth = 1920;
+            int textureHeight = 1080;
 
             float[] moistureValues = await WorldGeneration.Instance.GetMoistureMapDataAsync(0, 0, textureWidth, textureHeight);
-            
+
             if (applyHeight)
             {
                 float[] heightValues = await WorldGeneration.Instance.GetHeightMapDataAsync(0, 0, textureWidth, textureHeight);
                 moistureValues = await WorldGeneration.Instance.ApplyHeightDataToMoistureDataAsync(heightValues, moistureValues, textureWidth, textureHeight);
             }
 
-   
+
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
             await Task.Run(() =>
@@ -245,6 +257,78 @@ namespace PixelMiner.UI.WorldGen
             texture.wrapMode = TextureWrapMode.Clamp;
             texture.filterMode = FilterMode.Bilinear;
             texture.Apply();
+            return texture;
+        }
+        private async Task<Texture2D> GetBiomesMapTextureAsync()
+        {
+            int textureWidth = 1920*2;
+            int textureHeight = 1080*2;
+            Vector3Int dimension = new Vector3Int(textureWidth, 2, textureHeight);
+
+            Chunk chunk = await WorldGeneration.Instance.GenerateNewChunk(0, 0, 0, dimension, applyDefaultData: true);
+ 
+            Texture2D texture = new Texture2D(textureWidth, textureHeight);
+            Color[] pixels = new Color[textureWidth * textureHeight];
+
+
+            await Task.Run(() =>
+            {
+                Parallel.For(0, dimension[2], z =>
+                {
+                    for (int x = 0; x < dimension[0]; x++)
+                    {
+                        int i = x + z * dimension[0];
+
+                        BiomeType biomeType = chunk.BiomesData[i];
+                        switch (biomeType)
+                        {
+                            default:
+                            case BiomeType.Desert:
+                                pixels[i] = WorldGeneration.Desert;
+                                break;
+                            case BiomeType.Savanna:
+                                pixels[i] = WorldGeneration.Savanna;
+                                break;
+                            case BiomeType.TropicalRainforest:
+                                pixels[i] = WorldGeneration.TropicalRainforest;
+                                break;
+                            case BiomeType.Grassland:
+                                pixels[i] = WorldGeneration.Grassland;
+                                break;
+                            case BiomeType.Woodland:
+                                pixels[i] = WorldGeneration.Woodland;
+                                break;
+                            case BiomeType.SeasonalForest:
+                                pixels[i] = WorldGeneration.SeasonalForest;
+                                break;
+                            case BiomeType.TemperateRainforest:
+                                pixels[i] = WorldGeneration.TemperateRainforest;
+                                break;
+                            case BiomeType.BorealForest:
+                                pixels[i] = WorldGeneration.BorealForest;
+                                break;
+                            case BiomeType.Tundra:
+                                pixels[i] = WorldGeneration.Tundra;
+                                break;
+                            case BiomeType.Ice:
+                                pixels[i] = WorldGeneration.Ice;
+                                break;
+                        }
+
+                        if (chunk.ChunkData[i] == BlockType.Water)
+                        {
+                            pixels[i] = WorldGeneration.DeepColor;
+                        }
+                    }
+                });
+            });
+
+            texture.SetPixels(pixels);
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.filterMode = FilterMode.Bilinear;
+            texture.Apply();
+
+            Destroy(chunk.gameObject);
             return texture;
         }
     }

@@ -65,6 +65,18 @@ namespace PixelMiner
             }
         }
 
+        [Command("/preview_biomemap")]
+        private static void PreviewBiomeMap()
+        {
+            if (UIMapPreviewManager.Instance.HasBiomeMap())
+            {
+                InputHander.Instance.ActiveUIMap();
+                UIMapPreviewManager.Instance.SetActiveBiomeMap();
+            }
+        }
+
+
+
         [Command("/getUV")]
         private static void GetUV(int u, int v, ushort blockType = 0)
         {

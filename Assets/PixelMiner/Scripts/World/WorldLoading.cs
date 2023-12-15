@@ -111,7 +111,7 @@ namespace PixelMiner.WorldGen
                             // ......
                         }
 
-                        Chunk newChunk = await _worldGen.GenerateNewChunk(x, 0, z);
+                        Chunk newChunk = await _worldGen.GenerateNewChunk(x, 0, z, _main.ChunkDimension);
                         LoadChunk(newChunk);
                         _worldGen.UpdateChunkNeighbors(newChunk);
 

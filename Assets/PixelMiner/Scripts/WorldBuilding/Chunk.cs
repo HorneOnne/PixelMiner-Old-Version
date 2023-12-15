@@ -33,9 +33,9 @@ namespace PixelMiner.WorldBuilding
         public int FrameX;
         public int FrameY;
         public int FrameZ;
-        public byte _width;
-        public byte _height;
-        public byte _depth;
+        public int _width;
+        public int _height;
+        public int _depth;
         public Vector3Int Dimensions;
         private float _unloadChunkDistance = 100;
         private float _updateFrequency = 1.0f;
@@ -53,9 +53,7 @@ namespace PixelMiner.WorldBuilding
         [HideInInspector] public BlockType[] ChunkData;
         [HideInInspector] public HeatType[] HeatData;
         [HideInInspector] public MoistureType[] MoistureData;
-        [HideInInspector] public float[] HeightValues;
-        [HideInInspector] public float[] HeatValues;
-        [HideInInspector] public float[] MoistureValues;
+        [HideInInspector] public BiomeType[] BiomesData;
 
 
         private void Awake()
@@ -103,7 +101,7 @@ namespace PixelMiner.WorldBuilding
             }
         }
 
-        public void Init(int frameX, int frameY, int frameZ, byte width, byte height, byte depth)
+        public void Init(int frameX, int frameY, int frameZ, int width, int height, int depth)
         {
             State = ChunkState.Init;
 
@@ -117,14 +115,10 @@ namespace PixelMiner.WorldBuilding
 
             // Init data
             int size3D = _width * _height * _depth;
-            int size2D = _width * _depth;
-
             ChunkData = new BlockType[size3D];
             HeatData = new HeatType[size3D];
             MoistureData = new MoistureType[size3D];
-            HeightValues = new float[size2D];
-            HeatValues = new float[size2D];
-            MoistureValues = new float[size2D];
+            BiomesData = new BiomeType[size3D];
             Dimensions = new Vector3Int(_width, _height, _depth);
 
             State = ChunkState.Stable;
@@ -199,11 +193,8 @@ namespace PixelMiner.WorldBuilding
             SolidMeshFilter.sharedMesh =  CreateMesh(solidMeshData);
             WaterMeshFilter.sharedMesh =  CreateMesh(waterMeshData);
 
-
-
             _meshCollider.sharedMesh = null;
             _meshCollider.sharedMesh= CreateColliderMesh(colliderMeshData);
-
 
             // Release mesh data
             MeshDataPool.Release(solidMeshData);
@@ -292,7 +283,7 @@ namespace PixelMiner.WorldBuilding
         }
         public int IndexOf(int x, int z)
         {
-            return x + z * _depth;
+            return x + z * _width;
         }
         #endregion
     }
