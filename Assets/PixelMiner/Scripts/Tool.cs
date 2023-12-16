@@ -74,11 +74,6 @@ namespace PixelMiner
 
          
         }
-
-        public void SetChunkColor(Chunk2D chunk, Color color)
-        {
-            chunk.LandTilemap.color = color;
-        }
     }
 }
 

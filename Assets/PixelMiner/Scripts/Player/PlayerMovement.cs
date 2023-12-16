@@ -26,7 +26,7 @@ namespace PixelMiner
 
         [SerializeField] private Vector3 _predictMovePosition;
         private List<Vector3> _moveSuggestions = new List<Vector3>();
-        private Tile _predictTile;
+        //private Tile _predictTile;
         private Vector3 _lastGroundTilePosition;   // Use to prevent move to fast through water tile.
 
         public bool FlyMode;

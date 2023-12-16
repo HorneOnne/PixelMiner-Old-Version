@@ -1633,10 +1633,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22ae457847da8e43877aef4220ef471, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  InitWorldWidth: 0
-  InitWorldDepth: 0
-  LoadChunkOffsetWidth: 0
-  LoadChunkOffsetDepth: 0
+  InitWorldWidth: 3
+  InitWorldDepth: 3
+  LoadChunkOffsetWidth: 3
+  LoadChunkOffsetDepth: 3
   InitFastDrawChunk: 0
   _playerTrans: {fileID: 314038816}
 --- !u!1 &1252983687
@@ -2107,8 +2107,8 @@ MonoBehaviour:
   Persistence: 0.5
   DeepWater: 0.23507252
   Water: 0.37664118
-  Sand: 0.5204932
-  Grass: 0.6630412
+  Sand: 0.46797583
+  Grass: 0.6141112
   Forest: 0.79148936
   Rock: 0.9
   Snow: 1
