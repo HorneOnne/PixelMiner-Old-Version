@@ -2105,11 +2105,11 @@ MonoBehaviour:
   Frequency: 0.0045
   Lacunarity: 2
   Persistence: 0.5
-  DeepWater: 0.23507252
-  Water: 0.37664118
-  Sand: 0.46797583
-  Grass: 0.6141112
-  Forest: 0.79148936
+  DeepWater: 0.2
+  Water: 0.35
+  Sand: 0.4
+  Grass: 0.6
+  Forest: 0.8
   Rock: 0.9
   Snow: 1
   HeatOctaves: 4
@@ -2118,11 +2118,11 @@ MonoBehaviour:
   HeatPersistence: 0.5
   GradientHeatmapSize: 512
   HeatMapBlendFactor: 0.5
-  ColdestValue: 0.21223886
-  ColderValue: 0.3355406
-  ColdValue: 0.5022263
-  WarmValue: 0.7077292
-  WarmerValue: 0.8492979
+  ColdestValue: 0.2
+  ColderValue: 0.33
+  ColdValue: 0.5
+  WarmValue: 0.7
+  WarmerValue: 0.85
   WarmestValue: 1
   MoistureOctaves: 2
   MoistureFrequency: 0.0045

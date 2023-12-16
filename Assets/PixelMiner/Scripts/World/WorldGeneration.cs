@@ -36,19 +36,19 @@ namespace PixelMiner.WorldGen
         [FoldoutGroup("Height map"), Indent(1)] public double Persistence = 0.5f;
 
         [InfoBox("Height map threshold"), Space(10)]
-        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 0f, g: 0f, b: 0.5f, Height = 20)]
+        [FoldoutGroup("Height map")]
         public float DeepWater = 0.2f;
-        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 25 / 255f, g: 25 / 255f, b: 150 / 255f, Height = 20)]
+        [FoldoutGroup("Height map")]
         public float Water = 0.4f;
-        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 240 / 255f, g: 240 / 255f, b: 64 / 255f, Height = 20)]
+        [FoldoutGroup("Height map")]
         public float Sand = 0.5f;
-        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 50 / 255f, g: 220 / 255f, b: 20 / 255f, Height = 20)]
+        [FoldoutGroup("Height map")]
         public float Grass = 0.7f;
-        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 16 / 255f, g: 160 / 255f, b: 0f, Height = 20)]
+        [FoldoutGroup("Height map")]
         public float Forest = 0.8f;
-        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 0.5f, g: 0.5f, b: 0.5f, Height = 20)]
+        [FoldoutGroup("Height map")]
         public float Rock = 0.9f;
-        [FoldoutGroup("Height map"), Indent(1), ProgressBar(0f, 1f, r: 1f, g: 1f, b: 1f, Height = 20)]
+        [FoldoutGroup("Height map")]
         public float Snow = 1;
         private ModuleBase _heightModule;
 
@@ -66,12 +66,12 @@ namespace PixelMiner.WorldGen
         [FoldoutGroup("Heatmap"), Indent(1), Range(0f, 1f)] public float HeatMapBlendFactor = 0.5f;
 
         [InfoBox("Heat map threshold"), Space(10)]
-        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 0f, g: 1.0f, b: 1.0f, Height = 20)] public float ColdestValue = 0.1f;
-        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 170 / 255f, g: 1f, b: 1f, Height = 20)] public float ColderValue = 0.2f;
-        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 0, g: 229 / 255f, b: 133 / 255f, Height = 20)] public float ColdValue = 0.4f;
-        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 1, g: 1, b: 100 / 255f, Height = 20)] public float WarmValue = 0.6f;
-        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 1, g: 100 / 255f, b: 0, Height = 20)] public float WarmerValue = 0.8f;
-        [FoldoutGroup("Heatmap"), Indent(1), ProgressBar(0f, 1f, r: 241 / 255f, g: 12 / 255f, b: 0f, Height = 20)] public float WarmestValue = 1.0f;
+        [FoldoutGroup("Heatmap")] public float ColdestValue = 0.1f;
+        [FoldoutGroup("Heatmap")] public float ColderValue = 0.2f;
+        [FoldoutGroup("Heatmap")] public float ColdValue = 0.4f;
+        [FoldoutGroup("Heatmap")] public float WarmValue = 0.6f;
+        [FoldoutGroup("Heatmap")] public float WarmerValue = 0.8f;
+        [FoldoutGroup("Heatmap")] public float WarmestValue = 1.0f;
         private ModuleBase _heatModule;
 
 
@@ -84,12 +84,12 @@ namespace PixelMiner.WorldGen
         [FoldoutGroup("Moisture map"), Indent(1)] public double MoistureLacunarity = 2.0f;
         [FoldoutGroup("Moisture map"), Indent(1)] public double MoisturePersistence = 0.5f;
         [InfoBox("Moisture map noise settings"), Space(10)]
-        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 255 / 255f, 139 / 255f, 17 / 255f, Height = 20)] public float DryestValue = 0.22f;
-        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 245 / 255f, g: 245 / 255f, b: 23 / 255f, Height = 20)] public float DryerValue = 0.35f;
-        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 80 / 255f, g: 255 / 255f, b: 0 / 255f, Height = 20)] public float DryValue = 0.55f;
-        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 85 / 255f, g: 255 / 255f, b: 255 / 255f, Height = 20)] public float WetValue = 0.75f;
-        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 20 / 255f, g: 70 / 255f, b: 255 / 255f, Height = 20)] public float WetterValue = 0.85f;
-        [FoldoutGroup("Moisture map"), Indent(1), ProgressBar(0f, 1f, r: 0 / 255f, g: 0 / 255f, b: 100 / 255f, Height = 20)] public float WettestValue = 1.0f;
+        [FoldoutGroup("Moisture map")] public float DryestValue = 0.22f;
+        [FoldoutGroup("Moisture map")] public float DryerValue = 0.35f;
+        [FoldoutGroup("Moisture map")] public float DryValue = 0.55f;
+        [FoldoutGroup("Moisture map")] public float WetValue = 0.75f;
+        [FoldoutGroup("Moisture map")] public float WetterValue = 0.85f;
+        [FoldoutGroup("Moisture map")] public float WettestValue = 1.0f;
         private ModuleBase _moistureModule;
 
 
