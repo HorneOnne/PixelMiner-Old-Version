@@ -52,6 +52,7 @@ namespace PixelMiner.WorldBuilding
 
 
 
+        // ReSharper disable Unity.PerformanceAnalysis
         public static async Task<MeshData> SolidGreedyMeshingAsync(Chunk chunk)
         {
             bool GreedyCompareLogic(Vector3Int a, Vector3Int b, int dimension, bool isBackFace)
@@ -59,11 +60,12 @@ namespace PixelMiner.WorldBuilding
                 BlockType blockA = chunk.GetBlock(a);
                 BlockType blockB = chunk.GetBlock(b);
 
-                return blockA == blockB && chunk.IsSolid(b) && chunk.IsBlockFaceVisible(b, dimension, isBackFace);
+                return blockA == blockB && !chunk.IsSolid(b) && chunk.IsBlockFaceVisible(b, dimension, isBackFace);
+                //return blockA == blockB && chunk.IsSolid(b) && chunk.IsBlockFaceVisible(b, dimension, isBackFace);
             }
 
-            ChunkMeshBuilder _builder = ChunkMeshBuilderPool.Get();
-            _builder.InitOrLoad(chunk.Dimensions);
+            ChunkMeshBuilder builder = ChunkMeshBuilderPool.Get();
+            builder.InitOrLoad(chunk.Dimensions);
 
             Vector3Int startPos, currPos, quadSize, m, n, offsetPos;
             Vector3[] vertices = new Vector3[4];
@@ -93,23 +95,20 @@ namespace PixelMiner.WorldBuilding
  
                     bool isBackFace = voxelFace > 2;
                     d = voxelFace % 3;
-                    u = (d + 1) % 3;
-                    v = (d + 2) % 3;
-
-                    if (d == 0)
+                    switch (d)
                     {
-                        u = 2;
-                        v = 1;
-                    }
-                    else if(d == 1)
-                    {
-                        u = 0;
-                        v = 2;
-                    }
-                    else
-                    {
-                        u = 0;
-                        v = 1;
+                        case 0:
+                            u = 2;
+                            v = 1;
+                            break;
+                        case 1:
+                            u = 0;
+                            v = 2;
+                            break;
+                        default:
+                            u = 0;
+                            v = 1;
+                            break;
                     }
 
 
@@ -119,7 +118,7 @@ namespace PixelMiner.WorldBuilding
 
                     for (startPos[d] = 0; startPos[d] < dimensions[d]; startPos[d]++)
                     {
-                        Array.Clear(_builder.Merged[d], 0, _builder.Merged[d].Length);
+                        Array.Clear(builder.Merged[d], 0, builder.Merged[d].Length);
 
                         // Build the slices of mesh.
                         for (startPos[u] = 0; startPos[u] < dimensions[u]; startPos[u]++)
@@ -132,7 +131,7 @@ namespace PixelMiner.WorldBuilding
                                 // If this block has already been merged, is air, or not visible -> skip it.
                                 if (chunk.IsSolid(startPos) == false ||
                                     chunk.IsBlockFaceVisible(startPos, d, isBackFace) == false ||
-                                    _builder.Merged[d][startPos[u], startPos[v]])
+                                    builder.Merged[d][startPos[u], startPos[v]])
                                 {
                                     continue;
                                 }
@@ -144,7 +143,7 @@ namespace PixelMiner.WorldBuilding
                                 for (currPos = startPos, currPos[u]++;
                                     currPos[u] < dimensions[u] &&
                                     GreedyCompareLogic(startPos, currPos, d, isBackFace) &&
-                                    !_builder.Merged[d][currPos[u], currPos[v]];
+                                    !builder.Merged[d][currPos[u], currPos[v]];
                                     currPos[u]++)
                                 { }
                                 quadSize[u] = currPos[u] - startPos[u];
@@ -153,7 +152,7 @@ namespace PixelMiner.WorldBuilding
                                 for (currPos = startPos, currPos[v]++;
                                     currPos[v] < dimensions[v] &&
                                     GreedyCompareLogic(startPos, currPos, d, isBackFace) &&
-                                    !_builder.Merged[d][currPos[u], currPos[v]];
+                                    !builder.Merged[d][currPos[u], currPos[v]];
                                     currPos[v]++)
                                 {
 
@@ -161,7 +160,7 @@ namespace PixelMiner.WorldBuilding
                                     for (currPos[u] = startPos[u];
                                         currPos[u] < dimensions[u] &&
                                         GreedyCompareLogic(startPos, currPos, d, isBackFace) &&
-                                        !_builder.Merged[d][currPos[u], currPos[v]];
+                                        !builder.Merged[d][currPos[u], currPos[v]];
                                         currPos[u]++)
                                     { }
 
@@ -195,7 +194,7 @@ namespace PixelMiner.WorldBuilding
                                 vertices[3] = offsetPos + n;
 
                                 GetBlockUVs(currBlock, voxelFace, quadSize[u], quadSize[v], ref uvs, ref uv2s);
-                                _builder.AddQuadFace(vertices, uvs, uv2s, voxelFace);
+                                builder.AddQuadFace(vertices, uvs, uv2s, voxelFace);
 
 
                                 // Mark at this position has been merged
@@ -203,7 +202,7 @@ namespace PixelMiner.WorldBuilding
                                 {
                                     for (int h = 0; h < quadSize[v]; h++)
                                     {
-                                        _builder.Merged[d][startPos[u] + g, startPos[v] + h] = true;
+                                        builder.Merged[d][startPos[u] + g, startPos[v] + h] = true;
                                     }
                                 }
                             }
@@ -214,8 +213,8 @@ namespace PixelMiner.WorldBuilding
                 }
             });
 
-            MeshData meshData = _builder.ToMeshData();
-            ChunkMeshBuilderPool.Release(_builder);
+            MeshData meshData = builder.ToMeshData();
+            ChunkMeshBuilderPool.Release(builder);
             return meshData;
         }
         public static async Task<MeshData> WaterGreedyMeshingAsync(Chunk chunk)

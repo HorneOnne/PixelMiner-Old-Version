@@ -1,0 +1,14 @@
+{
+    "name": "PixelMiner.Lighting",
+    "rootNamespace": "PixelMiner.Lighting",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

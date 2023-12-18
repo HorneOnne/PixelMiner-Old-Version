@@ -21,10 +21,13 @@ namespace PixelMiner.WorldBuilding
             using (StreamWriter writer = new StreamWriter(filePath))
             {
                 // Write vertices
-                writer.WriteLine("Vertices:");
-                foreach (Vector3 vertex in mesh.vertices)
+                Color32[] colors = mesh.colors32; // Assuming colors are assigned to the mesh
+                for (int i = 0; i < mesh.vertexCount; i++)
                 {
-                    writer.WriteLine($"{vertex.x}, {vertex.y}, {vertex.z}");
+                    Vector3 vertex = mesh.vertices[i];
+                    Color32 color = (i < colors.Length) ? colors[i] : new Color32(255, 255, 255, 255);
+
+                    writer.WriteLine($"Vertex: {vertex.x}, {vertex.y}, {vertex.z}, Color: {color.r}, {color.g}, {color.b}, {color.a}");
                 }
 
                 // Write normals

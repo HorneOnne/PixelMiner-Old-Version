@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
+using log4net.Appender;
 using UnityEngine;
-
 
 namespace PixelMiner.WorldBuilding
 {
@@ -10,6 +10,7 @@ namespace PixelMiner.WorldBuilding
         private List<int> _triangles;
         private List<Vector3> _uvs;
         private List<Vector2> _uv2s;
+        private List<Color32> _colors;
         public bool[][,] Merged;
         private bool _isInit = false;
 
@@ -28,7 +29,7 @@ namespace PixelMiner.WorldBuilding
             _triangles = new List<int>(100);
             _uvs = new List<Vector3>(100);
             _uv2s = new List<Vector2>(100);
-
+            _colors = new List<Color32>(100);
             Merged = new bool[][,]
             {
                  new bool[dimensions[2], dimensions[1]],
@@ -50,6 +51,15 @@ namespace PixelMiner.WorldBuilding
             for (int i = 0; i < vertices.Length; i++)
             {
                 this._vertices.Add(vertices[i]);
+
+                if (i == 0 || i == 1)
+                {
+                    _colors.Add(Color.white);
+                }
+                else
+                {
+                    _colors.Add(Color.black);
+                }
             }
 
             if(uvs != null)
@@ -60,6 +70,8 @@ namespace PixelMiner.WorldBuilding
                 }
             }
            
+            
+            
             if(uv2s != null)
             {
                 for (int i = 0; i < uv2s.Length; i++)
@@ -68,69 +80,65 @@ namespace PixelMiner.WorldBuilding
                 }
             }
 
+            
 
-
-            if (voxelFace == 1)
+            switch (voxelFace)
             {
-                _triangles.Add(this._vertices.Count - 2);
-                _triangles.Add(this._vertices.Count - 3);
-                _triangles.Add(this._vertices.Count - 4);
+                case 1:
+                    _triangles.Add(this._vertices.Count - 2);
+                    _triangles.Add(this._vertices.Count - 3);
+                    _triangles.Add(this._vertices.Count - 4);
 
-                _triangles.Add(this._vertices.Count - 1);
-                _triangles.Add(this._vertices.Count - 2);
-                _triangles.Add(this._vertices.Count - 4);
-            }
-            else if (voxelFace == 4)
-            {
-                _triangles.Add(this._vertices.Count - 4);
-                _triangles.Add(this._vertices.Count - 3);
-                _triangles.Add(this._vertices.Count - 2);
-
-
-                _triangles.Add(this._vertices.Count - 2);
-                _triangles.Add(this._vertices.Count - 1);
-                _triangles.Add(this._vertices.Count - 4);
-            }
-            else if (voxelFace == 3)
-            {
-                _triangles.Add(this._vertices.Count - 4);
-                _triangles.Add(this._vertices.Count - 3);
-                _triangles.Add(this._vertices.Count - 2);
-
-                _triangles.Add(this._vertices.Count - 4);
-                _triangles.Add(this._vertices.Count - 2);
-                _triangles.Add(this._vertices.Count - 1);
-            }
-            else if (voxelFace == 0)
-            {
-                _triangles.Add(this._vertices.Count - 2);
-                _triangles.Add(this._vertices.Count - 3);
-                _triangles.Add(this._vertices.Count - 4);
-
-                _triangles.Add(this._vertices.Count - 1);
-                _triangles.Add(this._vertices.Count - 2);
-                _triangles.Add(this._vertices.Count - 4);
-            }
-            else if(voxelFace == 2)
-            {
-                _triangles.Add(this._vertices.Count - 4);
-                _triangles.Add(this._vertices.Count - 3);
-                _triangles.Add(this._vertices.Count - 2);
+                    _triangles.Add(this._vertices.Count - 1);
+                    _triangles.Add(this._vertices.Count - 2);
+                    _triangles.Add(this._vertices.Count - 4);
+                    break;
+                case 4:
+                    _triangles.Add(this._vertices.Count - 4);
+                    _triangles.Add(this._vertices.Count - 3);
+                    _triangles.Add(this._vertices.Count - 2);
 
 
-                _triangles.Add(this._vertices.Count - 2);
-                _triangles.Add(this._vertices.Count - 1);
-                _triangles.Add(this._vertices.Count - 4);
-            }
-            else
-            {
-                _triangles.Add(this._vertices.Count - 2);
-                _triangles.Add(this._vertices.Count - 3);
-                _triangles.Add(this._vertices.Count - 4);
+                    _triangles.Add(this._vertices.Count - 2);
+                    _triangles.Add(this._vertices.Count - 1);
+                    _triangles.Add(this._vertices.Count - 4);
+                    break;
+                case 3:
+                    _triangles.Add(this._vertices.Count - 4);
+                    _triangles.Add(this._vertices.Count - 3);
+                    _triangles.Add(this._vertices.Count - 2);
 
-                _triangles.Add(this._vertices.Count - 1);
-                _triangles.Add(this._vertices.Count - 2);
-                _triangles.Add(this._vertices.Count - 4);
+                    _triangles.Add(this._vertices.Count - 4);
+                    _triangles.Add(this._vertices.Count - 2);
+                    _triangles.Add(this._vertices.Count - 1);
+                    break;
+                case 0:
+                    _triangles.Add(this._vertices.Count - 2);
+                    _triangles.Add(this._vertices.Count - 3);
+                    _triangles.Add(this._vertices.Count - 4);
+
+                    _triangles.Add(this._vertices.Count - 1);
+                    _triangles.Add(this._vertices.Count - 2);
+                    _triangles.Add(this._vertices.Count - 4);
+                    break;
+                case 2:
+                    _triangles.Add(this._vertices.Count - 4);
+                    _triangles.Add(this._vertices.Count - 3);
+                    _triangles.Add(this._vertices.Count - 2);
+                    
+                    _triangles.Add(this._vertices.Count - 2);
+                    _triangles.Add(this._vertices.Count - 1);
+                    _triangles.Add(this._vertices.Count - 4);
+                    break;
+                default:
+                    _triangles.Add(this._vertices.Count - 2);
+                    _triangles.Add(this._vertices.Count - 3);
+                    _triangles.Add(this._vertices.Count - 4);
+
+                    _triangles.Add(this._vertices.Count - 1);
+                    _triangles.Add(this._vertices.Count - 2);
+                    _triangles.Add(this._vertices.Count - 4);
+                    break;
             }
 
         }
@@ -139,7 +147,7 @@ namespace PixelMiner.WorldBuilding
         public MeshData ToMeshData()
         {
             MeshData data = MeshDataPool.Get();
-            data.Init(_vertices, _triangles, _uvs, _uv2s);
+            data.Init(_vertices, _triangles, _uvs, _uv2s, _colors);
             return data;
         }
 
@@ -149,6 +157,7 @@ namespace PixelMiner.WorldBuilding
             _triangles.Clear();
             _uvs.Clear();
             _uv2s.Clear();
+            _colors.Clear();
         }
     }
 }

@@ -9,6 +9,7 @@ namespace PixelMiner.WorldBuilding
         public List<int> Triangles { get; private set; }
         public List<Vector3> UVs { get; private set; }
         public List<Vector2> UV2s { get; private set; }
+        public List<Color32> Colors { get; private set; }
 
 
         public MeshData() 
@@ -18,16 +19,16 @@ namespace PixelMiner.WorldBuilding
             Triangles = new List<int>(6);
             UVs = new List<Vector3>(4);
             UV2s = new List<Vector2>(4);
-
-
+            Colors = new List<Color32>(4);
         }
 
-        public void Init(List<Vector3> vertices, List<int> triangles, List<Vector3> uvs, List<Vector2> uv2s)
+        public void Init(List<Vector3> vertices, List<int> triangles, List<Vector3> uvs, List<Vector2> uv2s, List<Color32> colors)
         {
             Vertices.AddRange(vertices);
             Triangles.AddRange(triangles);
             UVs.AddRange(uvs);
             UV2s.AddRange(uv2s);
+            Colors.AddRange(colors);
         }
 
 
@@ -37,6 +38,7 @@ namespace PixelMiner.WorldBuilding
             Triangles.Clear();
             UVs.Clear();
             UV2s.Clear();
+            Colors.Clear();
         }
     }
 }

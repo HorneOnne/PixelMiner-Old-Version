@@ -201,6 +201,7 @@ namespace PixelMiner.WorldBuilding
             MeshDataPool.Release(waterMeshData);
             MeshDataPool.Release(colliderMeshData);
 
+            LogUtils.WriteMeshToFile(SolidMeshFilter.sharedMesh, "Meshdata.txt");
             ChunkHasDrawn = true;
         }
 
@@ -209,11 +210,13 @@ namespace PixelMiner.WorldBuilding
             Mesh mesh = new Mesh();
             mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
             mesh.SetVertices(meshData.Vertices);
+            mesh.SetColors(meshData.Colors);
             mesh.SetTriangles(meshData.Triangles, 0);
             mesh.SetUVs(0, meshData.UVs);
             mesh.SetUVs(1, meshData.UV2s);
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
+            
             return mesh;
         }
 
