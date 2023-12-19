@@ -40,7 +40,7 @@ namespace PixelMiner.WorldBuilding
             _isInit = true;
         }
 
-        public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, Vector2[] uv2s, int voxelFace = 0)
+        public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, Vector2[] uv2s, Color32[] colors, int voxelFace = 0)
         {
             if (vertices.Length != 4)
             {
@@ -51,15 +51,6 @@ namespace PixelMiner.WorldBuilding
             for (int i = 0; i < vertices.Length; i++)
             {
                 this._vertices.Add(vertices[i]);
-
-                if (i == 0 || i == 1)
-                {
-                    _colors.Add(Color.white);
-                }
-                else
-                {
-                    _colors.Add(Color.black);
-                }
             }
 
             if(uvs != null)
@@ -81,6 +72,14 @@ namespace PixelMiner.WorldBuilding
             }
 
             
+            if(colors != null)
+            {
+                for (int i = 0; i < colors.Length; i++)
+                {
+                    _colors.Add(colors[i]);
+                }
+            }
+
 
             switch (voxelFace)
             {

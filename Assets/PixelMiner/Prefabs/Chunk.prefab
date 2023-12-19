@@ -94,7 +94,7 @@ GameObject:
   - component: {fileID: 1054948856007838692}
   - component: {fileID: 285238837962715001}
   m_Layer: 0
-  m_Name: Chunk3D
+  m_Name: Chunk
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -18,6 +18,8 @@ namespace PixelMiner
         private Ray _ray;
         private RaycastHit _hit;
 
+        private Chunk _chunkHit;
+
         private void Start()
         {
             _main = Main.Instance;
@@ -45,6 +47,25 @@ namespace PixelMiner
                                                                 Mathf.FloorToInt(_hit.point.y),
                                                                 Mathf.FloorToInt(_hit.point.z));
                         _cursor.transform.position = hitPosition;
+                    }
+                }
+            }
+
+            if(Input.GetMouseButtonDown(0))
+            {
+                _ray = _mainCam.ScreenPointToRay(Input.mousePosition);
+                if (Physics.Raycast(_ray, out _hit))
+                {
+                    if (_hit.collider.transform.parent != null && _hit.collider.transform.parent.TryGetComponent<Chunk>(out _chunkHit))
+                    {
+                        Vector3Int hitPosition = new Vector3Int(Mathf.FloorToInt(_hit.point.x),
+                                                                Mathf.FloorToInt(_hit.point.y - 1),
+                                                                Mathf.FloorToInt(_hit.point.z));
+                        _cursor.transform.position = hitPosition;
+
+                        _chunkHit.SetLight(hitPosition, 16);
+                        _chunkHit.ReDrawChunkAsync();
+                        Debug.Log($"hit chunk: {_chunkHit.name}\t{_chunkHit.GetBlock(hitPosition)}");
                     }
                 }
             }

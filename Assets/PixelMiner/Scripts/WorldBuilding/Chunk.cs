@@ -1,9 +1,7 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using PixelMiner.Enums;
-using PixelMiner.DataStructure;
 using Sirenix.OdinInspector;
+using System.Collections.Generic;
 
 
 namespace PixelMiner.WorldBuilding
@@ -54,6 +52,8 @@ namespace PixelMiner.WorldBuilding
         [HideInInspector] public HeatType[] HeatData;
         [HideInInspector] public MoistureType[] MoistureData;
         [HideInInspector] public BiomeType[] BiomesData;
+        [HideInInspector] public byte[] LightData;
+
 
 
         private void Awake()
@@ -120,6 +120,15 @@ namespace PixelMiner.WorldBuilding
             MoistureData = new MoistureType[size3D];
             BiomesData = new BiomeType[size3D];
             Dimensions = new Vector3Int(_width, _height, _depth);
+            LightData = new byte[size3D];
+
+
+            for(int i = 0;i < LightData.Length; i++)
+            {
+                LightData[i] = 0;
+            }
+
+           
 
             State = ChunkState.Stable;
         }
@@ -150,7 +159,7 @@ namespace PixelMiner.WorldBuilding
 
                 if (position.x < 0)
                 {
-                    return Left.ChunkData[IndexOf(_width - 1, position.y, position.z)]; 
+                    return Left.ChunkData[IndexOf(_width - 1, position.y, position.z)];
                 }
                 if (position.x >= _width)
                 {
@@ -187,24 +196,43 @@ namespace PixelMiner.WorldBuilding
             if (ChunkHasDrawn) return;
 
             MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this);
-            MeshData waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(this);
+            //MeshData waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(this);
             MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(this);
 
-            SolidMeshFilter.sharedMesh =  CreateMesh(solidMeshData);
-            WaterMeshFilter.sharedMesh =  CreateMesh(waterMeshData);
+            SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
+            //WaterMeshFilter.sharedMesh =  CreateMesh(waterMeshData);
 
             _meshCollider.sharedMesh = null;
-            _meshCollider.sharedMesh= CreateColliderMesh(colliderMeshData);
+            _meshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
+
 
             // Release mesh data
             MeshDataPool.Release(solidMeshData);
-            MeshDataPool.Release(waterMeshData);
+            //MeshDataPool.Release(waterMeshData);
             MeshDataPool.Release(colliderMeshData);
 
-            LogUtils.WriteMeshToFile(SolidMeshFilter.sharedMesh, "Meshdata.txt");
+            //LogUtils.WriteMeshToFile(SolidMeshFilter.sharedMesh, "Meshdata.txt");
             ChunkHasDrawn = true;
         }
 
+
+        public async void ReDrawChunkAsync()
+        {
+            MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this);
+            MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(this);
+
+            SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
+
+            _meshCollider.sharedMesh = null;
+            _meshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
+
+
+            // Release mesh data
+            MeshDataPool.Release(solidMeshData);
+            MeshDataPool.Release(colliderMeshData);
+        }
+
+    
         public Mesh CreateMesh(MeshData meshData)
         {
             Mesh mesh = new Mesh();
@@ -216,10 +244,9 @@ namespace PixelMiner.WorldBuilding
             mesh.SetUVs(1, meshData.UV2s);
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
-            
+
             return mesh;
         }
-
         private Mesh CreateColliderMesh(MeshData meshData)
         {
             Mesh colliderMesh = new Mesh();
@@ -275,7 +302,83 @@ namespace PixelMiner.WorldBuilding
 
 
 
+        #region Light
+        public byte GetLight(int x, int y, int z)
+        {
+            return LightData[IndexOf(x,y,z)];
+        }
+        public byte GetLight(Vector3Int position)
+        {
+            if (position.x < 0 || position.x >= Dimensions[0] ||
+                 position.y < 0 || position.y >= Dimensions[1] ||
+                 position.z < 0 || position.z >= Dimensions[2])
+            {
 
+                if (position.x < 0)
+                {
+                    return Left.LightData[IndexOf(_width - 1, position.y, position.z)];
+                }
+                if (position.x >= _width)
+                {
+                    return Right.LightData[IndexOf(0, position.y, position.z)];
+                }
+
+                if (position.z < 0)
+                {
+                    return Back.LightData[IndexOf(position.x, position.y, _depth - 1)];
+                }
+                if (position.z >= _depth)
+                {
+                    return Front.LightData[IndexOf(position.x, position.y, 0)];
+                }
+
+                //return BlockType.Air;
+            }
+
+            return LightData[IndexOf(position.x, position.y, position.z)];
+        }
+
+
+        public void SetLight(int x, int y, int z, byte intensity)
+        {
+            LightData[IndexOf(x,y,z)] = intensity;
+        }
+        public void SetLight(Vector3Int position, byte intensity)
+        {
+
+            if (position.x < 0 || position.x >= Dimensions[0] ||
+                 position.y < 0 || position.y >= Dimensions[1] ||
+                 position.z < 0 || position.z >= Dimensions[2])
+            {
+
+                if (position.x < 0)
+                {
+                    Left.LightData[IndexOf(_width - 1, position.y, position.z)] = intensity;
+                    return;
+                }
+                if (position.x >= _width)
+                {
+                    Right.LightData[IndexOf(0, position.y, position.z)] = intensity;
+                    return;
+                }
+
+                if (position.z < 0)
+                {
+                    Back.LightData[IndexOf(position.x, position.y, _depth - 1)] = intensity;
+                    return;
+                }
+                if (position.z >= _depth)
+                {
+                    Front.LightData[IndexOf(position.x, position.y, 0)] = intensity;
+                    return;
+                }
+
+                return;
+            }
+
+            LightData[IndexOf(position.x, position.y, position.z)] = intensity;
+        }
+        #endregion
 
 
 
