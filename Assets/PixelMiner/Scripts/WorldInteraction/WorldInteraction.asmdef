@@ -1,10 +1,11 @@
 {
-    "name": "PixelMiner.Lighting",
-    "rootNamespace": "PixelMiner.Lighting",
+    "name": "WorldInteraction",
+    "rootNamespace": "WorldInteraction",
     "references": [
+        "GUID:0d21e01c3270e324eb9ced7a2d86e65c",
+        "GUID:3213c3c1098ba9a4c960430e3c1e3913",
         "GUID:cdce3721149a968458d95984d050e50d",
-        "GUID:83a651e378233fe418e687488e563cf9",
-        "GUID:6055be8ebefd69e48b49212b09b47b2f"
+        "GUID:83a651e378233fe418e687488e563cf9"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

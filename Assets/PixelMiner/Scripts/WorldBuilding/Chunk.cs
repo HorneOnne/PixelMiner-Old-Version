@@ -54,7 +54,7 @@ namespace PixelMiner.WorldBuilding
         [HideInInspector] public BiomeType[] BiomesData;
         [HideInInspector] public byte[] LightData;
 
-
+        private Vector3Int[] _neighborsPosition = new Vector3Int[4];
 
         private void Awake()
         {
@@ -332,6 +332,8 @@ namespace PixelMiner.WorldBuilding
                     return Front.LightData[IndexOf(position.x, position.y, 0)];
                 }
 
+
+                Debug.Log("AAAAAA");
                 //return BlockType.Air;
             }
 
@@ -378,9 +380,32 @@ namespace PixelMiner.WorldBuilding
 
             LightData[IndexOf(position.x, position.y, position.z)] = intensity;
         }
+
+        public async void RedrawLightAsync()
+        {
+            MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this);
+            SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
+            MeshDataPool.Release(solidMeshData);
+        }
         #endregion
 
 
+
+        #region Neighbors
+        public Vector3Int[] GetVoxelNeighborPosition(Vector3Int position)
+        {
+            _neighborsPosition[0] = position + new Vector3Int(1, 0, 0);
+            _neighborsPosition[1] = position + new Vector3Int(-1, 0, 0);
+            _neighborsPosition[2] = position + new Vector3Int(0, 0, 1);
+            _neighborsPosition[3] = position + new Vector3Int(0, 0, -1);
+            //_neighborsPosition[4] = position + new Vector3Int(0, 1, 0);
+            //_neighborsPosition[5] = position + new Vector3Int(0, -1, 0);
+           
+
+            return _neighborsPosition;
+        }
+
+        #endregion
 
         #region Utilities
         public int IndexOf(int x, int y, int z)

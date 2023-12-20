@@ -16,14 +16,14 @@ namespace PixelMiner.WorldBuilding
 
         public ChunkMeshBuilder()
         {
-            Debug.Log("Create ChunkMeshBuilder");
+            //Debug.Log("Create ChunkMeshBuilder");
             _isInit = false;
         }
 
         public void InitOrLoad(Vector3Int dimensions)
         {
             if (_isInit) return;
-            Debug.Log("Init ChunkMeshBuilder");
+            //Debug.Log("Init ChunkMeshBuilder");
 
             _vertices = new List<Vector3>(100);
             _triangles = new List<int>(100);

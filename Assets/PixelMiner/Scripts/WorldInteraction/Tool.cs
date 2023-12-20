@@ -1,19 +1,21 @@
 ﻿using UnityEngine;
-using PixelMiner.WorldGen;
-using PixelMiner.Enums;
 using PixelMiner.WorldBuilding;
+using PixelMiner.Lighting;
+using PixelMiner.Enums;
 
 namespace PixelMiner
 {
     public class Tool : MonoBehaviour
     {
+        public static event System.Action<Vector3Int, BlockType, byte> OnTarget;
+
         [SerializeField] private GameObject _cursorPrefab;
-        private Main _main;
+        //private Main _main;
 
         private Transform _cursor;
 
         private float _timer;
-        private float _time = 0.02f;
+        private float _time = 0.015f;
         private Camera _mainCam;
         private Ray _ray;
         private RaycastHit _hit;
@@ -22,7 +24,7 @@ namespace PixelMiner
 
         private void Start()
         {
-            _main = Main.Instance;
+            //_main = Main.Instance;
             _mainCam = Camera.main;
 
             // Cursor
@@ -41,12 +43,14 @@ namespace PixelMiner
                 _ray = _mainCam.ScreenPointToRay(Input.mousePosition);
                 if (Physics.Raycast(_ray, out _hit))
                 {
-                    if (_hit.collider != null)
+                    if (_hit.collider.transform.parent != null && _hit.collider.transform.parent.TryGetComponent<Chunk>(out _chunkHit))
                     {
                         Vector3Int hitPosition = new Vector3Int(Mathf.FloorToInt(_hit.point.x),
-                                                                Mathf.FloorToInt(_hit.point.y),
+                                                                Mathf.FloorToInt(_hit.point.y - 1),
                                                                 Mathf.FloorToInt(_hit.point.z));
                         _cursor.transform.position = hitPosition;
+
+                        OnTarget?.Invoke(hitPosition, _chunkHit.GetBlock(hitPosition), _chunkHit.GetLight(hitPosition));
                     }
                 }
             }
@@ -62,10 +66,13 @@ namespace PixelMiner
                                                                 Mathf.FloorToInt(_hit.point.y - 1),
                                                                 Mathf.FloorToInt(_hit.point.z));
                         _cursor.transform.position = hitPosition;
+                 
 
-                        _chunkHit.SetLight(hitPosition, 16);
-                        _chunkHit.ReDrawChunkAsync();
-                        Debug.Log($"hit chunk: {_chunkHit.name}\t{_chunkHit.GetBlock(hitPosition)}");
+                        LightCalculator.ProcessLight(hitPosition, _chunkHit);
+
+
+                        _chunkHit.RedrawLightAsync();
+                        //Debug.Log($"hit chunk: {_chunkHit.name}\t{_chunkHit.GetBlock(hitPosition)}");
                     }
                 }
             }

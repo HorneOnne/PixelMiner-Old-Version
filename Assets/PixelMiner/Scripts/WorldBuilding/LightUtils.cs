@@ -8,7 +8,6 @@ namespace PixelMiner.WorldBuilding
         {
             float maxLight = 16.0f;
             float channelValue = light / maxLight;
-
             return new Color(channelValue, channelValue, channelValue, 1.0f);
         }
     }
