@@ -250,7 +250,7 @@ Material:
     - _WorkflowMode: 0
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.54894984, g: 0.9056604, b: 0.19223925, a: 1}
+    - _BaseColor: {r: 0.5848026, g: 0.33610716, b: 0.7830189, a: 1}
     - _BaseColorAddSubDiff: {r: 0, g: 0, b: 0, a: 0}
     - _CameraFadeParams: {r: 0, g: Infinity, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}

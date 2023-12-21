@@ -68,7 +68,10 @@ namespace PixelMiner.WorldBuilding
                 BlockType blockA = chunk.GetBlock(a);
                 BlockType blockB = chunk.GetBlock(b);
 
-                return blockA == blockB && !chunk.IsSolid(b) && chunk.IsBlockFaceVisible(b, dimension, isBackFace);
+                return blockA == blockB && 
+                       chunk.IsSolid(b) && 
+                       chunk.IsBlockFaceVisible(b, dimension, isBackFace) &&
+                       GetLightPropagationForAdjacentFace(a, 1) == GetLightPropagationForAdjacentFace(b,1);
                 //return blockA == blockB && chunk.IsSolid(b) && chunk.IsBlockFaceVisible(b, dimension, isBackFace);
             }
             byte GetLightPropagationForAdjacentFace(Vector3Int blockPosition, int face)
