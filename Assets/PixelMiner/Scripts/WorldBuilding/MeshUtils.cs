@@ -68,11 +68,16 @@ namespace PixelMiner.WorldBuilding
                 BlockType blockA = chunk.GetBlock(a);
                 BlockType blockB = chunk.GetBlock(b);
 
-                return blockA == blockB && 
-                       chunk.IsSolid(b) && 
-                       chunk.IsBlockFaceVisible(b, dimension, isBackFace) &&
-                       GetLightPropagationForAdjacentFace(a, 1) == GetLightPropagationForAdjacentFace(b,1);
-                //return blockA == blockB && chunk.IsSolid(b) && chunk.IsBlockFaceVisible(b, dimension, isBackFace);
+                Vector3Int c = b + new Vector3Int(1, 0, 1);
+                Vector3Int d = b + new Vector3Int(-1, 0, 1);
+                Vector3Int e = b + new Vector3Int(1, 0, -1);
+                return blockA == blockB &&
+                       chunk.IsSolid(b) &&
+                       GetLightPropagationForAdjacentFace(a, 1) == GetLightPropagationForAdjacentFace(b, 1) &&
+                        GetLightPropagationForAdjacentFace(a, 1) == GetLightPropagationForAdjacentFace(c,1) &&
+                        GetLightPropagationForAdjacentFace(a, 1) == GetLightPropagationForAdjacentFace(d,1) &&
+                        GetLightPropagationForAdjacentFace(a, 1) == GetLightPropagationForAdjacentFace(e,1) &&
+                       chunk.IsBlockFaceVisible(b, dimension, isBackFace);
             }
             byte GetLightPropagationForAdjacentFace(Vector3Int blockPosition, int face)
             {
@@ -171,10 +176,8 @@ namespace PixelMiner.WorldBuilding
                             {
                                 currBlock = chunk.GetBlock(startPos);
 
-                                //byte lightValue = chunk.GetLight(startPos);
+                                // Because at solid block light not exist. We can only get light by the adjacent block and use it as the light as solid voxel face.
                                 byte lightValue = GetLightPropagationForAdjacentFace(startPos, voxelFace);
-
-                                
                                 lightColor = LightUtils.GetLightColor(lightValue);
 
                                 // If this block has already been merged, is air, or not visible -> skip it.
@@ -242,10 +245,28 @@ namespace PixelMiner.WorldBuilding
                                 vertices[2] = offsetPos + m + n;
                                 vertices[3] = offsetPos + n;
 
-                                colors[0] = lightColor;
-                                colors[1] = lightColor;
-                                colors[2] = lightColor;
-                                colors[3] = lightColor;
+                                colors[0] = LightUtils.GetLightColor(GetLightPropagationForAdjacentFace(startPos, voxelFace));
+                                colors[1] = LightUtils.GetLightColor(GetLightPropagationForAdjacentFace(startPos + m, voxelFace));
+                                colors[2] = LightUtils.GetLightColor(GetLightPropagationForAdjacentFace(startPos + m + n, voxelFace));
+                                colors[3] = LightUtils.GetLightColor(GetLightPropagationForAdjacentFace(startPos + n, voxelFace));
+
+                                //if (lightValue == 0)
+                                //{
+                                //    colors[0] = lightColor;
+                                //    colors[1] = lightColor;
+                                //    colors[2] = lightColor;
+                                //    colors[3] = lightColor;
+                                //}
+                                //else
+                                //{
+                                //    colors[0] = LightUtils.GetLightColor(GetLightPropagationForAdjacentFace(startPos, voxelFace));
+                                //    colors[1] = LightUtils.GetLightColor(GetLightPropagationForAdjacentFace(startPos + m, voxelFace));
+                                //    colors[2] = LightUtils.GetLightColor(GetLightPropagationForAdjacentFace(startPos + m + n, voxelFace));
+                                //    colors[3] = LightUtils.GetLightColor(GetLightPropagationForAdjacentFace(startPos + n, voxelFace));
+                                //}
+
+
+
 
                                 GetBlockUVs(currBlock, voxelFace, quadSize[u], quadSize[v], ref uvs, ref uv2s);
                                 builder.AddQuadFace(vertices, uvs, uv2s, colors, voxelFace);

@@ -313,11 +313,28 @@ namespace PixelMiner.WorldBuilding
                  position.y < 0 || position.y >= Dimensions[1] ||
                  position.z < 0 || position.z >= Dimensions[2])
             {
+                if(position.x == _width && position.z == _depth)
+                {
+                    Debug.Log("Top Right");
+                    return 0;
+                }
+                else if(position.x < 0 && position.z == Dimensions[2])
+                {
+                    Debug.Log("Top left");
+                    return 0;
+                }
+                else if (position.x == Dimensions[0] && position.z == -1)
+                {
+                    Debug.Log("Bottom right");
+                    return 0;
+                }
+
+
                 if (position.x < 0)
                 {
                     return Left.LightData[IndexOf(_width - 1, position.y, position.z)];
                 }
-                if (position.x >= _width)
+                if (position.x == _width)
                 {
                     return Right.LightData[IndexOf(0, position.y, position.z)];
                 }
@@ -326,7 +343,7 @@ namespace PixelMiner.WorldBuilding
                 {
                     return Back.LightData[IndexOf(position.x, position.y, _depth - 1)];
                 }
-                if (position.z >= _depth)
+                if (position.z == _depth)
                 {
                     return Front.LightData[IndexOf(position.x, position.y, 0)];
                 }
@@ -335,6 +352,8 @@ namespace PixelMiner.WorldBuilding
                 {
                     return 0;
                 }
+
+                return 0;
             }
 
             return LightData[IndexOf(position.x, position.y, position.z)];
