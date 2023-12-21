@@ -6,6 +6,15 @@ using System;
 
 namespace PixelMiner.WorldBuilding
 {
+    /* Voxel Face Index
+        * 0: Right
+        * 1: Up
+        * 2: Front
+        * 3: Left
+        * 4: Down 
+        * 5: Back
+        */
+
     public static class MeshUtils
     {
         public static Vector2[,] ColorMapUVs =
@@ -52,7 +61,6 @@ namespace PixelMiner.WorldBuilding
 
 
 
-        // ReSharper disable Unity.PerformanceAnalysis
         public static async Task<MeshData> SolidGreedyMeshingAsync(Chunk chunk)
         {
             bool GreedyCompareLogic(Vector3Int a, Vector3Int b, int dimension, bool isBackFace)
@@ -62,6 +70,36 @@ namespace PixelMiner.WorldBuilding
 
                 return blockA == blockB && !chunk.IsSolid(b) && chunk.IsBlockFaceVisible(b, dimension, isBackFace);
                 //return blockA == blockB && chunk.IsSolid(b) && chunk.IsBlockFaceVisible(b, dimension, isBackFace);
+            }
+            byte GetLightPropagationForAdjacentFace(Vector3Int blockPosition, int face)
+            {
+                Vector3Int offset;
+                switch (face)
+                {
+                    case 0:
+                        offset = Vector3Int.right;
+                        break;
+                    case 1:
+                        offset = Vector3Int.up;
+                        break;
+                    case 2:
+                        offset = Vector3Int.forward;
+                        break;
+                    case 3:
+                        offset = Vector3Int.left;
+                        break;
+                    case 4:
+                        offset = Vector3Int.down;
+                        break;
+                    case 5:
+                        offset = Vector3Int.back;
+                        break;
+                    default:
+                        offset = Vector3Int.zero;
+                        break;
+
+                }
+                return chunk.GetLight((blockPosition + offset));
             }
 
             ChunkMeshBuilder builder = ChunkMeshBuilderPool.Get();
@@ -94,8 +132,8 @@ namespace PixelMiner.WorldBuilding
                     * BackFace -> Face that drawn in clockwise direction. (Need detect which face is clockwise in order to draw it on 
                     * Unity scene).
                     */
-                    if(voxelFace == 4) continue;    // Don't draw down face (because player cannot see it).
- 
+                    if (voxelFace == 4) continue;    // Don't draw down face (because player cannot see it).
+
                     bool isBackFace = voxelFace > 2;
                     d = voxelFace % 3;
                     switch (d)
@@ -129,7 +167,11 @@ namespace PixelMiner.WorldBuilding
                             for (startPos[v] = 0; startPos[v] < dimensions[v]; startPos[v]++)
                             {
                                 currBlock = chunk.GetBlock(startPos);
-                                byte lightValue = chunk.GetLight(startPos);
+
+                                //byte lightValue = chunk.GetLight(startPos);
+                                byte lightValue = GetLightPropagationForAdjacentFace(startPos, voxelFace);
+
+                                
                                 lightColor = LightUtils.GetLightColor(lightValue);
 
                                 // If this block has already been merged, is air, or not visible -> skip it.
@@ -593,5 +635,8 @@ namespace PixelMiner.WorldBuilding
             ChunkMeshBuilderPool.Release(_builder);
             return meshData;
         }
+
+
+
     }
 }

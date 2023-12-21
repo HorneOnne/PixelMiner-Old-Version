@@ -61,6 +61,19 @@ namespace PixelMiner.WorldGen
                 Mathf.FloorToInt(worldPosition.y / ChunkDimension[1]), Mathf.FloorToInt(worldPosition.z / ChunkDimension[2]));
             return GetChunk(frame);
         }
+        public bool TryGetChunk(Vector3 worldPosition, out Chunk chunk)
+        {
+            chunk = null;
+            Vector3Int frame = new Vector3Int(Mathf.FloorToInt(worldPosition.x / ChunkDimension[0]),
+                Mathf.FloorToInt(worldPosition.y / ChunkDimension[1]), Mathf.FloorToInt(worldPosition.z / ChunkDimension[2]));
+
+            if(HasChunk(frame))
+            {
+                chunk = GetChunk(frame);
+                return true;
+            }
+            return false;
+        }
         public Chunk GetChunk(int frameX, int frameZ)
         {
             Vector3Int frame = new Vector3Int(frameX, 0, frameZ);
@@ -111,6 +124,25 @@ namespace PixelMiner.WorldGen
         {
             Vector3Int nbChunkFrame = new Vector3Int(chunk.FrameX, chunk.FrameY - 1, chunk.FrameZ);
             return Chunks.TryGetValue(nbChunkFrame, out Chunk neighborChunk) ? neighborChunk : null;
+        }
+        #endregion
+
+
+
+        #region Light
+        public byte GetLight(Vector3 globalPosition)
+        {
+            Vector3Int chunkFrame = new Vector3Int(Mathf.FloorToInt(globalPosition.x / ChunkDimension[0]),
+               Mathf.FloorToInt(globalPosition.y / ChunkDimension[1]), Mathf.FloorToInt(globalPosition.z / ChunkDimension[2]));
+            Vector3Int relativePosition = new Vector3Int(Mathf.FloorToInt(globalPosition.x % ChunkDimension[0]),
+                                                         Mathf.FloorToInt(globalPosition.y % ChunkDimension[1]),
+                                                         Mathf.FloorToInt(globalPosition.z % ChunkDimension[2]));
+
+            if (TryGetChunk(globalPosition, out Chunk chunk))
+            {
+                return chunk.GetLight(relativePosition);
+            }
+            return byte.MinValue;
         }
         #endregion
 

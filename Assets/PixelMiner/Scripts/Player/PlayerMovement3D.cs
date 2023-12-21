@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace PixelMiner
 {
+
     public class PlayerMovement3D : MonoBehaviour
     {
         private CameraLogicHandler _cameraLogicHandler;
@@ -24,6 +25,7 @@ namespace PixelMiner
         private int _animIDVelocityX;
         private int _animIDVelocityY;
 
+
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
@@ -37,7 +39,7 @@ namespace PixelMiner
         {
             _input = InputHander.Instance;
             _cameraLogicHandler = CameraLogicHandler.Instance;
-            AssignAnimationIDs();
+            AssignAnimationIDs();          
         }
      
 
@@ -59,7 +61,7 @@ namespace PixelMiner
             }
 
 
-            FaceToCamera();
+            //FaceToCamera();
         }
 
         private void FixedUpdate()
@@ -72,7 +74,7 @@ namespace PixelMiner
 
             // Animation
             // =========
-            Flip(_moveDirection);
+            //Flip(_moveDirection);
             if (_hasAnimator)
             {
                 _anim.SetFloat(_animIDVelocityX, _moveDirection.x);

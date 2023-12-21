@@ -54,7 +54,7 @@ namespace PixelMiner.WorldBuilding
         [HideInInspector] public BiomeType[] BiomesData;
         [HideInInspector] public byte[] LightData;
 
-        private Vector3Int[] _neighborsPosition = new Vector3Int[4];
+        private Vector3Int[] _neighborsPosition = new Vector3Int[6];
 
         private void Awake()
         {
@@ -313,7 +313,6 @@ namespace PixelMiner.WorldBuilding
                  position.y < 0 || position.y >= Dimensions[1] ||
                  position.z < 0 || position.z >= Dimensions[2])
             {
-
                 if (position.x < 0)
                 {
                     return Left.LightData[IndexOf(_width - 1, position.y, position.z)];
@@ -332,9 +331,10 @@ namespace PixelMiner.WorldBuilding
                     return Front.LightData[IndexOf(position.x, position.y, 0)];
                 }
 
-
-                Debug.Log("AAAAAA");
-                //return BlockType.Air;
+                if (position.y < 0 || position.y >= Dimensions[1])
+                {
+                    return 0;
+                }
             }
 
             return LightData[IndexOf(position.x, position.y, position.z)];
@@ -398,10 +398,9 @@ namespace PixelMiner.WorldBuilding
             _neighborsPosition[1] = position + new Vector3Int(-1, 0, 0);
             _neighborsPosition[2] = position + new Vector3Int(0, 0, 1);
             _neighborsPosition[3] = position + new Vector3Int(0, 0, -1);
-            //_neighborsPosition[4] = position + new Vector3Int(0, 1, 0);
-            //_neighborsPosition[5] = position + new Vector3Int(0, -1, 0);
+            _neighborsPosition[4] = position + new Vector3Int(0, 1, 0);
+            _neighborsPosition[5] = position + new Vector3Int(0, -1, 0);
            
-
             return _neighborsPosition;
         }
 
