@@ -19,58 +19,28 @@ namespace PixelMiner.Lighting
         }
     }
 
+    public struct LightRemovalNode
+    {
+        public Vector3Int Position;
+        public byte Light;
+    }
+
     public struct Light
     {
         public ushort Torque;
         public byte Sun;
     }
 
-    public struct LightRemovalNode
-    {
-        public int Index;
-        public byte Light;
-    }
+
+
 
     public class LightCalculator : MonoBehaviour
     {
         public GameObject TextPrefab;
         private Dictionary<Vector3Int, GameObject> Dict = new Dictionary<Vector3Int, GameObject>();
-        // Direction in 3D space around block
-        //private byte[] _wL;
-        //private byte[] _eL;
-        //private byte[] _uL;
-        //private byte[] _dL;
-        //private byte[] _nL;
-        //private byte[] _sL;
-
-        //private byte[] _uwL;
-        //private byte[] _ueL;
-        //private byte[] _unL;
-        //private byte[] _usL;
-        //private byte[] _dwL;
-        //private byte[] _deL;
-        //private byte[] _dnL;
-        //private byte[] _dsL;
-        //private byte[] _swL;
-        //private byte[] _seL;
-        //private byte[] _nwL;
-        //private byte[] _neL;
-
-        //// Corner directions
-        //private byte[] _uneL;
-        //private byte[] _unwL;
-        //private byte[] _useL;
-        //private byte[] _uswL;
-        //private byte[] _dneL;
-        //private byte[] _dnwL;
-        //private byte[] _dseL;
-        //private byte[] _dswL;
-
-        //private Queue<LightNode> _lightOps;
-        //private Queue<int> _lightBFS;
-
-        private WaitForSeconds _wait = new WaitForSeconds(0.2f);
+        private WaitForSeconds _wait = new WaitForSeconds(0.05f);
         int maxYLevelLightSpread = 4;
+
 
         public void ProcessLight(Vector3Int startPosition, Chunk chunk)
         {
@@ -90,16 +60,16 @@ namespace PixelMiner.Lighting
             {    
                 LightNode currentNode = lightBfsQueue.Dequeue();
 
-                //if (Dict.ContainsKey(currentNode.position) == false)
-                //{
-                //    var textObject = Instantiate(TextPrefab, currentNode.position + new Vector3(0, 0.1f, 0), Quaternion.Euler(90, 0, 0));
-                //    textObject.GetComponent<TextMeshPro>().text = $"{currentNode.val}";
-                //    Dict.Add(currentNode.position, textObject);
-                //}
-                //else
-                //{
-                //    Dict[currentNode.position].GetComponent<TextMeshPro>().text = $"{currentNode.val}";
-                //}
+                if (Dict.ContainsKey(currentNode.position) == false)
+                {
+                    var textObject = Instantiate(TextPrefab, currentNode.position + new Vector3(0, 0.1f, 0), Quaternion.Euler(90, 0, 0));
+                    textObject.GetComponent<TextMeshPro>().text = $"{chunk.GetLight(currentNode.position)}";
+                    Dict.Add(currentNode.position, textObject);
+                }
+                else
+                {
+                    Dict[currentNode.position].GetComponent<TextMeshPro>().text = $"{chunk.GetLight(currentNode.position)}";
+                }
 
                 var neighbors = chunk.GetVoxelNeighborPosition(currentNode.position);
   
@@ -110,7 +80,7 @@ namespace PixelMiner.Lighting
                         chunk.GetBlock(neighbors[i]) != BlockType.Air||
                         neighbors[i] == startPosition) continue;
 
-                    if (chunk.GetLight(neighbors[i]) + 1 < currentNode.val && currentNode.val > 0)
+                    if (chunk.GetLight(neighbors[i]) + 2 <= currentNode.val && currentNode.val > 0)
                     {
                         LightNode neighborNode = new LightNode(neighbors[i], (byte)(currentNode.val - 1));
 
@@ -130,11 +100,191 @@ namespace PixelMiner.Lighting
                     Debug.LogWarning("Infinite loop");
                     break;
                 }
-
                 //yield return null;
             }
 
             Debug.Log($"attempt: {attempts}");
+
+
+            bool IsValidPosition(Vector3Int position)
+            {
+                return (position.x >= 0 && position.x < chunk._width &&
+                    position.z >= 0 && position.z < chunk._depth);
+            }
+        }
+
+        public IEnumerator RemoveLight(Vector3Int startPosition, Chunk chunk)
+        {
+            //Dict.Clear();
+            Debug.Log("Remove Light");
+            //startPosition = new Vector3Int(16, 3, 16);
+
+
+            byte maxLight = 16;
+            Queue<LightNode> removeLightBfsQueue = new Queue<LightNode>();
+            Queue<LightNode> spreadLightBfsQueue = new Queue<LightNode>();
+            LightNode startNode = new LightNode(startPosition, maxLight);
+            removeLightBfsQueue.Enqueue(startNode);
+            chunk.SetLight(startNode.position, 0);
+
+            int attempts = 0;
+            while (removeLightBfsQueue.Count > 0)
+            {
+                LightNode currentNode = removeLightBfsQueue.Dequeue();
+
+                if(chunk.GetLight(currentNode.position) != 0)
+                {
+                    if (Dict.ContainsKey(currentNode.position))
+                    {
+                        Dict[currentNode.position].GetComponent<TextMeshPro>().text = $"{chunk.GetLight(currentNode.position)}";
+                    }
+                }
+                else
+                {
+                    Destroy(Dict[currentNode.position].gameObject);
+                    Dict.Remove(currentNode.position);
+                }
+
+
+                var neighbors = chunk.GetVoxelNeighborPosition(currentNode.position);
+
+                for (int i = 0; i < neighbors.Length; i++)
+                {
+                    if (IsValidPosition(neighbors[i]) == false ||
+                        neighbors[i][1] > maxYLevelLightSpread ||
+                        chunk.GetBlock(neighbors[i]) != BlockType.Air ||
+                        neighbors[i] == startPosition) continue;
+
+
+                    if (chunk.GetLight(neighbors[i]) != 0)
+                      
+                    {
+                        if (chunk.GetLight(neighbors[i]) < currentNode.val)
+                        {
+                            LightNode neighborNode = new LightNode(neighbors[i], (byte)(currentNode.val - 1));
+                            removeLightBfsQueue.Enqueue(neighborNode);
+                            chunk.SetLight(neighbors[i], 0);
+
+                            //if (Dict.ContainsKey(neighborNode.position))
+                            //{
+                            //    Dict[neighborNode.position].GetComponent<TextMeshPro>().text = $"{chunk.GetLight(neighborNode.position)}";
+                            //    Dict[neighborNode.position].GetComponent<TextMeshPro>().color = Color.red;
+                            //}
+
+                            if (chunk.GetLight(neighbors[i]) + 1 < currentNode.val)
+                            {
+
+                            }
+                            else
+                            {
+                                //spreadLightBfsQueue.Enqueue(neighborNode);
+
+
+                            }
+                        }
+                        else
+                        {
+                            Debug.Log("Hre");
+                            //chunk.SetLight(neighbors[i], 0);
+                            LightNode neighborNode = new LightNode(neighbors[i], chunk.GetLight(neighbors[i]));
+                            spreadLightBfsQueue.Enqueue(neighborNode);
+                            if (Dict.ContainsKey(neighborNode.position))
+                            {
+                                Dict[neighborNode.position].GetComponent<TextMeshPro>().color = Color.red;
+                            }
+                        }
+
+                    }
+                   
+
+                }
+
+
+                attempts++;
+                if (attempts > 10000)
+                {
+                    Debug.LogWarning("Infinite loop");
+                    break;
+                }
+                yield return _wait;
+            }
+
+            foreach(var e in spreadLightBfsQueue)
+            {
+                if (Dict.ContainsKey(e.position))
+                {
+                    Dict[e.position].GetComponent<TextMeshPro>().color = Color.blue;
+                    Dict[e.position].GetComponent<TextMeshPro>().text =  $"{e.val}";
+                }
+                yield return new WaitForSeconds(0.5f);
+            }
+
+            Debug.Log($"attempt: {attempts}");
+            Debug.Log($"Need spred : {spreadLightBfsQueue.Count}");
+
+            attempts = 0;
+            while (spreadLightBfsQueue.Count > 0)
+            {
+                LightNode currentNode = spreadLightBfsQueue.Dequeue();
+                if(attempts == 0)
+                {
+                    Debug.Log($"at attempts = 0: {currentNode.position}\t{currentNode.val}");
+                }
+
+
+                if (Dict.ContainsKey(currentNode.position) == false)
+                {
+                    Debug.Log("A");
+                    var textObject = Instantiate(TextPrefab, currentNode.position + new Vector3(0, 0.1f, 0), Quaternion.Euler(90, 0, 0));
+                    textObject.GetComponent<TextMeshPro>().text = $"{chunk.GetLight(currentNode.position)}";
+                    Dict.Add(currentNode.position, textObject);
+                }
+                else
+                {
+                    Debug.Log("B");
+                    Dict[currentNode.position].GetComponent<TextMeshPro>().text = $"{chunk.GetLight(currentNode.position)}";
+                }
+
+                var neighbors = chunk.GetVoxelNeighborPosition(currentNode.position);
+
+                for (int i = 0; i < neighbors.Length; i++)
+                {
+                    Debug.Log("C");
+                    if (IsValidPosition(neighbors[i]) == false ||
+                        neighbors[i][1] > maxYLevelLightSpread ||
+                        chunk.GetBlock(neighbors[i]) != BlockType.Air) continue;
+
+                    Debug.Log("D");
+
+                    if (chunk.GetLight(neighbors[i]) < currentNode.val && currentNode.val > 0)
+                    {
+                        Debug.Log("E");
+                        if(currentNode.val == 15)
+                        {
+                            Debug.Log("ADSADASD");
+                        }
+
+                        LightNode neighborNode = new LightNode(neighbors[i], (byte)(currentNode.val - 1));
+
+                        if (spreadLightBfsQueue.Contains(neighborNode) == false)
+                        {
+                            spreadLightBfsQueue.Enqueue(neighborNode);
+                            chunk.SetLight(neighborNode.position, neighborNode.val);
+                        }
+                    }
+
+                }
+
+
+                attempts++;
+                if (attempts > 10000)
+                {
+                    Debug.LogWarning("Infinite loop");
+                    break;
+                }
+
+                yield return _wait;
+            }
 
 
             bool IsValidPosition(Vector3Int position)

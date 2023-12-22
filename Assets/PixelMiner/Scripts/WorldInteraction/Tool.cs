@@ -2,6 +2,7 @@
 using PixelMiner.WorldBuilding;
 using PixelMiner.Lighting;
 using PixelMiner.Enums;
+using PlasticGui.Help.Conditions;
 
 namespace PixelMiner
 {
@@ -32,6 +33,7 @@ namespace PixelMiner
             _cursor.gameObject.hideFlags = HideFlags.HideInHierarchy;
         }
 
+        private int ClickCount = 0;
 
        
         private void Update()
@@ -66,41 +68,58 @@ namespace PixelMiner
                                                                 Mathf.FloorToInt(_hit.point.y + 0.001f),
                                                                 Mathf.FloorToInt(_hit.point.z + 0.001f));
                         _cursor.transform.position = hitPosition;
-                 
 
-                        LightCalculator.ProcessLight(hitPosition, _chunkHit);
-                        //StartCoroutine(LightCalculator.ProcessLight(hitPosition, _chunkHit));
+                        if(ClickCount == 0)
+                        {
+                            ClickCount++;
+                            hitPosition = new Vector3Int(16, 4, 16);
+                        }
+                        else
+                        {
+                            hitPosition = new Vector3Int(16, 4, 20);
+                        }
 
 
-                        _chunkHit.RedrawLightAsync();
+                        if(_chunkHit.GetBlock(hitPosition) == BlockType.Air)
+                        {
+                            _chunkHit.SetBlock(hitPosition, BlockType.Light);
+                            LightCalculator.ProcessLight(hitPosition, _chunkHit);
+                            //StartCoroutine(LightCalculator.ProcessLight(hitPosition, _chunkHit));
+
+                            _chunkHit.ReDrawChunkAsync();
+                        }                
                     }
                 }
             }
- 
 
-            //Tile tile = Main.Instance.GetTile(mousePosition, out Chunk2D chunk);
-            //Vector2 tileWorldPos = _main.GetTileWorldPosition(mousePosition);
-            //_cursor.position = tileWorldPos;
+            if (Input.GetMouseButtonDown(1))
+            {
+                _ray = _mainCam.ScreenPointToRay(Input.mousePosition);
+                if (Physics.Raycast(_ray, out _hit))
+                {
+                    if (_hit.collider.transform.parent != null && _hit.collider.transform.parent.TryGetComponent<Chunk>(out _chunkHit))
+                    {
+                        Vector3Int hitPosition = new Vector3Int(Mathf.FloorToInt(_hit.point.x + 0.001f),
+                                                                Mathf.FloorToInt(_hit.point.y + 0.001f),
+                                                                Mathf.FloorToInt(_hit.point.z + 0.001f));
+                        _cursor.transform.position = hitPosition;
 
 
-            //if (Input.GetMouseButton(0))
-            //{
-            //    if (chunk != null)
-            //    {
-            //        chunk.SetTile(tile.FrameX, tile.FrameY, _main.GetTileBase(TileType.DirtGrass));
-            //    }
+                        if(_chunkHit.GetBlock(hitPosition) != BlockType.Air)
+                        {
+                            _chunkHit.SetBlock(hitPosition, BlockType.Air);
+                            //LightCalculator.RemoveLight(hitPosition, _chunkHit);
+                            StartCoroutine(LightCalculator.RemoveLight(hitPosition, _chunkHit));
 
-            //}
 
-            //if(Input.GetMouseButton(1))
-            //{
-            //    if (chunk != null)
-            //    {
-            //        chunk.SetTile(tile.FrameX, tile.FrameY, null);
-            //    }
-            //}
+                            _chunkHit.ReDrawChunkAsync();
+                        }
+                      
+                    }
+                }
+            }
 
-         
+
         }
     }
 }

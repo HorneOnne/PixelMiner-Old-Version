@@ -157,20 +157,20 @@ namespace PixelMiner.WorldBuilding
                 position.z < 0 || position.z >= Dimensions[2])
             {
 
-                if (position.x < 0)
+                if (position.x == -1)
                 {
                     return Left.ChunkData[IndexOf(_width - 1, position.y, position.z)];
                 }
-                if (position.x >= _width)
+                if (position.x == _width)
                 {
                     return Right.ChunkData[IndexOf(0, position.y, position.z)];
                 }
 
-                if (position.z < 0)
+                if (position.z == -1)
                 {
                     return Back.ChunkData[IndexOf(position.x, position.y, _depth - 1)];
                 }
-                if (position.z >= _depth)
+                if (position.z == _depth)
                 {
                     return Front.ChunkData[IndexOf(position.x, position.y, 0)];
                 }
@@ -180,6 +180,15 @@ namespace PixelMiner.WorldBuilding
 
             return ChunkData[IndexOf(position.x, position.y, position.z)];
         }
+        public void SetBlock(Vector3Int globalPosition, BlockType blockType)
+        {
+            int x = globalPosition[0] % Dimensions[0];
+            int y = globalPosition[1] % Dimensions[1];
+            int z = globalPosition[2] % Dimensions[2];
+            ChunkData[IndexOf(x, y, z)] = blockType;
+        }
+
+
         public bool IsBlockFaceVisible(Vector3Int position, int dimension, bool isBackFace)
         {
             position[dimension] += isBackFace ? -1 : 1;
@@ -315,17 +324,17 @@ namespace PixelMiner.WorldBuilding
             {
                 if(position.x == _width && position.z == _depth)
                 {
-                    Debug.Log("Top Right");
+                    //Debug.Log("Top Right");
                     return 0;
                 }
                 else if(position.x < 0 && position.z == Dimensions[2])
                 {
-                    Debug.Log("Top left");
+                    //Debug.Log("Top left");
                     return 0;
                 }
                 else if (position.x == Dimensions[0] && position.z == -1)
                 {
-                    Debug.Log("Bottom right");
+                    //Debug.Log("Bottom right");
                     return 0;
                 }
 
