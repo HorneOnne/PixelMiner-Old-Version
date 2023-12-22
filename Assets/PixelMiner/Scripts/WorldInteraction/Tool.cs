@@ -69,15 +69,15 @@ namespace PixelMiner
                                                                 Mathf.FloorToInt(_hit.point.z + 0.001f));
                         _cursor.transform.position = hitPosition;
 
-                        if(ClickCount == 0)
-                        {
-                            ClickCount++;
-                            hitPosition = new Vector3Int(16, 4, 16);
-                        }
-                        else
-                        {
-                            hitPosition = new Vector3Int(16, 4, 20);
-                        }
+                        //if(ClickCount == 0)
+                        //{
+                        //    ClickCount++;
+                        //    hitPosition = new Vector3Int(16, 4, 16);
+                        //}
+                        //else
+                        //{
+                        //    hitPosition = new Vector3Int(16, 4, 20);
+                        //}
 
 
                         if(_chunkHit.GetBlock(hitPosition) == BlockType.Air)
@@ -108,8 +108,8 @@ namespace PixelMiner
                         if(_chunkHit.GetBlock(hitPosition) != BlockType.Air)
                         {
                             _chunkHit.SetBlock(hitPosition, BlockType.Air);
-                            //LightCalculator.RemoveLight(hitPosition, _chunkHit);
-                            StartCoroutine(LightCalculator.RemoveLight(hitPosition, _chunkHit));
+                            LightCalculator.RemoveLight(hitPosition, _chunkHit);
+                            //StartCoroutine(LightCalculator.RemoveLight(hitPosition, _chunkHit));
 
 
                             _chunkHit.ReDrawChunkAsync();

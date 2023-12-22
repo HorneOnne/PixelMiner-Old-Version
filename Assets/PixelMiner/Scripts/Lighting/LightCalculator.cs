@@ -38,8 +38,8 @@ namespace PixelMiner.Lighting
     {
         public GameObject TextPrefab;
         private Dictionary<Vector3Int, GameObject> Dict = new Dictionary<Vector3Int, GameObject>();
-        private WaitForSeconds _wait = new WaitForSeconds(0.05f);
-        int maxYLevelLightSpread = 4;
+        private WaitForSeconds _wait = new WaitForSeconds(0.001f);
+        int maxYLevelLightSpread = 5;
 
 
         public void ProcessLight(Vector3Int startPosition, Chunk chunk)
@@ -60,16 +60,16 @@ namespace PixelMiner.Lighting
             {    
                 LightNode currentNode = lightBfsQueue.Dequeue();
 
-                if (Dict.ContainsKey(currentNode.position) == false)
-                {
-                    var textObject = Instantiate(TextPrefab, currentNode.position + new Vector3(0, 0.1f, 0), Quaternion.Euler(90, 0, 0));
-                    textObject.GetComponent<TextMeshPro>().text = $"{chunk.GetLight(currentNode.position)}";
-                    Dict.Add(currentNode.position, textObject);
-                }
-                else
-                {
-                    Dict[currentNode.position].GetComponent<TextMeshPro>().text = $"{chunk.GetLight(currentNode.position)}";
-                }
+                //if (Dict.ContainsKey(currentNode.position) == false)
+                //{
+                //    var textObject = Instantiate(TextPrefab, currentNode.position + new Vector3(0, 0.1f, 0), Quaternion.Euler(90, 0, 0));
+                //    textObject.GetComponent<TextMeshPro>().text = $"{chunk.GetLight(currentNode.position)}";
+                //    Dict.Add(currentNode.position, textObject);
+                //}
+                //else
+                //{
+                //    Dict[currentNode.position].GetComponent<TextMeshPro>().text = $"{chunk.GetLight(currentNode.position)}";
+                //}
 
                 var neighbors = chunk.GetVoxelNeighborPosition(currentNode.position);
   
@@ -113,7 +113,7 @@ namespace PixelMiner.Lighting
             }
         }
 
-        public IEnumerator RemoveLight(Vector3Int startPosition, Chunk chunk)
+        public void RemoveLight(Vector3Int startPosition, Chunk chunk)
         {
             //Dict.Clear();
             Debug.Log("Remove Light");
@@ -132,66 +132,56 @@ namespace PixelMiner.Lighting
             {
                 LightNode currentNode = removeLightBfsQueue.Dequeue();
 
-                if(chunk.GetLight(currentNode.position) != 0)
-                {
-                    if (Dict.ContainsKey(currentNode.position))
-                    {
-                        Dict[currentNode.position].GetComponent<TextMeshPro>().text = $"{chunk.GetLight(currentNode.position)}";
-                    }
-                }
-                else
-                {
-                    Destroy(Dict[currentNode.position].gameObject);
-                    Dict.Remove(currentNode.position);
-                }
+              
+
+                //if (chunk.GetLight(currentNode.position) != 0)
+                //{
+                //    if (Dict.ContainsKey(currentNode.position))
+                //    {
+                //        Dict[currentNode.position].GetComponent<TextMeshPro>().text = $"{chunk.GetLight(currentNode.position)}";
+                //    }
+                //}
+                //else
+                //{
+                //    Destroy(Dict[currentNode.position].gameObject);
+                //    Dict.Remove(currentNode.position);
+                //}
 
 
                 var neighbors = chunk.GetVoxelNeighborPosition(currentNode.position);
 
                 for (int i = 0; i < neighbors.Length; i++)
                 {
+               
                     if (IsValidPosition(neighbors[i]) == false ||
                         neighbors[i][1] > maxYLevelLightSpread ||
-                        chunk.GetBlock(neighbors[i]) != BlockType.Air ||
                         neighbors[i] == startPosition) continue;
 
-
-                    if (chunk.GetLight(neighbors[i]) != 0)
-                      
-                    {
+                    if (chunk.GetLight(neighbors[i]) != 0) 
+                    {         
                         if (chunk.GetLight(neighbors[i]) < currentNode.val)
                         {
+                
                             LightNode neighborNode = new LightNode(neighbors[i], (byte)(currentNode.val - 1));
                             removeLightBfsQueue.Enqueue(neighborNode);
                             chunk.SetLight(neighbors[i], 0);
+                        }
+                        //else if (chunk.GetLight(neighbors[i]) == currentNode.val)
+                        //{
+                        //    Dict[neighbors[i]].GetComponent<TextMeshPro>().color = Color.green;
+                        //    Debug.Log($"Equal: {currentNode.val}");
+                        //}
+                        else
+                        {
+   
+                            LightNode neighborNode = new LightNode(neighbors[i], chunk.GetLight(neighbors[i]));
+                            spreadLightBfsQueue.Enqueue(neighborNode);
 
                             //if (Dict.ContainsKey(neighborNode.position))
                             //{
-                            //    Dict[neighborNode.position].GetComponent<TextMeshPro>().text = $"{chunk.GetLight(neighborNode.position)}";
                             //    Dict[neighborNode.position].GetComponent<TextMeshPro>().color = Color.red;
                             //}
 
-                            if (chunk.GetLight(neighbors[i]) + 1 < currentNode.val)
-                            {
-
-                            }
-                            else
-                            {
-                                //spreadLightBfsQueue.Enqueue(neighborNode);
-
-
-                            }
-                        }
-                        else
-                        {
-                            Debug.Log("Hre");
-                            //chunk.SetLight(neighbors[i], 0);
-                            LightNode neighborNode = new LightNode(neighbors[i], chunk.GetLight(neighbors[i]));
-                            spreadLightBfsQueue.Enqueue(neighborNode);
-                            if (Dict.ContainsKey(neighborNode.position))
-                            {
-                                Dict[neighborNode.position].GetComponent<TextMeshPro>().color = Color.red;
-                            }
                         }
 
                     }
@@ -206,18 +196,9 @@ namespace PixelMiner.Lighting
                     Debug.LogWarning("Infinite loop");
                     break;
                 }
-                yield return _wait;
+                //yield return _wait;
             }
 
-            foreach(var e in spreadLightBfsQueue)
-            {
-                if (Dict.ContainsKey(e.position))
-                {
-                    Dict[e.position].GetComponent<TextMeshPro>().color = Color.blue;
-                    Dict[e.position].GetComponent<TextMeshPro>().text =  $"{e.val}";
-                }
-                yield return new WaitForSeconds(0.5f);
-            }
 
             Debug.Log($"attempt: {attempts}");
             Debug.Log($"Need spred : {spreadLightBfsQueue.Count}");
@@ -226,43 +207,37 @@ namespace PixelMiner.Lighting
             while (spreadLightBfsQueue.Count > 0)
             {
                 LightNode currentNode = spreadLightBfsQueue.Dequeue();
-                if(attempts == 0)
-                {
-                    Debug.Log($"at attempts = 0: {currentNode.position}\t{currentNode.val}");
-                }
 
 
-                if (Dict.ContainsKey(currentNode.position) == false)
-                {
-                    Debug.Log("A");
-                    var textObject = Instantiate(TextPrefab, currentNode.position + new Vector3(0, 0.1f, 0), Quaternion.Euler(90, 0, 0));
-                    textObject.GetComponent<TextMeshPro>().text = $"{chunk.GetLight(currentNode.position)}";
-                    Dict.Add(currentNode.position, textObject);
-                }
-                else
-                {
-                    Debug.Log("B");
-                    Dict[currentNode.position].GetComponent<TextMeshPro>().text = $"{chunk.GetLight(currentNode.position)}";
-                }
+                //if (Dict.ContainsKey(currentNode.position) == false)
+                //{
+                //    var textObject = Instantiate(TextPrefab, currentNode.position + new Vector3(0, 0.1f, 0), Quaternion.Euler(90, 0, 0));
+                //    textObject.GetComponent<TextMeshPro>().text = $"{chunk.GetLight(currentNode.position)}";
+                //    Dict.Add(currentNode.position, textObject);
+                //}
+                //else
+                //{
+                //    Dict[currentNode.position].GetComponent<TextMeshPro>().text = $"{chunk.GetLight(currentNode.position)}";
+                //}
+
+                //if(chunk.GetLight(currentNode.position) == 0)
+                //{
+                //    Destroy(Dict[currentNode.position].gameObject);
+                //    Dict.Remove(currentNode.position);
+                //}
 
                 var neighbors = chunk.GetVoxelNeighborPosition(currentNode.position);
 
                 for (int i = 0; i < neighbors.Length; i++)
                 {
-                    Debug.Log("C");
                     if (IsValidPosition(neighbors[i]) == false ||
                         neighbors[i][1] > maxYLevelLightSpread ||
                         chunk.GetBlock(neighbors[i]) != BlockType.Air) continue;
 
-                    Debug.Log("D");
 
                     if (chunk.GetLight(neighbors[i]) < currentNode.val && currentNode.val > 0)
                     {
-                        Debug.Log("E");
-                        if(currentNode.val == 15)
-                        {
-                            Debug.Log("ADSADASD");
-                        }
+   
 
                         LightNode neighborNode = new LightNode(neighbors[i], (byte)(currentNode.val - 1));
 
@@ -283,7 +258,7 @@ namespace PixelMiner.Lighting
                     break;
                 }
 
-                yield return _wait;
+                //yield return _wait;
             }
 
 
