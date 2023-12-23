@@ -1,15 +1,14 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 using PixelMiner.WorldBuilding;
 using PixelMiner.Lighting;
 using PixelMiner.Enums;
-using PlasticGui.Help.Conditions;
 
 namespace PixelMiner
 {
     public class Tool : MonoBehaviour
     {
-        public static event System.Action<Vector3Int, BlockType, byte> OnTarget;
-        public LightCalculator LightCalculator;
+        public static event System.Action<Vector3Int, BlockType, byte, byte> OnTarget;
         [SerializeField] private GameObject _cursorPrefab;
         //private Main _main;
 
@@ -22,6 +21,9 @@ namespace PixelMiner
         private RaycastHit _hit;
 
         private Chunk _chunkHit;
+        private Queue<LightNode> _lightBfsQueue = new Queue<LightNode>();
+        private Queue<LightNode> _lightRemovalBfsQueue = new Queue<LightNode>();
+
 
         private void Start()
         {
@@ -52,7 +54,7 @@ namespace PixelMiner
                                                                 Mathf.FloorToInt(_hit.point.z + 0.001f));
                         _cursor.transform.position = hitPosition;
 
-                        OnTarget?.Invoke(hitPosition, _chunkHit.GetBlock(hitPosition), _chunkHit.GetLight(hitPosition));
+                        OnTarget?.Invoke(hitPosition, _chunkHit.GetBlock(hitPosition), _chunkHit.GetBlockLight(hitPosition), _chunkHit.GetAmbientLight(hitPosition));
                     }
                 }
             }
@@ -83,9 +85,9 @@ namespace PixelMiner
                         if(_chunkHit.GetBlock(hitPosition) == BlockType.Air)
                         {
                             _chunkHit.SetBlock(hitPosition, BlockType.Light);
-                            LightCalculator.ProcessLight(hitPosition, _chunkHit);
-                            //StartCoroutine(LightCalculator.ProcessLight(hitPosition, _chunkHit));
-
+                            _lightBfsQueue.Enqueue(new LightNode() { position = hitPosition, val = 16 });
+                            LightCalculator.PropagateLight(_lightBfsQueue);
+  
                             _chunkHit.ReDrawChunkAsync();
                         }                
                     }
@@ -108,10 +110,8 @@ namespace PixelMiner
                         if(_chunkHit.GetBlock(hitPosition) != BlockType.Air)
                         {
                             _chunkHit.SetBlock(hitPosition, BlockType.Air);
-                            LightCalculator.RemoveLight(hitPosition, _chunkHit);
-                            //StartCoroutine(LightCalculator.RemoveLight(hitPosition, _chunkHit));
-
-
+                            _lightRemovalBfsQueue.Enqueue(new LightNode() { position = hitPosition, val = 16 });
+                            LightCalculator.RemoveLight(_lightRemovalBfsQueue);
                             _chunkHit.ReDrawChunkAsync();
                         }
                       

@@ -15,7 +15,8 @@ namespace PixelMiner.UI
         float fps;
         private Vector3Int _targetPosition;
         private BlockType _targetBlock;
-        private byte _light;
+        private byte _blockLight;
+        private byte _ambientLight;
 
         private StringBuilder sb = new StringBuilder();
 
@@ -23,7 +24,8 @@ namespace PixelMiner.UI
         private string _fpsString;
         private string _targetString;
         private string _blockString;
-        private string _lightString;
+        private string _blockLightString;
+        private string _ambientLightString;
 
         private void OnEnable()
         {
@@ -45,13 +47,15 @@ namespace PixelMiner.UI
             _fpsString = string.Format("FPS: {0:F2}  ({1:F2} m/s)", fps, msec);
             _targetString = $"Target: {_targetPosition}";
             _blockString = $"Block: {_targetBlock}";
-            _lightString = $"Light: {_light}";
+            _blockLightString = $"Block Light: {_blockLight}";
+            _ambientLightString = $"Ambient Light: {_ambientLight}";
 
             sb.Clear();
             sb.AppendLine(_fpsString);
             sb.AppendLine(_targetString);
             sb.AppendLine(_blockString);
-            sb.AppendLine(_lightString);
+            sb.AppendLine(_blockLightString);
+            sb.AppendLine(_ambientLightString);
 
             
             _debugLogText.text = $"{sb}";
@@ -64,11 +68,12 @@ namespace PixelMiner.UI
             fps = 1.0f / deltaTime;
         }
 
-        private void UpdateTarget(Vector3Int target, BlockType blockType, byte light)
+        private void UpdateTarget(Vector3Int target, BlockType blockType, byte blockLight, byte ambientLight)
         {
             this._targetPosition = target;
             this._targetBlock = blockType;
-            this._light = light;
+            this._blockLight = blockLight;
+            this._ambientLight = ambientLight;
         }
     }
 }

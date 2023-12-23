@@ -107,7 +107,7 @@ namespace PixelMiner.WorldBuilding
                         break;
 
                 }
-                return chunk.GetLight((blockPosition + offset));
+                return chunk.GetBlockLight((blockPosition + offset));
             }
 
             ChunkMeshBuilder builder = ChunkMeshBuilderPool.Get();

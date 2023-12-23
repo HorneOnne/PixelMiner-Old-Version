@@ -1,5 +1,5 @@
 ﻿using PixelMiner.WorldBuilding;
-using PixelMiner.WorldGen;
+using PixelMiner.Core;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -11,10 +11,10 @@ namespace PixelMiner
 
         private Color32[] _vertexColors;
         private Mesh _mesh;
-
-        [Range(0,16)]
         private byte _light;
 
+        private float _timer;
+        private float _updateFrequency = 0.2f;
 
         private void Start()
         {
@@ -37,19 +37,24 @@ namespace PixelMiner
             }
         }
 
-        private void FixedUpdate()
+        private void Update()
         {
-            Vector3Int position = new Vector3Int(Mathf.FloorToInt(transform.position.x),
+            if (Time.time - _timer > _updateFrequency)
+            {
+                _timer = Time.time;
+
+                Vector3Int position = new Vector3Int(Mathf.FloorToInt(transform.position.x),
                                                  Mathf.FloorToInt(transform.position.y + 0.001f),   // Add some threshold to y
                                                  Mathf.FloorToInt(transform.position.z));
 
-            byte currentLightLevel = Main.Instance.GetLight(position);
-       
-            if(currentLightLevel >= 0 && currentLightLevel <= 16 && (_light != currentLightLevel || _light + 1 != currentLightLevel))
-            {
-                _light = currentLightLevel;
-                UpdateLightColorAsync();
-            }
+                byte currentLightLevel = Main.Instance.GetBlockLight(position);
+
+                if (currentLightLevel >= 0 && currentLightLevel <= 16 && (_light != currentLightLevel || _light + 1 != currentLightLevel))
+                {
+                    _light = currentLightLevel;
+                    UpdateLightColorAsync();
+                }
+            } 
         }
 
 

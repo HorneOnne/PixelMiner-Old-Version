@@ -3,7 +3,7 @@ using UnityEngine;
 using PixelMiner.WorldBuilding;
 using PixelMiner;
 
-namespace PixelMiner.WorldGen
+namespace PixelMiner.Core
 {
     public class Main : MonoBehaviour
     {
@@ -130,7 +130,7 @@ namespace PixelMiner.WorldGen
 
 
         #region Light
-        public byte GetLight(Vector3 globalPosition)
+        public byte GetBlockLight(Vector3 globalPosition)
         {
             Vector3Int chunkFrame = new Vector3Int(Mathf.FloorToInt(globalPosition.x / ChunkDimension[0]),
                Mathf.FloorToInt(globalPosition.y / ChunkDimension[1]), Mathf.FloorToInt(globalPosition.z / ChunkDimension[2]));
@@ -140,7 +140,7 @@ namespace PixelMiner.WorldGen
 
             if (TryGetChunk(globalPosition, out Chunk chunk))
             {
-                return chunk.GetLight(relativePosition);
+                return chunk.GetBlockLight(relativePosition);
             }
             return byte.MinValue;
         }

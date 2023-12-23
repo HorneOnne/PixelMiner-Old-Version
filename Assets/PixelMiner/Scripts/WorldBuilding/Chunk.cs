@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using PixelMiner.Enums;
-using Sirenix.OdinInspector;
 using System.Collections.Generic;
 
 
@@ -11,15 +10,13 @@ namespace PixelMiner.WorldBuilding
     {
         public static System.Action<Chunk> OnChunkFarAway;
         public static System.Action<Chunk> OnChunkHasNeighbors;
-        // NEW
+       
         [SerializeField] public MeshFilter SolidMeshFilter;
         [SerializeField] public MeshFilter WaterMeshFilter;
         private MeshCollider _meshCollider;
 
         private Transform _playerTrans;
-        private const int DRAW_HIDDEN_BLOCK = 1 << 0;
-        private const int DRAW_HIDDEN_SURFACE = 1 << 1;
-        private int DRAW_PERMISSION = 0;
+
 
         public enum ChunkState
         {
@@ -42,17 +39,18 @@ namespace PixelMiner.WorldBuilding
 
         bool[] _neighbors;
         // Neighbors
-        [ShowInInspector] public Chunk Left { get; private set; }
-        [ShowInInspector] public Chunk Right { get; private set; }
-        [ShowInInspector] public Chunk Front { get; private set; }
-        [ShowInInspector] public Chunk Back { get; private set; }
+        [field: SerializeField] public Chunk Left { get; private set; }
+        [field: SerializeField] public Chunk Right { get; private set; }
+        [field: SerializeField] public Chunk Front { get; private set; }
+        [field: SerializeField] public Chunk Back { get; private set; }
 
         [Header("Data")]
         [HideInInspector] public BlockType[] ChunkData;
         [HideInInspector] public HeatType[] HeatData;
         [HideInInspector] public MoistureType[] MoistureData;
         [HideInInspector] public BiomeType[] BiomesData;
-        [HideInInspector] public byte[] LightData;
+        [HideInInspector] public byte[] VoxelLightData;
+        [HideInInspector] public byte[] AmbientLightData;
 
         private Vector3Int[] _neighborsPosition = new Vector3Int[6];
 
@@ -120,15 +118,35 @@ namespace PixelMiner.WorldBuilding
             MoistureData = new MoistureType[size3D];
             BiomesData = new BiomeType[size3D];
             Dimensions = new Vector3Int(_width, _height, _depth);
-            LightData = new byte[size3D];
+            VoxelLightData = new byte[size3D];
+            AmbientLightData = new byte[size3D];
 
 
-            for(int i = 0;i < LightData.Length; i++)
+
+            // Set all light dark by default
+            for(int i = 0;i < VoxelLightData.Length; i++)
             {
-                LightData[i] = 0;
+                VoxelLightData[i] = 0;
+            }
+            int x, y, z;
+            for (int i = 0; i < AmbientLightData.Length; i++)
+            {
+                AmbientLightData[i] = 0;
+
+                ////x = i % _width;
+                //y = (i / _width) % _height;
+                ////z = i / (_width * _height); 
+            
+                //if(y == _height - 1)
+                //{
+                //    AmbientLightData[i] = 16;
+                //}    
+                //else
+                //{
+                //    AmbientLightData[i] = 0;
+                //}
             }
 
-           
 
             State = ChunkState.Stable;
         }
@@ -312,52 +330,52 @@ namespace PixelMiner.WorldBuilding
 
 
         #region Light
-        public byte GetLight(int x, int y, int z)
+        public byte GetBlockLight(int x, int y, int z)
         {
-            return LightData[IndexOf(x,y,z)];
+            return VoxelLightData[IndexOf(x,y,z)];
         }
-        public byte GetLight(Vector3Int position)
+        public byte GetBlockLight(Vector3Int relativePosition)
         {
-            if (position.x < 0 || position.x >= Dimensions[0] ||
-                 position.y < 0 || position.y >= Dimensions[1] ||
-                 position.z < 0 || position.z >= Dimensions[2])
+            if (relativePosition.x < 0 || relativePosition.x >= Dimensions[0] ||
+                 relativePosition.y < 0 || relativePosition.y >= Dimensions[1] ||
+                 relativePosition.z < 0 || relativePosition.z >= Dimensions[2])
             {
-                if(position.x == _width && position.z == _depth)
+                if(relativePosition.x == _width && relativePosition.z == _depth)
                 {
                     //Debug.Log("Top Right");
                     return 0;
                 }
-                else if(position.x < 0 && position.z == Dimensions[2])
+                else if(relativePosition.x < 0 && relativePosition.z == Dimensions[2])
                 {
                     //Debug.Log("Top left");
                     return 0;
                 }
-                else if (position.x == Dimensions[0] && position.z == -1)
+                else if (relativePosition.x == Dimensions[0] && relativePosition.z == -1)
                 {
                     //Debug.Log("Bottom right");
                     return 0;
                 }
 
 
-                if (position.x < 0)
+                if (relativePosition.x < 0)
                 {
-                    return Left.LightData[IndexOf(_width - 1, position.y, position.z)];
+                    return Left.VoxelLightData[IndexOf(_width - 1, relativePosition.y, relativePosition.z)];
                 }
-                if (position.x == _width)
+                if (relativePosition.x == _width)
                 {
-                    return Right.LightData[IndexOf(0, position.y, position.z)];
-                }
-
-                if (position.z < 0)
-                {
-                    return Back.LightData[IndexOf(position.x, position.y, _depth - 1)];
-                }
-                if (position.z == _depth)
-                {
-                    return Front.LightData[IndexOf(position.x, position.y, 0)];
+                    return Right.VoxelLightData[IndexOf(0, relativePosition.y, relativePosition.z)];
                 }
 
-                if (position.y < 0 || position.y >= Dimensions[1])
+                if (relativePosition.z < 0)
+                {
+                    return Back.VoxelLightData[IndexOf(relativePosition.x, relativePosition.y, _depth - 1)];
+                }
+                if (relativePosition.z == _depth)
+                {
+                    return Front.VoxelLightData[IndexOf(relativePosition.x, relativePosition.y, 0)];
+                }
+
+                if (relativePosition.y < 0 || relativePosition.y >= Dimensions[1])
                 {
                     return 0;
                 }
@@ -365,55 +383,140 @@ namespace PixelMiner.WorldBuilding
                 return 0;
             }
 
-            return LightData[IndexOf(position.x, position.y, position.z)];
+            return VoxelLightData[IndexOf(relativePosition.x, relativePosition.y, relativePosition.z)];
         }
 
 
-        public void SetLight(int x, int y, int z, byte intensity)
+        public void SetBlockLight(int x, int y, int z, byte intensity)
         {
-            LightData[IndexOf(x,y,z)] = intensity;
+            VoxelLightData[IndexOf(x,y,z)] = intensity;
         }
-        public void SetLight(Vector3Int position, byte intensity)
+        public void SetBlockLight(Vector3Int relativePosition, byte intensity)
         {
 
-            if (position.x < 0 || position.x >= Dimensions[0] ||
-                 position.y < 0 || position.y >= Dimensions[1] ||
-                 position.z < 0 || position.z >= Dimensions[2])
+            if (relativePosition.x < 0 || relativePosition.x >= Dimensions[0] ||
+                 relativePosition.y < 0 || relativePosition.y >= Dimensions[1] ||
+                 relativePosition.z < 0 || relativePosition.z >= Dimensions[2])
             {
 
-                if (position.x < 0)
+                if (relativePosition.x < 0)
                 {
-                    Left.LightData[IndexOf(_width - 1, position.y, position.z)] = intensity;
+                    Left.VoxelLightData[IndexOf(_width - 1, relativePosition.y, relativePosition.z)] = intensity;
                     return;
                 }
-                if (position.x >= _width)
+                if (relativePosition.x >= _width)
                 {
-                    Right.LightData[IndexOf(0, position.y, position.z)] = intensity;
+                    Right.VoxelLightData[IndexOf(0, relativePosition.y, relativePosition.z)] = intensity;
                     return;
                 }
 
-                if (position.z < 0)
+                if (relativePosition.z < 0)
                 {
-                    Back.LightData[IndexOf(position.x, position.y, _depth - 1)] = intensity;
+                    Back.VoxelLightData[IndexOf(relativePosition.x, relativePosition.y, _depth - 1)] = intensity;
                     return;
                 }
-                if (position.z >= _depth)
+                if (relativePosition.z >= _depth)
                 {
-                    Front.LightData[IndexOf(position.x, position.y, 0)] = intensity;
+                    Front.VoxelLightData[IndexOf(relativePosition.x, relativePosition.y, 0)] = intensity;
                     return;
                 }
 
                 return;
             }
 
-            LightData[IndexOf(position.x, position.y, position.z)] = intensity;
+            VoxelLightData[IndexOf(relativePosition.x, relativePosition.y, relativePosition.z)] = intensity;
         }
 
-        public async void RedrawLightAsync()
+
+        public byte GetAmbientLight(int x, int y, int z)
         {
-            MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this);
-            SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
-            MeshDataPool.Release(solidMeshData);
+            return AmbientLightData[IndexOf(x, y, z)];
+        }
+        public byte GetAmbientLight(Vector3Int relativePosition)
+        {
+            if (relativePosition.x < 0 || relativePosition.x >= Dimensions[0] ||
+                 relativePosition.y < 0 || relativePosition.y >= Dimensions[1] ||
+                 relativePosition.z < 0 || relativePosition.z >= Dimensions[2])
+            {
+                if (relativePosition.x == _width && relativePosition.z == _depth)
+                {
+                    //Debug.Log("Top Right");
+                    return 0;
+                }
+                else if (relativePosition.x < 0 && relativePosition.z == Dimensions[2])
+                {
+                    //Debug.Log("Top left");
+                    return 0;
+                }
+                else if (relativePosition.x == Dimensions[0] && relativePosition.z == -1)
+                {
+                    //Debug.Log("Bottom right");
+                    return 0;
+                }
+
+
+                if (relativePosition.x < 0)
+                {
+                    return Left.AmbientLightData[IndexOf(_width - 1, relativePosition.y, relativePosition.z)];
+                }
+                if (relativePosition.x == _width)
+                {
+                    return Right.AmbientLightData[IndexOf(0, relativePosition.y, relativePosition.z)];
+                }
+
+                if (relativePosition.z < 0)
+                {
+                    return Back.AmbientLightData[IndexOf(relativePosition.x, relativePosition.y, _depth - 1)];
+                }
+                if (relativePosition.z == _depth)
+                {
+                    return Front.AmbientLightData[IndexOf(relativePosition.x, relativePosition.y, 0)];
+                }
+
+                if (relativePosition.y < 0 || relativePosition.y >= Dimensions[1])
+                {
+                    return 0;
+                }
+
+                return 0;
+            }
+
+            return AmbientLightData[IndexOf(relativePosition.x, relativePosition.y, relativePosition.z)];
+        }
+
+        public void SetAmbientLight(Vector3Int relativePosition, byte intensity)
+        {
+            if (relativePosition.x < 0 || relativePosition.x >= Dimensions[0] ||
+                 relativePosition.y < 0 || relativePosition.y >= Dimensions[1] ||
+                 relativePosition.z < 0 || relativePosition.z >= Dimensions[2])
+            {
+
+                if (relativePosition.x < 0)
+                {
+                    Left.AmbientLightData[IndexOf(_width - 1, relativePosition.y, relativePosition.z)] = intensity;
+                    return;
+                }
+                if (relativePosition.x >= _width)
+                {
+                    Right.AmbientLightData[IndexOf(0, relativePosition.y, relativePosition.z)] = intensity;
+                    return;
+                }
+
+                if (relativePosition.z < 0)
+                {
+                    Back.AmbientLightData[IndexOf(relativePosition.x, relativePosition.y, _depth - 1)] = intensity;
+                    return;
+                }
+                if (relativePosition.z >= _depth)
+                {
+                    Front.AmbientLightData[IndexOf(relativePosition.x, relativePosition.y, 0)] = intensity;
+                    return;
+                }
+
+                return;
+            }
+
+            AmbientLightData[IndexOf(relativePosition.x, relativePosition.y, relativePosition.z)] = intensity;
         }
         #endregion
 
@@ -430,6 +533,19 @@ namespace PixelMiner.WorldBuilding
             _neighborsPosition[5] = position + new Vector3Int(0, -1, 0);
            
             return _neighborsPosition;
+        }
+
+
+        private Vector3Int[] _ambientNeighbors = new Vector3Int[1];
+        public Vector3Int[] GetAmbientNeighborPosition(Vector3Int position)
+        {
+            _ambientNeighbors[0] = position + new Vector3Int(0, -1, 0);
+            //_ambientNeighbors[1] = position + new Vector3Int(1, 0, 0);
+            //_ambientNeighbors[2] = position + new Vector3Int(-1, 0, 0);
+            //_ambientNeighbors[3] = position + new Vector3Int(0, 0, 1);
+            //_ambientNeighbors[4] = position + new Vector3Int(0, 0, -1);
+            
+            return _ambientNeighbors;
         }
 
         #endregion

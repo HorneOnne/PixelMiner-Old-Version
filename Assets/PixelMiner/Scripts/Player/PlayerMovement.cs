@@ -1,5 +1,5 @@
 using UnityEngine;
-using PixelMiner.WorldGen;
+using PixelMiner.Core;
 using PixelMiner.Enums;
 using PixelMiner.Utilities;
 using System.Collections.Generic;

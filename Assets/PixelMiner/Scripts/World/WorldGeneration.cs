@@ -8,7 +8,9 @@ using Sirenix.OdinInspector;
 using PixelMiner.Utilities;
 using PixelMiner.Enums;
 using PixelMiner.WorldBuilding;
+using PixelMiner.Core;
 using System;
+using PixelMiner.Lighting;
 
 namespace PixelMiner.WorldGen
 {
@@ -194,10 +196,10 @@ namespace PixelMiner.WorldGen
 
             // Init noise module
             _heightModule = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, QualityMode.High);
-            _heatModule = new Perlin(HeatFrequency, HeatLacunarity, HeatPersistence, HeatOctaves, Seed+1, QualityMode.High);
-            _moistureModule = new Perlin(MoistureFrequency, MoistureLacunarity, MoisturePersistence, MoistureOctaves, Seed+2, QualityMode.High);
+            _heatModule = new Perlin(HeatFrequency, HeatLacunarity, HeatPersistence, HeatOctaves, Seed + 1, QualityMode.High);
+            _moistureModule = new Perlin(MoistureFrequency, MoistureLacunarity, MoisturePersistence, MoistureOctaves, Seed + 2, QualityMode.High);
 
-            _riverModulePerlin = new Perlin(RiverFrequency, RiverLacunarity, RiverPersistence, RiverOctaves, Seed+3, QualityMode.Medium);
+            _riverModulePerlin = new Perlin(RiverFrequency, RiverLacunarity, RiverPersistence, RiverOctaves, Seed + 3, QualityMode.Medium);
             _riverModuleVoronoi = new Voronoi(RiverFrequency, RiverDisplacement, Seed, RiverDistance);
         }
 
@@ -391,10 +393,6 @@ namespace PixelMiner.WorldGen
                     Chunk newChunk = await GenerateNewChunk(x, 0, z, _main.ChunkDimension);
                     _worldLoading.LoadChunk(newChunk);
                     UpdateChunkNeighbors(newChunk);
-
-                    //float[] heightValues = await GetHeightMapDataAsync(newChunk.FrameX, newChunk.FrameZ, _chunkWidth, _chunkDepth);
-                    //await LoadHeightMapDataAsync(newChunk, heightValues);
-                    //UpdateChunkNeighbors(newChunk);      
                 }
             }
 
@@ -424,7 +422,24 @@ namespace PixelMiner.WorldGen
                 await LoadHeatMapDataAsync(newChunk, heatValues);
                 await LoadMoistureMapDataAsync(newChunk, moistureValues);
                 await GenerateBiomeMapDataAsync(newChunk);
+
+
+                // Apply ambient light
+                Queue<LightNode> ambientBfsLightQueue = new Queue<LightNode>();
+                for (int z = 0; z < _chunkDimension[2]; z++)
+                {
+                    for (int x = 0; x < _chunkDimension[0]; x++)
+                    {
+                        ambientBfsLightQueue.Enqueue(new LightNode(new Vector3Int(x, _chunkDimension[1] - 1, z), 16));                  
+                    }
+                }
+
+                Debug.Log($"Ambient light A: {ambientBfsLightQueue.Count}");
+                LightCalculator.PropagateAmbientLight(ambientBfsLightQueue);
+                Debug.Log($"Ambient light B: {ambientBfsLightQueue.Count}");
             }
+
+
 
 
 
