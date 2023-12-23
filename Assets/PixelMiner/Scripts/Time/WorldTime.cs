@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace PixelMiner.Time
@@ -14,7 +12,7 @@ namespace PixelMiner.Time
 
         public float _timeMultiplier = 1.0f; // Controls the speed of time
         private float currentTime = 0.0f;
-        public bool PauseTime = false;
+        public bool FreezeTime = false;
 
 
         [Range(0,60)] public int Minutes = 0;
@@ -37,7 +35,7 @@ namespace PixelMiner.Time
 
         private void Update()
         {
-            if (!PauseTime)
+            if (!FreezeTime)
             {
                 // Update the current time based on real time
                 currentTime += UnityEngine.Time.deltaTime * _timeMultiplier;

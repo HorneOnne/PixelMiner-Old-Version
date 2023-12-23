@@ -38,7 +38,7 @@ namespace PixelMiner
         private int ClickCount = 0;
 
        
-        private void Update()
+        private async void Update()
         {
             if(Time.time - _timer > _time)
             {
@@ -86,8 +86,8 @@ namespace PixelMiner
                         {
                             _chunkHit.SetBlock(hitPosition, BlockType.Light);
                             _lightBfsQueue.Enqueue(new LightNode() { position = hitPosition, val = 16 });
-                            LightCalculator.PropagateLight(_lightBfsQueue);
-  
+                            await LightCalculator.PropagateLightAsync(_lightBfsQueue);
+                            
                             _chunkHit.ReDrawChunkAsync();
                         }                
                     }
@@ -111,7 +111,7 @@ namespace PixelMiner
                         {
                             _chunkHit.SetBlock(hitPosition, BlockType.Air);
                             _lightRemovalBfsQueue.Enqueue(new LightNode() { position = hitPosition, val = 16 });
-                            LightCalculator.RemoveLight(_lightRemovalBfsQueue);
+                            await LightCalculator.RemoveLightAsync(_lightRemovalBfsQueue);
                             _chunkHit.ReDrawChunkAsync();
                         }
                       

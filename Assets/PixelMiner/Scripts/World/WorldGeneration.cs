@@ -424,19 +424,23 @@ namespace PixelMiner.WorldGen
                 await GenerateBiomeMapDataAsync(newChunk);
 
 
-                // Apply ambient light
-                Queue<LightNode> ambientBfsLightQueue = new Queue<LightNode>();
-                for (int z = 0; z < _chunkDimension[2]; z++)
+                if(frameX == 0 && frameZ == 0)
                 {
-                    for (int x = 0; x < _chunkDimension[0]; x++)
+                    // Apply ambient light
+                    // I use list instead of queue because this type of light only fall down when start, 
+                    // use list can help this method can process in parallel. When this light hit block (not air)
+                    // we'll use normal bfs to spread light like with torch.
+                    List<LightNode> ambientLightList = new List<LightNode>();
+                    for (int z = 0; z < _chunkDimension[2]; z++)
                     {
-                        ambientBfsLightQueue.Enqueue(new LightNode(new Vector3Int(x, _chunkDimension[1] - 1, z), 16));                  
+                        for (int x = 0; x < _chunkDimension[0]; x++)
+                        {
+                            ambientLightList.Add(new LightNode(new Vector3Int(x, _chunkDimension[1] - 1, z), 16));
+                        }
                     }
-                }
 
-                Debug.Log($"Ambient light A: {ambientBfsLightQueue.Count}");
-                LightCalculator.PropagateAmbientLight(ambientBfsLightQueue);
-                Debug.Log($"Ambient light B: {ambientBfsLightQueue.Count}");
+                    LightCalculator.PropagateAmbientLight(ambientLightList);
+                }               
             }
 
 

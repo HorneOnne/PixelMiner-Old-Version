@@ -1337,7 +1337,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _timeMultiplier: 1
-  PauseTime: 0
+  FreezeTime: 0
   Minutes: 0
   Hours: 0
   Days: 0
@@ -2068,7 +2068,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1056097379}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f22ae457847da8e43877aef4220ef471, type: 3}
   m_Name: 
@@ -2947,7 +2947,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1497941755}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7f8689340b54ada458fcbed1f90815b2, type: 3}
   m_Name: 
