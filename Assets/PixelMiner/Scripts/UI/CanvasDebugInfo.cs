@@ -1,4 +1,5 @@
 ﻿using PixelMiner.Enums;
+using PixelMiner.Time;
 using System.Text;
 using TMPro;
 using UnityEngine;
@@ -19,6 +20,7 @@ namespace PixelMiner.UI
         private byte _ambientLight;
 
         private StringBuilder sb = new StringBuilder();
+        private WorldTime _worldTime;
 
         //
         private string _fpsString;
@@ -26,7 +28,9 @@ namespace PixelMiner.UI
         private string _blockString;
         private string _blockLightString;
         private string _ambientLightString;
+        private string _worldTimeString;
 
+        
         private void OnEnable()
         {
             Tool.OnTarget += UpdateTarget;
@@ -39,7 +43,8 @@ namespace PixelMiner.UI
 
         private void Start()
         {
-            InvokeRepeating(nameof(UpdateLogText), 1.0f, 0.02f);    
+            InvokeRepeating(nameof(UpdateLogText), 1.0f, 0.02f);
+            _worldTime = WorldTime.Instance;
         }
 
         private void UpdateLogText()
@@ -49,6 +54,7 @@ namespace PixelMiner.UI
             _blockString = $"Block: {_targetBlock}";
             _blockLightString = $"Block Light: {_blockLight}";
             _ambientLightString = $"Ambient Light: {_ambientLight}";
+            UpdateWorldTime();
 
             sb.Clear();
             sb.AppendLine(_fpsString);
@@ -56,6 +62,7 @@ namespace PixelMiner.UI
             sb.AppendLine(_blockString);
             sb.AppendLine(_blockLightString);
             sb.AppendLine(_ambientLightString);
+            sb.AppendLine(_worldTimeString);
 
             
             _debugLogText.text = $"{sb}";
@@ -63,7 +70,7 @@ namespace PixelMiner.UI
 
         private void Update()
         {
-            deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
+            deltaTime += (UnityEngine.Time.unscaledDeltaTime - deltaTime) * 0.1f;
             msec = deltaTime * 1000.0f;
             fps = 1.0f / deltaTime;
         }
@@ -74,6 +81,12 @@ namespace PixelMiner.UI
             this._targetBlock = blockType;
             this._blockLight = blockLight;
             this._ambientLight = ambientLight;
+        }
+
+        private void UpdateWorldTime()
+        {
+            _worldTimeString = $"Hours: ({_worldTime.Hours.ToString("00")}:{_worldTime.Minutes.ToString("00")})  Day({_worldTime.Days})";
+
         }
     }
 }
