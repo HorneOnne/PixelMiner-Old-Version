@@ -161,7 +161,17 @@ namespace PixelMiner.WorldBuilding
             };
         }
 
+        public static Color32 GetLightColor(byte light)
+        {
+            float maxLight = 15.0f;
+            //float channelValue = light / maxLight;
+            //return new Color(channelValue, channelValue, channelValue, 1.0f);
 
+            // Apply square function for a darker appearance
+            float channelValue = Mathf.Pow(light / maxLight, 2);
+            byte lightValue = (byte)(channelValue * 255);
+            return new Color32(lightValue, lightValue, lightValue, 255);
+        }
 
         public static async Task<MeshData> SolidGreedyMeshingAsync(Chunk chunk)
         {
@@ -312,7 +322,7 @@ namespace PixelMiner.WorldBuilding
 
                                 // Because at solid block light not exist. We can only get light by the adjacent block and use it as the light as solid voxel face.
                                 byte lightValue = GetBlockLightPropagationForAdjacentFace(startPos, voxelFace);
-                                lightColor = LightUtils.GetLightColor(lightValue);
+                                lightColor = GetLightColor(lightValue);
 
                                 // If this block has already been merged, is air, or not visible -> skip it.
                                 if (chunk.IsSolid(startPos) == false ||
@@ -379,10 +389,10 @@ namespace PixelMiner.WorldBuilding
                                 vertices[2] = offsetPos + m + n;
                                 vertices[3] = offsetPos + n;
 
-                                colors[0] = LightUtils.GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos, voxelFace));
-                                colors[1] = LightUtils.GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos + m, voxelFace));
-                                colors[2] = LightUtils.GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos + m + n, voxelFace));
-                                colors[3] = LightUtils.GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos + n, voxelFace));
+                                colors[0] = GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos, voxelFace));
+                                colors[1] = GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos + m, voxelFace));
+                                colors[2] = GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos + m + n, voxelFace));
+                                colors[3] = GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos + n, voxelFace));
 
 
 
@@ -401,7 +411,6 @@ namespace PixelMiner.WorldBuilding
                                 //    colors[3] = LightUtils.GetLightColor(GetLightPropagationForAdjacentFace(startPos + n, voxelFace));
                                 //}
 
-                                Debug.Log(GetAmbientLightPropagationForAdjacentFace(startPos, voxelFace));
                                 uv3s[0] = LightMapUVs[GetAmbientLightPropagationForAdjacentFace(startPos, voxelFace), 0];
                                 uv3s[1] = LightMapUVs[GetAmbientLightPropagationForAdjacentFace(startPos, voxelFace), 1];
                                 uv3s[2] = LightMapUVs[GetAmbientLightPropagationForAdjacentFace(startPos, voxelFace), 2];

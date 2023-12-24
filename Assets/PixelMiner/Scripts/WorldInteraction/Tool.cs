@@ -4,7 +4,7 @@ using PixelMiner.WorldBuilding;
 using PixelMiner.Lighting;
 using PixelMiner.Enums;
 
-namespace PixelMiner
+namespace PixelMiner.WorldInteraction
 {
     public class Tool : MonoBehaviour
     {

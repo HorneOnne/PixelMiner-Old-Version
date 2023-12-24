@@ -4,6 +4,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using PixelMiner.WorldInteraction;
 
 
 namespace PixelMiner.UI

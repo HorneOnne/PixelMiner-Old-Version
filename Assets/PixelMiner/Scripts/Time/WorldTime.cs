@@ -5,9 +5,9 @@ namespace PixelMiner.Time
     public class WorldTime : MonoBehaviour
     {
         public static WorldTime Instance { get; private set; }
-        public event System.Action<int> OnMinuteChange;
-        public event System.Action<int> OnHourChange;
-        public event System.Action<int> OnDayEnd;
+        public static event System.Action<int> OnMinuteChange;
+        public static event System.Action<int> OnHourChange;
+        public static event System.Action<int> OnDayEnd;
 
 
         public float _timeMultiplier = 1.0f; // Controls the speed of time
@@ -30,10 +30,9 @@ namespace PixelMiner.Time
             Hours = _startHour;
         }
 
+
         private void Start()
         {
-            
-
             Debug.Log($"1 day = {GetRealtimeDuration(24)} s");
         }
 

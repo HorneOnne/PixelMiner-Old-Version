@@ -1,17 +1,20 @@
-﻿using PixelMiner.WorldBuilding;
-using PixelMiner.Core;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using UnityEngine;
+using PixelMiner.Core;
+using PixelMiner.Lighting;
 
-namespace PixelMiner
+
+namespace PixelMiner.WorldInteraction
 {
     public class IlluminateObject : MonoBehaviour
     {
         [SerializeField] private MeshFilter _meshFilter;
 
         private Color32[] _vertexColors;
+        private Vector2[] _uv3s;
         private Mesh _mesh;
-        private byte _light;
+        private byte _blockLight;
+        private byte _ambientLight;
 
         private float _timer;
         private float _updateFrequency = 0.2f;
@@ -30,6 +33,8 @@ namespace PixelMiner
                 {
                     Debug.LogWarning("Mesh has no vertices.");
                 }
+
+                _mesh.SetUVs(2, _uv3s);
             }
             else
             {
@@ -39,31 +44,32 @@ namespace PixelMiner
 
         private void Update()
         {
-            if (Time.time - _timer > _updateFrequency)
+            if (UnityEngine.Time.time - _timer > _updateFrequency)
             {
-                _timer = Time.time;
+                _timer = UnityEngine.Time.time;
 
                 Vector3Int position = new Vector3Int(Mathf.FloorToInt(transform.position.x),
                                                  Mathf.FloorToInt(transform.position.y + 0.001f),   // Add some threshold to y
                                                  Mathf.FloorToInt(transform.position.z));
 
-                byte currentLightLevel = Main.Instance.GetBlockLight(position);
+                _blockLight = Main.Instance.GetBlockLight(position);
+                UpdateBlockLightColorAsync();
 
-                if (currentLightLevel >= 0 && currentLightLevel <= 16 && (_light != currentLightLevel || _light + 1 != currentLightLevel))
-                {
-                    _light = currentLightLevel;
-                    UpdateLightColorAsync();
-                }
+                //if (currentLightBlockLevel >= 0 && currentLightBlockLevel < 16 && (_blockLight != currentLightBlockLevel || _blockLight + 1 != currentLightBlockLevel))
+                //{
+                //    _blockLight = currentLightBlockLevel;
+                //    UpdateBlockLightColorAsync();
+                //}
             } 
         }
 
 
 
-        private async void UpdateLightColorAsync()
+        private async void UpdateBlockLightColorAsync()
         {
             await Task.Run(() =>
             {
-                Color32 lightColor = LightUtils.GetLightColor(_light);
+                Color32 lightColor = LightUtils.GetLightColor(_blockLight);
                 Parallel.For(0, _vertexColors.Length, (i) =>
                 {
                     _vertexColors[i] = lightColor;

@@ -556,12 +556,64 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b1c18344a08918441bdb102bbd821874, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SunLightIntensityCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0.00038987072
+      value: 0.010860942
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 136
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.25178403
+      value: 0.11496058
+      inSlope: 0.97239524
+      outSlope: 0.97239524
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.24852088
+    - serializedVersion: 3
+      time: 0.4975186
+      value: 1.0031252
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 136
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.7086885
+      value: 0.18578482
+      inSlope: -1.4796941
+      outSlope: -1.4796941
+      tangentMode: 136
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1.0001152
+      value: -0.00013748184
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 136
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   MorningColor: {r: 0.8980392, g: 0.87058824, b: 0.26666668, a: 1}
   AfternoonColor: {r: 0.9372549, g: 0.5058824, b: 0.05490196, a: 1}
   EveningColor: {r: 0.019607844, g: 0.21568628, b: 0.32156864, a: 1}
   NightColor: {r: 0, g: 0.101960786, b: 0.14901961, a: 1}
   MaterialsEffectedByLight:
   - {fileID: 2100000, guid: 536dc13194d23ed4d8999011355fbcb0, type: 2}
+  - {fileID: 2100000, guid: 2782a2852f01ba64c906eca602109dc7, type: 2}
 --- !u!1 &286510686
 GameObject:
   m_ObjectHideFlags: 0
@@ -1387,7 +1439,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4aaa3fe2ac20524196b49e34eb03f49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _timeMultiplier: 5
+  _timeMultiplier: 1
   currentTime: 0
   FreezeTime: 0
   Minutes: 0

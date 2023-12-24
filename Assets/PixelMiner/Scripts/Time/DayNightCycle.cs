@@ -1,14 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using PixelMiner.Lighting;
 namespace PixelMiner.Time
 {
     public class DayNightCycle : MonoBehaviour
     {
+        public static DayNightCycle Instance { get; private set; }  
         public static event System.Action OnTimesOfTheDayChanged;
 
         private WorldTime _worldTime;
+        public AnimationCurve SunLightIntensityCurve;
+
 
         public Color MorningColor;
         public Color AfternoonColor;
@@ -21,6 +24,24 @@ namespace PixelMiner.Time
 
         private Coroutine _smoothlyLightColorTransitionCoroutine;
 
+
+        #region Properties
+        public Color AmbientColor { get => _currentSunLightColor; }
+        #endregion
+
+        private void Awake()
+        {
+            Instance = this;
+        }
+
+        private void OnEnable()
+        {
+            WorldTime.OnHourChange += UpdateSunLightIntensityMat;
+        }
+        private void OnDisable()
+        {
+            WorldTime.OnHourChange -= UpdateSunLightIntensityMat;
+        }
 
         private void Start()
         {
@@ -47,6 +68,8 @@ namespace PixelMiner.Time
 
         private void Update()
         {
+            UpdateSunLightIntensityMat(_worldTime.Hours + (_worldTime.Minutes / 60));
+            return;
             if (_worldTime.Hours > 5)
             {
                 if (_worldTime.Hours < 16)
@@ -111,7 +134,7 @@ namespace PixelMiner.Time
             _currentSunLightColor = lightColor;
             for (int i = 0; i < MaterialsEffectedByLight.Count; i++)
             {
-                MaterialsEffectedByLight[i].SetColor("_SunLight", lightColor);
+                //MaterialsEffectedByLight[i].SetColor("_SunLight", lightColor);
             }
         }
 
@@ -133,6 +156,12 @@ namespace PixelMiner.Time
         }
 
 
-
+        private void UpdateSunLightIntensityMat(int hour)
+        {
+            for (int i = 0; i < MaterialsEffectedByLight.Count; i++)
+            {
+                MaterialsEffectedByLight[i].SetFloat("_LightIntensity", LightUtils.CalculateSunlightIntensity(hour + _worldTime.Minutes / 60f, SunLightIntensityCurve));
+            }
+        }
     }
 }
