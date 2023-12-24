@@ -132,19 +132,6 @@ namespace PixelMiner.WorldBuilding
             for (int i = 0; i < AmbientLightData.Length; i++)
             {
                 AmbientLightData[i] = 0;
-
-                ////x = i % _width;
-                //y = (i / _width) % _height;
-                ////z = i / (_width * _height); 
-            
-                //if(y == _height - 1)
-                //{
-                //    AmbientLightData[i] = 16;
-                //}    
-                //else
-                //{
-                //    AmbientLightData[i] = 0;
-                //}
             }
 
 
@@ -269,6 +256,7 @@ namespace PixelMiner.WorldBuilding
             mesh.SetTriangles(meshData.Triangles, 0);
             mesh.SetUVs(0, meshData.UVs);
             mesh.SetUVs(1, meshData.UV2s);
+            mesh.SetUVs(2, meshData.UV3s);
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
 

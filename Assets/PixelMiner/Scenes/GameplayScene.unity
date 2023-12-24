@@ -1337,7 +1337,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _timeMultiplier: 1
-  FreezeTime: 0
+  FreezeTime: 1
   Minutes: 0
   Hours: 0
   Days: 0

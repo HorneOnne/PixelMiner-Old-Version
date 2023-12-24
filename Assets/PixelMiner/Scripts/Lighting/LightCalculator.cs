@@ -33,6 +33,10 @@ namespace PixelMiner.Lighting
         public byte Sun;
     }
 
+    public enum LightType
+    {
+        Ambient, Block
+    }
 
 
 
@@ -41,7 +45,7 @@ namespace PixelMiner.Lighting
         //public GameObject TextPrefab;
         //private ConcurrentDictionary<Vector3Int, int> Dict = new ConcurrentDictionary<Vector3Int, int>();
         //private WaitForSeconds _wait = new WaitForSeconds(0.001f);
-        static int maxYLevelLightSpread = 5;
+        static int maxYLevelLightSpread = 9;
 
         public static async Task PropagateLightAsync(Queue<LightNode> lightBfsQueue)
         {
@@ -54,8 +58,9 @@ namespace PixelMiner.Lighting
             }
             chunk.SetBlockLight(lightBfsQueue.Peek().position, lightBfsQueue.Peek().val);
 
+
             await Task.Run(() =>
-            {              
+            {
                 while (lightBfsQueue.Count > 0)
                 {
                     LightNode currentNode = lightBfsQueue.Dequeue();
@@ -65,20 +70,15 @@ namespace PixelMiner.Lighting
                     for (int i = 0; i < neighbors.Length; i++)
                     {
                         if (IsValidPosition(neighbors[i]) == false ||
-                            neighbors[i][1] > maxYLevelLightSpread ||
-                            chunk.GetBlock(neighbors[i]) != BlockType.Air) continue;
+                        neighbors[i][1] > maxYLevelLightSpread ||
+                        chunk.GetBlock(neighbors[i]) != BlockType.Air) continue;
 
                         if (chunk.GetBlockLight(neighbors[i]) + 2 <= currentNode.val && currentNode.val > 0)
                         {
                             LightNode neighborNode = new LightNode(neighbors[i], (byte)(currentNode.val - 1));
-
-                            if (lightBfsQueue.Contains(neighborNode) == false)
-                            {
-                                lightBfsQueue.Enqueue(neighborNode);
-                                chunk.SetBlockLight(neighborNode.position, neighborNode.val);
-                            }
+                            lightBfsQueue.Enqueue(neighborNode);
+                            chunk.SetBlockLight(neighborNode.position, neighborNode.val);
                         }
-
                     }
 
 
@@ -88,16 +88,16 @@ namespace PixelMiner.Lighting
                         Debug.LogWarning("Infinite loop");
                         break;
                     }
-
                 }
 
+                //Debug.Log($"Attempts: {attempts}");
                 bool IsValidPosition(Vector3Int position)
                 {
                     return (position.x >= 0 && position.x < chunk._width &&
                         position.z >= 0 && position.z < chunk._depth);
                 }
             });
-            
+
         }
 
         public static async Task RemoveLightAsync(Queue<LightNode> removeLightBfsQueue)
@@ -113,23 +113,23 @@ namespace PixelMiner.Lighting
             Queue<LightNode> spreadLightBfsQueue = new Queue<LightNode>();
 
             await Task.Run(() =>
-            {    
+            {
                 int attempts = 0;
                 while (removeLightBfsQueue.Count > 0)
                 {
                     LightNode currentNode = removeLightBfsQueue.Dequeue();
                     var neighbors = chunk.GetVoxelNeighborPosition(currentNode.position);
 
+
                     for (int i = 0; i < neighbors.Length; i++)
                     {
                         if (IsValidPosition(neighbors[i]) == false ||
-                            neighbors[i][1] > maxYLevelLightSpread) continue;
+                       neighbors[i][1] > maxYLevelLightSpread) continue;
 
                         if (chunk.GetBlockLight(neighbors[i]) != 0)
                         {
                             if (chunk.GetBlockLight(neighbors[i]) < currentNode.val)
                             {
-
                                 LightNode neighborNode = new LightNode(neighbors[i], (byte)(currentNode.val - 1));
                                 removeLightBfsQueue.Enqueue(neighborNode);
                                 chunk.SetBlockLight(neighbors[i], 0);
@@ -141,8 +141,8 @@ namespace PixelMiner.Lighting
                                 spreadLightBfsQueue.Enqueue(neighborNode);
                             }
                         }
-                    }
 
+                    }
 
                     attempts++;
                     if (attempts > 10000)
@@ -156,7 +156,7 @@ namespace PixelMiner.Lighting
                 {
                     return (position.x >= 0 && position.x < chunk._width &&
                         position.z >= 0 && position.z < chunk._depth);
-                }          
+                }
             });
 
 
@@ -172,9 +172,9 @@ namespace PixelMiner.Lighting
         {
             Debug.Log("PropagateAmbientLight");
             ConcurrentQueue<LightNode> lightSpreadQueue = new ConcurrentQueue<LightNode>();
-            
-            
-            await Task.Run(()=>
+
+
+            await Task.Run(() =>
             {
                 Parallel.For(0, ambientLightList.Count, (i) =>
                 {
@@ -193,12 +193,12 @@ namespace PixelMiner.Lighting
                     //}
 
                     while (true)
-                    {                   
+                    {
                         Vector3Int dLPos = new Vector3Int(currentNode.position.x, currentNode.position.y - 1, currentNode.position.z);
 
                         if (IsValidPosition(dLPos) == false)
                         {
-                            break;  
+                            break;
                         }
 
                         if (chunk.GetBlock(dLPos) == BlockType.Air)
@@ -213,7 +213,7 @@ namespace PixelMiner.Lighting
 
                                 currentNode = new LightNode(dLPos, currentNode.val);
 
-                             
+
                             }
                             else
                             {
@@ -228,7 +228,7 @@ namespace PixelMiner.Lighting
                             break;
                         }
 
-                        
+
                         attempts++;
                         if (attempts > 100)
                         {
@@ -243,7 +243,7 @@ namespace PixelMiner.Lighting
                             position.z >= 0 && position.z < chunk._depth);
                     }
                 });
-            });        
+            });
         }
 
         #endregion

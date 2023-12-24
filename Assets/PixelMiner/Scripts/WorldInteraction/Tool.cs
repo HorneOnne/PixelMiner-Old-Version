@@ -71,21 +71,10 @@ namespace PixelMiner
                                                                 Mathf.FloorToInt(_hit.point.z + 0.001f));
                         _cursor.transform.position = hitPosition;
 
-                        //if(ClickCount == 0)
-                        //{
-                        //    ClickCount++;
-                        //    hitPosition = new Vector3Int(16, 4, 16);
-                        //}
-                        //else
-                        //{
-                        //    hitPosition = new Vector3Int(16, 4, 20);
-                        //}
-
-
                         if(_chunkHit.GetBlock(hitPosition) == BlockType.Air)
                         {
                             _chunkHit.SetBlock(hitPosition, BlockType.Light);
-                            _lightBfsQueue.Enqueue(new LightNode() { position = hitPosition, val = 16 });
+                            _lightBfsQueue.Enqueue(new LightNode() { position = hitPosition, val = 15 });
                             await LightCalculator.PropagateLightAsync(_lightBfsQueue);
                             
                             _chunkHit.ReDrawChunkAsync();
@@ -110,11 +99,37 @@ namespace PixelMiner
                         if(_chunkHit.GetBlock(hitPosition) != BlockType.Air)
                         {
                             _chunkHit.SetBlock(hitPosition, BlockType.Air);
-                            _lightRemovalBfsQueue.Enqueue(new LightNode() { position = hitPosition, val = 16 });
+                            _lightRemovalBfsQueue.Enqueue(new LightNode() { position = hitPosition, val = _chunkHit.GetBlockLight(hitPosition) });
                             await LightCalculator.RemoveLightAsync(_lightRemovalBfsQueue);
                             _chunkHit.ReDrawChunkAsync();
                         }
                       
+                    }
+                }
+            }
+
+
+            if (Input.GetKeyDown(KeyCode.Alpha1))
+            {
+                _ray = _mainCam.ScreenPointToRay(Input.mousePosition);
+                if (Physics.Raycast(_ray, out _hit))
+                {
+                    if (_hit.collider.transform.parent != null && _hit.collider.transform.parent.TryGetComponent<Chunk>(out _chunkHit))
+                    {
+                        Vector3Int hitPosition = new Vector3Int(Mathf.FloorToInt(_hit.point.x + 0.001f),
+                                                                Mathf.FloorToInt(_hit.point.y + 0.001f),
+                                                                Mathf.FloorToInt(_hit.point.z + 0.001f));
+                        _cursor.transform.position = hitPosition;
+
+                        if (_chunkHit.GetBlock(hitPosition) == BlockType.Air)
+                        {
+                            _chunkHit.SetBlock(hitPosition, BlockType.Stone);
+                            Debug.Log($"Remove light: {_chunkHit.GetBlockLight(hitPosition)}");
+                            _lightRemovalBfsQueue.Enqueue(new LightNode() { position = hitPosition, val = _chunkHit.GetBlockLight(hitPosition)});
+                            await LightCalculator.RemoveLightAsync(_lightRemovalBfsQueue);
+
+                            _chunkHit.ReDrawChunkAsync();
+                        }
                     }
                 }
             }

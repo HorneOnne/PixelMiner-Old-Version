@@ -435,7 +435,7 @@ namespace PixelMiner.WorldGen
                     {
                         for (int x = 0; x < _chunkDimension[0]; x++)
                         {
-                            ambientLightList.Add(new LightNode(new Vector3Int(x, _chunkDimension[1] - 1, z), 16));
+                            ambientLightList.Add(new LightNode(new Vector3Int(x, _chunkDimension[1] - 1, z), 15));
                         }
                     }
 

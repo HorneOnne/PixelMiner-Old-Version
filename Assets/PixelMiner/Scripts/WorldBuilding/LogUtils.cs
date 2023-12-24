@@ -46,6 +46,32 @@ namespace PixelMiner.WorldBuilding
                     writer.WriteLine($"{uv.x}, {uv.y}, {uv.z}");
                 }
 
+               
+                List<Vector2> uv2s = new List<Vector2>();
+                mesh.GetUVs(1, uv2s);
+                if(uv2s.Count > 0)
+                {
+                    writer.WriteLine("\nUV2s:");
+                    foreach (Vector3 uv in uv2s)
+                    {
+                        writer.WriteLine($"{uv.x}, {uv.y}, {uv.z}");
+                    }
+                }
+
+
+                List<Vector2> uv3s = new List<Vector2>();
+                mesh.GetUVs(2, uv3s);
+                if (uv3s.Count > 0)
+                {
+                    writer.WriteLine("\nUV3s:");
+                    foreach (Vector3 uv in uv3s)
+                    {
+                        writer.WriteLine($"{uv.x}, {uv.y}, {uv.z}");
+                    }
+                }
+
+
+
                 // Write triangles
                 writer.WriteLine("\nTriangles:");
                 for (int i = 0; i < mesh.triangles.Length; i += 3)

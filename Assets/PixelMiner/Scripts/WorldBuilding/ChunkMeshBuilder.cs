@@ -10,6 +10,7 @@ namespace PixelMiner.WorldBuilding
         private List<int> _triangles;
         private List<Vector3> _uvs;
         private List<Vector2> _uv2s;
+        private List<Vector2> _uv3s;
         private List<Color32> _colors;
         public bool[][,] Merged;
         private bool _isInit = false;
@@ -29,6 +30,7 @@ namespace PixelMiner.WorldBuilding
             _triangles = new List<int>(100);
             _uvs = new List<Vector3>(100);
             _uv2s = new List<Vector2>(100);
+            _uv3s = new List<Vector2>(100);
             _colors = new List<Color32>(100);
             Merged = new bool[][,]
             {
@@ -40,7 +42,7 @@ namespace PixelMiner.WorldBuilding
             _isInit = true;
         }
 
-        public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, Vector2[] uv2s, Color32[] colors, int voxelFace = 0)
+        public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, Vector2[] uv2s = null, Vector2[] uv3s = null, Color32[] colors = null, int voxelFace = 0)
         {
             if (vertices.Length != 4)
             {
@@ -60,9 +62,7 @@ namespace PixelMiner.WorldBuilding
                     this._uvs.Add(uvs[i]);
                 }
             }
-           
-            
-            
+                           
             if(uv2s != null)
             {
                 for (int i = 0; i < uv2s.Length; i++)
@@ -71,12 +71,20 @@ namespace PixelMiner.WorldBuilding
                 }
             }
 
-            
-            if(colors != null)
+            if (uv3s != null)
+            {
+                for (int i = 0; i < uv3s.Length; i++)
+                {
+                    this._uv3s.Add(uv3s[i]);
+                }
+            }
+
+
+            if (colors != null)
             {
                 for (int i = 0; i < colors.Length; i++)
                 {
-                    _colors.Add(colors[i]);
+                    this._colors.Add(colors[i]);
                 }
             }
 
@@ -146,7 +154,7 @@ namespace PixelMiner.WorldBuilding
         public MeshData ToMeshData()
         {
             MeshData data = MeshDataPool.Get();
-            data.Init(_vertices, _triangles, _uvs, _uv2s, _colors);
+            data.Init(_vertices, _triangles, _uvs, _uv2s, _uv3s, _colors);
             return data;
         }
 
@@ -156,6 +164,7 @@ namespace PixelMiner.WorldBuilding
             _triangles.Clear();
             _uvs.Clear();
             _uv2s.Clear();
+            _uv3s.Clear();
             _colors.Clear();
         }
     }
