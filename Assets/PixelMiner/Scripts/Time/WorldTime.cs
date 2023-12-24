@@ -11,7 +11,7 @@ namespace PixelMiner.Time
 
 
         public float _timeMultiplier = 1.0f; // Controls the speed of time
-        private float currentTime = 0.0f;
+        [SerializeField] private float currentTime = 0.0f;
         public bool FreezeTime = false;
 
 
@@ -23,27 +23,31 @@ namespace PixelMiner.Time
         private float _minutePerSecond = 0.1f;
         private int _startHour = 8;
 
+
         private void Awake()
         {
             Instance = this;
+            Hours = _startHour;
         }
 
         private void Start()
         {
-            Hours = _startHour;
+            
+
+            Debug.Log($"1 day = {GetRealtimeDuration(24)} s");
         }
 
         private void Update()
         {
             if (!FreezeTime)
             {
-                // Update the current time based on real time
+
                 currentTime += UnityEngine.Time.deltaTime * _timeMultiplier;
 
                 // Trigger events at the end of each in-game minute, hour, and day
                 if (currentTime >= _minutePerSecond) // In-game seconds in a minute
                 {
-                    currentTime = 0;
+                    currentTime -= _minutePerSecond;
 
                     Minutes++;                     
                     OnMinuteChange?.Invoke(Minutes);
@@ -65,5 +69,12 @@ namespace PixelMiner.Time
             }
         }
 
+
+        public float GetRealtimeDuration(float hour)
+        {
+            // Convert in-game hours to real-time seconds.
+            float realTimeSeconds = (hour * 60 * _minutePerSecond) / _timeMultiplier;
+            return realTimeSeconds;
+        }
     }
 }
