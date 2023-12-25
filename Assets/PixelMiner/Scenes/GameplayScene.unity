@@ -836,7 +836,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 473416387}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: e2e61f3e7bbfb92478814cee5f905e13, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -1273,7 +1273,7 @@ MonoBehaviour:
   Minutes: 0
   Hours: 16
   Days: 0
-  _startHour: 16
+  _startHour: 18
 --- !u!1 &677337750
 GameObject:
   m_ObjectHideFlags: 0

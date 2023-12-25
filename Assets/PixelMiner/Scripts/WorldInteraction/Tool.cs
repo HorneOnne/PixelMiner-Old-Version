@@ -73,6 +73,8 @@ namespace PixelMiner.WorldInteraction
                                                                 Mathf.FloorToInt(_hit.point.y + 0.001f),
                                                                 Mathf.FloorToInt(_hit.point.z + 0.001f));
 
+                        //hitGlobalPosition = new Vector3Int(100, 4, -101);
+
                         _cursor.transform.position = hitGlobalPosition;
                         Vector3Int hitRelativePosition = GlobalToRelativeBlockPosition(hitGlobalPosition);
 

@@ -13,7 +13,7 @@ namespace PixelMiner.WorldBuilding
         public List<Color32> Colors { get; private set; }
 
 
-        public MeshData() 
+        public MeshData()                                                                                                                                                                                                                                                                                                                             
         { 
             Debug.Log("Create MeshData.cs");
             Vertices = new List<Vector3>(4);
