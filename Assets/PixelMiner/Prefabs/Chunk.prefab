@@ -140,12 +140,44 @@ MonoBehaviour:
   _depth: 0
   Dimensions: {x: 0, y: 0, z: 0}
   ChunkHasDrawn: 0
+  <West>k__BackingField: {fileID: 0}
+  <East>k__BackingField: {fileID: 0}
+  <North>k__BackingField: {fileID: 0}
+  <South>k__BackingField: {fileID: 0}
+  <Northwest>k__BackingField: {fileID: 0}
+  <Northeast>k__BackingField: {fileID: 0}
+  <Southwest>k__BackingField: {fileID: 0}
+  <Southeast>k__BackingField: {fileID: 0}
   ChunkData: 
   HeatData: 
   MoistureData: 
-  HeightValues: []
-  HeatValues: []
-  MoistureValues: []
+  BiomesData: 
+  VoxelLightData: 
+  AmbientLightData: 
+  LightAnimCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &4778986418883693240
 GameObject:
   m_ObjectHideFlags: 0

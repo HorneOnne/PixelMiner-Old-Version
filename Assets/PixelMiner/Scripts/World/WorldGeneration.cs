@@ -236,20 +236,10 @@ namespace PixelMiner.WorldGen
 
         private void DrawChunk(Chunk chunk)
         {
-            //chunk.State = Chunk.ChunkState.Processing;
-            //chunk.West.State = Chunk.ChunkState.Processing;
-            //chunk.East.State = Chunk.ChunkState.Processing;
-            //chunk.North.State = Chunk.ChunkState.Processing;
-            //chunk.South.State = Chunk.ChunkState.Processing;
             if (!chunk.ChunkHasDrawn)
             {
                 chunk.DrawChunkAsync();
             }
-            //chunk.State = Chunk.ChunkState.Stable;
-            //chunk.West.State = Chunk.ChunkState.Stable;
-            //chunk.East.State = Chunk.ChunkState.Stable;
-            //chunk.North.State = Chunk.ChunkState.Stable;
-            //chunk.South.State = Chunk.ChunkState.Stable;
         }
         #endregion
 

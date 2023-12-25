@@ -3,7 +3,7 @@ using UnityEngine;
 using PixelMiner.Utilities;
 using PixelMiner.Enums;
 using System;
-
+using TMPro;
 
 namespace PixelMiner.WorldBuilding
 {
@@ -95,55 +95,6 @@ namespace PixelMiner.WorldBuilding
 
             {new Vector2(0.875f, 0.0625f), new Vector2(0.9375f, 0.0625f),
              new Vector2(0.875f, 0f), new Vector2(0.9375f, 0f)},
-
-
-            //{new Vector2(0.875f, 0f), new Vector2(0.9375f, 0f),
-            //new Vector2(0.875f, 0.0625f), new Vector2(0.9375f, 0.0625f)},
-
-            //{new Vector2(0.875f, 0.0625f), new Vector2(0.9375f, 0.0625f),
-            //new Vector2(0.875f, 0.125f), new Vector2(0.9375f, 0.125f)},
-
-            //{new Vector2(0.875f, 0.125f), new Vector2(0.9375f, 0.125f),
-            //new Vector2(0.875f, 0.1875f), new Vector2(0.9375f, 0.1875f)},
-
-            //{new Vector2(0.875f, 0.1875f), new Vector2(0.9375f, 0.1875f),
-            //new Vector2(0.875f, 0.25f), new Vector2(0.9375f, 0.25f)},
-
-            //{new Vector2(0.875f, 0.25f), new Vector2(0.9375f, 0.25f),
-            //new Vector2(0.875f, 0.3125f), new Vector2(0.9375f, 0.3125f)},
-
-            //{new Vector2(0.875f, 0.3125f), new Vector2(0.9375f, 0.3125f),
-            //new Vector2(0.875f, 0.375f), new Vector2(0.9375f, 0.375f)},
-
-            //{new Vector2(0.875f, 0.375f), new Vector2(0.9375f, 0.375f),
-            //new Vector2(0.875f, 0.4375f), new Vector2(0.9375f, 0.4375f)},
-
-            //{new Vector2(0.875f, 0.4375f), new Vector2(0.9375f, 0.4375f),
-            //new Vector2(0.875f, 0.5f), new Vector2(0.9375f, 0.5f)},
-
-            //{new Vector2(0.875f, 0.5f), new Vector2(0.9375f, 0.5f),
-            //new Vector2(0.875f, 0.5625f), new Vector2(0.9375f, 0.5625f)},
-
-            //{new Vector2(0.875f, 0.5625f), new Vector2(0.9375f, 0.5625f),
-            //new Vector2(0.875f, 0.625f), new Vector2(0.9375f, 0.625f)},
-
-            //{new Vector2(0.875f, 0.625f), new Vector2(0.9375f, 0.625f),
-            //new Vector2(0.875f, 0.6875f), new Vector2(0.9375f, 0.6875f)},
-
-            //{new Vector2(0.875f, 0.6875f), new Vector2(0.9375f, 0.6875f),
-            //new Vector2(0.875f, 0.75f), new Vector2(0.9375f, 0.75f)},
-
-            //{new Vector2(0.875f, 0.75f), new Vector2(0.9375f, 0.75f),
-            //new Vector2(0.875f, 0.8125f), new Vector2(0.9375f, 0.8125f)},
-
-            //{new Vector2(0.875f, 0.8125f), new Vector2(0.9375f, 0.8125f),
-            //new Vector2(0.875f, 0.875f), new Vector2(0.9375f, 0.875f)},
-
-            //{new Vector2(0.875f, 0.875f), new Vector2(0.9375f, 0.875f),
-            //new Vector2(0.875f, 0.9375f), new Vector2(0.9375f, 0.9375f)},
-
-            //{new Vector2(0.875f, 0.9375f), new Vector2(0.9375f, 0.9375f),
-            //new Vector2(0.875f, 1f), new Vector2(0.9375f, 1f)},
         };
 
 
@@ -161,21 +112,22 @@ namespace PixelMiner.WorldBuilding
             };
         }
 
-        public static Color32 GetLightColor(byte light)
+        public static Color32 GetLightColor(byte light, AnimationCurve lightAnimCurve)
         {
             float maxLight = 15.0f;
             //float channelValue = light / maxLight;
             //return new Color(channelValue, channelValue, channelValue, 1.0f);
 
             // Apply square function for a darker appearance
-            float channelValue = Mathf.Pow(light / maxLight, 2);
+            //float channelValue = Mathf.Pow(light / maxLight, 2);
+            float channelValue = lightAnimCurve.Evaluate(light / maxLight);
             byte lightValue = (byte)(channelValue * 255);
             return new Color32(lightValue, lightValue, lightValue, 255);
         }
 
-        public static async Task<MeshData> SolidGreedyMeshingAsync(Chunk chunk)
+        public static async Task<MeshData> SolidGreedyMeshingAsync(Chunk chunk, AnimationCurve lightAnimCurve)
         {
-            bool GreedyCompareLogic(Vector3Int a, Vector3Int b, int dimension, bool isBackFace)
+            bool GreedyCompareLogic(Vector3Int a, Vector3Int b, int dimension, bool isBackFace, int voxelFace)
             {
                 BlockType blockA = chunk.GetBlock(a);
                 BlockType blockB = chunk.GetBlock(b);
@@ -183,18 +135,19 @@ namespace PixelMiner.WorldBuilding
                 Vector3Int c = b + new Vector3Int(1, 0, 1);
                 Vector3Int d = b + new Vector3Int(-1, 0, 1);
                 Vector3Int e = b + new Vector3Int(1, 0, -1);
+
                 return blockA == blockB &&
                        chunk.IsSolid(b) &&
-                       GetBlockLightPropagationForAdjacentFace(a, 1) == GetBlockLightPropagationForAdjacentFace(b, 1) &&
-                        GetBlockLightPropagationForAdjacentFace(a, 1) == GetBlockLightPropagationForAdjacentFace(c, 1) &&
-                        GetBlockLightPropagationForAdjacentFace(a, 1) == GetBlockLightPropagationForAdjacentFace(d, 1) &&
-                        GetBlockLightPropagationForAdjacentFace(a, 1) == GetBlockLightPropagationForAdjacentFace(e, 1) &&
+                       GetBlockLightPropagationForAdjacentFace(a, voxelFace) == GetBlockLightPropagationForAdjacentFace(b, voxelFace) &&
+                       GetBlockLightPropagationForAdjacentFace(a, voxelFace) == GetBlockLightPropagationForAdjacentFace(c, voxelFace) &&
+                       GetBlockLightPropagationForAdjacentFace(a, voxelFace) == GetBlockLightPropagationForAdjacentFace(d, voxelFace) &&
+                       GetBlockLightPropagationForAdjacentFace(a, voxelFace) == GetBlockLightPropagationForAdjacentFace(e, voxelFace) &&
                        chunk.IsBlockFaceVisible(b, dimension, isBackFace);
             }
-            byte GetBlockLightPropagationForAdjacentFace(Vector3Int blockPosition, int face)
+            byte GetBlockLightPropagationForAdjacentFace(Vector3Int blockPosition, int voxelFace)
             {
                 Vector3Int offset;
-                switch (face)
+                switch (voxelFace)
                 {
                     case 0:
                         offset = Vector3Int.right;
@@ -218,8 +171,13 @@ namespace PixelMiner.WorldBuilding
                         offset = Vector3Int.zero;
                         break;
                 }
-                //Debug.Log($"{blockPosition}\t{offset} \t {blockPosition + offset}");
-                return chunk.GetBlockLight(blockPosition + offset);
+
+                Vector3Int blockOffsetPosition = blockPosition + offset;
+                blockOffsetPosition = new Vector3Int(Mathf.Clamp(blockOffsetPosition.x, 0, chunk._width),
+                                               Mathf.Clamp(blockOffsetPosition.y, 0, chunk._height),
+                                               Mathf.Clamp(blockOffsetPosition.z, 0, chunk._depth));
+
+                return chunk.GetBlockLight(blockOffsetPosition);
             }
             byte GetAmbientLightPropagationForAdjacentFace(Vector3Int blockPosition, int face)
             {
@@ -322,7 +280,7 @@ namespace PixelMiner.WorldBuilding
 
                                 // Because at solid block light not exist. We can only get light by the adjacent block and use it as the light as solid voxel face.
                                 byte lightValue = GetBlockLightPropagationForAdjacentFace(startPos, voxelFace);
-                                lightColor = GetLightColor(lightValue);
+                                lightColor = GetLightColor(lightValue, lightAnimCurve);
 
                                 // If this block has already been merged, is air, or not visible -> skip it.
                                 if (chunk.IsSolid(startPos) == false ||
@@ -338,7 +296,7 @@ namespace PixelMiner.WorldBuilding
                                 // Next step is loop to figure out width and height of the new merged quad.
                                 for (currPos = startPos, currPos[u]++;
                                     currPos[u] < dimensions[u] &&
-                                    GreedyCompareLogic(startPos, currPos, d, isBackFace) &&
+                                    GreedyCompareLogic(startPos, currPos, d, isBackFace, voxelFace) &&
                                     !builder.Merged[d][currPos[u], currPos[v]];
                                     currPos[u]++)
                                 { }
@@ -347,7 +305,7 @@ namespace PixelMiner.WorldBuilding
 
                                 for (currPos = startPos, currPos[v]++;
                                     currPos[v] < dimensions[v] &&
-                                    GreedyCompareLogic(startPos, currPos, d, isBackFace) &&
+                                    GreedyCompareLogic(startPos, currPos, d, isBackFace, voxelFace) &&
                                     !builder.Merged[d][currPos[u], currPos[v]];
                                     currPos[v]++)
                                 {
@@ -355,7 +313,7 @@ namespace PixelMiner.WorldBuilding
 
                                     for (currPos[u] = startPos[u];
                                         currPos[u] < dimensions[u] &&
-                                        GreedyCompareLogic(startPos, currPos, d, isBackFace) &&
+                                        GreedyCompareLogic(startPos, currPos, d, isBackFace, voxelFace) &&
                                         !builder.Merged[d][currPos[u], currPos[v]];
                                         currPos[u]++)
                                     { }
@@ -389,33 +347,77 @@ namespace PixelMiner.WorldBuilding
                                 vertices[2] = offsetPos + m + n;
                                 vertices[3] = offsetPos + n;
 
-                                colors[0] = GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos, voxelFace));
-                                colors[1] = GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos + m, voxelFace));
-                                colors[2] = GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos + m + n, voxelFace));
-                                colors[3] = GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos + n, voxelFace));
 
-
-
-                                //if (lightValue == 0)
+                                //if(GetBlockLightPropagationForAdjacentFace(startPos, voxelFace) != 0 &&
+                                //   GetBlockLightPropagationForAdjacentFace(startPos + m, voxelFace) != 0 &&
+                                //   GetBlockLightPropagationForAdjacentFace(startPos + m + n, voxelFace) != 0 &&
+                                //   GetBlockLightPropagationForAdjacentFace(startPos + n, voxelFace) != 0)
+                                //{
+                                //    colors[0] = GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos, voxelFace), lightAnimCurve);
+                                //    colors[1] = GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos + m, voxelFace), lightAnimCurve);
+                                //    colors[2] = GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos + m + n, voxelFace), lightAnimCurve);
+                                //    colors[3] = GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos + n, voxelFace), lightAnimCurve);
+                                //}
+                                //else
                                 //{
                                 //    colors[0] = lightColor;
                                 //    colors[1] = lightColor;
                                 //    colors[2] = lightColor;
                                 //    colors[3] = lightColor;
                                 //}
-                                //else
-                                //{
-                                //    colors[0] = LightUtils.GetLightColor(GetLightPropagationForAdjacentFace(startPos, voxelFace));
-                                //    colors[1] = LightUtils.GetLightColor(GetLightPropagationForAdjacentFace(startPos + m, voxelFace));
-                                //    colors[2] = LightUtils.GetLightColor(GetLightPropagationForAdjacentFace(startPos + m + n, voxelFace));
-                                //    colors[3] = LightUtils.GetLightColor(GetLightPropagationForAdjacentFace(startPos + n, voxelFace));
-                                //}
+
+
+                                if (GetBlockLightPropagationForAdjacentFace(startPos, voxelFace) != 0)
+                                {
+                                    colors[0] = GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos, voxelFace), lightAnimCurve);
+                                }
+                                else
+                                {
+                                    colors[0] = lightColor;
+                                }
+
+                                if(GetBlockLightPropagationForAdjacentFace(startPos + m, voxelFace) != 0)
+                                {
+                                    colors[1] = GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos + m, voxelFace), lightAnimCurve);
+
+                                }
+                                else
+                                {
+                                    colors[1] = lightColor;
+                                }
+
+                                if (GetBlockLightPropagationForAdjacentFace(startPos + m + n, voxelFace) != 0)
+                                {
+                                    colors[2] = GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos + m + n, voxelFace), lightAnimCurve);
+
+                                }
+                                else
+                                {
+                                    colors[2] = lightColor;
+                                }
+
+                                if (GetBlockLightPropagationForAdjacentFace(startPos + n, voxelFace) != 0)
+                                {
+                                    colors[3] = GetLightColor(GetBlockLightPropagationForAdjacentFace(startPos + n, voxelFace), lightAnimCurve);
+
+                                }
+                                else
+                                {
+                                    colors[3] = lightColor;
+                                }
+
+                               
+                               
+                               
+                               
+
+
 
                                 uv3s[0] = LightMapUVs[GetAmbientLightPropagationForAdjacentFace(startPos, voxelFace), 0];
                                 uv3s[1] = LightMapUVs[GetAmbientLightPropagationForAdjacentFace(startPos, voxelFace), 1];
                                 uv3s[2] = LightMapUVs[GetAmbientLightPropagationForAdjacentFace(startPos, voxelFace), 2];
                                 uv3s[3] = LightMapUVs[GetAmbientLightPropagationForAdjacentFace(startPos, voxelFace), 3];
-                     
+
 
                                 GetBlockUVs(currBlock, voxelFace, quadSize[u], quadSize[v], ref uvs, ref uv2s, ref uv3s);
                                 builder.AddQuadFace(vertices, uvs, uv2s, uv3s, colors, voxelFace);
@@ -642,7 +644,7 @@ namespace PixelMiner.WorldBuilding
             uvs[2] = new Vector3(width, height, blockIndex);
             uvs[3] = new Vector3(0, height, blockIndex);
 
-            GetColorMapkUVs(colorMapType, ref uv2s);   
+            GetColorMapkUVs(colorMapType, ref uv2s);
         }
         private static void GetColorMapkUVs(ColorMapType colormapType, ref Vector2[] colormapUVs)
         {

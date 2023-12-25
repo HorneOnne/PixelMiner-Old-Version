@@ -37,7 +37,6 @@ namespace PixelMiner.WorldBuilding
         private float _updateTimer = 0.0f;
         public bool ChunkHasDrawn = false;
 
-        bool[] _neighbors;
         // Neighbors
         [field: SerializeField] public Chunk West { get; set; }
         [field: SerializeField] public Chunk East { get; set; }
@@ -56,6 +55,7 @@ namespace PixelMiner.WorldBuilding
         [HideInInspector] public byte[] VoxelLightData;
         [HideInInspector] public byte[] AmbientLightData;
 
+        public AnimationCurve LightAnimCurve;
     
 
         private void Awake()
@@ -69,8 +69,6 @@ namespace PixelMiner.WorldBuilding
             _playerTrans = GameObject.FindGameObjectWithTag("Player").transform;
             if (_playerTrans == null)
                 _playerTrans = Camera.main.transform;
-
-            _neighbors = new bool[6];
         }
 
         private void OnDestroy()
@@ -155,10 +153,6 @@ namespace PixelMiner.WorldBuilding
         }
 
 
-        public BlockType GetBlock(byte x, byte y, byte z)
-        {
-            return ChunkData[IndexOf(x, y, z)];
-        }
         public BlockType GetBlock(Vector3Int relativePosition)
         {
             if (IsValidRelativePosition(relativePosition))
@@ -215,14 +209,6 @@ namespace PixelMiner.WorldBuilding
         {
             ChunkData[IndexOf(relativePosition.x, relativePosition.y, relativePosition.z)] = blockType;
         }
-        //public void SetBlock(Vector3Int relativePosition, BlockType blockType)
-        //{
-        //    int x = globalPosition[0] % Dimensions[0];
-        //    int y = globalPosition[1] % Dimensions[1];
-        //    int z = globalPosition[2] % Dimensions[2];
-        //    ChunkData[IndexOf(x, y, z)] = blockType;
-        //}
-
 
 
         public bool IsBlockFaceVisible(Vector3Int position, int dimension, bool isBackFace)
@@ -240,7 +226,7 @@ namespace PixelMiner.WorldBuilding
         {
             if (ChunkHasDrawn) return;
 
-            MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this);
+            MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this, LightAnimCurve);
             //MeshData waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(this);
             MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(this);
 
@@ -261,7 +247,7 @@ namespace PixelMiner.WorldBuilding
         }
         public async void ReDrawChunkAsync()
         {
-            MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this);
+            MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this, LightAnimCurve);
             MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(this);
 
             SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
@@ -570,39 +556,7 @@ namespace PixelMiner.WorldBuilding
                 }
             }
 
-            throw new System.Exception($"Currently we not calculate height of chunk. {relativePosition}");
-
-            //if (relativePosition.x < 0 || relativePosition.x >= Dimensions[0] ||
-            //     relativePosition.y < 0 || relativePosition.y >= Dimensions[1] ||
-            //     relativePosition.z < 0 || relativePosition.z >= Dimensions[2])
-            //{
-
-            //    if (relativePosition.x < 0)
-            //    {
-            //        West.AmbientLightData[IndexOf(_width - 1, relativePosition.y, relativePosition.z)] = intensity;
-            //        return;
-            //    }
-            //    if (relativePosition.x >= _width)
-            //    {
-            //        East.AmbientLightData[IndexOf(0, relativePosition.y, relativePosition.z)] = intensity;
-            //        return;
-            //    }
-
-            //    if (relativePosition.z < 0)
-            //    {
-            //        South.AmbientLightData[IndexOf(relativePosition.x, relativePosition.y, _depth - 1)] = intensity;
-            //        return;
-            //    }
-            //    if (relativePosition.z >= _depth)
-            //    {
-            //        North.AmbientLightData[IndexOf(relativePosition.x, relativePosition.y, 0)] = intensity;
-            //        return;
-            //    }
-
-            //    return;
-            //}
-
-            //AmbientLightData[IndexOf(relativePosition.x, relativePosition.y, relativePosition.z)] = intensity;
+            throw new System.Exception($"Currently we not calculate height of chunk. {relativePosition}");          
         }
         #endregion
 
