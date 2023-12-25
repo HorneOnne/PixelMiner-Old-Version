@@ -27,7 +27,7 @@ namespace PixelMiner.WorldGen
         private Vector3Int _currentFrame;
         // Performance
         private float _updateTimer = 0.0f;
-        private float _updateTime = 0.5f;
+        private float _updateTime = 0.2f;
 
 
         private void Awake()
@@ -98,7 +98,6 @@ namespace PixelMiner.WorldGen
         /// <param name="offsetDepth"></param>
         public async void LoadChunksAroundPositionInSequence(int frameX, int frameY, int frameZ, byte offsetWidth = 1, byte offsetDepth = 1)
         {
-            Debug.Log("LoadChunksAroundPositionInSequence");
             for (int x = frameX - offsetWidth; x <= frameX + offsetWidth; x++)
             {
                 for (int z = frameZ - offsetDepth; z <= frameZ + offsetDepth; z++)

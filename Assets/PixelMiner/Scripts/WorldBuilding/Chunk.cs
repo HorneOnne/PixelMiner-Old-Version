@@ -56,7 +56,7 @@ namespace PixelMiner.WorldBuilding
         [HideInInspector] public byte[] VoxelLightData;
         [HideInInspector] public byte[] AmbientLightData;
 
-        private Vector3Int[] _neighborsPosition = new Vector3Int[6];
+    
 
         private void Awake()
         {
@@ -211,13 +211,18 @@ namespace PixelMiner.WorldBuilding
 
             throw new System.Exception($"Currently we not calculate height of chunk. {relativePosition}");
         }
-        public void SetBlock(Vector3Int globalPosition, BlockType blockType)
+        public void SetBlock(Vector3Int relativePosition, BlockType blockType)
         {
-            int x = globalPosition[0] % Dimensions[0];
-            int y = globalPosition[1] % Dimensions[1];
-            int z = globalPosition[2] % Dimensions[2];
-            ChunkData[IndexOf(x, y, z)] = blockType;
+            ChunkData[IndexOf(relativePosition.x, relativePosition.y, relativePosition.z)] = blockType;
         }
+        //public void SetBlock(Vector3Int relativePosition, BlockType blockType)
+        //{
+        //    int x = globalPosition[0] % Dimensions[0];
+        //    int y = globalPosition[1] % Dimensions[1];
+        //    int z = globalPosition[2] % Dimensions[2];
+        //    ChunkData[IndexOf(x, y, z)] = blockType;
+        //}
+
 
 
         public bool IsBlockFaceVisible(Vector3Int position, int dimension, bool isBackFace)
@@ -603,22 +608,7 @@ namespace PixelMiner.WorldBuilding
 
 
 
-        #region Neighbors
-        public Vector3Int[] GetVoxelNeighborPosition(Vector3Int position)
-        {
-            _neighborsPosition[0] = position + new Vector3Int(1, 0, 0);
-            _neighborsPosition[1] = position + new Vector3Int(-1, 0, 0);
-            _neighborsPosition[2] = position + new Vector3Int(0, 0, 1);
-            _neighborsPosition[3] = position + new Vector3Int(0, 0, -1);
-            _neighborsPosition[4] = position + new Vector3Int(0, 1, 0);
-            _neighborsPosition[5] = position + new Vector3Int(0, -1, 0);
-
-            return _neighborsPosition;
-        }
-
-
-
-        #endregion
+      
 
         #region Utilities
         public bool IsValidRelativePosition(Vector3Int relativePosition)

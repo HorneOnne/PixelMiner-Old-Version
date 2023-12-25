@@ -224,7 +224,7 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _HeightTransition: 0
-    - _LightIntensity: 1.0028319
+    - _LightIntensity: 0.3098963
     - _Metallic: 0
     - _Metallic0: 0
     - _Metallic1: 0
@@ -264,5 +264,5 @@ Material:
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
     - _SoftParticleFadeParams: {r: 0, g: 0, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _SunLight: {r: 1, g: 0.9943784, b: 0.8632076, a: 1}
+    - _SunLight: {r: 0.9372549, g: 0.5058824, b: 0.05490196, a: 1}
   m_BuildTextureStacks: []

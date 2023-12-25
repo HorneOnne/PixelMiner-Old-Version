@@ -586,7 +586,7 @@ Transform:
   m_GameObject: {fileID: 314038815}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 16, y: 4, z: 16}
+  m_LocalPosition: {x: 100, y: 3.99, z: -100}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1080,7 +1080,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: -45.237244, y: 54.000008, z: -45.23724}
+  m_LocalPosition: {x: 38.76276, y: 53.990005, z: -161.23724}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1236,6 +1236,7 @@ MonoBehaviour:
   InitWorldWithMoisturemap: 0
   InitWorldWithRiver: 0
   PaintTileNeighbors: 0
+  ShowLog: 0
 --- !u!4 &587489646
 Transform:
   m_ObjectHideFlags: 0
@@ -1270,9 +1271,9 @@ MonoBehaviour:
   currentTime: 0
   FreezeTime: 1
   Minutes: 0
-  Hours: 12
+  Hours: 16
   Days: 0
-  _startHour: 12
+  _startHour: 16
 --- !u!1 &677337750
 GameObject:
   m_ObjectHideFlags: 0
@@ -2052,7 +2053,7 @@ Transform:
   m_GameObject: {fileID: 1334762261}
   serializedVersion: 2
   m_LocalRotation: {x: 0.2588191, y: 0, z: 0, w: 0.9659258}
-  m_LocalPosition: {x: 16, y: 54.00001, z: -70.60253}
+  m_LocalPosition: {x: 100, y: 53.990013, z: -186.60254}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3013,7 +3014,7 @@ Transform:
   m_GameObject: {fileID: 1694405455}
   serializedVersion: 2
   m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: -45.237244, y: 54.000008, z: -45.23724}
+  m_LocalPosition: {x: 38.76276, y: 53.990005, z: -161.23724}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

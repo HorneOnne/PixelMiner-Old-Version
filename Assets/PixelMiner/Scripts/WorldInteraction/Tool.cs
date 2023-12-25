@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using PixelMiner.WorldBuilding;
 using PixelMiner.Lighting;
 using PixelMiner.Enums;
+using PixelMiner.Core;
 
 namespace PixelMiner.WorldInteraction
 {
@@ -23,6 +24,7 @@ namespace PixelMiner.WorldInteraction
         private Chunk _chunkHit;
         private Queue<LightNode> _lightBfsQueue = new Queue<LightNode>();
         private Queue<LightNode> _lightRemovalBfsQueue = new Queue<LightNode>();
+        private HashSet<Chunk> chunkNeedUpdate = new HashSet<Chunk>();
 
 
         private void Start()
@@ -70,15 +72,24 @@ namespace PixelMiner.WorldInteraction
                         Vector3Int hitGlobalPosition = new Vector3Int(Mathf.FloorToInt(_hit.point.x + 0.001f),
                                                                 Mathf.FloorToInt(_hit.point.y + 0.001f),
                                                                 Mathf.FloorToInt(_hit.point.z + 0.001f));
+
                         _cursor.transform.position = hitGlobalPosition;
                         Vector3Int hitRelativePosition = GlobalToRelativeBlockPosition(hitGlobalPosition);
+
+                        if (Main.Instance.GetChunk((Vector3)hitGlobalPosition).ChunkHasDrawn == false) return;
+
                         if (_chunkHit.GetBlock(hitRelativePosition) == BlockType.Air || _chunkHit.GetBlock(hitRelativePosition) == BlockType.Water)
                         {
                             _chunkHit.SetBlock(hitRelativePosition, BlockType.Light);
                             _lightBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = LightUtils.MaxLightIntensity });
-                            await LightCalculator.PropagateBlockLightAsync(_lightBfsQueue);
-                            
-                            _chunkHit.ReDrawChunkAsync();
+                            await LightCalculator.PropagateBlockLightAsync(_lightBfsQueue, chunkNeedUpdate);
+
+                            Debug.Log(chunkNeedUpdate.Count);
+                            foreach(var chunk in chunkNeedUpdate)
+                            {
+                                chunk.ReDrawChunkAsync();
+                            }
+                            chunkNeedUpdate.Clear();
                         }                
                     }
                 }
@@ -101,8 +112,13 @@ namespace PixelMiner.WorldInteraction
                         {
                             _chunkHit.SetBlock(hitRelativePosition, BlockType.Air);
                             _lightRemovalBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = _chunkHit.GetBlockLight(hitRelativePosition) });
-                            await LightCalculator.RemoveBlockLightAsync(_lightRemovalBfsQueue);
-                            _chunkHit.ReDrawChunkAsync();
+                            await LightCalculator.RemoveBlockLightAsync(_lightRemovalBfsQueue, chunkNeedUpdate);
+
+                            foreach (var chunk in chunkNeedUpdate)
+                            {
+                                chunk.ReDrawChunkAsync();
+                            }
+                            chunkNeedUpdate.Clear();
                         }
                       
                     }
@@ -125,10 +141,15 @@ namespace PixelMiner.WorldInteraction
                         if (_chunkHit.GetBlock(hitRelativePosition) == BlockType.Air)
                         {
                             _chunkHit.SetBlock(hitRelativePosition, BlockType.Stone);
-                            _lightRemovalBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = _chunkHit.GetBlockLight(hitGlobalPosition)});
-                            await LightCalculator.RemoveBlockLightAsync(_lightRemovalBfsQueue);
+                            _lightRemovalBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = _chunkHit.GetBlockLight(hitRelativePosition) });
+                            await LightCalculator.RemoveBlockLightAsync(_lightRemovalBfsQueue, chunkNeedUpdate);
 
-                            _chunkHit.ReDrawChunkAsync();
+
+                            foreach (var chunk in chunkNeedUpdate)
+                            {
+                                chunk.ReDrawChunkAsync();
+                            }
+                            chunkNeedUpdate.Clear();
                         }
                     }
                 }

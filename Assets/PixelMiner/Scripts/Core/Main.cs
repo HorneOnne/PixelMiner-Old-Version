@@ -2,6 +2,8 @@
 using UnityEngine;
 using PixelMiner.WorldBuilding;
 using PixelMiner;
+using PixelMiner.Enums;
+using PixelMiner.Utilities;
 
 namespace PixelMiner.Core
 {
@@ -34,17 +36,17 @@ namespace PixelMiner.Core
         private void Awake()
         {
             Instance = this;
- 
+
             // Initialize the chunks data
             Chunks = new Dictionary<Vector3Int, Chunk>();
             ActiveChunks = new HashSet<Chunk>();
         }
         private void Start()
         {
-            
+
         }
 
-      
+
 
         #region Get, Set Chunk
         public bool HasChunk(Vector3Int relativePosition)
@@ -57,33 +59,27 @@ namespace PixelMiner.Core
                 Mathf.FloorToInt(worldPosition.y / ChunkDimension[1]), Mathf.FloorToInt(worldPosition.z / ChunkDimension[2]));
             return GetChunk(frame);
         }
-        public bool TryGetChunk(Vector3 worldPosition, out Chunk chunk)
-        {
-            chunk = null;
-            Vector3Int frame = new Vector3Int(Mathf.FloorToInt(worldPosition.x / ChunkDimension[0]),
-                Mathf.FloorToInt(worldPosition.y / ChunkDimension[1]), Mathf.FloorToInt(worldPosition.z / ChunkDimension[2]));
 
-            if(HasChunk(frame))
+        public bool TryGetChunk(Vector3 globalPosition, out Chunk chunk)
+        {
+            Vector3Int relativePosition = new Vector3Int(Mathf.FloorToInt(globalPosition.x / ChunkDimension[0]),
+                                                         Mathf.FloorToInt(globalPosition.y / ChunkDimension[1]),
+                                                         Mathf.FloorToInt(globalPosition.z / ChunkDimension[2]));
+
+            if (Chunks.ContainsKey(relativePosition))
             {
-                chunk = GetChunk(frame);
+                chunk = Chunks[relativePosition];
                 return true;
             }
+
+            chunk = null;
             return false;
         }
-        public Chunk GetChunk(int frameX, int frameZ)
+        public Chunk GetChunk(Vector3Int relativePosition)
         {
-            Vector3Int frame = new Vector3Int(frameX, 0, frameZ);
-            if (Chunks.ContainsKey(frame))
+            if (Chunks.ContainsKey(relativePosition))
             {
-                return Chunks[frame];
-            }
-            return null;
-        }
-        public Chunk GetChunk(Vector3Int frame)
-        {
-            if (Chunks.ContainsKey(frame))
-            {
-                return Chunks[frame];
+                return Chunks[relativePosition];
             }
             return null;
         }
@@ -124,22 +120,49 @@ namespace PixelMiner.Core
         #endregion
 
 
+        public bool ShowLog = false;
+        #region Block
+        public BlockType GetBlock(Vector3 globalPosition)
+        {
+            Vector3Int relativePosition = WorldCoordHelper.GlobalToRelativeBlockPosition(globalPosition);
+       
+            if (TryGetChunk(globalPosition, out Chunk chunk))
+            {            
+                return chunk.GetBlock(relativePosition);              
+            }
+            return BlockType.Air;
+        }
+        public void SetBlock(Vector3 globalPosition, BlockType blockType)
+        {
+            Vector3Int relativePosition = WorldCoordHelper.GlobalToRelativeBlockPosition(globalPosition);
+            if (TryGetChunk(globalPosition, out Chunk chunk))
+            {
+                chunk.SetBlock(relativePosition, blockType);
+            }
+        }
+        #endregion
+
 
         #region Light
         public byte GetBlockLight(Vector3 globalPosition)
         {
-            Vector3Int chunkFrame = new Vector3Int(Mathf.FloorToInt(globalPosition.x / ChunkDimension[0]),
-               Mathf.FloorToInt(globalPosition.y / ChunkDimension[1]), Mathf.FloorToInt(globalPosition.z / ChunkDimension[2]));
-            Vector3Int relativePosition = new Vector3Int(Mathf.FloorToInt(globalPosition.x % ChunkDimension[0]),
-                                                         Mathf.FloorToInt(globalPosition.y % ChunkDimension[1]),
-                                                         Mathf.FloorToInt(globalPosition.z % ChunkDimension[2]));
-
+            Vector3Int relativePosition = WorldCoordHelper.GlobalToRelativeBlockPosition(globalPosition);
             if (TryGetChunk(globalPosition, out Chunk chunk))
             {
                 return chunk.GetBlockLight(relativePosition);
             }
             return byte.MinValue;
         }
+        public void SetBlockLight(Vector3 globalPosition, byte intensity)
+        {
+            Vector3Int relativePosition = WorldCoordHelper.GlobalToRelativeBlockPosition(globalPosition);
+            if (TryGetChunk(globalPosition, out Chunk chunk))
+            {
+                chunk.SetBlockLight(relativePosition, intensity);
+            }
+        }
+
+
         public byte GetAmbientLight(Vector3 globalPosition)
         {
             Vector3Int chunkFrame = new Vector3Int(Mathf.FloorToInt(globalPosition.x / ChunkDimension[0]),
