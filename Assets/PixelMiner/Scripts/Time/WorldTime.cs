@@ -21,7 +21,7 @@ namespace PixelMiner.Time
 
 
         private float _minutePerSecond = 0.1f;
-        private int _startHour = 8;
+        [SerializeField] private int _startHour = 12;
 
 
         private void Awake()

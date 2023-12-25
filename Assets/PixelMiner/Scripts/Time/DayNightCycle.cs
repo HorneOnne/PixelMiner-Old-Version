@@ -69,7 +69,7 @@ namespace PixelMiner.Time
         private void Update()
         {
             UpdateSunLightIntensityMat(_worldTime.Hours + (_worldTime.Minutes / 60));
-            return;
+  
             if (_worldTime.Hours > 5)
             {
                 if (_worldTime.Hours < 16)
@@ -134,7 +134,7 @@ namespace PixelMiner.Time
             _currentSunLightColor = lightColor;
             for (int i = 0; i < MaterialsEffectedByLight.Count; i++)
             {
-                //MaterialsEffectedByLight[i].SetColor("_SunLight", lightColor);
+                MaterialsEffectedByLight[i].SetColor("_SunLight", lightColor);
             }
         }
 

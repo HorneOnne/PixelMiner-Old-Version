@@ -217,9 +217,9 @@ namespace PixelMiner.WorldBuilding
                     default:
                         offset = Vector3Int.zero;
                         break;
-
                 }
-                return chunk.GetBlockLight((blockPosition + offset));
+                //Debug.Log($"{blockPosition}\t{offset} \t {blockPosition + offset}");
+                return chunk.GetBlockLight(blockPosition + offset);
             }
             byte GetAmbientLightPropagationForAdjacentFace(Vector3Int blockPosition, int face)
             {

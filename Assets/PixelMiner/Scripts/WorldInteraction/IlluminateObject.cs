@@ -44,6 +44,7 @@ namespace PixelMiner.WorldInteraction
 
         private void Update()
         {
+            return;
             if (UnityEngine.Time.time - _timer > _updateFrequency)
             {
                 _timer = UnityEngine.Time.time;

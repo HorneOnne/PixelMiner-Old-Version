@@ -47,13 +47,9 @@ namespace PixelMiner.Core
       
 
         #region Get, Set Chunk
-        public bool HasChunk(int franeX, int frameZ)
+        public bool HasChunk(Vector3Int relativePosition)
         {
-            return Chunks.ContainsKey(new Vector3Int(franeX,0, frameZ));
-        }
-        public bool HasChunk(Vector3Int frame)
-        {
-            return Chunks.ContainsKey(frame);
+            return Chunks.ContainsKey(relativePosition);
         }
         public Chunk GetChunk(Vector3 worldPosition)
         {

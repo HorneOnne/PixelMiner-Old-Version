@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,8 +10,8 @@ using PixelMiner.Utilities;
 using PixelMiner.Enums;
 using PixelMiner.WorldBuilding;
 using PixelMiner.Core;
-using System;
 using PixelMiner.Lighting;
+
 
 namespace PixelMiner.WorldGen
 {
@@ -220,32 +221,35 @@ namespace PixelMiner.WorldGen
                 OnWorldGenWhenStartFinished?.Invoke();
             });
 
+            Chunk.OnChunkHasNeighbors += PropagateAmbientLight;
             Chunk.OnChunkHasNeighbors += DrawChunk;
+
 
         }
 
         private void OnDestroy()
         {
+            Chunk.OnChunkHasNeighbors += PropagateAmbientLight;
             Chunk.OnChunkHasNeighbors -= DrawChunk;
         }
 
 
         private void DrawChunk(Chunk chunk)
         {
-            chunk.State = Chunk.ChunkState.Processing;
-            chunk.Left.State = Chunk.ChunkState.Processing;
-            chunk.Right.State = Chunk.ChunkState.Processing;
-            chunk.Front.State = Chunk.ChunkState.Processing;
-            chunk.Back.State = Chunk.ChunkState.Processing;
+            //chunk.State = Chunk.ChunkState.Processing;
+            //chunk.West.State = Chunk.ChunkState.Processing;
+            //chunk.East.State = Chunk.ChunkState.Processing;
+            //chunk.North.State = Chunk.ChunkState.Processing;
+            //chunk.South.State = Chunk.ChunkState.Processing;
             if (!chunk.ChunkHasDrawn)
             {
                 chunk.DrawChunkAsync();
             }
-            chunk.State = Chunk.ChunkState.Stable;
-            chunk.Left.State = Chunk.ChunkState.Stable;
-            chunk.Right.State = Chunk.ChunkState.Stable;
-            chunk.Front.State = Chunk.ChunkState.Stable;
-            chunk.Back.State = Chunk.ChunkState.Stable;
+            //chunk.State = Chunk.ChunkState.Stable;
+            //chunk.West.State = Chunk.ChunkState.Stable;
+            //chunk.East.State = Chunk.ChunkState.Stable;
+            //chunk.North.State = Chunk.ChunkState.Stable;
+            //chunk.South.State = Chunk.ChunkState.Stable;
         }
         #endregion
 
@@ -392,11 +396,11 @@ namespace PixelMiner.WorldGen
                 {
                     Chunk newChunk = await GenerateNewChunk(x, 0, z, _main.ChunkDimension);
                     _worldLoading.LoadChunk(newChunk);
-                    UpdateChunkNeighbors(newChunk);
                 }
             }
 
             onFinished?.Invoke();
+            //_worldLoading.LoadChunksAroundPositionInSequence();
         }
 
 
@@ -423,54 +427,20 @@ namespace PixelMiner.WorldGen
                 await LoadMoistureMapDataAsync(newChunk, moistureValues);
                 await GenerateBiomeMapDataAsync(newChunk);
 
-
-                if(frameX == 0 && frameZ == 0)
-                {
-                    // Apply ambient light
-                    // I use list instead of queue because this type of light only fall down when start, 
-                    // use list can help this method can process in parallel. When this light hit block (not air)
-                    // we'll use normal bfs to spread light like with torch.
-                    List<LightNode> ambientLightList = new List<LightNode>();
-                    for (int z = 0; z < _chunkDimension[2]; z++)
-                    {
-                        for (int x = 0; x < _chunkDimension[0]; x++)
-                        {
-                            ambientLightList.Add(new LightNode(new Vector3Int(x, _chunkDimension[1] - 1, z), 15));
-                        }
-                    }
-
-                    LightCalculator.PropagateAmbientLight(ambientLightList);
-                }               
+                //// Apply ambient light
+                //// I use list instead of queue because this type of light only fall down when start, 
+                //// use list can help this method can process in parallel. When this light hit block (not air)
+                //// we'll use normal bfs to spread light like with torch.
+                //List<LightNode> ambientLightList = new List<LightNode>();
+                //for (int z = 0; z < _chunkDimension[2]; z++)
+                //{
+                //    for (int x = 0; x < _chunkDimension[0]; x++)
+                //    {
+                //        ambientLightList.Add(new LightNode(new Vector3Int(x, _chunkDimension[1] - 1, z), 15));
+                //    }
+                //}
+                //LightCalculator.PropagateAmbientLight(ambientLightList);
             }
-
-
-
-
-
-            // Create new data
-
-            //if (_main.InitWorldWithHeatmap)
-            //{
-            //    await LoadHeightAndHeatMap(newChunk, heightValues, heatValues);
-            //}
-            //else
-            //{
-            //    await LoadHeightMapDataAsync(newChunk, heightValues);
-            //}
-
-            //if (_main.InitWorldWithMoisturemap)
-            //{
-            //    await LoadMoistureMapDataAsync(newChunk, moisetureValues);
-            //}
-            //else
-            //{
-
-            //}
-
-            //if (_main.InitWorldWithRiver)
-            //{
-            //    await LoadRiverDataAsync(newChunk, riverValues);
-            //}
 
             return newChunk;
         }
@@ -962,8 +932,55 @@ namespace PixelMiner.WorldGen
         #region Neighbors
         public void UpdateChunkNeighbors(Chunk chunk)
         {
-            Vector3Int chunkFrame = new Vector3Int(chunk.FrameX, chunk.FrameY, chunk.FrameZ);
-            if (chunk.Left == null)
+            if (chunk.HasNeighbors()) return;
+
+
+            if (_main.HasChunk(chunk.RelativePosition + Vector3Int.left))
+            {
+                chunk.West = _main.GetChunk(chunk.RelativePosition + Vector3Int.left);
+            }
+            if (_main.HasChunk(chunk.RelativePosition + Vector3Int.right))
+            {
+                chunk.East = _main.GetChunk(chunk.RelativePosition + Vector3Int.right);
+            }
+            if (_main.HasChunk(chunk.RelativePosition + Vector3Int.forward))
+            {
+                chunk.North = _main.GetChunk(chunk.RelativePosition + Vector3Int.forward);
+            }
+            if (_main.HasChunk(chunk.RelativePosition + Vector3Int.back))
+            {
+                chunk.South = _main.GetChunk(chunk.RelativePosition + Vector3Int.back);
+            }
+
+            if (_main.HasChunk(chunk.RelativePosition + new Vector3Int(-1, 0, 1)))
+            {
+                // Northwest
+                chunk.Northwest = _main.GetChunk(chunk.RelativePosition + new Vector3Int(-1, 0, 1));
+            }
+            if (_main.HasChunk(chunk.RelativePosition + new Vector3Int(1, 0, 1)))
+            {
+                // Northeast
+                chunk.Northeast = _main.GetChunk(chunk.RelativePosition + new Vector3Int(1, 0, 1));
+            }
+            if (_main.HasChunk(chunk.RelativePosition + new Vector3Int(-1, 0, -1)))
+            {
+                // Southwest
+                chunk.Southwest = _main.GetChunk(chunk.RelativePosition + new Vector3Int(-1, 0, -1));
+            }
+            if (_main.HasChunk(chunk.RelativePosition + new Vector3Int(1, 0, -1)))
+            {
+                // Southeast
+                chunk.Southeast = _main.GetChunk(chunk.RelativePosition + new Vector3Int(1, 0, -1));
+            }
+
+            if(chunk.HasNeighbors())
+            {
+                Chunk.OnChunkHasNeighbors?.Invoke(chunk);
+            }
+            
+
+            return;
+            if (chunk.West == null)
             {
                 Chunk leftNeighborChunk = Main.Instance.GetChunkNeighborLeft(chunk);
                 if (leftNeighborChunk != null)
@@ -972,7 +989,7 @@ namespace PixelMiner.WorldGen
                     leftNeighborChunk.SetNeighbors(BlockSide.Right, chunk);
                 }
             }
-            if (chunk.Right == null)
+            if (chunk.East == null)
             {
                 Chunk rightNeighborChunk = Main.Instance.GetChunkNeighborRight(chunk);
                 if (rightNeighborChunk != null)
@@ -981,7 +998,7 @@ namespace PixelMiner.WorldGen
                     rightNeighborChunk.SetNeighbors(BlockSide.Left, chunk);
                 }
             }
-            if (chunk.Front == null)
+            if (chunk.North == null)
             {
                 Chunk frontNeighborChunk = Main.Instance.GetChunkNeighborFront(chunk);
                 if (frontNeighborChunk != null)
@@ -990,7 +1007,7 @@ namespace PixelMiner.WorldGen
                     frontNeighborChunk.SetNeighbors(BlockSide.Back, chunk);
                 }
             }
-            if (chunk.Back == null)
+            if (chunk.South == null)
             {
                 Chunk backNeighborChunk = Main.Instance.GetChunkNeighborBack(chunk);
                 if (backNeighborChunk != null)
@@ -1003,103 +1020,26 @@ namespace PixelMiner.WorldGen
         #endregion
 
 
-
-
-        #region Grid Algorithm
-        //private void FloodFill(Chunk chunk)
-        //{
-        //    Stack<Tile> stack = new Stack<Tile>();
-
-        //    for (int x = 0; x < _chunkWidth; x++)
-        //    {
-        //        for (int y = 0; y < _chunkHeight; y++)
-        //        {
-        //            Tile t = chunk.ChunkData.GetValue(x, y);
-
-        //            // Tile already flood filled, skip
-        //            if (t.FloodFilled)
-        //            {
-        //                continue;
-        //            }
-
-        //            // Land
-        //            if (t.Collidable)
-        //            {
-        //                TileGroup group = new TileGroup();
-        //                group.Type = TileGroupType.Land;
-        //                stack.Push(t);
-
-        //                while (stack.Count > 0)
-        //                {
-        //                    Tile tile = stack.Pop();
-        //                    FloodFill(tile, ref group, ref stack, chunk);
-        //                }
-
-        //                if (group.Tiles.Count > 0)
-        //                {
-        //                    chunk.Lands.Add(group);
-        //                }
-        //            }
-        //            else // Water
-        //            {
-        //                TileGroup group = new TileGroup();
-        //                group.Type = TileGroupType.Water;
-        //                stack.Push(t);
-
-        //                while (stack.Count > 0)
-        //                {
-        //                    Tile tile = stack.Pop();
-        //                    FloodFill(tile, ref group, ref stack, chunk);
-        //                }
-
-        //                if (group.Tiles.Count > 0)
-        //                {
-        //                    chunk.Waters.Add(group);
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
-        //private void FloodFill(Tile tile, ref TileGroup tiles, ref Stack<Tile> stack, Chunk2D chunk)
-        //{
-        //    // Validate
-        //    if (tile.FloodFilled)
-        //        return;
-        //    if (tiles.Type == TileGroupType.Land && tile.Collidable == false)
-        //        return;
-        //    if (tiles.Type == TileGroupType.Water && tile.Collidable)
-        //        return;
-
-        //    tiles.Tiles.Add(tile);
-        //    tile.FloodFilled = true;
-
-
-        //    // FloodFill into neighbors
-        //    Tile nb = chunk.GetTopWithinChunk(tile);
-        //    if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
-        //    {
-        //        stack.Push(nb);
-        //    }
-
-        //    nb = chunk.GetBottomWithinChunk(tile);
-        //    if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
-        //    {
-        //        stack.Push(nb);
-        //    }
-
-        //    nb = chunk.GetLeftWithinChunk(tile);
-        //    if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
-        //    {
-        //        stack.Push(nb);
-        //    }
-
-        //    nb = chunk.GetRightWithinChunk(tile);
-        //    if (nb != null && nb.FloodFilled == false && tile.Collidable == nb.Collidable)
-        //    {
-        //        stack.Push(nb);
-        //    }
-        //}
-        #endregion
+        #region Lighting
+        public void PropagateAmbientLight(Chunk chunk)
+        {
+            // Apply ambient light
+            // I use list instead of queue because this type of light only fall down when start, 
+            // use list can help this method can process in parallel. When this light hit block (not air)
+            // we'll use normal bfs to spread light like with torch.
+            List<LightNode> ambientLightList = new List<LightNode>();
+            for (int z = 0; z < _chunkDimension[2]; z++)
+            {
+                for (int x = 0; x < _chunkDimension[0]; x++)
+                {
+                    Vector3Int lightNodeGlobalPosition = chunk.GlobalPosition + new Vector3Int(x, _chunkDimension[1] - 1, z);
+                    Vector3Int lightNodeRelativePosition = WorldCoordHelper.GlobalToRelativeBlockPosition(lightNodeGlobalPosition);
+                    ambientLightList.Add(new LightNode(lightNodeRelativePosition, LightUtils.MaxLightIntensity));
+                }
+            }
+            LightCalculator.PropagateAmbientLight(chunk, ambientLightList);
+        }
+        #endregion       
     }
 }
 

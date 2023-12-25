@@ -49,12 +49,13 @@ namespace PixelMiner.WorldInteraction
                 {
                     if (_hit.collider.transform.parent != null && _hit.collider.transform.parent.TryGetComponent<Chunk>(out _chunkHit))
                     {
-                        Vector3Int hitPosition = new Vector3Int(Mathf.FloorToInt(_hit.point.x + 0.001f),
+                        Vector3Int hitGlobalPosition = new Vector3Int(Mathf.FloorToInt(_hit.point.x + 0.001f),
                                                                 Mathf.FloorToInt(_hit.point.y + 0.001f),
                                                                 Mathf.FloorToInt(_hit.point.z + 0.001f));
-                        _cursor.transform.position = hitPosition;
+                        _cursor.transform.position = hitGlobalPosition;
 
-                        OnTarget?.Invoke(hitPosition, _chunkHit.GetBlock(hitPosition), _chunkHit.GetBlockLight(hitPosition), _chunkHit.GetAmbientLight(hitPosition));
+                        Vector3Int relativePosition = GlobalToRelativeBlockPosition(hitGlobalPosition);
+                        OnTarget?.Invoke(hitGlobalPosition, _chunkHit.GetBlock(relativePosition), _chunkHit.GetBlockLight(relativePosition), _chunkHit.GetAmbientLight(relativePosition));
                     }
                 }
             }
@@ -66,16 +67,16 @@ namespace PixelMiner.WorldInteraction
                 {
                     if (_hit.collider.transform.parent != null && _hit.collider.transform.parent.TryGetComponent<Chunk>(out _chunkHit))
                     {
-                        Vector3Int hitPosition = new Vector3Int(Mathf.FloorToInt(_hit.point.x + 0.001f),
+                        Vector3Int hitGlobalPosition = new Vector3Int(Mathf.FloorToInt(_hit.point.x + 0.001f),
                                                                 Mathf.FloorToInt(_hit.point.y + 0.001f),
                                                                 Mathf.FloorToInt(_hit.point.z + 0.001f));
-                        _cursor.transform.position = hitPosition;
-
-                        if(_chunkHit.GetBlock(hitPosition) == BlockType.Air)
+                        _cursor.transform.position = hitGlobalPosition;
+                        Vector3Int hitRelativePosition = GlobalToRelativeBlockPosition(hitGlobalPosition);
+                        if (_chunkHit.GetBlock(hitRelativePosition) == BlockType.Air || _chunkHit.GetBlock(hitRelativePosition) == BlockType.Water)
                         {
-                            _chunkHit.SetBlock(hitPosition, BlockType.Light);
-                            _lightBfsQueue.Enqueue(new LightNode() { position = hitPosition, val = 15 });
-                            await LightCalculator.PropagateLightAsync(_lightBfsQueue);
+                            _chunkHit.SetBlock(hitRelativePosition, BlockType.Light);
+                            _lightBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = LightUtils.MaxLightIntensity });
+                            await LightCalculator.PropagateBlockLightAsync(_lightBfsQueue);
                             
                             _chunkHit.ReDrawChunkAsync();
                         }                
@@ -90,17 +91,17 @@ namespace PixelMiner.WorldInteraction
                 {
                     if (_hit.collider.transform.parent != null && _hit.collider.transform.parent.TryGetComponent<Chunk>(out _chunkHit))
                     {
-                        Vector3Int hitPosition = new Vector3Int(Mathf.FloorToInt(_hit.point.x + 0.001f),
+                        Vector3Int hitGlobalPosition = new Vector3Int(Mathf.FloorToInt(_hit.point.x + 0.001f),
                                                                 Mathf.FloorToInt(_hit.point.y + 0.001f),
                                                                 Mathf.FloorToInt(_hit.point.z + 0.001f));
-                        _cursor.transform.position = hitPosition;
+                        _cursor.transform.position = hitGlobalPosition;
 
-
-                        if(_chunkHit.GetBlock(hitPosition) != BlockType.Air)
+                        Vector3Int hitRelativePosition = GlobalToRelativeBlockPosition(hitGlobalPosition);
+                        if (_chunkHit.GetBlock(hitRelativePosition) != BlockType.Air)
                         {
-                            _chunkHit.SetBlock(hitPosition, BlockType.Air);
-                            _lightRemovalBfsQueue.Enqueue(new LightNode() { position = hitPosition, val = _chunkHit.GetBlockLight(hitPosition) });
-                            await LightCalculator.RemoveLightAsync(_lightRemovalBfsQueue);
+                            _chunkHit.SetBlock(hitRelativePosition, BlockType.Air);
+                            _lightRemovalBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = _chunkHit.GetBlockLight(hitRelativePosition) });
+                            await LightCalculator.RemoveBlockLightAsync(_lightRemovalBfsQueue);
                             _chunkHit.ReDrawChunkAsync();
                         }
                       
@@ -116,17 +117,16 @@ namespace PixelMiner.WorldInteraction
                 {
                     if (_hit.collider.transform.parent != null && _hit.collider.transform.parent.TryGetComponent<Chunk>(out _chunkHit))
                     {
-                        Vector3Int hitPosition = new Vector3Int(Mathf.FloorToInt(_hit.point.x + 0.001f),
+                        Vector3Int hitGlobalPosition = new Vector3Int(Mathf.FloorToInt(_hit.point.x + 0.001f),
                                                                 Mathf.FloorToInt(_hit.point.y + 0.001f),
                                                                 Mathf.FloorToInt(_hit.point.z + 0.001f));
-                        _cursor.transform.position = hitPosition;
-
-                        if (_chunkHit.GetBlock(hitPosition) == BlockType.Air)
+                        _cursor.transform.position = hitGlobalPosition;
+                        Vector3Int hitRelativePosition = GlobalToRelativeBlockPosition(hitGlobalPosition);
+                        if (_chunkHit.GetBlock(hitRelativePosition) == BlockType.Air)
                         {
-                            _chunkHit.SetBlock(hitPosition, BlockType.Stone);
-                            Debug.Log($"Remove light: {_chunkHit.GetBlockLight(hitPosition)}");
-                            _lightRemovalBfsQueue.Enqueue(new LightNode() { position = hitPosition, val = _chunkHit.GetBlockLight(hitPosition)});
-                            await LightCalculator.RemoveLightAsync(_lightRemovalBfsQueue);
+                            _chunkHit.SetBlock(hitRelativePosition, BlockType.Stone);
+                            _lightRemovalBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = _chunkHit.GetBlockLight(hitGlobalPosition)});
+                            await LightCalculator.RemoveBlockLightAsync(_lightRemovalBfsQueue);
 
                             _chunkHit.ReDrawChunkAsync();
                         }
@@ -135,6 +135,26 @@ namespace PixelMiner.WorldInteraction
             }
 
 
+        }
+
+        public Vector3Int GlobalToRelativeBlockPosition(Vector3 globalPosition)
+        {
+            // Assuming chunk volume is (32, 10, 32)
+            int chunkWidth = 32;
+            int chunkHeight = 10;
+            int chunkDepth = 32;
+
+            // Calculate the relative position within the chunk
+            int relativeX = Mathf.FloorToInt(globalPosition.x) % chunkWidth;
+            int relativeY = Mathf.FloorToInt(globalPosition.y) % chunkHeight;
+            int relativeZ = Mathf.FloorToInt(globalPosition.z) % chunkDepth;
+
+            // Ensure that the result is within the chunk's dimensions
+            if (relativeX < 0) relativeX += chunkWidth;
+            if (relativeY < 0) relativeY += chunkHeight;
+            if (relativeZ < 0) relativeZ += chunkDepth;
+
+            return new Vector3Int(relativeX, relativeY, relativeZ);
         }
     }
 }

@@ -4,6 +4,8 @@ namespace PixelMiner.Lighting
 {
     public static class LightUtils
     {
+        public const int MaxLightIntensity = 15;
+
         public static Color32 GetLightColor(byte light)
         {
             float maxLight = 15.0f;
