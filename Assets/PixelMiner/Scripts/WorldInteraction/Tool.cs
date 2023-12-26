@@ -143,7 +143,7 @@ namespace PixelMiner.WorldInteraction
                             _chunkHit.SetBlock(hitRelativePosition, BlockType.Stone);
                             _lightRemovalBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = _chunkHit.GetBlockLight(hitRelativePosition) });
                             await LightCalculator.RemoveBlockLightAsync(_lightRemovalBfsQueue, chunkNeedUpdate);
-
+                            //StartCoroutine(FindAnyObjectByType<LightCalculator>().RemoveBlockLightAsync(_lightRemovalBfsQueue, chunkNeedUpdate));
 
                             foreach (var chunk in chunkNeedUpdate)
                             {
