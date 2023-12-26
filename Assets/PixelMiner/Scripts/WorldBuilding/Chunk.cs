@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using PixelMiner.Enums;
 using System.Collections.Generic;
-
+using System.Threading.Tasks;
 
 namespace PixelMiner.WorldBuilding
 {
@@ -246,6 +246,21 @@ namespace PixelMiner.WorldBuilding
             ChunkHasDrawn = true;
         }
         public async void ReDrawChunkAsync()
+        {
+            MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this, LightAnimCurve);
+            MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(this);
+
+            SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
+
+            _meshCollider.sharedMesh = null;
+            _meshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
+
+
+            // Release mesh data
+            MeshDataPool.Release(solidMeshData);
+            MeshDataPool.Release(colliderMeshData);
+        }
+        public async Task ReDrawChunkTask()
         {
             MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this, LightAnimCurve);
             MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(this);

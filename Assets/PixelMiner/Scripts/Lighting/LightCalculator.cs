@@ -37,7 +37,7 @@ namespace PixelMiner.Lighting
     /// </summary>
     public class LightCalculator
     {
-        private static Vector3Int[] _neighborsPosition = new Vector3Int[6];
+        private static Vector3Int[] _neighborsPosition = new Vector3Int[10];
         private static Vector3Int[] _diagonalNeighborsPosition = new Vector3Int[4];
         private static Vector3Int CHUNK_VOLUME = new Vector3Int(32, 10, 32);
 
@@ -52,62 +52,51 @@ namespace PixelMiner.Lighting
         {
             //Debug.Log("Propagate light");
             int attempts = 0;
-            Main.Instance.SetBlockLight(lightBfsQueue.Peek().GlobalPosition, lightBfsQueue.Peek().Intensity);
-            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-            sw.Start();
+            Main main = Main.Instance;
+            LightNode startNode = lightBfsQueue.Peek();
+            main.SetBlockLight(startNode.GlobalPosition, startNode.Intensity);
+
 
             await Task.Run(() =>
             {
                 while (lightBfsQueue.Count > 0)
                 {
                     LightNode currentNode = lightBfsQueue.Dequeue();
-       
+
+                    if (main.TryGetChunk(currentNode.GlobalPosition, out Chunk chunk))
+                    {
+                        if (!chunkNeedUpdate.Contains(chunk))
+                        {
+                            chunkNeedUpdate.Add(chunk);
+                        }
+                    }
+
+
+
                     var neighbors = GetVoxelNeighborPosition(currentNode.GlobalPosition);
                     for (int i = 0; i < neighbors.Length; i++)
                     {
                         if (neighbors[i].y > CHUNK_VOLUME[1] - 1) continue;
 
-                        if (Main.Instance.TryGetChunk(neighbors[i], out Chunk chunk))
+        
+                        BlockType currentBlock = main.GetBlock(neighbors[i]);
+                        byte blockOpacity;
+                        if (i < 6)
                         {
-                            if (!chunkNeedUpdate.Contains(chunk))
-                            {
-                                chunkNeedUpdate.Add(chunk);
-                            }
+                            blockOpacity = LightUtils.GetOpacity(currentBlock);
+                        }
+                        else
+                        {
+                            blockOpacity = (byte)(LightUtils.GetOpacity(currentBlock) * 1.4);
                         }
 
-                        BlockType currentBlock = Main.Instance.GetBlock(neighbors[i]);
-                        byte blockOpacity = LightUtils.GetOpacity(currentBlock);
 
-                        if (Main.Instance.GetBlockLight(neighbors[i]) + blockOpacity < currentNode.Intensity && currentNode.Intensity > 0)
+
+                        if (main.GetBlockLight(neighbors[i]) + blockOpacity < currentNode.Intensity && currentNode.Intensity > 0)
                         {
                             LightNode neighborNode = new LightNode(neighbors[i], (byte)(currentNode.Intensity - blockOpacity));
                             lightBfsQueue.Enqueue(neighborNode);
-                            Main.Instance.SetBlockLight(neighborNode.GlobalPosition, neighborNode.Intensity);
-                        }
-                    }
-
-                    var diagonalNeighbors = GetVoxelNeighborDiagonalPositions(currentNode.GlobalPosition);
-                    for (int i = 0; i < diagonalNeighbors.Length; i++)
-                    {
-
-                        if (diagonalNeighbors[i].y > CHUNK_VOLUME[1] - 1) continue;
-
-                        if (Main.Instance.TryGetChunk(diagonalNeighbors[i], out Chunk chunk))
-                        {
-                            if (!chunkNeedUpdate.Contains(chunk))
-                            {
-                                chunkNeedUpdate.Add(chunk);
-                            }
-                        }
-
-                        BlockType currentBlock = Main.Instance.GetBlock(diagonalNeighbors[i]);
-                        byte blockOpacity = (byte)(LightUtils.GetOpacity(currentBlock) * 1.4);
-
-                        if (Main.Instance.GetBlockLight(diagonalNeighbors[i]) + blockOpacity < currentNode.Intensity && currentNode.Intensity > 0)
-                        {
-                            LightNode neighborNode = new LightNode(diagonalNeighbors[i], (byte)(currentNode.Intensity - blockOpacity));
-                            lightBfsQueue.Enqueue(neighborNode);
-                            Main.Instance.SetBlockLight(neighborNode.GlobalPosition, neighborNode.Intensity);
+                            main.SetBlockLight(neighborNode.GlobalPosition, neighborNode.Intensity);
                         }
                     }
 
@@ -119,19 +108,15 @@ namespace PixelMiner.Lighting
                     }
                 }
 
-                Debug.Log($"Propagate Attempts: {attempts}");
+                //Debug.Log($"Propagate Attempts: {attempts}");
             });
-
-
-            sw.Stop();
-            Debug.Log($"times: {sw.ElapsedMilliseconds / 1000f} s");
         }
 
         public static async Task RemoveBlockLightAsync(Queue<LightNode> removeLightBfsQueue, HashSet<Chunk> chunkNeedUpdate)
         {
             //Debug.Log("Remove Light");
-
-            Main.Instance.SetBlockLight(removeLightBfsQueue.Peek().GlobalPosition, 0);
+            Main main = Main.Instance;
+            main.SetBlockLight(removeLightBfsQueue.Peek().GlobalPosition, 0);
             Queue<LightNode> spreadLightBfsQueue = new Queue<LightNode>();
             int attempts = 0;
 
@@ -144,67 +129,39 @@ namespace PixelMiner.Lighting
                     var neighbors = GetVoxelNeighborPosition(currentNode.GlobalPosition);
                     for (int i = 0; i < neighbors.Length; i++)
                     {
-                        //if (IsValidPosition(neighbors[i]) == false) continue;
-
-                        if (Main.Instance.GetBlockLight(neighbors[i]) != 0)
+                        if (main.GetBlockLight(neighbors[i]) != 0)
                         {
-                            if (Main.Instance.TryGetChunk(neighbors[i], out Chunk chunk))
+                            if (main.TryGetChunk(neighbors[i], out Chunk chunk))
                             {
                                 if (!chunkNeedUpdate.Contains(chunk))
                                 {
                                     chunkNeedUpdate.Add(chunk);
                                 }
                             }
+                            BlockType currentBlock = main.GetBlock(neighbors[i]);
+                            byte blockOpacity;
+                            if (i < 6)
+                            {
+                                blockOpacity = LightUtils.GetOpacity(currentBlock);
+                            }
+                            else
+                            {
+                                blockOpacity = (byte)(LightUtils.GetOpacity(currentBlock) * 1.4);
+                            }
 
-                            BlockType currentBlock = Main.Instance.GetBlock(neighbors[i]);
-                            byte blockOpacity = LightUtils.GetOpacity(currentBlock);
-
-                            if (Main.Instance.GetBlockLight(neighbors[i]) + blockOpacity <= currentNode.Intensity)
+                            if (main.GetBlockLight(neighbors[i]) + blockOpacity <= currentNode.Intensity)
                             {
                                 LightNode neighborNode = new LightNode(neighbors[i], (byte)(currentNode.Intensity - blockOpacity));
                                 removeLightBfsQueue.Enqueue(neighborNode);
-                                Main.Instance.SetBlockLight(neighbors[i], 0);
+                                main.SetBlockLight(neighbors[i], 0);
                             }
                             else
                             {
-                                LightNode neighborNode = new LightNode(neighbors[i], Main.Instance.GetBlockLight(neighbors[i]));
+                                LightNode neighborNode = new LightNode(neighbors[i], main.GetBlockLight(neighbors[i]));
                                 spreadLightBfsQueue.Enqueue(neighborNode);
                             }
                         }
                     }
-
-
-                    var diagonalNeighbors = GetVoxelNeighborDiagonalPositions(currentNode.GlobalPosition);
-                    for (int i = 0; i < diagonalNeighbors.Length; i++)
-                    {
-                        if (Main.Instance.GetBlockLight(diagonalNeighbors[i]) != 0)
-                        {
-                            if (Main.Instance.TryGetChunk(diagonalNeighbors[i], out Chunk chunk))
-                            {
-                                if (!chunkNeedUpdate.Contains(chunk))
-                                {
-                                    chunkNeedUpdate.Add(chunk);
-                                }
-                            }
-
-                            BlockType currentBlock = Main.Instance.GetBlock(diagonalNeighbors[i]);
-                            byte blockOpacity = (byte)(LightUtils.GetOpacity(currentBlock) * 1.4);
-
-
-                            if (Main.Instance.GetBlockLight(diagonalNeighbors[i]) + blockOpacity <= currentNode.Intensity)
-                            {
-                                LightNode neighborNode = new LightNode(diagonalNeighbors[i], (byte)(currentNode.Intensity - blockOpacity));
-                                removeLightBfsQueue.Enqueue(neighborNode);
-                                Main.Instance.SetBlockLight(diagonalNeighbors[i], 0);
-                            }
-                            else
-                            {
-                                LightNode neighborNode = new LightNode(diagonalNeighbors[i], Main.Instance.GetBlockLight(diagonalNeighbors[i]));
-                                spreadLightBfsQueue.Enqueue(neighborNode);
-                            }
-                        }
-                    }
-
 
 
 
@@ -216,9 +173,9 @@ namespace PixelMiner.Lighting
                     }
                 }
             });
-           
 
-            Debug.Log($"Remove block Attempts: {attempts}");
+
+            //Debug.Log($"Remove block Attempts: {attempts}");
 
             if (spreadLightBfsQueue.Count > 0)
             {
@@ -307,18 +264,14 @@ namespace PixelMiner.Lighting
             _neighborsPosition[4] = position + new Vector3Int(0, 1, 0);
             _neighborsPosition[5] = position + new Vector3Int(0, -1, 0);
 
+
+            _neighborsPosition[6] = position + new Vector3Int(-1, 0, 1);
+            _neighborsPosition[7] = position + new Vector3Int(1, 0, 1);
+            _neighborsPosition[8] = position + new Vector3Int(-1, 0, -1);
+            _neighborsPosition[9] = position + new Vector3Int(1, 0, -1);
+
+
             return _neighborsPosition;
-        }
-
-        public static Vector3Int[] GetVoxelNeighborDiagonalPositions(Vector3Int position)
-        {
-            _diagonalNeighborsPosition[0] = position + new Vector3Int(-1, 0, 1);
-            _diagonalNeighborsPosition[1] = position + new Vector3Int(1, 0, 1);
-            _diagonalNeighborsPosition[2] = position + new Vector3Int(-1, 0, -1);
-            _diagonalNeighborsPosition[3] = position + new Vector3Int(1, 0, -1);
-
-            return _diagonalNeighborsPosition;
-
         }
         #endregion
     }

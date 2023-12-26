@@ -4,6 +4,8 @@ using PixelMiner.WorldBuilding;
 using PixelMiner.Lighting;
 using PixelMiner.Enums;
 using PixelMiner.Core;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace PixelMiner.WorldInteraction
 {
@@ -24,7 +26,7 @@ namespace PixelMiner.WorldInteraction
         private Chunk _chunkHit;
         private Queue<LightNode> _lightBfsQueue = new Queue<LightNode>();
         private Queue<LightNode> _lightRemovalBfsQueue = new Queue<LightNode>();
-        private HashSet<Chunk> chunkNeedUpdate = new HashSet<Chunk>();
+        private HashSet<Chunk> chunksNeedUpdate = new HashSet<Chunk>();
 
 
         private void Start()
@@ -83,13 +85,14 @@ namespace PixelMiner.WorldInteraction
                         {
                             _chunkHit.SetBlock(hitRelativePosition, BlockType.Light);
                             _lightBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = LightUtils.MaxLightIntensity });
-                            await LightCalculator.PropagateBlockLightAsync(_lightBfsQueue, chunkNeedUpdate);
+                            await LightCalculator.PropagateBlockLightAsync(_lightBfsQueue, chunksNeedUpdate);
 
-                            foreach(var chunk in chunkNeedUpdate)
-                            {
-                                chunk.ReDrawChunkAsync();
-                            }
-                            chunkNeedUpdate.Clear();
+                            //foreach(var chunk in chunkNeedUpdate)
+                            //{
+                            //    chunk.ReDrawChunkAsync();
+                            //}
+                            //chunkNeedUpdate.Clear();
+                            DrawChunksAtOnce(chunksNeedUpdate);
                         }                
                     }
                 }
@@ -112,13 +115,14 @@ namespace PixelMiner.WorldInteraction
                         {
                             _chunkHit.SetBlock(hitRelativePosition, BlockType.Air);
                             _lightRemovalBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = _chunkHit.GetBlockLight(hitRelativePosition) });
-                            await LightCalculator.RemoveBlockLightAsync(_lightRemovalBfsQueue, chunkNeedUpdate);
+                            await LightCalculator.RemoveBlockLightAsync(_lightRemovalBfsQueue, chunksNeedUpdate);
 
-                            foreach (var chunk in chunkNeedUpdate)
-                            {
-                                chunk.ReDrawChunkAsync();
-                            }
-                            chunkNeedUpdate.Clear();
+                            //foreach (var chunk in chunksNeedUpdate)
+                            //{
+                            //    chunk.ReDrawChunkAsync();
+                            //}
+                            //chunksNeedUpdate.Clear();
+                            DrawChunksAtOnce(chunksNeedUpdate);
                         }
                       
                     }
@@ -142,20 +146,19 @@ namespace PixelMiner.WorldInteraction
                         {
                             _chunkHit.SetBlock(hitRelativePosition, BlockType.Stone);
                             _lightRemovalBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = _chunkHit.GetBlockLight(hitRelativePosition) });
-                            await LightCalculator.RemoveBlockLightAsync(_lightRemovalBfsQueue, chunkNeedUpdate);
+                            await LightCalculator.RemoveBlockLightAsync(_lightRemovalBfsQueue, chunksNeedUpdate);
                             //StartCoroutine(FindAnyObjectByType<LightCalculator>().RemoveBlockLightAsync(_lightRemovalBfsQueue, chunkNeedUpdate));
 
-                            foreach (var chunk in chunkNeedUpdate)
-                            {
-                                chunk.ReDrawChunkAsync();
-                            }
-                            chunkNeedUpdate.Clear();
+                            //foreach (var chunk in chunksNeedUpdate)
+                            //{
+                            //    chunk.ReDrawChunkAsync();
+                            //}
+                            //chunksNeedUpdate.Clear();
+                            DrawChunksAtOnce(chunksNeedUpdate);
                         }
                     }
                 }
             }
-
-
         }
 
         public Vector3Int GlobalToRelativeBlockPosition(Vector3 globalPosition)
@@ -181,6 +184,20 @@ namespace PixelMiner.WorldInteraction
         private void PlaceBlock(Vector3 globalPosition, BlockType blockType)
         {
 
+        }
+
+        private async void DrawChunksAtOnce(HashSet<Chunk> chunks)
+        {
+            List<Task> drawChunkTasks = new List<Task>();
+
+            foreach (var chunk in chunks)
+            {
+                drawChunkTasks.Add(chunk.ReDrawChunkTask());
+            }
+
+            await Task.WhenAll(drawChunkTasks);
+
+            chunks.Clear();
         }
     }
 }
