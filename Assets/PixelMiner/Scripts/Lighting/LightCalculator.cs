@@ -35,7 +35,7 @@ namespace PixelMiner.Lighting
     /// <summary>
     /// To calculate lighting i use global position for LightNode.Position for easily calcualting light propagate cross chunk.
     /// </summary>
-    public class LightCalculator
+    public class LightCalculator : MonoBehaviour
     {
         private static Vector3Int[] _neighborsPosition = new Vector3Int[10];
         private static Vector3Int[] _diagonalNeighborsPosition = new Vector3Int[4];
@@ -63,6 +63,7 @@ namespace PixelMiner.Lighting
                 {
                     LightNode currentNode = lightBfsQueue.Dequeue();
 
+
                     if (main.TryGetChunk(currentNode.GlobalPosition, out Chunk chunk))
                     {
                         if (!chunkNeedUpdate.Contains(chunk))
@@ -72,13 +73,12 @@ namespace PixelMiner.Lighting
                     }
 
 
-
                     var neighbors = GetVoxelNeighborPosition(currentNode.GlobalPosition);
                     for (int i = 0; i < neighbors.Length; i++)
                     {
                         if (neighbors[i].y > CHUNK_VOLUME[1] - 1) continue;
 
-        
+
                         BlockType currentBlock = main.GetBlock(neighbors[i]);
                         byte blockOpacity;
                         if (i < 6)
@@ -110,6 +110,8 @@ namespace PixelMiner.Lighting
 
                 //Debug.Log($"Propagate Attempts: {attempts}");
             });
+
+            
         }
 
         public static async Task RemoveBlockLightAsync(Queue<LightNode> removeLightBfsQueue, HashSet<Chunk> chunkNeedUpdate)
@@ -118,7 +120,10 @@ namespace PixelMiner.Lighting
             Main main = Main.Instance;
             main.SetBlockLight(removeLightBfsQueue.Peek().GlobalPosition, 0);
             Queue<LightNode> spreadLightBfsQueue = new Queue<LightNode>();
+            Dictionary<Vector3Int, byte> spreadLightDict = new Dictionary<Vector3Int, byte>();
             int attempts = 0;
+
+
 
             await Task.Run(() =>
             {
@@ -129,6 +134,7 @@ namespace PixelMiner.Lighting
                     var neighbors = GetVoxelNeighborPosition(currentNode.GlobalPosition);
                     for (int i = 0; i < neighbors.Length; i++)
                     {
+
                         if (main.GetBlockLight(neighbors[i]) != 0)
                         {
                             if (main.TryGetChunk(neighbors[i], out Chunk chunk))
@@ -154,11 +160,25 @@ namespace PixelMiner.Lighting
                                 LightNode neighborNode = new LightNode(neighbors[i], (byte)(currentNode.Intensity - blockOpacity));
                                 removeLightBfsQueue.Enqueue(neighborNode);
                                 main.SetBlockLight(neighbors[i], 0);
+
+                                if (spreadLightDict.ContainsKey(neighbors[i]))
+                                {
+                                    spreadLightDict.Remove(neighbors[i]);
+                                }
                             }
                             else
                             {
                                 LightNode neighborNode = new LightNode(neighbors[i], main.GetBlockLight(neighbors[i]));
-                                spreadLightBfsQueue.Enqueue(neighborNode);
+
+
+                                if (spreadLightDict.ContainsKey(neighborNode.GlobalPosition) == false)
+                                {
+                                    spreadLightDict.Add(neighborNode.GlobalPosition, neighborNode.Intensity);
+                                }
+                                else
+                                {
+                                    spreadLightDict[neighborNode.GlobalPosition] = neighborNode.Intensity;
+                                }
                             }
                         }
                     }
@@ -173,10 +193,14 @@ namespace PixelMiner.Lighting
                     }
                 }
             });
-
+           
 
             //Debug.Log($"Remove block Attempts: {attempts}");
 
+            foreach(var node in spreadLightDict)
+            {
+                spreadLightBfsQueue.Enqueue(new LightNode(node.Key, node.Value));
+            }
             if (spreadLightBfsQueue.Count > 0)
             {
                 await PropagateBlockLightAsync(spreadLightBfsQueue, chunkNeedUpdate);

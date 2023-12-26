@@ -64,11 +64,11 @@ namespace PixelMiner.Camera
         {
             if (_input.Rot == -1)
             {
-                CurrentYRotAngle -= 45;
+                CurrentYRotAngle += 45;
             }
             else if (_input.Rot == 1)
             {
-                CurrentYRotAngle += 45;
+                CurrentYRotAngle -= 45;
             }
 
             // Clamp the _currentYRotAngle within the range -360 to 360

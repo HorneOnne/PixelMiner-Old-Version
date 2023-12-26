@@ -86,12 +86,9 @@ namespace PixelMiner.WorldInteraction
                             _chunkHit.SetBlock(hitRelativePosition, BlockType.Light);
                             _lightBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = LightUtils.MaxLightIntensity });
                             await LightCalculator.PropagateBlockLightAsync(_lightBfsQueue, chunksNeedUpdate);
+                            //StartCoroutine(FindAnyObjectByType<LightCalculator>().PropagateBlockLightAsync(_lightBfsQueue, chunksNeedUpdate));
 
-                            //foreach(var chunk in chunkNeedUpdate)
-                            //{
-                            //    chunk.ReDrawChunkAsync();
-                            //}
-                            //chunkNeedUpdate.Clear();
+                           
                             DrawChunksAtOnce(chunksNeedUpdate);
                         }                
                     }
@@ -116,12 +113,8 @@ namespace PixelMiner.WorldInteraction
                             _chunkHit.SetBlock(hitRelativePosition, BlockType.Air);
                             _lightRemovalBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = _chunkHit.GetBlockLight(hitRelativePosition) });
                             await LightCalculator.RemoveBlockLightAsync(_lightRemovalBfsQueue, chunksNeedUpdate);
-
-                            //foreach (var chunk in chunksNeedUpdate)
-                            //{
-                            //    chunk.ReDrawChunkAsync();
-                            //}
-                            //chunksNeedUpdate.Clear();
+                            //StartCoroutine(FindAnyObjectByType<LightCalculator>().RemoveBlockLightAsync(_lightRemovalBfsQueue, chunksNeedUpdate));
+                         
                             DrawChunksAtOnce(chunksNeedUpdate);
                         }
                       
@@ -149,11 +142,7 @@ namespace PixelMiner.WorldInteraction
                             await LightCalculator.RemoveBlockLightAsync(_lightRemovalBfsQueue, chunksNeedUpdate);
                             //StartCoroutine(FindAnyObjectByType<LightCalculator>().RemoveBlockLightAsync(_lightRemovalBfsQueue, chunkNeedUpdate));
 
-                            //foreach (var chunk in chunksNeedUpdate)
-                            //{
-                            //    chunk.ReDrawChunkAsync();
-                            //}
-                            //chunksNeedUpdate.Clear();
+              
                             DrawChunksAtOnce(chunksNeedUpdate);
                         }
                     }

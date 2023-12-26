@@ -1283,7 +1283,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _timeMultiplier: 5
   currentTime: 0
-  FreezeTime: 1
+  FreezeTime: 0
   Minutes: 0
   Hours: 16
   Days: 0
