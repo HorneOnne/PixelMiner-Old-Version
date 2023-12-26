@@ -44,7 +44,6 @@ namespace PixelMiner.WorldInteraction
 
         private void Update()
         {
-            return;
             if (UnityEngine.Time.time - _timer > _updateFrequency)
             {
                 _timer = UnityEngine.Time.time;
@@ -53,7 +52,7 @@ namespace PixelMiner.WorldInteraction
                                                  Mathf.FloorToInt(transform.position.y + 0.001f),   // Add some threshold to y
                                                  Mathf.FloorToInt(transform.position.z));
 
-                _blockLight = Main.Instance.GetBlockLight(position);
+                _blockLight = Main.Instance.GetBlockLight(transform.position);
                 UpdateBlockLightColorAsync();
 
                 //if (currentLightBlockLevel >= 0 && currentLightBlockLevel < 16 && (_blockLight != currentLightBlockLevel || _blockLight + 1 != currentLightBlockLevel))

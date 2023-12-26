@@ -518,6 +518,7 @@ GameObject:
   m_Component:
   - component: {fileID: 286510687}
   - component: {fileID: 286510688}
+  - component: {fileID: 286510689}
   m_Layer: 0
   m_Name: Camera
   m_TagString: Untagged
@@ -557,6 +558,19 @@ MonoBehaviour:
   _isometricCam: {fileID: 1694405457}
   _topDownCam: {fileID: 1334762263}
   Style: 0
+--- !u!114 &286510689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 286510686}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2d25c7cdaabbac439dc671fd6b86550, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lineMat: {fileID: 2100000, guid: 385f8a77edf910740a9ec9f878e7c7c1, type: 2}
 --- !u!1 &314038815
 GameObject:
   m_ObjectHideFlags: 0
@@ -645,7 +659,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dc3042468c9e7d47b2d01e98e0814de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _moveSpeed: 50
+  _moveSpeed: 15
   _moveDirection: {x: 0, y: 0, z: 0}
   ContinuousMove: 0
 --- !u!114 &314038822

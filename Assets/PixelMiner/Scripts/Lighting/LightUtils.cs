@@ -6,22 +6,22 @@ namespace PixelMiner.Lighting
 {
     public static class LightUtils
     {
-        public const int MaxLightIntensity = 15;
+        public const int MaxLightIntensity = 150;
 
         private static Dictionary<BlockType, byte> _opacityMap = new Dictionary<BlockType, byte>
         {
-            { BlockType.Air, 1 },     
-            { BlockType.GrassTop, 15 },  
-            { BlockType.GrassSide, 15 },
-            { BlockType.Dirt, 15 },
-            { BlockType.Stone, 15 },
+            { BlockType.Air, 10 },     
+            { BlockType.GrassTop, 150 },  
+            { BlockType.GrassSide, 150 },
+            { BlockType.Dirt, 150 },
+            { BlockType.Stone, 150 },
 
-            { BlockType.Water, 3 },     
-            { BlockType.Sand, 15 },
-            { BlockType.Glass, 1 },   
-            { BlockType.Snow, 15 },
+            { BlockType.Water, 30 },     
+            { BlockType.Sand, 150 },
+            { BlockType.Glass, 10 },   
+            { BlockType.Snow, 150 },
 
-            { BlockType.Light, 0 },     
+            { BlockType.Light, 10 },     
         };
         public static byte GetOpacity(BlockType blockType)
         {
@@ -38,12 +38,11 @@ namespace PixelMiner.Lighting
 
         public static Color32 GetLightColor(byte light)
         {
-            float maxLight = 15.0f;
             //float channelValue = light / maxLight;
             //return new Color(channelValue, channelValue, channelValue, 1.0f);
 
             // Apply square function for a darker appearance
-            float channelValue = Mathf.Pow(light / maxLight, 2);
+            float channelValue = Mathf.Pow(light / (float)MaxLightIntensity, 2);
             byte lightValue = (byte)(channelValue * 255);
             return new Color32(lightValue, lightValue, lightValue, 255);
         }

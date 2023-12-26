@@ -85,7 +85,6 @@ namespace PixelMiner.WorldInteraction
                             _lightBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = LightUtils.MaxLightIntensity });
                             await LightCalculator.PropagateBlockLightAsync(_lightBfsQueue, chunkNeedUpdate);
 
-                            Debug.Log(chunkNeedUpdate.Count);
                             foreach(var chunk in chunkNeedUpdate)
                             {
                                 chunk.ReDrawChunkAsync();
@@ -177,6 +176,11 @@ namespace PixelMiner.WorldInteraction
             if (relativeZ < 0) relativeZ += chunkDepth;
 
             return new Vector3Int(relativeX, relativeY, relativeZ);
+        }
+
+        private void PlaceBlock(Vector3 globalPosition, BlockType blockType)
+        {
+
         }
     }
 }
