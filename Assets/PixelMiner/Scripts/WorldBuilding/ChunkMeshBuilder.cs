@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using log4net.Appender;
 using UnityEngine;
 
 namespace PixelMiner.WorldBuilding
@@ -12,8 +11,11 @@ namespace PixelMiner.WorldBuilding
         private List<Vector2> _uv2s;
         private List<Vector2> _uv3s;
         private List<Color32> _colors;
+        private List<byte> _vertexAO;
         public bool[][,] Merged;
         private bool _isInit = false;
+
+        Color32[] _vertexAOColor;
 
         public ChunkMeshBuilder()
         {
@@ -32,6 +34,9 @@ namespace PixelMiner.WorldBuilding
             _uv2s = new List<Vector2>(100);
             _uv3s = new List<Vector2>(100);
             _colors = new List<Color32>(100);
+            _vertexAO = new List<byte>(10);
+            _vertexAOColor = new Color32[4];
+
             Merged = new bool[][,]
             {
                  new bool[dimensions[2], dimensions[1]],
@@ -42,7 +47,7 @@ namespace PixelMiner.WorldBuilding
             _isInit = true;
         }
 
-        public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, Vector2[] uv2s = null, Vector2[] uv3s = null, Color32[] colors = null, int voxelFace = 0)
+        public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, Vector2[] uv2s = null, Vector2[] uv3s = null, Color32[] colors = null, int voxelFace = 0, byte[] vertexAO = null)
         {
             if (vertices.Length != 4)
             {
@@ -79,18 +84,44 @@ namespace PixelMiner.WorldBuilding
                 }
             }
 
-
+   
+           
+            // Vertex Light
             if (colors != null)
             {
                 for (int i = 0; i < colors.Length; i++)
                 {
-                    this._colors.Add(colors[i]);
+                    //this._colors.Add(colors[i]);
+                }
+            }
+
+            // Vertex AO
+            if (vertexAO != null)
+            {
+                if (vertexAO.Length != 4)
+                {
+                    throw new System.ArgumentException("A quad requires 4 vertex color.");
+                }
+                for (int i = 0; i < vertexAO.Length; i++)
+                {
+                    _vertexAOColor[i] = VertexColorAO(vertexAO[i]);
+                    this._colors.Add(_vertexAOColor[i]);
                 }
             }
 
 
+
             switch (voxelFace)
             {
+                case 0:
+                    _triangles.Add(this._vertices.Count - 2);
+                    _triangles.Add(this._vertices.Count - 3);
+                    _triangles.Add(this._vertices.Count - 4);
+
+                    _triangles.Add(this._vertices.Count - 1);
+                    _triangles.Add(this._vertices.Count - 2);
+                    _triangles.Add(this._vertices.Count - 4);
+                    break;
                 case 1:
                     _triangles.Add(this._vertices.Count - 2);
                     _triangles.Add(this._vertices.Count - 3);
@@ -100,11 +131,10 @@ namespace PixelMiner.WorldBuilding
                     _triangles.Add(this._vertices.Count - 2);
                     _triangles.Add(this._vertices.Count - 4);
                     break;
-                case 4:
+                case 2:
                     _triangles.Add(this._vertices.Count - 4);
                     _triangles.Add(this._vertices.Count - 3);
                     _triangles.Add(this._vertices.Count - 2);
-
 
                     _triangles.Add(this._vertices.Count - 2);
                     _triangles.Add(this._vertices.Count - 1);
@@ -119,24 +149,16 @@ namespace PixelMiner.WorldBuilding
                     _triangles.Add(this._vertices.Count - 2);
                     _triangles.Add(this._vertices.Count - 1);
                     break;
-                case 0:
-                    _triangles.Add(this._vertices.Count - 2);
-                    _triangles.Add(this._vertices.Count - 3);
+                case 4:
                     _triangles.Add(this._vertices.Count - 4);
+                    _triangles.Add(this._vertices.Count - 3);
+                    _triangles.Add(this._vertices.Count - 2);
 
-                    _triangles.Add(this._vertices.Count - 1);
-                    _triangles.Add(this._vertices.Count - 2);
-                    _triangles.Add(this._vertices.Count - 4);
-                    break;
-                case 2:
-                    _triangles.Add(this._vertices.Count - 4);
-                    _triangles.Add(this._vertices.Count - 3);
-                    _triangles.Add(this._vertices.Count - 2);
-                    
+
                     _triangles.Add(this._vertices.Count - 2);
                     _triangles.Add(this._vertices.Count - 1);
                     _triangles.Add(this._vertices.Count - 4);
-                    break;
+                    break;                
                 default:
                     _triangles.Add(this._vertices.Count - 2);
                     _triangles.Add(this._vertices.Count - 3);
@@ -146,6 +168,49 @@ namespace PixelMiner.WorldBuilding
                     _triangles.Add(this._vertices.Count - 2);
                     _triangles.Add(this._vertices.Count - 4);
                     break;
+            }
+
+
+            Color32 VertexColorAO(byte vertexAO)
+            {
+                Color32 vertexColor;
+                switch(vertexAO)
+                {
+                    case 0:
+                        vertexColor = new Color32(0, 0, 0, 255);
+                        break;
+                    case 1:
+                        vertexColor = new Color32(0, 0, 0, 255);
+                        break;
+                    case 2:
+                        vertexColor = new Color32(0, 0, 0, 255);
+                        break;
+                    default:
+                        vertexColor = new Color32(255, 255, 255, 255);
+                        break;
+                }
+                return vertexColor;
+            }
+
+  
+            // Function to blend block light and ambient occlusion colors
+            Color32 BlendColors(Color32 blockLightColor, Color32 ambientOcclusionColor, float blendingFactor)
+            {
+                // Normalize blending factor to the range [0, 1]
+                blendingFactor = Mathf.Clamp01(blendingFactor);
+
+                if (blockLightColor.r == 0 && blockLightColor.g == 0 && blockLightColor.b == 0)
+                {
+                    // If block light color is zero, use ambient occlusion color directly
+                    return ambientOcclusionColor;
+                }
+
+                byte resultR = (byte)Mathf.RoundToInt(blockLightColor.r * (1 - blendingFactor) + ambientOcclusionColor.r * blendingFactor);
+                byte resultG = (byte)Mathf.RoundToInt(blockLightColor.g * (1 - blendingFactor) + ambientOcclusionColor.g * blendingFactor);
+                byte resultB = (byte)Mathf.RoundToInt(blockLightColor.b * (1 - blendingFactor) + ambientOcclusionColor.b * blendingFactor);
+                byte resultA = (byte)Mathf.RoundToInt(blockLightColor.a * (1 - blendingFactor) + ambientOcclusionColor.a * blendingFactor);
+
+                return new Color32(resultR, resultG, resultB, resultA);
             }
 
         }

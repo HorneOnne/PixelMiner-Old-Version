@@ -102,7 +102,7 @@ namespace PixelMiner.WorldBuilding
         {
             float depthValue = MathHelper.Map(depth, 0.2f, 0.45f, 0.0f, 0.75f);
             float offset = 0.05f;
-            // Debug.Log(depthValue);
+    
             return new Vector2[]
             {
                 new Vector2(0, depthValue),
@@ -137,7 +137,7 @@ namespace PixelMiner.WorldBuilding
                 Vector3Int e = b + new Vector3Int(1, 0, -1);
 
                 return blockA == blockB &&
-                       chunk.IsSolid(b) &&
+                       !chunk.IsSolid(b) &&
                        GetBlockLightPropagationForAdjacentFace(a, voxelFace) == GetBlockLightPropagationForAdjacentFace(b, voxelFace) &&
                        GetBlockLightPropagationForAdjacentFace(a, voxelFace) == GetBlockLightPropagationForAdjacentFace(c, voxelFace) &&
                        GetBlockLightPropagationForAdjacentFace(a, voxelFace) == GetBlockLightPropagationForAdjacentFace(d, voxelFace) &&
@@ -208,7 +208,12 @@ namespace PixelMiner.WorldBuilding
                         break;
 
                 }
-                return chunk.GetAmbientLight(blockPosition + offset);
+
+                Vector3Int blockOffsetPosition = blockPosition + offset;
+                blockOffsetPosition = new Vector3Int(Mathf.Clamp(blockOffsetPosition.x, 0, chunk._width),
+                                               Mathf.Clamp(blockOffsetPosition.y, 0, chunk._height),
+                                               Mathf.Clamp(blockOffsetPosition.z, 0, chunk._depth));
+                return chunk.GetAmbientLight(blockOffsetPosition);
             }
             byte FindMaxDifference(byte[] vertexColors)
             {
@@ -235,7 +240,8 @@ namespace PixelMiner.WorldBuilding
             Vector2[] uv2s = new Vector2[4];
             Vector2[] uv3s = new Vector2[4];
             Color32[] colors = new Color32[4];
-            byte[] vertexColorIntensity = new byte[4];  
+            byte[] verticesAO = new byte[4];
+            byte[] vertexColorIntensity = new byte[4];
             BlockType currBlock;
             int d, u, v;
             Vector3Int dimensions = chunk.Dimensions;
@@ -307,7 +313,6 @@ namespace PixelMiner.WorldBuilding
 
 
                                 quadSize = new Vector3Int();
-
                                 // Next step is loop to figure out width and height of the new merged quad.
                                 for (currPos = startPos, currPos[u]++;
                                     currPos[u] < dimensions[u] &&
@@ -316,7 +321,6 @@ namespace PixelMiner.WorldBuilding
                                     currPos[u]++)
                                 { }
                                 quadSize[u] = currPos[u] - startPos[u];
-
 
                                 for (currPos = startPos, currPos[v]++;
                                     currPos[v] < dimensions[v] &&
@@ -363,12 +367,26 @@ namespace PixelMiner.WorldBuilding
                                 vertices[3] = offsetPos + n;
 
 
+                                // Ambient occlusion
+                                // =================
+                                if(voxelFace == 5)
+                                {
+                                    verticesAO[0] = 0;
+                                    verticesAO[1] = 0;
+                                    verticesAO[2] = 0;
+                                    verticesAO[3] = 3;
+                                }
+
+
+
+
+
+                                // BLock light
+                                // ===========
                                 vertexColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(startPos, voxelFace);
                                 vertexColorIntensity[1] = GetBlockLightPropagationForAdjacentFace(startPos + m, voxelFace);
                                 vertexColorIntensity[2] = GetBlockLightPropagationForAdjacentFace(startPos + m + n, voxelFace);
                                 vertexColorIntensity[3] = GetBlockLightPropagationForAdjacentFace(startPos + n, voxelFace);
-
-
                                 if (vertexColorIntensity[0] == 0)
                                 {
                                     colors[0] = lightColor;
@@ -377,7 +395,6 @@ namespace PixelMiner.WorldBuilding
                                 {
                                     colors[0] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
                                 }
-
                                 if (vertexColorIntensity[1] == 0)
                                 {
                                     colors[1] = lightColor;
@@ -386,17 +403,14 @@ namespace PixelMiner.WorldBuilding
                                 {
                                     colors[1] = GetLightColor(vertexColorIntensity[1], lightAnimCurve);
                                 }
-
                                 if (vertexColorIntensity[2] == 0)
                                 {
-
                                     colors[2] = lightColor;
                                 }
                                 else
                                 {
                                     colors[2] = GetLightColor(vertexColorIntensity[2], lightAnimCurve);
                                 }
-
                                 if (vertexColorIntensity[3] == 0)
                                 {
                                     colors[3] = lightColor;
@@ -405,55 +419,7 @@ namespace PixelMiner.WorldBuilding
                                 {
                                     colors[3] = GetLightColor(vertexColorIntensity[3], lightAnimCurve);
                                 }
-                                //if(FindMaxDifference(vertexColorIntensity) <= 3)
-                                //{                                    
-                                //    if (vertexColorIntensity[0] == 0)
-                                //    {
-                                //        colors[0] = lightColor;
-                                //    }
-                                //    else
-                                //    {
-                                //        colors[0] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);                                     
-                                //    }
-
-                                //    if (vertexColorIntensity[1] == 0)
-                                //    {
-                                //        colors[1] = lightColor;                                     
-                                //    }
-                                //    else
-                                //    {
-                                //        colors[1] = GetLightColor(vertexColorIntensity[1], lightAnimCurve);
-                                //    }
-
-                                //    if (vertexColorIntensity[2] == 0)
-                                //    {
-
-                                //        colors[2] = lightColor;
-                                //    }
-                                //    else
-                                //    {
-                                //        colors[2] = GetLightColor(vertexColorIntensity[2], lightAnimCurve);                                      
-                                //    }
-
-                                //    if (vertexColorIntensity[3] == 0)
-                                //    {
-                                //        colors[3] = lightColor;
-                                //    }
-                                //    else
-                                //    {
-                                //        colors[3] = GetLightColor(vertexColorIntensity[3], lightAnimCurve);                                     
-                                //    }
-                                //}
-                                //else
-                                //{
-                                //    colors[0] = lightColor;
-                                //    colors[1] = lightColor;
-                                //    colors[2] = lightColor;
-                                //    colors[3] = lightColor;
-                                //}
-
-
-
+                             
 
                                 //uv3s[0] = LightMapUVs[GetAmbientLightPropagationForAdjacentFace(startPos, voxelFace), 0];
                                 //uv3s[1] = LightMapUVs[GetAmbientLightPropagationForAdjacentFace(startPos, voxelFace), 1];
@@ -462,7 +428,7 @@ namespace PixelMiner.WorldBuilding
 
 
                                 GetBlockUVs(currBlock, voxelFace, quadSize[u], quadSize[v], ref uvs, ref uv2s, ref uv3s);
-                                builder.AddQuadFace(vertices, uvs, uv2s, uv3s, colors, voxelFace);
+                                builder.AddQuadFace(vertices, uvs, uv2s, uv3s, colors, voxelFace, verticesAO);
 
 
                                 // Mark at this position has been merged

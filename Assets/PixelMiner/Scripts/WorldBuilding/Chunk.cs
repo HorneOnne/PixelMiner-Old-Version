@@ -255,7 +255,6 @@ namespace PixelMiner.WorldBuilding
             _meshCollider.sharedMesh = null;
             _meshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
 
-
             // Release mesh data
             MeshDataPool.Release(solidMeshData);
             MeshDataPool.Release(colliderMeshData);
