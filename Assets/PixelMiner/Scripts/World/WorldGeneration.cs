@@ -54,7 +54,7 @@ namespace PixelMiner.WorldGen
         [FoldoutGroup("Height map")]
         public float Snow = 1;
         private ModuleBase _heightModule;
-
+        
 
         // Heapmap
         // ======
@@ -176,6 +176,8 @@ namespace PixelMiner.WorldGen
         #endregion
 
 
+        public AnimationCurve LightAnimCurve;
+
         #region Properties
         [FoldoutGroup("World Properties"), Indent(1), ReadOnly, ShowInInspector] public int Seed { get; private set; }
         #endregion
@@ -234,12 +236,70 @@ namespace PixelMiner.WorldGen
         }
 
 
-        private void DrawChunk(Chunk chunk)
+        private async void DrawChunk(Chunk chunk)
         {
             if (!chunk.ChunkHasDrawn)
             {
-                chunk.DrawChunkAsync();
+                //chunk.DrawChunkAsync();
+
+
+                MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(chunk, LightAnimCurve);
+                //MeshData waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(this);
+                MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(chunk);
+
+                chunk.SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
+                //WaterMeshFilter.sharedMesh =  CreateMesh(waterMeshData);
+
+                chunk.MeshCollider.sharedMesh = null;
+                chunk.MeshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
+
+
+                // Release mesh data
+                MeshDataPool.Release(solidMeshData);
+                //MeshDataPool.Release(waterMeshData);
+                MeshDataPool.Release(colliderMeshData);
+
+                //LogUtils.WriteMeshToFile(SolidMeshFilter.sharedMesh, "Meshdata.txt");
+                chunk.ChunkHasDrawn = true;
             }
+        }
+        public async Task ReDrawChunkTask(Chunk chunk)
+        {
+            MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(chunk, LightAnimCurve);
+            MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(chunk);
+
+            chunk.SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
+
+            chunk.MeshCollider.sharedMesh = null;
+            chunk.MeshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
+
+
+            // Release mesh data
+            MeshDataPool.Release(solidMeshData);
+            MeshDataPool.Release(colliderMeshData);
+        }
+        public Mesh CreateMesh(MeshData meshData)
+        {
+            Mesh mesh = new Mesh();
+            mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
+            mesh.SetVertices(meshData.Vertices);
+            mesh.SetColors(meshData.Colors);
+            mesh.SetTriangles(meshData.Triangles, 0);
+            mesh.SetUVs(0, meshData.UVs);
+            mesh.SetUVs(1, meshData.UV2s);
+            mesh.SetUVs(2, meshData.UV3s);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+
+            return mesh;
+        }
+        private Mesh CreateColliderMesh(MeshData meshData)
+        {
+            Mesh colliderMesh = new Mesh();
+            colliderMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
+            colliderMesh.SetVertices(meshData.Vertices);
+            colliderMesh.SetTriangles(meshData.Triangles, 0);
+            return colliderMesh;
         }
         #endregion
 

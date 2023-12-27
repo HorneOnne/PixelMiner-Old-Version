@@ -13,7 +13,7 @@ namespace PixelMiner.WorldBuilding
 
         [SerializeField] public MeshFilter SolidMeshFilter;
         [SerializeField] public MeshFilter WaterMeshFilter;
-        private MeshCollider _meshCollider;
+        public MeshCollider MeshCollider;
 
         private Transform _playerTrans;
 
@@ -60,7 +60,7 @@ namespace PixelMiner.WorldBuilding
 
         private void Awake()
         {
-            _meshCollider = SolidMeshFilter.GetComponent<MeshCollider>();
+            MeshCollider = SolidMeshFilter.GetComponent<MeshCollider>();
         }
 
         private void Start()
@@ -222,83 +222,84 @@ namespace PixelMiner.WorldBuilding
             return IsWater(position) == false;
         }
 
-        public async void DrawChunkAsync()
-        {
-            if (ChunkHasDrawn) return;
 
-            MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this, LightAnimCurve);
-            //MeshData waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(this);
-            MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(this);
+        //public async void DrawChunkAsync()
+        //{
+        //    if (ChunkHasDrawn) return;
 
-            SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
-            //WaterMeshFilter.sharedMesh =  CreateMesh(waterMeshData);
+        //    MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this, LightAnimCurve);
+        //    //MeshData waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(this);
+        //    MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(this);
 
-            _meshCollider.sharedMesh = null;
-            _meshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
+        //    SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
+        //    //WaterMeshFilter.sharedMesh =  CreateMesh(waterMeshData);
 
-
-            // Release mesh data
-            MeshDataPool.Release(solidMeshData);
-            //MeshDataPool.Release(waterMeshData);
-            MeshDataPool.Release(colliderMeshData);
-
-            //LogUtils.WriteMeshToFile(SolidMeshFilter.sharedMesh, "Meshdata.txt");
-            ChunkHasDrawn = true;
-        }
-        public async void ReDrawChunkAsync()
-        {
-            MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this, LightAnimCurve);
-            MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(this);
-
-            SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
-
-            _meshCollider.sharedMesh = null;
-            _meshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
-
-            // Release mesh data
-            MeshDataPool.Release(solidMeshData);
-            MeshDataPool.Release(colliderMeshData);
-        }
-        public async Task ReDrawChunkTask()
-        {
-            MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this, LightAnimCurve);
-            MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(this);
-
-            SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
-
-            _meshCollider.sharedMesh = null;
-            _meshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
+        //    MeshCollider.sharedMesh = null;
+        //    MeshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
 
 
-            // Release mesh data
-            MeshDataPool.Release(solidMeshData);
-            MeshDataPool.Release(colliderMeshData);
-        }
+        //    // Release mesh data
+        //    MeshDataPool.Release(solidMeshData);
+        //    //MeshDataPool.Release(waterMeshData);
+        //    MeshDataPool.Release(colliderMeshData);
+
+        //    //LogUtils.WriteMeshToFile(SolidMeshFilter.sharedMesh, "Meshdata.txt");
+        //    ChunkHasDrawn = true;
+        //}
+        //public async void ReDrawChunkAsync()
+        //{
+        //    MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this, LightAnimCurve);
+        //    MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(this);
+
+        //    SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
+
+        //    MeshCollider.sharedMesh = null;
+        //    MeshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
+
+        //    // Release mesh data
+        //    MeshDataPool.Release(solidMeshData);
+        //    MeshDataPool.Release(colliderMeshData);
+        //}
+        //public async Task ReDrawChunkTask()
+        //{
+        //    MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this, LightAnimCurve);
+        //    MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(this);
+
+        //    SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
+
+        //    MeshCollider.sharedMesh = null;
+        //    MeshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
 
 
-        public Mesh CreateMesh(MeshData meshData)
-        {
-            Mesh mesh = new Mesh();
-            mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
-            mesh.SetVertices(meshData.Vertices);
-            mesh.SetColors(meshData.Colors);
-            mesh.SetTriangles(meshData.Triangles, 0);
-            mesh.SetUVs(0, meshData.UVs);
-            mesh.SetUVs(1, meshData.UV2s);
-            mesh.SetUVs(2, meshData.UV3s);
-            mesh.RecalculateNormals();
-            mesh.RecalculateBounds();
+        //    // Release mesh data
+        //    MeshDataPool.Release(solidMeshData);
+        //    MeshDataPool.Release(colliderMeshData);
+        //}
 
-            return mesh;
-        }
-        private Mesh CreateColliderMesh(MeshData meshData)
-        {
-            Mesh colliderMesh = new Mesh();
-            colliderMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
-            colliderMesh.SetVertices(meshData.Vertices);
-            colliderMesh.SetTriangles(meshData.Triangles, 0);
-            return colliderMesh;
-        }
+
+        //public Mesh CreateMesh(MeshData meshData)
+        //{
+        //    Mesh mesh = new Mesh();
+        //    mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
+        //    mesh.SetVertices(meshData.Vertices);
+        //    mesh.SetColors(meshData.Colors);
+        //    mesh.SetTriangles(meshData.Triangles, 0);
+        //    mesh.SetUVs(0, meshData.UVs);
+        //    mesh.SetUVs(1, meshData.UV2s);
+        //    mesh.SetUVs(2, meshData.UV3s);
+        //    mesh.RecalculateNormals();
+        //    mesh.RecalculateBounds();
+
+        //    return mesh;
+        //}
+        //private Mesh CreateColliderMesh(MeshData meshData)
+        //{
+        //    Mesh colliderMesh = new Mesh();
+        //    colliderMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
+        //    colliderMesh.SetVertices(meshData.Vertices);
+        //    colliderMesh.SetTriangles(meshData.Triangles, 0);
+        //    return colliderMesh;
+        //}
 
 
 

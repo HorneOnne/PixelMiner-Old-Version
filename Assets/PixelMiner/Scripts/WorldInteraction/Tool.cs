@@ -4,8 +4,8 @@ using PixelMiner.WorldBuilding;
 using PixelMiner.Lighting;
 using PixelMiner.Enums;
 using PixelMiner.Core;
-using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using PixelMiner.WorldGen;
 
 namespace PixelMiner.WorldInteraction
 {
@@ -181,7 +181,7 @@ namespace PixelMiner.WorldInteraction
 
             foreach (var chunk in chunks)
             {
-                drawChunkTasks.Add(chunk.ReDrawChunkTask());
+                drawChunkTasks.Add(WorldGeneration.Instance.ReDrawChunkTask(chunk));
             }
 
             await Task.WhenAll(drawChunkTasks);
