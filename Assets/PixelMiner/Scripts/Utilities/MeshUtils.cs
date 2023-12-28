@@ -1,11 +1,12 @@
 ﻿using System.Threading.Tasks;
 using UnityEngine;
-using PixelMiner.Utilities;
 using PixelMiner.Enums;
 using System;
 using TMPro;
+using PixelMiner.WorldBuilding;
+using PixelMiner.Lighting;
 
-namespace PixelMiner.WorldBuilding
+namespace PixelMiner.Utilities
 {
     /* Voxel Face Index
         * 0: Right
@@ -263,7 +264,7 @@ namespace PixelMiner.WorldBuilding
                     * BackFace -> Face that drawn in clockwise direction. (Need detect which face is clockwise in order to draw it on 
                     * Unity scene).
                     */
-                    if (voxelFace == 4) continue;    // Don't draw down face (because player cannot see it).
+                    //if (voxelFace == 4) continue;    // Don't draw down face (because player cannot see it).
 
                     bool isBackFace = voxelFace > 2;
                     d = voxelFace % 3;
@@ -272,7 +273,7 @@ namespace PixelMiner.WorldBuilding
                         case 0:
                             u = 2;
                             v = 1;
-                            break;
+                            break;  
                         case 1:
                             u = 0;
                             v = 2;
@@ -369,11 +370,24 @@ namespace PixelMiner.WorldBuilding
 
                                 // Ambient occlusion
                                 // =================
-                                if(voxelFace == 5)
+                                if(voxelFace == 5 || voxelFace == 1 || voxelFace == 0 || voxelFace == 2 || voxelFace == 3)
                                 {
-                                    verticesAO[0] = 0;
-                                    verticesAO[1] = 0;
-                                    verticesAO[2] = 0;
+                                    verticesAO[0] = (byte)VoxelAO.ProcessAO(chunk, startPos, 0, voxelFace);
+                                    verticesAO[1] = (byte)VoxelAO.ProcessAO(chunk, startPos, 1, voxelFace);
+                                    verticesAO[2] = (byte)VoxelAO.ProcessAO(chunk, startPos, 2, voxelFace);
+                                    verticesAO[3] = (byte)VoxelAO.ProcessAO(chunk, startPos, 3, voxelFace);
+
+ 
+                                    //verticesAO[0] = 0;
+                                    //verticesAO[1] = 0;
+                                    //verticesAO[2] = 0;
+                                    //verticesAO[3] = 3;
+                                }
+                                else
+                                {
+                                    verticesAO[0] = 3;
+                                    verticesAO[1] = 3;
+                                    verticesAO[2] = 3;
                                     verticesAO[3] = 3;
                                 }
 

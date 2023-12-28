@@ -59,6 +59,7 @@ namespace PixelMiner.WorldInteraction
                         _cursor.transform.position = hitGlobalPosition;
 
                         Vector3Int relativePosition = GlobalToRelativeBlockPosition(hitGlobalPosition);
+
                         OnTarget?.Invoke(hitGlobalPosition, _chunkHit.GetBlock(relativePosition), _chunkHit.GetBlockLight(relativePosition), _chunkHit.GetAmbientLight(relativePosition));
                     }
                 }
@@ -144,6 +145,7 @@ namespace PixelMiner.WorldInteraction
 
               
                             DrawChunksAtOnce(chunksNeedUpdate);
+                         
                         }
                     }
                 }
@@ -185,7 +187,6 @@ namespace PixelMiner.WorldInteraction
             }
 
             await Task.WhenAll(drawChunkTasks);
-
             chunks.Clear();
         }
     }

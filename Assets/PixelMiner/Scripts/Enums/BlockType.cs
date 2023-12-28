@@ -15,5 +15,14 @@
 
         Light = 105,
     }
+
+    public static class BlockTypeExtensions
+    {
+        public static bool IsSolid(this BlockType blockType)
+        {
+            return blockType != BlockType.Air &&
+                   blockType != BlockType.Water;
+        }
+    }
 }
 

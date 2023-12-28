@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace PixelMiner.WorldBuilding
+namespace PixelMiner.Utilities
 {
     public class ChunkMeshBuilder
     {
@@ -177,18 +177,19 @@ namespace PixelMiner.WorldBuilding
                 switch(vertexAO)
                 {
                     case 0:
-                        vertexColor = new Color32(0, 0, 0, 255);
+                        vertexColor = new Color32(255, 0, 0, 255);
                         break;
                     case 1:
-                        vertexColor = new Color32(0, 0, 0, 255);
+                        vertexColor = new Color32(0, 255, 0, 255);
                         break;
                     case 2:
-                        vertexColor = new Color32(0, 0, 0, 255);
+                        vertexColor = new Color32(0, 0, 255, 255);
                         break;
                     default:
-                        vertexColor = new Color32(255, 255, 255, 255);
+                        vertexColor = new Color32(255,255,255,255);
                         break;
                 }
+
                 return vertexColor;
             }
 

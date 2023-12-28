@@ -130,6 +130,13 @@ namespace PixelMiner.Lighting
                 while (removeLightBfsQueue.Count > 0)
                 {
                     LightNode currentNode = removeLightBfsQueue.Dequeue();
+                    if (main.TryGetChunk(currentNode.GlobalPosition, out Chunk chunk))
+                    {
+                        if (!chunkNeedUpdate.Contains(chunk))
+                        {
+                            chunkNeedUpdate.Add(chunk);
+                        }
+                    }
 
                     var neighbors = GetVoxelNeighborPosition(currentNode.GlobalPosition);
                     for (int i = 0; i < neighbors.Length; i++)
@@ -137,13 +144,7 @@ namespace PixelMiner.Lighting
 
                         if (main.GetBlockLight(neighbors[i]) != 0)
                         {
-                            if (main.TryGetChunk(neighbors[i], out Chunk chunk))
-                            {
-                                if (!chunkNeedUpdate.Contains(chunk))
-                                {
-                                    chunkNeedUpdate.Add(chunk);
-                                }
-                            }
+                        
                             BlockType currentBlock = main.GetBlock(neighbors[i]);
                             byte blockOpacity;
                             if (i < 6)

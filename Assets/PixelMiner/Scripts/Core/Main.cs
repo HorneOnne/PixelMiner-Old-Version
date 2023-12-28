@@ -3,7 +3,7 @@ using UnityEngine;
 using PixelMiner.WorldBuilding;
 using PixelMiner;
 using PixelMiner.Enums;
-using PixelMiner.Utilities;
+
 
 namespace PixelMiner.Core
 {
@@ -124,7 +124,7 @@ namespace PixelMiner.Core
         #region Block
         public BlockType GetBlock(Vector3 globalPosition)
         {
-            Vector3Int relativePosition = WorldCoordHelper.GlobalToRelativeBlockPosition(globalPosition);
+            Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition);
        
             if (TryGetChunk(globalPosition, out Chunk chunk))
             {            
@@ -134,7 +134,7 @@ namespace PixelMiner.Core
         }
         public void SetBlock(Vector3 globalPosition, BlockType blockType)
         {
-            Vector3Int relativePosition = WorldCoordHelper.GlobalToRelativeBlockPosition(globalPosition);
+            Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition);
             if (TryGetChunk(globalPosition, out Chunk chunk))
             {
                 chunk.SetBlock(relativePosition, blockType);
@@ -146,7 +146,7 @@ namespace PixelMiner.Core
         #region Light
         public byte GetBlockLight(Vector3 globalPosition)
         {
-            Vector3Int relativePosition = WorldCoordHelper.GlobalToRelativeBlockPosition(globalPosition);
+            Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition);
             if (TryGetChunk(globalPosition, out Chunk chunk))
             {
                 return chunk.GetBlockLight(relativePosition);
@@ -155,7 +155,7 @@ namespace PixelMiner.Core
         }
         public void SetBlockLight(Vector3 globalPosition, byte intensity)
         {
-            Vector3Int relativePosition = WorldCoordHelper.GlobalToRelativeBlockPosition(globalPosition);
+            Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition);
             if (TryGetChunk(globalPosition, out Chunk chunk))
             {
                 chunk.SetBlockLight(relativePosition, intensity);
@@ -178,6 +178,24 @@ namespace PixelMiner.Core
             return byte.MinValue;
         }
         #endregion
+
+        public static Vector3Int GlobalToRelativeBlockPosition(Vector3 globalPosition,
+          int chunkWidth = 32, int chunkHeight = 10, int chunkDepth = 32)
+        {
+            // Calculate the relative position within the chunk
+            int relativeX = Mathf.FloorToInt(globalPosition.x) % chunkWidth;
+            int relativeY = Mathf.FloorToInt(globalPosition.y) % chunkHeight;
+            int relativeZ = Mathf.FloorToInt(globalPosition.z) % chunkDepth;
+
+            // Ensure that the result is within the chunk's dimensions
+            if (relativeX < 0) relativeX += chunkWidth;
+            if (relativeY < 0) relativeY += chunkHeight;
+            if (relativeZ < 0) relativeZ += chunkDepth;
+
+            return new Vector3Int(relativeX, relativeY, relativeZ);
+        }
     }
+
+
 }
 

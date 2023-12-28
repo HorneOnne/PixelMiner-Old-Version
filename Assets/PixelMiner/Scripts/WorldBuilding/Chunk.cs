@@ -2,6 +2,7 @@
 using PixelMiner.Enums;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TMPro;
 
 namespace PixelMiner.WorldBuilding
 {
@@ -199,6 +200,18 @@ namespace PixelMiner.WorldBuilding
                     if (relativePosition.z == _depth)
                     {
                         return North.ChunkData[IndexOf(relativePosition.x, relativePosition.y, 0)];
+                    }
+                }
+
+                if(relativePosition.x >= 0 && relativePosition.x < _width && relativePosition.z >= 0 && relativePosition.z < _depth)
+                {
+                    if(relativePosition.y == -1)
+                    {
+                        return ChunkData[IndexOf(relativePosition.x, 0, relativePosition.z)];
+                    }
+                    if(relativePosition.y == _height)
+                    {
+                        return ChunkData[IndexOf(relativePosition.x, _height - 1, relativePosition.z)];
                     }
                 }
             }
