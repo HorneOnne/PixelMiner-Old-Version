@@ -5,6 +5,7 @@ using System;
 using TMPro;
 using PixelMiner.WorldBuilding;
 using PixelMiner.Lighting;
+using Mono.CSharp;
 
 namespace PixelMiner.Utilities
 {
@@ -370,25 +371,34 @@ namespace PixelMiner.Utilities
 
                                 // Ambient occlusion
                                 // =================
-                                if(voxelFace == 5 || voxelFace == 1 || voxelFace == 0 || voxelFace == 2 || voxelFace == 3)
-                                {
-                                    verticesAO[0] = (byte)VoxelAO.ProcessAO(chunk, startPos, 0, voxelFace);
-                                    verticesAO[1] = (byte)VoxelAO.ProcessAO(chunk, startPos, 1, voxelFace);
-                                    verticesAO[2] = (byte)VoxelAO.ProcessAO(chunk, startPos, 2, voxelFace);
-                                    verticesAO[3] = (byte)VoxelAO.ProcessAO(chunk, startPos, 3, voxelFace);
+                                bool anisotropy = false;
+                                verticesAO[0] = (byte)VoxelAO.ProcessAO(chunk, startPos, 0, voxelFace);
+                                verticesAO[1] = (byte)VoxelAO.ProcessAO(chunk, startPos, 1, voxelFace);
+                                verticesAO[2] = (byte)VoxelAO.ProcessAO(chunk, startPos, 2, voxelFace);
+                                verticesAO[3] = (byte)VoxelAO.ProcessAO(chunk, startPos, 3, voxelFace);
 
- 
-                                    //verticesAO[0] = 0;
-                                    //verticesAO[1] = 0;
-                                    //verticesAO[2] = 0;
-                                    //verticesAO[3] = 3;
-                                }
-                                else
+                                if (voxelFace == 1)// || voxelFace == 4)
                                 {
-                                    verticesAO[0] = 3;
-                                    verticesAO[1] = 3;
-                                    verticesAO[2] = 3;
-                                    verticesAO[3] = 3;
+                                    //if (verticesAO[1] + verticesAO[3] > verticesAO[0] + verticesAO[2])
+                                    if (verticesAO[1] + verticesAO[3] > verticesAO[2] + verticesAO[0])
+                                    {
+                                        vertices[3] = offsetPos;
+                                        vertices[0] = offsetPos + m;
+                                        vertices[1] = offsetPos + m + n;
+                                        vertices[2] = offsetPos + n;
+
+                                        var temp0 = verticesAO[0];
+                                        var temp1 = verticesAO[1];
+                                        var temp2 = verticesAO[2];
+                                        var temp3 = verticesAO[3];
+
+                                        verticesAO[0] = temp1;
+                                        verticesAO[1] = temp2;
+                                        verticesAO[2] = temp3;
+                                        verticesAO[3] = temp0;
+
+                                        anisotropy = true;
+                                    }
                                 }
 
 
@@ -442,7 +452,7 @@ namespace PixelMiner.Utilities
 
 
                                 GetBlockUVs(currBlock, voxelFace, quadSize[u], quadSize[v], ref uvs, ref uv2s, ref uv3s);
-                                builder.AddQuadFace(vertices, uvs, uv2s, uv3s, colors, voxelFace, verticesAO);
+                                builder.AddQuadFace(vertices, uvs, uv2s, uv3s, colors, voxelFace, verticesAO, anisotropy);
 
 
                                 // Mark at this position has been merged

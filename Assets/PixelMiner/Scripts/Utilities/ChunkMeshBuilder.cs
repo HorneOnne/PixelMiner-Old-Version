@@ -47,7 +47,7 @@ namespace PixelMiner.Utilities
             _isInit = true;
         }
 
-        public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, Vector2[] uv2s = null, Vector2[] uv3s = null, Color32[] colors = null, int voxelFace = 0, byte[] vertexAO = null)
+        public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, Vector2[] uv2s = null, Vector2[] uv3s = null, Color32[] colors = null, int voxelFace = 0, byte[] vertexAO = null, bool anisotropy = false)
         {
             if (vertices.Length != 4)
             {
@@ -55,17 +55,47 @@ namespace PixelMiner.Utilities
             }
 
             // Add the 4 vertices, and color for each vertex.
-            for (int i = 0; i < vertices.Length; i++)
+            if(voxelFace == 4)
             {
-                this._vertices.Add(vertices[i]);
+                this._vertices.Add(vertices[3]);
+                this._vertices.Add(vertices[2]);
+                this._vertices.Add(vertices[1]);
+                this._vertices.Add(vertices[0]);
+            }
+            else if (voxelFace == 2 || voxelFace == 3)
+            {
+                this._vertices.Add(vertices[1]);
+                this._vertices.Add(vertices[0]);
+                this._vertices.Add(vertices[3]);
+                this._vertices.Add(vertices[2]);
+            }
+            else
+            {
+                this._vertices.Add(vertices[0]);
+                this._vertices.Add(vertices[1]);
+                this._vertices.Add(vertices[2]);
+                this._vertices.Add(vertices[3]);
             }
 
-            if(uvs != null)
+           
+
+            if (uvs != null)
             {
-                for (int i = 0; i < uvs.Length; i++)
+                if(anisotropy)
                 {
-                    this._uvs.Add(uvs[i]);
+                    this._uvs.Add(uvs[1]);
+                    this._uvs.Add(uvs[2]);
+                    this._uvs.Add(uvs[3]);
+                    this._uvs.Add(uvs[0]);
                 }
+                else
+                {
+                    this._uvs.Add(uvs[0]);
+                    this._uvs.Add(uvs[1]);
+                    this._uvs.Add(uvs[2]);
+                    this._uvs.Add(uvs[3]);
+                }
+               
             }
                            
             if(uv2s != null)
@@ -102,73 +132,97 @@ namespace PixelMiner.Utilities
                 {
                     throw new System.ArgumentException("A quad requires 4 vertex color.");
                 }
+
                 for (int i = 0; i < vertexAO.Length; i++)
                 {
                     _vertexAOColor[i] = VertexColorAO(vertexAO[i]);
                     this._colors.Add(_vertexAOColor[i]);
                 }
+
+                //if (voxelFace == 2 || voxelFace == 3 || voxelFace == 4)
+                //{
+                //    this._colors.Add(VertexColorAO(vertexAO[1]));
+                //    this._colors.Add(VertexColorAO(vertexAO[0]));
+                //    this._colors.Add(VertexColorAO(vertexAO[3]));
+                //    this._colors.Add(VertexColorAO(vertexAO[2]));
+                //}
+                //else
+                //{               
+                //    this._colors.Add(VertexColorAO(vertexAO[0]));
+                //    this._colors.Add(VertexColorAO(vertexAO[1]));
+                //    this._colors.Add(VertexColorAO(vertexAO[2]));
+                //    this._colors.Add(VertexColorAO(vertexAO[3]));
+                //}
+
             }
 
+            _triangles.Add(this._vertices.Count - 2);
+            _triangles.Add(this._vertices.Count - 3);
+            _triangles.Add(this._vertices.Count - 4);
+
+            _triangles.Add(this._vertices.Count - 1);
+            _triangles.Add(this._vertices.Count - 2);
+            _triangles.Add(this._vertices.Count - 4);
 
 
-            switch (voxelFace)
-            {
-                case 0:
-                    _triangles.Add(this._vertices.Count - 2);
-                    _triangles.Add(this._vertices.Count - 3);
-                    _triangles.Add(this._vertices.Count - 4);
+            //switch (voxelFace)
+            //{
+            //    case 0:
+            //        _triangles.Add(this._vertices.Count - 2);
+            //        _triangles.Add(this._vertices.Count - 3);
+            //        _triangles.Add(this._vertices.Count - 4);
 
-                    _triangles.Add(this._vertices.Count - 1);
-                    _triangles.Add(this._vertices.Count - 2);
-                    _triangles.Add(this._vertices.Count - 4);
-                    break;
-                case 1:
-                    _triangles.Add(this._vertices.Count - 2);
-                    _triangles.Add(this._vertices.Count - 3);
-                    _triangles.Add(this._vertices.Count - 4);
+            //        _triangles.Add(this._vertices.Count - 1);
+            //        _triangles.Add(this._vertices.Count - 2);
+            //        _triangles.Add(this._vertices.Count - 4);
+            //        break;
+            //    case 1:
+            //        _triangles.Add(this._vertices.Count - 2);
+            //        _triangles.Add(this._vertices.Count - 3);
+            //        _triangles.Add(this._vertices.Count - 4);
 
-                    _triangles.Add(this._vertices.Count - 1);
-                    _triangles.Add(this._vertices.Count - 2);
-                    _triangles.Add(this._vertices.Count - 4);
-                    break;
-                case 2:
-                    _triangles.Add(this._vertices.Count - 4);
-                    _triangles.Add(this._vertices.Count - 3);
-                    _triangles.Add(this._vertices.Count - 2);
+            //        _triangles.Add(this._vertices.Count - 1);
+            //        _triangles.Add(this._vertices.Count - 2);
+            //        _triangles.Add(this._vertices.Count - 4);
+            //        break;
+            //    case 2:
+            //        _triangles.Add(this._vertices.Count - 4);
+            //        _triangles.Add(this._vertices.Count - 3);
+            //        _triangles.Add(this._vertices.Count - 2);
 
-                    _triangles.Add(this._vertices.Count - 2);
-                    _triangles.Add(this._vertices.Count - 1);
-                    _triangles.Add(this._vertices.Count - 4);
-                    break;
-                case 3:
-                    _triangles.Add(this._vertices.Count - 4);
-                    _triangles.Add(this._vertices.Count - 3);
-                    _triangles.Add(this._vertices.Count - 2);
+            //        _triangles.Add(this._vertices.Count - 2);
+            //        _triangles.Add(this._vertices.Count - 1);
+            //        _triangles.Add(this._vertices.Count - 4);
+            //        break;
+            //    case 3:
+            //        _triangles.Add(this._vertices.Count - 4);
+            //        _triangles.Add(this._vertices.Count - 3);
+            //        _triangles.Add(this._vertices.Count - 2);
 
-                    _triangles.Add(this._vertices.Count - 4);
-                    _triangles.Add(this._vertices.Count - 2);
-                    _triangles.Add(this._vertices.Count - 1);
-                    break;
-                case 4:
-                    _triangles.Add(this._vertices.Count - 4);
-                    _triangles.Add(this._vertices.Count - 3);
-                    _triangles.Add(this._vertices.Count - 2);
+            //        _triangles.Add(this._vertices.Count - 4);
+            //        _triangles.Add(this._vertices.Count - 2);
+            //        _triangles.Add(this._vertices.Count - 1);
+            //        break;
+            //    case 4:
+            //        _triangles.Add(this._vertices.Count - 4);
+            //        _triangles.Add(this._vertices.Count - 3);
+            //        _triangles.Add(this._vertices.Count - 2);
 
 
-                    _triangles.Add(this._vertices.Count - 2);
-                    _triangles.Add(this._vertices.Count - 1);
-                    _triangles.Add(this._vertices.Count - 4);
-                    break;                
-                default:
-                    _triangles.Add(this._vertices.Count - 2);
-                    _triangles.Add(this._vertices.Count - 3);
-                    _triangles.Add(this._vertices.Count - 4);
+            //        _triangles.Add(this._vertices.Count - 2);
+            //        _triangles.Add(this._vertices.Count - 1);
+            //        _triangles.Add(this._vertices.Count - 4);
+            //        break;
+            //    default:
+            //        _triangles.Add(this._vertices.Count - 2);
+            //        _triangles.Add(this._vertices.Count - 3);
+            //        _triangles.Add(this._vertices.Count - 4);
 
-                    _triangles.Add(this._vertices.Count - 1);
-                    _triangles.Add(this._vertices.Count - 2);
-                    _triangles.Add(this._vertices.Count - 4);
-                    break;
-            }
+            //        _triangles.Add(this._vertices.Count - 1);
+            //        _triangles.Add(this._vertices.Count - 2);
+            //        _triangles.Add(this._vertices.Count - 4);
+            //        break;
+            //}
 
 
             Color32 VertexColorAO(byte vertexAO)

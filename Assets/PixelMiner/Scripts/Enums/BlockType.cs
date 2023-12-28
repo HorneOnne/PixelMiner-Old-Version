@@ -14,6 +14,8 @@
         Snow = 66,
 
         Light = 105,
+
+        Wood = 4,
     }
 
     public static class BlockTypeExtensions

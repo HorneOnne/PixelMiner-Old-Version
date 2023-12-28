@@ -138,7 +138,7 @@ namespace PixelMiner.WorldInteraction
                         Vector3Int hitRelativePosition = GlobalToRelativeBlockPosition(hitGlobalPosition);
                         if (_chunkHit.GetBlock(hitRelativePosition) == BlockType.Air)
                         {
-                            _chunkHit.SetBlock(hitRelativePosition, BlockType.Stone);
+                            _chunkHit.SetBlock(hitRelativePosition, BlockType.Wood);
                             _lightRemovalBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = _chunkHit.GetBlockLight(hitRelativePosition) });
                             await LightCalculator.RemoveBlockLightAsync(_lightRemovalBfsQueue, chunksNeedUpdate);
                             //StartCoroutine(FindAnyObjectByType<LightCalculator>().RemoveBlockLightAsync(_lightRemovalBfsQueue, chunkNeedUpdate));
