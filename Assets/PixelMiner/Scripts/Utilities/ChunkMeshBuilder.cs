@@ -78,6 +78,11 @@ namespace PixelMiner.Utilities
                 this._vertices.Add(vertices[3]);
             }
 
+            //this._vertices.Add(vertices[0]);
+            //this._vertices.Add(vertices[1]);
+            //this._vertices.Add(vertices[2]);
+            //this._vertices.Add(vertices[3]);
+
 
 
             if (uvs != null)
@@ -107,12 +112,27 @@ namespace PixelMiner.Utilities
                 }
             }
 
+
+
             if (uv3s != null)
             {
-                for (int i = 0; i < uv3s.Length; i++)
-                {
-                    this._uv3s.Add(uv3s[i]);
-                }
+                //if(anisotropy)
+                //{
+                //    this._uv3s.Add(uv3s[1]);
+                //    this._uv3s.Add(uv3s[2]);
+                //    this._uv3s.Add(uv3s[3]);
+                //    this._uv3s.Add(uv3s[0]);
+                //}
+                //else
+                //{
+                //    this._uv3s.Add(uv3s[0]);
+                //    this._uv3s.Add(uv3s[1]);
+                //    this._uv3s.Add(uv3s[2]);
+                //    this._uv3s.Add(uv3s[3]);
+                //}
+               
+
+            
             }
 
 
@@ -122,7 +142,7 @@ namespace PixelMiner.Utilities
             {
                 for (int i = 0; i < colors.Length; i++)
                 {
-                    //this._colors.Add(colors[i]);
+                    this._colors.Add(colors[i]);
                 }
             }
 
@@ -134,11 +154,33 @@ namespace PixelMiner.Utilities
                     throw new System.ArgumentException("A quad requires 4 vertex color.");
                 }
 
+                byte[] indices = new byte[4]; 
+
                 for (int i = 0; i < vertexAO.Length; i++)
                 {
-                    //this._colors.Add(MyBlend(colors[i], vertexAO[i])); 
-                    this._colors.Add(VertexColorAO(vertexAO[i])); 
+                    //this._colors.Add(VertexColorAO(vertexAO[i])); 
+                    if (vertexAO[i] == 0)
+                    {
+                        indices[i] = 208;
+                    }
+                    else if (vertexAO[i] == 1)
+                    {
+                        indices[i] = 224;
+                    }
+                    else if (vertexAO[i] == 2)
+                    {
+                        indices[i] = 224;
+                    }
+                    else if (vertexAO[i] == 3)
+                    {
+                        indices[i] = 240;
+                    }
                 }
+
+                this._uv3s.Add(new Vector4(indices[0], indices[1], indices[2], indices[3]));
+                this._uv3s.Add(new Vector4(indices[0], indices[1], indices[2], indices[3]));
+                this._uv3s.Add(new Vector4(indices[0], indices[1], indices[2], indices[3]));
+                this._uv3s.Add(new Vector4(indices[0], indices[1], indices[2], indices[3]));
             }
 
             _triangles.Add(this._vertices.Count - 2);
@@ -156,13 +198,13 @@ namespace PixelMiner.Utilities
                 switch (vertexAO)
                 {
                     case 0:
-                        vertexColor = new Color32(50, 50, 50, 255);
+                        vertexColor = new Color32(151, 156, 157, 255);
                         break;
                     case 1:
-                        vertexColor = new Color32(75, 75, 75, 255);
+                        vertexColor = new Color32(200, 205, 206, 255);
                         break;
                     case 2:
-                        vertexColor = new Color32(200, 200, 200, 255);
+                        vertexColor = new Color32(200, 205, 206, 255);
                         break;
                     default:
                         vertexColor = new Color32(255, 255, 255, 255);

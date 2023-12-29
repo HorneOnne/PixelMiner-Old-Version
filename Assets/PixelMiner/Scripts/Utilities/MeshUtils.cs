@@ -159,7 +159,7 @@ namespace PixelMiner.Utilities
             }
             byte GetBlockLightPropagationForAdjacentFace(Vector3Int blockPosition, int voxelFace)
             {
-                Vector3Int offset;
+                Vector3Int offset = Vector3Int.up;
                 switch (voxelFace)
                 {
                     case 0:
@@ -184,7 +184,6 @@ namespace PixelMiner.Utilities
                         offset = Vector3Int.zero;
                         break;
                 }
-
 
                 Vector3Int blockOffsetPosition = blockPosition + offset;
                 blockOffsetPosition = new Vector3Int(Mathf.Clamp(blockOffsetPosition.x, 0, chunk._width),
@@ -374,6 +373,7 @@ namespace PixelMiner.Utilities
                                 offsetPos = startPos;
                                 offsetPos[d] += isBackFace ? 0 : 1;
 
+
                                 vertices[0] = offsetPos;
                                 vertices[1] = offsetPos + m;
                                 vertices[2] = offsetPos + m + n;
@@ -388,122 +388,162 @@ namespace PixelMiner.Utilities
                                 verticesAO[2] = (byte)VoxelAO.ProcessAO(chunk, startPos, 2, voxelFace);
                                 verticesAO[3] = (byte)VoxelAO.ProcessAO(chunk, startPos, 3, voxelFace);
 
-                                if (voxelFace == 1)
-                                {
-                                    if (verticesAO[1] + verticesAO[3] > verticesAO[2] + verticesAO[0])
-                                    {
-                                        vertices[3] = offsetPos;
-                                        vertices[0] = offsetPos + m;
-                                        vertices[1] = offsetPos + m + n;
-                                        vertices[2] = offsetPos + n;
+                                //if (voxelFace == 1)
+                                //{
+                                //    if (verticesAO[1] + verticesAO[3] > verticesAO[2] + verticesAO[0])
+                                //    {
+                                //        vertices[3] = offsetPos;
+                                //        vertices[0] = offsetPos + m;
+                                //        vertices[1] = offsetPos + m + n;
+                                //        vertices[2] = offsetPos + n;
 
-                                        var temp0 = verticesAO[0];
-                                        var temp1 = verticesAO[1];
-                                        var temp2 = verticesAO[2];
-                                        var temp3 = verticesAO[3];
+                                //        var temp0 = verticesAO[0];
+                                //        var temp1 = verticesAO[1];
+                                //        var temp2 = verticesAO[2];
+                                //        var temp3 = verticesAO[3];
 
-                                        verticesAO[0] = temp1;
-                                        verticesAO[1] = temp2;
-                                        verticesAO[2] = temp3;
-                                        verticesAO[3] = temp0;
+                                //        verticesAO[0] = temp1;
+                                //        verticesAO[1] = temp2;
+                                //        verticesAO[2] = temp3;
+                                //        verticesAO[3] = temp0;
 
-                                        anisotropy = true;
-                                    }
-                                }
+                                //        anisotropy = true;
+                                //    }
+                                //}
 
 
 
                                 // BLock light
                                 // ===========
-                                //vertexColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(startPos, voxelFace);
-                                //vertexColorIntensity[1] = GetBlockLightPropagationForAdjacentFace(startPos + m, voxelFace);
-                                //vertexColorIntensity[2] = GetBlockLightPropagationForAdjacentFace(startPos + m + n, voxelFace);
-                                //vertexColorIntensity[3] = GetBlockLightPropagationForAdjacentFace(startPos + n, voxelFace);
-                                //if (vertexColorIntensity[0] == 0)
-                                //{
-                                //    colors[0] = lightColor;
-                                //}
-                                //else
-                                //{
-                                //    colors[0] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
-                                //}
-                                //if (vertexColorIntensity[1] == 0)
-                                //{
-                                //    colors[1] = lightColor;
-                                //}
-                                //else
-                                //{
-                                //    colors[1] = GetLightColor(vertexColorIntensity[1], lightAnimCurve);
-                                //}
-                                //if (vertexColorIntensity[2] == 0)
-                                //{
-                                //    colors[2] = lightColor;
-                                //}
-                                //else
-                                //{
-                                //    colors[2] = GetLightColor(vertexColorIntensity[2], lightAnimCurve);
-                                //}
-                                //if (vertexColorIntensity[3] == 0)
-                                //{
-                                //    colors[3] = lightColor;
-                                //}
-                                //else
-                                //{
-                                //    colors[3] = GetLightColor(vertexColorIntensity[3], lightAnimCurve);
-                                //}
+                                vertexColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(startPos, voxelFace);
+                                vertexColorIntensity[1] = GetBlockLightPropagationForAdjacentFace(startPos + m, voxelFace);
+                                vertexColorIntensity[2] = GetBlockLightPropagationForAdjacentFace(startPos + m + n, voxelFace);
+                                vertexColorIntensity[3] = GetBlockLightPropagationForAdjacentFace(startPos + n, voxelFace);
 
-
-
-                                byte blockLightValue00 = GetBlockLightPropagationForAdjacentFace(startPos, voxelFace);
-                                byte blockLightValue10 = GetBlockLightPropagationForAdjacentFace(startPos + m, voxelFace);
-                                byte blockLightValue11 = GetBlockLightPropagationForAdjacentFace(startPos + m + n, voxelFace);
-                                byte blockLightValue01 = GetBlockLightPropagationForAdjacentFace(startPos + n, voxelFace);
-                                if (blockLightValue00 == 0)
+                                if (voxelFace == 1 || voxelFace == 5 || voxelFace == 0)
                                 {
-                                    blockLightValue00 = lightValue;
+                                    if (vertexColorIntensity[0] == 0)
+                                    {
+                                        colors[0] = lightColor;
+                                    }
+                                    else
+                                    {
+                                        colors[0] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
+                                    }
+                                    if (vertexColorIntensity[1] == 0)
+                                    {
+                                        colors[1] = lightColor;
+                                    }
+                                    else
+                                    {
+                                        colors[1] = GetLightColor(vertexColorIntensity[1], lightAnimCurve);
+                                    }
+                                    if (vertexColorIntensity[2] == 0)
+                                    {
+                                        colors[2] = lightColor;
+                                    }
+                                    else
+                                    {
+                                        colors[2] = GetLightColor(vertexColorIntensity[2], lightAnimCurve);
+                                    }
+                                    if (vertexColorIntensity[3] == 0)
+                                    {
+                                        colors[3] = lightColor;
+                                    }
+                                    else
+                                    {
+                                        colors[3] = GetLightColor(vertexColorIntensity[3], lightAnimCurve);
+                                    }
+                                }
+                                else if (voxelFace == 2 || voxelFace == 3)
+                                {
+                                    if (vertexColorIntensity[1] == 0)
+                                    {
+                                        colors[0] = lightColor;
+                                    }
+                                    else
+                                    {
+                                        colors[0] = GetLightColor(vertexColorIntensity[1], lightAnimCurve);
+                                    }
+                                    if (vertexColorIntensity[0] == 0)
+                                    {
+                                        colors[1] = lightColor;
+                                    }
+                                    else
+                                    {
+                                        colors[1] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
+                                    }
+                                    if (vertexColorIntensity[3] == 0)
+                                    {
+                                        colors[2] = lightColor;
+                                    }
+                                    else
+                                    {
+                                        colors[2] = GetLightColor(vertexColorIntensity[3], lightAnimCurve);
+                                    }
+                                    if (vertexColorIntensity[2] == 0)
+                                    {
+                                        colors[3] = lightColor;
+                                    }
+                                    else
+                                    {
+                                        colors[3] = GetLightColor(vertexColorIntensity[2], lightAnimCurve);
+                                    }
                                 }
                                 else
                                 {
-                                    blockLightValue00 = (byte)MapValue(blockLightValue00, 0, 150, 0, 240);
-                                }
-                                if (blockLightValue10 == 0)
-                                {
-                                    blockLightValue10 = lightValue;
-                                }
-                                else
-                                {
-                                    blockLightValue10 = (byte)MapValue(blockLightValue10, 0, 150, 0, 240);
-                                }
-                                if (blockLightValue11 == 0)
-                                {
-                                    blockLightValue11 = lightValue;
-                                }
-                                else
-                                {
-                                    blockLightValue11 = (byte)MapValue(blockLightValue11, 0, 150, 0, 240);
-                                }
-                                if (blockLightValue01 == 0)
-                                {
-                                    blockLightValue01 = lightValue;
-                                }
-                                else
-                                {
-                                    blockLightValue01 = (byte)MapValue(blockLightValue01, 0, 150, 0, 240);
+                                    colors[0] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
+                                    colors[1] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
+                                    colors[2] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
+                                    colors[3] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
                                 }
 
-                                                         
-                                uv3s[0] = new Vector4(blockLightValue00, blockLightValue10, blockLightValue11, blockLightValue01);
-                                uv3s[1] = new Vector4(blockLightValue00, blockLightValue10, blockLightValue11, blockLightValue01);
-                                uv3s[2] = new Vector4(blockLightValue00, blockLightValue10, blockLightValue11, blockLightValue01);
-                                uv3s[3] = new Vector4(blockLightValue00, blockLightValue10, blockLightValue11, blockLightValue01);
 
 
 
-                                //uv3s[0] = new Vector4(100, 100, 100, 100);
-                                //uv3s[1] = new Vector4(100, 100, 100, 100);
-                                //uv3s[2] = new Vector4(100, 100, 100, 100);
-                                //uv3s[3] = new Vector4(50, 100, 100, 100);
 
+
+                                //byte blockLightValue00 = GetBlockLightPropagationForAdjacentFace(startPos, voxelFace);
+                                //byte blockLightValue10 = GetBlockLightPropagationForAdjacentFace(startPos + m, voxelFace);
+                                //byte blockLightValue11 = GetBlockLightPropagationForAdjacentFace(startPos + m + n, voxelFace);
+                                //byte blockLightValue01 = GetBlockLightPropagationForAdjacentFace(startPos + n, voxelFace);
+
+                                //if (blockLightValue00 == 0)
+                                //{
+                                //    blockLightValue00 = lightValue;
+                                //}
+                                //else
+                                //{
+                                //    blockLightValue00 = (byte)MapValue(blockLightValue00, 0, 150, 0, 240);
+                                //}
+                                //if (blockLightValue10 == 0)
+                                //{
+                                //    blockLightValue10 = lightValue;
+                                //}
+                                //else
+                                //{
+                                //    blockLightValue10 = (byte)MapValue(blockLightValue10, 0, 150, 0, 240);
+                                //}
+                                //if (blockLightValue11 == 0)
+                                //{
+                                //    blockLightValue11 = lightValue;
+                                //}
+                                //else
+                                //{
+                                //    blockLightValue11 = (byte)MapValue(blockLightValue11, 0, 150, 0, 240);
+                                //}
+                                //if (blockLightValue01 == 0)
+                                //{
+                                //    blockLightValue01 = lightValue;
+                                //}
+                                //else
+                                //{
+                                //    blockLightValue01 = (byte)MapValue(blockLightValue01, 0, 150, 0, 240);
+                                //}
+                                //uv3s[0] = new Vector4(blockLightValue00, blockLightValue10, blockLightValue11, blockLightValue01);
+                                //uv3s[1] = new Vector4(blockLightValue00, blockLightValue10, blockLightValue11, blockLightValue01);
+                                //uv3s[2] = new Vector4(blockLightValue00, blockLightValue10, blockLightValue11, blockLightValue01);
+                                //uv3s[3] = new Vector4(blockLightValue00, blockLightValue10, blockLightValue11, blockLightValue01);
 
 
 

@@ -220,7 +220,7 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _HeightTransition: 0
-    - _LightIntensity: -0.00013747811
+    - _LightIntensity: 0.027885184
     - _Metallic: 0
     - _Metallic0: 0
     - _Metallic1: 0
