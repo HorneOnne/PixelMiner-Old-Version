@@ -3,6 +3,8 @@ using UnityEngine;
 using PixelMiner.UI.WorldGen;
 using PixelMiner.Enums;
 using PixelMiner.WorldGen;
+using PixelMiner.WorldBuilding;
+using PixelMiner.Core;
 
 namespace PixelMiner
 {
@@ -138,6 +140,16 @@ namespace PixelMiner
             QuantumConsole.Instance.LogToConsole($"Seed: {WorldGeneration.Instance.Seed}");
         }
 
+
+        [Command("/write_mesh")]
+        public static void WriteToMesh(Vector3Int globalPosition)
+        {
+            if(Main.Instance.TryGetChunk(globalPosition, out Chunk chunk))
+            {
+                LogUtils.WriteMeshToFile(chunk.SolidMeshFilter.sharedMesh, "MeshData.txt");
+            }
+            
+        }
 
 #endif
     }

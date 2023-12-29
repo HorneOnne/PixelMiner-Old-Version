@@ -101,40 +101,6 @@ namespace PixelMiner.Lighting
                         vertexAO = CalculateVertexAO(side1.IsSolid(), side2.IsSolid(), corner.IsSolid());
                     }
                     break;
-                case 5:
-                    if (vertex == 0)
-                    {
-                        BlockType side1 = chunk.GetBlock(relativePosition + new Vector3Int(0, -1, -1));
-                        BlockType side2 = chunk.GetBlock(relativePosition + new Vector3Int(-1, 0, -1));
-                        BlockType corner = chunk.GetBlock(relativePosition + new Vector3Int(-1, -1, -1));
-
-                        vertexAO = CalculateVertexAO(side1.IsSolid(), side2.IsSolid(), corner.IsSolid());
-                    }
-                    else if (vertex == 1)
-                    {
-                        BlockType side1 = chunk.GetBlock(relativePosition + new Vector3Int(0, -1, -1));
-                        BlockType side2 = chunk.GetBlock(relativePosition + new Vector3Int(1, 0, -1));
-                        BlockType corner = chunk.GetBlock(relativePosition + new Vector3Int(1, -1, -1));
-
-                        vertexAO = CalculateVertexAO(side1.IsSolid(), side2.IsSolid(), corner.IsSolid());
-                    }
-                    else if (vertex == 2)
-                    {
-                        BlockType side1 = chunk.GetBlock(relativePosition + new Vector3Int(0, 1, -1));
-                        BlockType side2 = chunk.GetBlock(relativePosition + new Vector3Int(1, 0, -1));
-                        BlockType corner = chunk.GetBlock(relativePosition + new Vector3Int(1, 1, -1));
-
-                        vertexAO = CalculateVertexAO(side1.IsSolid(), side2.IsSolid(), corner.IsSolid());
-                    }
-                    else if (vertex == 3)
-                    {
-                        BlockType side1 = chunk.GetBlock(relativePosition + new Vector3Int(0, 1, -1));
-                        BlockType side2 = chunk.GetBlock(relativePosition + new Vector3Int(-1, 0, -1));
-                        BlockType corner = chunk.GetBlock(relativePosition + new Vector3Int(-1, 1, -1));
-
-                        vertexAO = CalculateVertexAO(side1.IsSolid(), side2.IsSolid(), corner.IsSolid());
-                    }
-                    break;
                 case 2:
                     if (vertex == 0)
                     {
@@ -168,7 +134,7 @@ namespace PixelMiner.Lighting
 
                         vertexAO = CalculateVertexAO(side1.IsSolid(), side2.IsSolid(), corner.IsSolid());
                     }
-                    break;
+                    break;                           
                 case 3:
                     if (vertex == 0)
                     {
@@ -237,12 +203,44 @@ namespace PixelMiner.Lighting
                         vertexAO = CalculateVertexAO(side1.IsSolid(), side2.IsSolid(), corner.IsSolid());
                     }
                     break;
+                case 5:
+                    if (vertex == 0)
+                    {
+                        BlockType side1 = chunk.GetBlock(relativePosition + new Vector3Int(0, -1, -1));
+                        BlockType side2 = chunk.GetBlock(relativePosition + new Vector3Int(-1, 0, -1));
+                        BlockType corner = chunk.GetBlock(relativePosition + new Vector3Int(-1, -1, -1));
+
+                        vertexAO = CalculateVertexAO(side1.IsSolid(), side2.IsSolid(), corner.IsSolid());
+                    }
+                    else if (vertex == 1)
+                    {
+                        BlockType side1 = chunk.GetBlock(relativePosition + new Vector3Int(0, -1, -1));
+                        BlockType side2 = chunk.GetBlock(relativePosition + new Vector3Int(1, 0, -1));
+                        BlockType corner = chunk.GetBlock(relativePosition + new Vector3Int(1, -1, -1));
+
+                        vertexAO = CalculateVertexAO(side1.IsSolid(), side2.IsSolid(), corner.IsSolid());
+                    }
+                    else if (vertex == 2)
+                    {
+                        BlockType side1 = chunk.GetBlock(relativePosition + new Vector3Int(0, 1, -1));
+                        BlockType side2 = chunk.GetBlock(relativePosition + new Vector3Int(1, 0, -1));
+                        BlockType corner = chunk.GetBlock(relativePosition + new Vector3Int(1, 1, -1));
+
+                        vertexAO = CalculateVertexAO(side1.IsSolid(), side2.IsSolid(), corner.IsSolid());
+                    }
+                    else if (vertex == 3)
+                    {
+                        BlockType side1 = chunk.GetBlock(relativePosition + new Vector3Int(0, 1, -1));
+                        BlockType side2 = chunk.GetBlock(relativePosition + new Vector3Int(-1, 0, -1));
+                        BlockType corner = chunk.GetBlock(relativePosition + new Vector3Int(-1, 1, -1));
+
+                        vertexAO = CalculateVertexAO(side1.IsSolid(), side2.IsSolid(), corner.IsSolid());
+                    }
+                    break;
                 default:
                     break;
-
             }
                     
-
             return vertexAO;
         }
 

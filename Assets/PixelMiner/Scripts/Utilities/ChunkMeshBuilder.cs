@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using PixelMiner.Lighting;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace PixelMiner.Utilities
@@ -9,7 +10,7 @@ namespace PixelMiner.Utilities
         private List<int> _triangles;
         private List<Vector3> _uvs;
         private List<Vector2> _uv2s;
-        private List<Vector2> _uv3s;
+        private List<Vector4> _uv3s;
         private List<Color32> _colors;
         private List<byte> _vertexAO;
         public bool[][,] Merged;
@@ -32,7 +33,7 @@ namespace PixelMiner.Utilities
             _triangles = new List<int>(100);
             _uvs = new List<Vector3>(100);
             _uv2s = new List<Vector2>(100);
-            _uv3s = new List<Vector2>(100);
+            _uv3s = new List<Vector4>(100);
             _colors = new List<Color32>(100);
             _vertexAO = new List<byte>(10);
             _vertexAOColor = new Color32[4];
@@ -47,7 +48,7 @@ namespace PixelMiner.Utilities
             _isInit = true;
         }
 
-        public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, Vector2[] uv2s = null, Vector2[] uv3s = null, Color32[] colors = null, int voxelFace = 0, byte[] vertexAO = null, bool anisotropy = false)
+        public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, Vector2[] uv2s = null, Vector4[] uv3s = null, Color32[] colors = null, int voxelFace = 0, byte[] vertexAO = null, bool anisotropy = false, byte ambientLight = 0)
         {
             if (vertices.Length != 4)
             {
@@ -55,7 +56,7 @@ namespace PixelMiner.Utilities
             }
 
             // Add the 4 vertices, and color for each vertex.
-            if(voxelFace == 4)
+            if (voxelFace == 4)
             {
                 this._vertices.Add(vertices[3]);
                 this._vertices.Add(vertices[2]);
@@ -77,11 +78,11 @@ namespace PixelMiner.Utilities
                 this._vertices.Add(vertices[3]);
             }
 
-           
+
 
             if (uvs != null)
             {
-                if(anisotropy)
+                if (anisotropy)
                 {
                     this._uvs.Add(uvs[1]);
                     this._uvs.Add(uvs[2]);
@@ -95,10 +96,10 @@ namespace PixelMiner.Utilities
                     this._uvs.Add(uvs[2]);
                     this._uvs.Add(uvs[3]);
                 }
-               
+
             }
-                           
-            if(uv2s != null)
+
+            if (uv2s != null)
             {
                 for (int i = 0; i < uv2s.Length; i++)
                 {
@@ -114,8 +115,8 @@ namespace PixelMiner.Utilities
                 }
             }
 
-   
-           
+
+
             // Vertex Light
             if (colors != null)
             {
@@ -135,25 +136,9 @@ namespace PixelMiner.Utilities
 
                 for (int i = 0; i < vertexAO.Length; i++)
                 {
-                    _vertexAOColor[i] = VertexColorAO(vertexAO[i]);
-                    this._colors.Add(_vertexAOColor[i]);
+                    //this._colors.Add(MyBlend(colors[i], vertexAO[i])); 
+                    this._colors.Add(VertexColorAO(vertexAO[i])); 
                 }
-
-                //if (voxelFace == 2 || voxelFace == 3 || voxelFace == 4)
-                //{
-                //    this._colors.Add(VertexColorAO(vertexAO[1]));
-                //    this._colors.Add(VertexColorAO(vertexAO[0]));
-                //    this._colors.Add(VertexColorAO(vertexAO[3]));
-                //    this._colors.Add(VertexColorAO(vertexAO[2]));
-                //}
-                //else
-                //{               
-                //    this._colors.Add(VertexColorAO(vertexAO[0]));
-                //    this._colors.Add(VertexColorAO(vertexAO[1]));
-                //    this._colors.Add(VertexColorAO(vertexAO[2]));
-                //    this._colors.Add(VertexColorAO(vertexAO[3]));
-                //}
-
             }
 
             _triangles.Add(this._vertices.Count - 2);
@@ -165,110 +150,92 @@ namespace PixelMiner.Utilities
             _triangles.Add(this._vertices.Count - 4);
 
 
-            //switch (voxelFace)
-            //{
-            //    case 0:
-            //        _triangles.Add(this._vertices.Count - 2);
-            //        _triangles.Add(this._vertices.Count - 3);
-            //        _triangles.Add(this._vertices.Count - 4);
-
-            //        _triangles.Add(this._vertices.Count - 1);
-            //        _triangles.Add(this._vertices.Count - 2);
-            //        _triangles.Add(this._vertices.Count - 4);
-            //        break;
-            //    case 1:
-            //        _triangles.Add(this._vertices.Count - 2);
-            //        _triangles.Add(this._vertices.Count - 3);
-            //        _triangles.Add(this._vertices.Count - 4);
-
-            //        _triangles.Add(this._vertices.Count - 1);
-            //        _triangles.Add(this._vertices.Count - 2);
-            //        _triangles.Add(this._vertices.Count - 4);
-            //        break;
-            //    case 2:
-            //        _triangles.Add(this._vertices.Count - 4);
-            //        _triangles.Add(this._vertices.Count - 3);
-            //        _triangles.Add(this._vertices.Count - 2);
-
-            //        _triangles.Add(this._vertices.Count - 2);
-            //        _triangles.Add(this._vertices.Count - 1);
-            //        _triangles.Add(this._vertices.Count - 4);
-            //        break;
-            //    case 3:
-            //        _triangles.Add(this._vertices.Count - 4);
-            //        _triangles.Add(this._vertices.Count - 3);
-            //        _triangles.Add(this._vertices.Count - 2);
-
-            //        _triangles.Add(this._vertices.Count - 4);
-            //        _triangles.Add(this._vertices.Count - 2);
-            //        _triangles.Add(this._vertices.Count - 1);
-            //        break;
-            //    case 4:
-            //        _triangles.Add(this._vertices.Count - 4);
-            //        _triangles.Add(this._vertices.Count - 3);
-            //        _triangles.Add(this._vertices.Count - 2);
-
-
-            //        _triangles.Add(this._vertices.Count - 2);
-            //        _triangles.Add(this._vertices.Count - 1);
-            //        _triangles.Add(this._vertices.Count - 4);
-            //        break;
-            //    default:
-            //        _triangles.Add(this._vertices.Count - 2);
-            //        _triangles.Add(this._vertices.Count - 3);
-            //        _triangles.Add(this._vertices.Count - 4);
-
-            //        _triangles.Add(this._vertices.Count - 1);
-            //        _triangles.Add(this._vertices.Count - 2);
-            //        _triangles.Add(this._vertices.Count - 4);
-            //        break;
-            //}
-
-
             Color32 VertexColorAO(byte vertexAO)
             {
                 Color32 vertexColor;
-                switch(vertexAO)
+                switch (vertexAO)
                 {
                     case 0:
-                        vertexColor = new Color32(255, 0, 0, 255);
+                        vertexColor = new Color32(50, 50, 50, 255);
                         break;
                     case 1:
-                        vertexColor = new Color32(0, 255, 0, 255);
+                        vertexColor = new Color32(75, 75, 75, 255);
                         break;
                     case 2:
-                        vertexColor = new Color32(0, 0, 255, 255);
+                        vertexColor = new Color32(200, 200, 200, 255);
                         break;
                     default:
-                        vertexColor = new Color32(255,255,255,255);
+                        vertexColor = new Color32(255, 255, 255, 255);
                         break;
                 }
 
                 return vertexColor;
             }
 
-  
-            // Function to blend block light and ambient occlusion colors
-            Color32 BlendColors(Color32 blockLightColor, Color32 ambientOcclusionColor, float blendingFactor)
+
+            Color32 AdditiveBlend(Color32 color1, Color32 color2)
             {
-                // Normalize blending factor to the range [0, 1]
-                blendingFactor = Mathf.Clamp01(blendingFactor);
+                byte newR = (byte)Mathf.Clamp(color1.r + color2.r, 0, 255);
+                byte newG = (byte)Mathf.Clamp(color1.g + color2.g, 0, 255);
+                byte newB = (byte)Mathf.Clamp(color1.b + color2.b, 0, 255);
+                byte newA = (byte)Mathf.Max(color1.a, color2.a); // Use the maximum alpha value
 
-                if (blockLightColor.r == 0 && blockLightColor.g == 0 && blockLightColor.b == 0)
+                return new Color32(newR, newG, newB, newA);
+            }
+
+
+            Color32 MyBlend(Color32 blockColor, byte vertexAO)
+            {
+
+                switch (vertexAO)
                 {
-                    // If block light color is zero, use ambient occlusion color directly
-                    return ambientOcclusionColor;
+                    case 0:
+                        float percentage = 1.0f;
+                        byte newR = (byte)Mathf.Clamp(blockColor.r * (1f - percentage), 0, 255);
+                        byte newG = (byte)Mathf.Clamp(blockColor.g * (1f - percentage), 0, 255);
+                        byte newB = (byte)Mathf.Clamp(blockColor.b * (1f - percentage), 0, 255);
+                        return new Color32(newR, newG, newB, blockColor.a);
+                    case 1:
+                        float percentage2 = 0.9f;
+                        byte newR2 = (byte)Mathf.Clamp(blockColor.r * (1f - percentage2), 0, 255);
+                        byte newG2 = (byte)Mathf.Clamp(blockColor.g * (1f - percentage2), 0, 255);
+                        byte newB2 = (byte)Mathf.Clamp(blockColor.b * (1f - percentage2), 0, 255);
+                        return new Color32(newR2, newG2, newB2, blockColor.a);
+                    case 2:
+                        float percentage3 = 0.85f;
+                        byte newR3 = (byte)Mathf.Clamp(blockColor.r * (1f - percentage3), 0, 255);
+                        byte newG3 = (byte)Mathf.Clamp(blockColor.g * (1f - percentage3), 0, 255);
+                        byte newB3 = (byte)Mathf.Clamp(blockColor.b * (1f - percentage3), 0, 255);
+                        return new Color32(newR3, newG3, newB3, blockColor.a);
+                    default:
+                        float percentage4 = 0.0f;
+                        byte newR4 = (byte)Mathf.Clamp(blockColor.r * (1f - percentage4), 0, 255);
+                        byte newG4 = (byte)Mathf.Clamp(blockColor.g * (1f - percentage4), 0, 255);
+                        byte newB4 = (byte)Mathf.Clamp(blockColor.b * (1f - percentage4), 0, 255);
+                        return new Color32(newR4, newG4, newB4, blockColor.a);
                 }
-
-                byte resultR = (byte)Mathf.RoundToInt(blockLightColor.r * (1 - blendingFactor) + ambientOcclusionColor.r * blendingFactor);
-                byte resultG = (byte)Mathf.RoundToInt(blockLightColor.g * (1 - blendingFactor) + ambientOcclusionColor.g * blendingFactor);
-                byte resultB = (byte)Mathf.RoundToInt(blockLightColor.b * (1 - blendingFactor) + ambientOcclusionColor.b * blendingFactor);
-                byte resultA = (byte)Mathf.RoundToInt(blockLightColor.a * (1 - blendingFactor) + ambientOcclusionColor.a * blendingFactor);
-
-                return new Color32(resultR, resultG, resultB, resultA);
             }
 
         }
+        private Color32 DarkenBlend(Color32 baseColor, Color32 blendColor)
+        {
+            float factor = 0.5f; // Adjust this factor as needed for the darkness level
+
+            byte newR = (byte)Mathf.Clamp(baseColor.r * blendColor.r / 255f * factor, 0, 255);
+            byte newG = (byte)Mathf.Clamp(baseColor.g * blendColor.g / 255f * factor, 0, 255);
+            byte newB = (byte)Mathf.Clamp(baseColor.b * blendColor.b / 255f * factor, 0, 255);
+            byte newA = (byte)Mathf.Max(baseColor.a, blendColor.a); // Use the maximum alpha value
+
+            return new Color32(newR, newG, newB, newA);
+        }
+
+        private Color32 GetAmbientLightColor(byte ambientValue)
+        {
+            float channelValuePercent = (ambientValue / LightUtils.MaxLightIntensity);
+            byte channelValue = (byte)(channelValuePercent * 255);
+            return new Color32(channelValue, channelValue, channelValue, 255);
+        }
+
 
 
         public MeshData ToMeshData()

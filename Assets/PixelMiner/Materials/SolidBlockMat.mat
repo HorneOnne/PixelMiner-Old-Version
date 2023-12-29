@@ -128,8 +128,28 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2DArray_0388e0419a104caa991bf16313e849ba_TextureArray_1_Texture2DArray:
+        m_Texture: {fileID: 18700000, guid: cfc5b1e3a000d7040be624b6d28009e7, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2DArray_2bbcd79517aa4d5481abd4a1a77225a9_TextureArray_1_Texture2DArray:
+        m_Texture: {fileID: 18700000, guid: cfc5b1e3a000d7040be624b6d28009e7, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleTexture2DArray_2f3b93fe9ab44d0f8e17229c864ef1f2_TextureArray_1_Texture2DArray:
         m_Texture: {fileID: 18700000, guid: 542221eae4d961346b813dc2ff6a37df, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2DArray_62fc44f26979450da628417c80dda45e_TextureArray_1_Texture2DArray:
+        m_Texture: {fileID: 18700000, guid: cfc5b1e3a000d7040be624b6d28009e7, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2DArray_c404de5e87c2450a9f45553fe319b979_TextureArray_1_Texture2DArray:
+        m_Texture: {fileID: 18700000, guid: cfc5b1e3a000d7040be624b6d28009e7, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2DArray_cdfe4735adf14666b20d2d7c7ea16d91_TextureArray_1_Texture2DArray:
+        m_Texture: {fileID: 18700000, guid: cfc5b1e3a000d7040be624b6d28009e7, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_048b9eabe70e4c828ada69c0ebea0ff0_Texture_1_Texture2D:
@@ -224,7 +244,7 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _HeightTransition: 0
-    - _LightIntensity: 1.0028319
+    - _LightIntensity: -0.00013747811
     - _Metallic: 0
     - _Metallic0: 0
     - _Metallic1: 0
@@ -264,5 +284,5 @@ Material:
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
     - _SoftParticleFadeParams: {r: 0, g: 0, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _SunLight: {r: 1, g: 0.9943784, b: 0.8632076, a: 1}
+    - _SunLight: {r: 0, g: 0.101960786, b: 0.14901961, a: 1}
   m_BuildTextureStacks: []

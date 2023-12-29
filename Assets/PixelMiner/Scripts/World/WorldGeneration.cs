@@ -259,7 +259,7 @@ namespace PixelMiner.WorldGen
                 //MeshDataPool.Release(waterMeshData);
                 MeshDataPool.Release(colliderMeshData);
 
-                //LogUtils.WriteMeshToFile(SolidMeshFilter.sharedMesh, "Meshdata.txt");
+                //LogUtils.WriteMeshToFile(chunk.SolidMeshFilter.sharedMesh, "Meshdata.txt");
                 chunk.ChunkHasDrawn = true;
             }
         }

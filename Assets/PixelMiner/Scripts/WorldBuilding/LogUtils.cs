@@ -59,14 +59,14 @@ namespace PixelMiner.WorldBuilding
                 }
 
 
-                List<Vector2> uv3s = new List<Vector2>();
+                List<Vector4> uv3s = new List<Vector4>();
                 mesh.GetUVs(2, uv3s);
                 if (uv3s.Count > 0)
                 {
                     writer.WriteLine("\nUV3s:");
-                    foreach (Vector3 uv in uv3s)
+                    foreach (Vector4 uv in uv3s)
                     {
-                        writer.WriteLine($"{uv.x}, {uv.y}, {uv.z}");
+                        writer.WriteLine($"{uv.x}, {uv.y}, {uv.z}, {uv.w}");
                     }
                 }
 
