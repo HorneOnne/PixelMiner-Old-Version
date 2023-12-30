@@ -258,6 +258,7 @@ namespace PixelMiner.Utilities
             int d, u, v;
             Vector3Int dimensions = chunk.Dimensions;
             Color lightColor;
+            bool smoothLight = true;
 
             await Task.Run(() =>
             {
@@ -420,74 +421,84 @@ namespace PixelMiner.Utilities
                                 vertexColorIntensity[2] = GetBlockLightPropagationForAdjacentFace(startPos + m + n, voxelFace);
                                 vertexColorIntensity[3] = GetBlockLightPropagationForAdjacentFace(startPos + n, voxelFace);
 
-                                if (voxelFace == 1 || voxelFace == 5 || voxelFace == 0)
+                                if(smoothLight)
                                 {
-                                    if (vertexColorIntensity[0] == 0)
+                                    if (voxelFace == 1 || voxelFace == 5 || voxelFace == 0)
                                     {
-                                        colors[0] = lightColor;
+                                        if (vertexColorIntensity[0] == 0)
+                                        {
+                                            colors[0] = lightColor;
+                                        }
+                                        else
+                                        {
+                                            colors[0] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
+                                        }
+                                        if (vertexColorIntensity[1] == 0)
+                                        {
+                                            colors[1] = lightColor;
+                                        }
+                                        else
+                                        {
+                                            colors[1] = GetLightColor(vertexColorIntensity[1], lightAnimCurve);
+                                        }
+                                        if (vertexColorIntensity[2] == 0)
+                                        {
+                                            colors[2] = lightColor;
+                                        }
+                                        else
+                                        {
+                                            colors[2] = GetLightColor(vertexColorIntensity[2], lightAnimCurve);
+                                        }
+                                        if (vertexColorIntensity[3] == 0)
+                                        {
+                                            colors[3] = lightColor;
+                                        }
+                                        else
+                                        {
+                                            colors[3] = GetLightColor(vertexColorIntensity[3], lightAnimCurve);
+                                        }
+                                    }
+                                    else if (voxelFace == 2 || voxelFace == 3)
+                                    {
+                                        if (vertexColorIntensity[1] == 0)
+                                        {
+                                            colors[0] = lightColor;
+                                        }
+                                        else
+                                        {
+                                            colors[0] = GetLightColor(vertexColorIntensity[1], lightAnimCurve);
+                                        }
+                                        if (vertexColorIntensity[0] == 0)
+                                        {
+                                            colors[1] = lightColor;
+                                        }
+                                        else
+                                        {
+                                            colors[1] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
+                                        }
+                                        if (vertexColorIntensity[3] == 0)
+                                        {
+                                            colors[2] = lightColor;
+                                        }
+                                        else
+                                        {
+                                            colors[2] = GetLightColor(vertexColorIntensity[3], lightAnimCurve);
+                                        }
+                                        if (vertexColorIntensity[2] == 0)
+                                        {
+                                            colors[3] = lightColor;
+                                        }
+                                        else
+                                        {
+                                            colors[3] = GetLightColor(vertexColorIntensity[2], lightAnimCurve);
+                                        }
                                     }
                                     else
                                     {
                                         colors[0] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
-                                    }
-                                    if (vertexColorIntensity[1] == 0)
-                                    {
-                                        colors[1] = lightColor;
-                                    }
-                                    else
-                                    {
-                                        colors[1] = GetLightColor(vertexColorIntensity[1], lightAnimCurve);
-                                    }
-                                    if (vertexColorIntensity[2] == 0)
-                                    {
-                                        colors[2] = lightColor;
-                                    }
-                                    else
-                                    {
-                                        colors[2] = GetLightColor(vertexColorIntensity[2], lightAnimCurve);
-                                    }
-                                    if (vertexColorIntensity[3] == 0)
-                                    {
-                                        colors[3] = lightColor;
-                                    }
-                                    else
-                                    {
-                                        colors[3] = GetLightColor(vertexColorIntensity[3], lightAnimCurve);
-                                    }
-                                }
-                                else if (voxelFace == 2 || voxelFace == 3)
-                                {
-                                    if (vertexColorIntensity[1] == 0)
-                                    {
-                                        colors[0] = lightColor;
-                                    }
-                                    else
-                                    {
-                                        colors[0] = GetLightColor(vertexColorIntensity[1], lightAnimCurve);
-                                    }
-                                    if (vertexColorIntensity[0] == 0)
-                                    {
-                                        colors[1] = lightColor;
-                                    }
-                                    else
-                                    {
                                         colors[1] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
-                                    }
-                                    if (vertexColorIntensity[3] == 0)
-                                    {
-                                        colors[2] = lightColor;
-                                    }
-                                    else
-                                    {
-                                        colors[2] = GetLightColor(vertexColorIntensity[3], lightAnimCurve);
-                                    }
-                                    if (vertexColorIntensity[2] == 0)
-                                    {
-                                        colors[3] = lightColor;
-                                    }
-                                    else
-                                    {
-                                        colors[3] = GetLightColor(vertexColorIntensity[2], lightAnimCurve);
+                                        colors[2] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
+                                        colors[3] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
                                     }
                                 }
                                 else
