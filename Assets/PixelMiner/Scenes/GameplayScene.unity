@@ -454,8 +454,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0.00038987072
-      value: 0.010860942
+      time: -0.0074836644
+      value: -0.001773335
       inSlope: 0
       outSlope: 0
       tangentMode: 136
@@ -1242,8 +1242,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SeedInput: 7
   ChunkDimension: {x: 32, y: 10, z: 32}
-  AutoLoadChunk: 0
-  AutoUnloadChunk: 0
+  AutoLoadChunk: 1
+  AutoUnloadChunk: 1
   ShowChunksBorder: 0
   ShowTilegroupMaps: 0
   InitWorldWithHeatmap: 0
@@ -1281,9 +1281,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4aaa3fe2ac20524196b49e34eb03f49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _timeMultiplier: 5
+  _timeMultiplier: 1
   currentTime: 0
-  FreezeTime: 1
+  FreezeTime: 0
   Minutes: 0
   Hours: 12
   Days: 0

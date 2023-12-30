@@ -5,7 +5,6 @@ using System;
 using TMPro;
 using PixelMiner.WorldBuilding;
 using PixelMiner.Lighting;
-using Mono.CSharp;
 
 namespace PixelMiner.Utilities
 {
@@ -509,59 +508,6 @@ namespace PixelMiner.Utilities
                                     colors[3] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
                                 }
 
-
-
-
-
-
-                                //byte blockLightValue00 = GetBlockLightPropagationForAdjacentFace(startPos, voxelFace);
-                                //byte blockLightValue10 = GetBlockLightPropagationForAdjacentFace(startPos + m, voxelFace);
-                                //byte blockLightValue11 = GetBlockLightPropagationForAdjacentFace(startPos + m + n, voxelFace);
-                                //byte blockLightValue01 = GetBlockLightPropagationForAdjacentFace(startPos + n, voxelFace);
-
-                                //if (blockLightValue00 == 0)
-                                //{
-                                //    blockLightValue00 = lightValue;
-                                //}
-                                //else
-                                //{
-                                //    blockLightValue00 = (byte)MapValue(blockLightValue00, 0, 150, 0, 240);
-                                //}
-                                //if (blockLightValue10 == 0)
-                                //{
-                                //    blockLightValue10 = lightValue;
-                                //}
-                                //else
-                                //{
-                                //    blockLightValue10 = (byte)MapValue(blockLightValue10, 0, 150, 0, 240);
-                                //}
-                                //if (blockLightValue11 == 0)
-                                //{
-                                //    blockLightValue11 = lightValue;
-                                //}
-                                //else
-                                //{
-                                //    blockLightValue11 = (byte)MapValue(blockLightValue11, 0, 150, 0, 240);
-                                //}
-                                //if (blockLightValue01 == 0)
-                                //{
-                                //    blockLightValue01 = lightValue;
-                                //}
-                                //else
-                                //{
-                                //    blockLightValue01 = (byte)MapValue(blockLightValue01, 0, 150, 0, 240);
-                                //}
-                                //uv3s[0] = new Vector4(blockLightValue00, blockLightValue10, blockLightValue11, blockLightValue01);
-                                //uv3s[1] = new Vector4(blockLightValue00, blockLightValue10, blockLightValue11, blockLightValue01);
-                                //uv3s[2] = new Vector4(blockLightValue00, blockLightValue10, blockLightValue11, blockLightValue01);
-                                //uv3s[3] = new Vector4(blockLightValue00, blockLightValue10, blockLightValue11, blockLightValue01);
-
-
-
-                                //uv3s[0] = LightMapUVs[GetAmbientLightPropagationForAdjacentFace(startPos, voxelFace), 0];
-                                //uv3s[1] = LightMapUVs[GetAmbientLightPropagationForAdjacentFace(startPos, voxelFace), 1];
-                                //uv3s[2] = LightMapUVs[GetAmbientLightPropagationForAdjacentFace(startPos, voxelFace), 2];
-                                //uv3s[3] = LightMapUVs[GetAmbientLightPropagationForAdjacentFace(startPos, voxelFace), 3];
 
                                 // Ambient Lights
                                 byte ambientLight = chunk.GetAmbientLight(startPos);

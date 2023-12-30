@@ -243,7 +243,7 @@ Material:
     m_Ints: []
     m_Floats:
     - PixelSnap: 0
-    - _AO: 0
+    - _AO: 1
     - _Alpha: 1
     - _AlphaClip: 0
     - _AlphaToMask: 0
@@ -277,7 +277,7 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _HeightTransition: 0
-    - _LightIntensity: 1.0028319
+    - _LightIntensity: 0.45170873
     - _Metallic: 0
     - _Metallic0: 0
     - _Metallic1: 0
