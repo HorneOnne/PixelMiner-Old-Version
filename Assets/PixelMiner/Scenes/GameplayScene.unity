@@ -506,7 +506,7 @@ MonoBehaviour:
   EveningColor: {r: 0.019607844, g: 0.21568628, b: 0.32156864, a: 1}
   NightColor: {r: 0, g: 0.101960786, b: 0.14901961, a: 1}
   MaterialsEffectedByLight:
-  - {fileID: 2100000, guid: 536dc13194d23ed4d8999011355fbcb0, type: 2}
+  - {fileID: 2100000, guid: 385f8a77edf910740a9ec9f878e7c7c1, type: 2}
   - {fileID: 2100000, guid: 2782a2852f01ba64c906eca602109dc7, type: 2}
 --- !u!1 &286510686
 GameObject:
@@ -661,6 +661,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _meshFilter: {fileID: 473416391}
+  _meshRenderer: {fileID: 473416390}
 --- !u!1 &333124102
 GameObject:
   m_ObjectHideFlags: 0
@@ -1053,7 +1054,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 500
+  far clip plane: 1000
   field of view: 10
   orthographic: 0
   orthographic size: 10
@@ -1080,8 +1081,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: 86.5377, y: 54.000004, z: -97.96213}
+  m_LocalRotation: {x: 0.2588191, y: -0, z: -0, w: 0.9659258}
+  m_LocalPosition: {x: 147.77493, y: 54.000015, z: -123.32742}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1283,7 +1284,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _timeMultiplier: 1
   currentTime: 0
-  FreezeTime: 0
+  FreezeTime: 1
   Minutes: 0
   Hours: 14
   Days: 0

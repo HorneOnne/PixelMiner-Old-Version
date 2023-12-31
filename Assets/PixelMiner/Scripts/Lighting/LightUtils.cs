@@ -46,10 +46,5 @@ namespace PixelMiner.Lighting
             byte lightValue = (byte)(channelValue * 255);
             return new Color32(lightValue, lightValue, lightValue, 255);
         }
-
-        public static float CalculateSunlightIntensity(float hour, AnimationCurve sunLightIntensityCurve)
-        {
-            return sunLightIntensityCurve.Evaluate(hour / 24.0f);
-        }
     }
 }

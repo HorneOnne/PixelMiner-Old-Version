@@ -131,6 +131,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SolidMeshFilter: {fileID: 6227397144623573410}
   WaterMeshFilter: {fileID: 1053322345327296597}
+  MeshCollider: {fileID: 0}
   State: 0
   FrameX: 0
   FrameY: 0
@@ -232,7 +233,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 536dc13194d23ed4d8999011355fbcb0, type: 2}
+  - {fileID: 2100000, guid: 385f8a77edf910740a9ec9f878e7c7c1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

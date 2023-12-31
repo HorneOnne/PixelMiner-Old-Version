@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using PixelMiner.Lighting;
-namespace PixelMiner.Time
+using PixelMiner.Time;
+
+namespace PixelMiner.Core
 {
     public class DayNightCycle : MonoBehaviour
     {
@@ -27,6 +28,7 @@ namespace PixelMiner.Time
 
         #region Properties
         public Color AmbientColor { get => _currentSunLightColor; }
+
         #endregion
 
         private void Awake()
@@ -160,8 +162,15 @@ namespace PixelMiner.Time
         {
             for (int i = 0; i < MaterialsEffectedByLight.Count; i++)
             {
-                MaterialsEffectedByLight[i].SetFloat("_LightIntensity", LightUtils.CalculateSunlightIntensity(hour + _worldTime.Minutes / 60f, SunLightIntensityCurve));
+                MaterialsEffectedByLight[i].SetFloat("_LightIntensity", CalculateSunlightIntensity(hour + _worldTime.Minutes / 60f, SunLightIntensityCurve));
             }
         }
+
+        public float CalculateSunlightIntensity(float hour, AnimationCurve sunLightIntensityCurve)
+        {
+            return sunLightIntensityCurve.Evaluate(hour / 24.0f);
+        }
+
+        public float AmbientlightIntensity { get => CalculateSunlightIntensity(_worldTime.Hours + _worldTime.Minutes / 60f, SunLightIntensityCurve); }
     }
 }

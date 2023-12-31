@@ -1,9 +1,7 @@
 {
     "name": "PixelMiner.Time",
     "rootNamespace": "PixelMiner.Time",
-    "references": [
-        "GUID:3213c3c1098ba9a4c960430e3c1e3913"
-    ],
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

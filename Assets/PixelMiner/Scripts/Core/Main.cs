@@ -162,14 +162,18 @@ namespace PixelMiner.Core
             }
         }
 
+        public float GetAmbientLightIntensity()
+        {
+            return DayNightCycle.Instance.AmbientlightIntensity;
+            //return LightUtils.CalculateSunlightIntensity(hour + _worldTime.Minutes / 60f, SunLightIntensityCurve));
+            return 0;
+        }
 
         public byte GetAmbientLight(Vector3 globalPosition)
         {
             Vector3Int chunkFrame = new Vector3Int(Mathf.FloorToInt(globalPosition.x / ChunkDimension[0]),
                Mathf.FloorToInt(globalPosition.y / ChunkDimension[1]), Mathf.FloorToInt(globalPosition.z / ChunkDimension[2]));
-            Vector3Int relativePosition = new Vector3Int(Mathf.FloorToInt(globalPosition.x % ChunkDimension[0]),
-                                                         Mathf.FloorToInt(globalPosition.y % ChunkDimension[1]),
-                                                         Mathf.FloorToInt(globalPosition.z % ChunkDimension[2]));
+            Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition);
 
             if (TryGetChunk(globalPosition, out Chunk chunk))
             {

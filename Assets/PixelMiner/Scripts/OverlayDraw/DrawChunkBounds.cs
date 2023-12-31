@@ -47,7 +47,7 @@ namespace PixelMiner.OverlayDraw
 
         private void OnPostRender()
         {
-            Debug.Log("OnPostRender");
+            //Debug.Log("OnPostRender");
 
             for(int i = 0; i < _bounds.Count; i++)
             {
