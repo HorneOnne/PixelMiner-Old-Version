@@ -518,7 +518,6 @@ GameObject:
   m_Component:
   - component: {fileID: 286510687}
   - component: {fileID: 286510688}
-  - component: {fileID: 286510689}
   m_Layer: 0
   m_Name: Camera
   m_TagString: Untagged
@@ -558,19 +557,6 @@ MonoBehaviour:
   _isometricCam: {fileID: 1694405457}
   _topDownCam: {fileID: 1334762263}
   Style: 0
---- !u!114 &286510689
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 286510686}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2d25c7cdaabbac439dc671fd6b86550, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  lineMat: {fileID: 2100000, guid: 385f8a77edf910740a9ec9f878e7c7c1, type: 2}
 --- !u!1 &314038815
 GameObject:
   m_ObjectHideFlags: 0
@@ -975,6 +961,7 @@ GameObject:
   - component: {fileID: 519420029}
   - component: {fileID: 519420030}
   - component: {fileID: 519420033}
+  - component: {fileID: 519420034}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1134,6 +1121,19 @@ MonoBehaviour:
   m_CameraActivatedEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &519420034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41d09b0069492a645a42bd3f00f45045, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  BorderMat: {fileID: 2100000, guid: 385f8a77edf910740a9ec9f878e7c7c1, type: 2}
 --- !u!1 &560120211
 GameObject:
   m_ObjectHideFlags: 0
@@ -1285,7 +1285,7 @@ MonoBehaviour:
   currentTime: 0
   FreezeTime: 0
   Minutes: 0
-  Hours: 12
+  Hours: 14
   Days: 0
   _startHour: 12
 --- !u!1 &677337750

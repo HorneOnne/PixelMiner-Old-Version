@@ -6,10 +6,10 @@ namespace PixelMiner
 {
     public class ChunkBounds : MonoBehaviour
     {
-        DrawBounds drawer;
+        //DrawBounds drawer;
         private void Awake()
         {
-            drawer = GetComponent<DrawBounds>();
+            //drawer = GetComponent<DrawBounds>();
         }
         
         
