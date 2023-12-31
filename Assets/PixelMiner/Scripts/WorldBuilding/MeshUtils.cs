@@ -2,11 +2,11 @@
 using UnityEngine;
 using PixelMiner.Enums;
 using System;
-using TMPro;
-using PixelMiner.WorldBuilding;
 using PixelMiner.Lighting;
+using PixelMiner.Utilities;
+using PixelMiner.World;
 
-namespace PixelMiner.Utilities
+namespace PixelMiner.WorldBuilding
 {
     /* Voxel Face Index
         * 0: Right

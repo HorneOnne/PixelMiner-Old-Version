@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 using Sirenix.OdinInspector;
-using PixelMiner.WorldBuilding;
 using PixelMiner.Core;
+using PixelMiner.World;
 
 
-namespace PixelMiner.WorldGen
+namespace PixelMiner.WorldBuilding
 {
     public class WorldLoading : MonoBehaviour
     {

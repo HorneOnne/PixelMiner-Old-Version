@@ -1,4 +1,4 @@
-﻿using PixelMiner.Camera;
+﻿using PixelMiner.Cam;
 using PixelMiner.Utilities;
 using UnityEngine;
 

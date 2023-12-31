@@ -1,11 +1,6 @@
-using JetBrains.Annotations;
-using PixelMiner.WorldBuilding;
-using System.Collections;
-using System.Collections.Generic;
+using PixelMiner.World;
 using UnityEngine;
 using PixelMiner.Enums;
-using PixelMiner.Core;
-
 
 namespace PixelMiner.Lighting
 {

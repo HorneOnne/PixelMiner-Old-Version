@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using PixelMiner.WorldBuilding;
-using PixelMiner;
+using PixelMiner.World;
 using PixelMiner.Enums;
 
 

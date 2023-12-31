@@ -1,7 +1,7 @@
 ﻿using PixelMiner.DataStructure;
 using UnityEngine;
 
-namespace PixelMiner.Utilities
+namespace PixelMiner.WorldBuilding
 {
     public static class ChunkMeshBuilderPool
     {

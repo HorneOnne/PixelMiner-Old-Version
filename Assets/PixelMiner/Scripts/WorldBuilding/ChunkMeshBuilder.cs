@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace PixelMiner.Utilities
+namespace PixelMiner.WorldBuilding
 {
     public class ChunkMeshBuilder
     {

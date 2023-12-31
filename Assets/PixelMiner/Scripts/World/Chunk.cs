@@ -1,10 +1,8 @@
 ﻿using UnityEngine;
 using PixelMiner.Enums;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using TMPro;
 
-namespace PixelMiner.WorldBuilding
+
+namespace PixelMiner.World
 {
     [SelectionBase]
     public class Chunk : MonoBehaviour

@@ -2,7 +2,7 @@ using UnityEngine;
 using Cinemachine;
 
 
-namespace PixelMiner.Camera
+namespace PixelMiner.Cam
 {
     public class CameraLogicHandler : MonoBehaviour
     {

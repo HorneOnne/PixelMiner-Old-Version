@@ -1,7 +1,7 @@
 ﻿using Cinemachine;
 using System.Collections.Generic;
 
-namespace PixelMiner.Camera
+namespace PixelMiner.Cam
 {
     internal static class CameraSwitcher
     {

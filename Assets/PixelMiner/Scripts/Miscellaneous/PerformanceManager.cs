@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-namespace PixelMiner
+namespace PixelMiner.Miscellaneous
 {
     public class PerformanceManager : MonoBehaviour
     {

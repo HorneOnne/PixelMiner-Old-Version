@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace PixelMiner.WorldGen
+namespace PixelMiner.WorldBuilding
 {
     internal static class WorldGenUtilities
     {

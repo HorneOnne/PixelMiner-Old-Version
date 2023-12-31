@@ -5,7 +5,7 @@ using PixelMiner.Lighting;
 using PixelMiner.Enums;
 using PixelMiner.Core;
 using System.Threading.Tasks;
-using PixelMiner.WorldGen;
+using PixelMiner.World;
 
 namespace PixelMiner.WorldInteraction
 {

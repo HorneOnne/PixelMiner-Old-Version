@@ -8,12 +8,12 @@ using LibNoise.Generator;
 using Sirenix.OdinInspector;
 using PixelMiner.Utilities;
 using PixelMiner.Enums;
-using PixelMiner.WorldBuilding;
 using PixelMiner.Core;
 using PixelMiner.Lighting;
+using PixelMiner.World;
 
 
-namespace PixelMiner.WorldGen
+namespace PixelMiner.WorldBuilding
 {
     /* 
      * 1. Generate Chunk (Instantiate, Init data, 

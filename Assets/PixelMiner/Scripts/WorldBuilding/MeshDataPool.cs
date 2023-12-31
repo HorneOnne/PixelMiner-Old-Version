@@ -1,6 +1,6 @@
 ﻿using PixelMiner.DataStructure;
 
-namespace PixelMiner.Utilities
+namespace PixelMiner.WorldBuilding
 {
     public static class MeshDataPool
     {

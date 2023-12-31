@@ -4,13 +4,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace PixelMiner.OverlayDraw
+namespace PixelMiner.Cam
 {
     public class DrawChunkBounds : MonoBehaviour
     {
         public Material BorderMat;
 
-        private Camera _mainCam;
+        private UnityEngine.Camera _mainCam;
         private List<Bounds> _bounds = new List<Bounds>();
         private List<Color> _colors = new List<Color>();
 

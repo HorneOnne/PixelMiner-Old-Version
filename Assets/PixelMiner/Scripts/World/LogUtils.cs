@@ -3,7 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace PixelMiner.WorldBuilding
+namespace PixelMiner.World
 {
     public static class LogUtils
     {
