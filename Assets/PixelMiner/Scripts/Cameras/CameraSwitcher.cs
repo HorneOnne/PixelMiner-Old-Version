@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace PixelMiner.Cam
 {
+
     internal static class CameraSwitcher
     {
         private static List<CinemachineVirtualCamera> _cameras = new List<CinemachineVirtualCamera>();

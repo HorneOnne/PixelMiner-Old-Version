@@ -627,6 +627,12 @@ namespace PixelMiner.World
                                                          globalPosition[2] % Dimensions[2]);
             return relativePosition;
         }
+
+        public Bounds GetBounds()
+        {
+            Vector3 center = GlobalPosition + new Vector3(_width / 2.0f, _height / 2.0f, _depth / 2.0f);
+            return new Bounds(center, new Vector3(_width, _height, _depth));
+        }
         #endregion
     }
 }
