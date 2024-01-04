@@ -79,7 +79,7 @@ namespace PixelMiner
 
         private void OnRotatePerformed(InputAction.CallbackContext context)
         {
-            Debug.Log("OnRotatePerformed");
+            //Debug.Log("OnRotatePerformed");
             Rot = context.ReadValue<float>();
             OnRotateDetected?.Invoke(Rot);
         }
