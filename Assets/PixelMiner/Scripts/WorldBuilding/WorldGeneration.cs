@@ -22,7 +22,6 @@ namespace PixelMiner.WorldBuilding
      */
     public class WorldGeneration : MonoBehaviour
     {
-        private readonly object lockObject = new object(); // Define a lock object for thread safety
         public static WorldGeneration Instance { get; private set; }
         public event System.Action OnWorldGenWhenStartFinished;
 
@@ -54,7 +53,7 @@ namespace PixelMiner.WorldBuilding
         [FoldoutGroup("Height map")]
         public float Snow = 1;
         private ModuleBase _heightModule;
-        
+
 
         // Heapmap
         // ======
@@ -166,6 +165,8 @@ namespace PixelMiner.WorldBuilding
 
 
         // Cached
+        private int _maxHeightLevel = 4;
+        private int _underGroundLevel = 0;
         private Vector3Int _chunkDimension;
         private byte _calculateNoiseRangeSampleMultiplier = 15;  // 50 times. 50 * 100000 = 5 mil times.
         private int _calculateNoiseRangeCount = 1000000;    // 1 mil times.
@@ -218,7 +219,12 @@ namespace PixelMiner.WorldBuilding
 
 
             // World Initialization
-            InitWorldAsyncInSequence(_worldLoading.LastChunkFrame.x, _worldLoading.LastChunkFrame.z, widthInit: _worldLoading.InitWorldWidth, depthInit: _worldLoading.InitWorldDepth, () =>
+            InitWorldAsyncInSequence(_worldLoading.LastChunkFrame.x,
+                                     _worldLoading.LastChunkFrame.y,
+                                     _worldLoading.LastChunkFrame.z,
+                                     widthInit: _worldLoading.InitWorldWidth,
+                                     heightInit: _worldLoading.InitWorldHeight,
+                                     depthInit: _worldLoading.InitWorldDepth, () =>
             {
                 OnWorldGenWhenStartFinished?.Invoke();
             });
@@ -433,30 +439,37 @@ namespace PixelMiner.WorldBuilding
 
 
         #region Init Chunks
-        private async void InitWorldAsyncInSequence(int initFrameX, int initFrameZ, byte widthInit, byte depthInit, System.Action onFinished = null)
+        private async void InitWorldAsyncInSequence(int initFrameX, int initFrameY, int initFrameZ, byte widthInit, byte heightInit, byte depthInit, System.Action onFinished = null)
         {
             await ComputeNoiseRangeAsyncInParallel();
 
             Debug.Log($"min: {_minWorldNoiseValue}");
             Debug.Log($"max: {_maxWorldNoiseValue}");
+            int totalChunkLoad = 0;
 
             for (int x = initFrameX - widthInit; x <= initFrameX + widthInit; x++)
             {
-                for (int z = initFrameZ - depthInit; z <= initFrameZ + depthInit; z++)
+                for (int y = initFrameY - heightInit; y <= initFrameY + heightInit; y++)
                 {
-                    Chunk newChunk = await GenerateNewChunk(x, 0, z, _main.ChunkDimension);
-                    _worldLoading.LoadChunk(newChunk);
+                    for (int z = initFrameZ - depthInit; z <= initFrameZ + depthInit; z++)
+                    {
+                        if (y < 0) continue;
+                        totalChunkLoad++;
+
+                        Chunk newChunk = await GenerateNewChunk(x, y, z, _main.ChunkDimension);
+                        _worldLoading.LoadChunk(newChunk);
+                    }
                 }
+
             }
-
+            Debug.Log($"Total chunk loaded: {totalChunkLoad}");
             onFinished?.Invoke();
-            //_worldLoading.LoadChunksAroundPositionInSequence();
         }
-
-
 
         public async Task<Chunk> GenerateNewChunk(int frameX, int frameY, int frameZ, Vector3Int chunkDimension, bool applyDefaultData = true)
         {
+            //Debug.Log($"GenerateNewChunk: {frameX}  {frameY}  {frameZ}");
+
             Vector3Int frame = new Vector3Int(frameX, frameY, frameZ);
             Vector3 worldPosition = frame * new Vector3Int(chunkDimension[0], chunkDimension[1], chunkDimension[2]);
             Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity, _chunkParent.transform);
@@ -465,17 +478,33 @@ namespace PixelMiner.WorldBuilding
 
             if (applyDefaultData)
             {
-                float[] heightValues = await GetHeightMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
-                float[] heatValues = await GetHeatMapDataAysnc(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
-                float[] moistureValues = await GetMoistureMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
-                float[] riverValues = await GetRiverDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
-                heightValues = await DigRiverAsync(heightValues, riverValues, chunkDimension[0], chunkDimension[2]);
-                moistureValues = await ApplyHeightDataToMoistureDataAsync(heightValues, moistureValues, chunkDimension[0], chunkDimension[2]);
+                if(frameY <= 0)
+                {
+                    float[] heightValues = await GetHeightMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                    float[] heatValues = await GetHeatMapDataAysnc(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                    float[] moistureValues = await GetMoistureMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                    float[] riverValues = await GetRiverDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                    //heightValues = await DigRiverAsync(heightValues, riverValues, chunkDimension[0], chunkDimension[2]);
+                    moistureValues = await ApplyHeightDataToMoistureDataAsync(heightValues, moistureValues, chunkDimension[0], chunkDimension[2]);
 
-                await LoadHeightMapDataAsync(newChunk, heightValues);
-                await LoadHeatMapDataAsync(newChunk, heatValues);
-                await LoadMoistureMapDataAsync(newChunk, moistureValues);
-                await GenerateBiomeMapDataAsync(newChunk);
+                    await LoadHeightMapDataAsync(newChunk, heightValues);
+                    await LoadHeatMapDataAsync(newChunk, heatValues);
+                    await LoadMoistureMapDataAsync(newChunk, moistureValues);
+                    await GenerateBiomeMapDataAsync(newChunk);
+                }
+                else
+                {
+                    float[] heatValues = await GetHeatMapDataAysnc(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                    float[] moistureValues = await GetMoistureMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+ 
+                    await LoadHeightMapDataAsync(newChunk, BlockType.Air);
+                    await LoadHeatMapDataAsync(newChunk, heatValues);
+                    await LoadMoistureMapDataAsync(newChunk, moistureValues);
+                    await GenerateBiomeMapDataAsync(newChunk);
+                }
+
+             
+
 
                 //// Apply ambient light
                 //// I use list instead of queue because this type of light only fall down when start, 
@@ -675,42 +704,100 @@ namespace PixelMiner.WorldBuilding
 
                             int terrainHeight = Mathf.FloorToInt(heightValue * height);
 
+                            int globalHeight = (chunk.FrameY * chunk._height) + y;
 
-                            if (y <= averageGroundLayer)
+
+
+                            if (y < terrainHeight)
                             {
-                                if (y < terrainHeight)
-                                {
-                                    if (heightValue < Water)
-                                        chunk.ChunkData[index3D] = BlockType.Water;
-                                    if (heightValue < Sand)
-                                        chunk.ChunkData[index3D] = BlockType.Sand;
-                                    else if (heightValue < Grass)
-                                        chunk.ChunkData[index3D] = BlockType.Dirt;
-                                    else if (heightValue < Forest)
-                                        chunk.ChunkData[index3D] = BlockType.GrassSide;
-                                    else if (heightValue < Rock)
-                                        chunk.ChunkData[index3D] = BlockType.Stone;
-                                    else
-                                        chunk.ChunkData[index3D] = BlockType.Glass;
-                                }
-                                else if (y < height * Water)
-                                {
+                                if (heightValue < Water)
                                     chunk.ChunkData[index3D] = BlockType.Water;
-                                }
+                                if (heightValue < Sand)
+                                    chunk.ChunkData[index3D] = BlockType.Sand;
+                                else if (heightValue < Grass)
+                                    chunk.ChunkData[index3D] = BlockType.Dirt;
+                                else if (heightValue < Forest)
+                                    chunk.ChunkData[index3D] = BlockType.GrassSide;
+                                else if (heightValue < Rock)
+                                    chunk.ChunkData[index3D] = BlockType.Stone;
                                 else
-                                {
-                                    chunk.ChunkData[index3D] = BlockType.Air;
-                                }
+                                    chunk.ChunkData[index3D] = BlockType.Glass;
+                            }
+                            else if (y < height * Water)
+                            {
+                                chunk.ChunkData[index3D] = BlockType.Water;
                             }
                             else
                             {
+
                                 chunk.ChunkData[index3D] = BlockType.Air;
                             }
+
+
+                            //if (globalHeight < _underGroundLevel)
+                            //{
+                            //    chunk.ChunkData[index3D] = BlockType.Stone;
+                            //}
+                            //else if (globalHeight < _maxHeightLevel)
+                            //{
+                            //    if (y < terrainHeight)
+                            //    {
+                            //        if (heightValue < Water)
+                            //            chunk.ChunkData[index3D] = BlockType.Water;
+                            //        if (heightValue < Sand)
+                            //            chunk.ChunkData[index3D] = BlockType.Sand;
+                            //        else if (heightValue < Grass)
+                            //            chunk.ChunkData[index3D] = BlockType.Dirt;
+                            //        else if (heightValue < Forest)
+                            //            chunk.ChunkData[index3D] = BlockType.GrassSide;
+                            //        else if (heightValue < Rock)
+                            //            chunk.ChunkData[index3D] = BlockType.Stone;
+                            //        else
+                            //            chunk.ChunkData[index3D] = BlockType.Glass;
+                            //    }
+                            //    else if (y < height * Water)
+                            //    {
+                            //        chunk.ChunkData[index3D] = BlockType.Water;
+                            //    }
+                            //    else
+                            //    {
+                            //        chunk.ChunkData[index3D] = BlockType.Air;
+                            //    }
+                            //}
+                            //else
+                            //{
+                            //    chunk.ChunkData[index3D] = BlockType.Air;
+                            //}
+
                         }
                     }
                 }
             });
         }
+        public async Task LoadHeightMapDataAsync(Chunk chunk, BlockType blockType)
+        {
+            await Task.Run(() =>
+            {
+                int width = chunk.Dimensions[0];
+                int height = chunk.Dimensions[1];
+                int depth = chunk.Dimensions[2];
+
+                for (int z = 0; z < depth; z++)
+                {
+                    for (int y = 0; y < height; y++)
+                    {
+                        for (int x = 0; x < width; x++)
+                        {
+                            int index3D = WorldGenUtilities.IndexOf(x, y, z, width, height);
+                            chunk.ChunkData[index3D] = blockType;                           
+                        }
+                    }
+                }
+            });
+        }
+
+
+
         public async Task LoadHeatMapDataAsync(Chunk chunk, float[] heatValues)
         {
             await Task.Run(() =>
@@ -953,30 +1040,7 @@ namespace PixelMiner.WorldBuilding
             return biomeMap;
         }
         #endregion
-#if false
-        public async Task LoadRiverDataAsync(Chunk chunk, float[,] riverValues)
-        {
-            chunk.Processing = true;
-            await Task.Run(() =>
-            {
-                Parallel.For(0, _chunkWidth, x =>
-                {
-                    for (int y = 0; y < _chunkHeight; y++)
-                    {
-                        Tile tile = chunk.ChunkData.GetValue(x, y);
-                        float riverValue = riverValues[x, y];
 
-                        if (riverValue > WorldGeneration.Instance.RiverRange.x && riverValue < WorldGeneration.Instance.RiverRange.y)
-                        {
-                            tile.HeightType = HeightType.River;
-                        }
-                    }
-                });
-
-            });
-            chunk.Processing = false;
-        }
-#endif
 
 
         #region Neighbors
@@ -985,6 +1049,7 @@ namespace PixelMiner.WorldBuilding
             if (chunk.HasNeighbors()) return;
 
 
+            // Face neighbors
             if (_main.HasChunk(chunk.RelativePosition + Vector3Int.left))
             {
                 chunk.West = _main.GetChunk(chunk.RelativePosition + Vector3Int.left);
@@ -1001,70 +1066,76 @@ namespace PixelMiner.WorldBuilding
             {
                 chunk.South = _main.GetChunk(chunk.RelativePosition + Vector3Int.back);
             }
+            if (_main.HasChunk(chunk.RelativePosition + Vector3Int.up))
+            {
+                chunk.Up = _main.GetChunk(chunk.RelativePosition + Vector3Int.up);
+            }
+            if (_main.HasChunk(chunk.RelativePosition + Vector3Int.down))
+            {
+                chunk.Down = _main.GetChunk(chunk.RelativePosition + Vector3Int.down);
+            }
 
+
+            // Edge neighbors
             if (_main.HasChunk(chunk.RelativePosition + new Vector3Int(-1, 0, 1)))
             {
-                // Northwest
                 chunk.Northwest = _main.GetChunk(chunk.RelativePosition + new Vector3Int(-1, 0, 1));
             }
             if (_main.HasChunk(chunk.RelativePosition + new Vector3Int(1, 0, 1)))
             {
-                // Northeast
                 chunk.Northeast = _main.GetChunk(chunk.RelativePosition + new Vector3Int(1, 0, 1));
             }
             if (_main.HasChunk(chunk.RelativePosition + new Vector3Int(-1, 0, -1)))
             {
-                // Southwest
                 chunk.Southwest = _main.GetChunk(chunk.RelativePosition + new Vector3Int(-1, 0, -1));
             }
             if (_main.HasChunk(chunk.RelativePosition + new Vector3Int(1, 0, -1)))
             {
-                // Southeast
                 chunk.Southeast = _main.GetChunk(chunk.RelativePosition + new Vector3Int(1, 0, -1));
             }
 
-            if(chunk.HasNeighbors())
+            if (_main.HasChunk(chunk.RelativePosition + new Vector3Int(-1, 1, 0)))
+            {
+                chunk.UpWest = _main.GetChunk(chunk.RelativePosition + new Vector3Int(-1, 1, 0));
+            }
+            if (_main.HasChunk(chunk.RelativePosition + new Vector3Int(1, 1, 0)))
+            {
+                chunk.UpEast = _main.GetChunk(chunk.RelativePosition + new Vector3Int(1, 1, 0));
+            }
+            if (_main.HasChunk(chunk.RelativePosition + new Vector3Int(0, 1, 1)))
+            {
+                chunk.UpNorth = _main.GetChunk(chunk.RelativePosition + new Vector3Int(0, 1, 1));
+            }
+            if (_main.HasChunk(chunk.RelativePosition + new Vector3Int(0, 1, -1)))
+            {
+                chunk.UpSouth = _main.GetChunk(chunk.RelativePosition + new Vector3Int(0, 1, -1));
+            }
+
+
+
+
+            // Corner neighbors
+            if (_main.HasChunk(chunk.RelativePosition + new Vector3Int(-1, 1, 1)))
+            {
+                chunk.UpNorthwest = _main.GetChunk(chunk.RelativePosition + new Vector3Int(-1, 1, 1));
+            }
+            if (_main.HasChunk(chunk.RelativePosition + new Vector3Int(1, 1, 1)))
+            {
+                chunk.UpNortheast = _main.GetChunk(chunk.RelativePosition + new Vector3Int(1, 1, 1));
+            }
+            if (_main.HasChunk(chunk.RelativePosition + new Vector3Int(-1, 1, -1)))
+            {
+                chunk.UpSouthwest = _main.GetChunk(chunk.RelativePosition + new Vector3Int(-1, 1, -1));
+            }
+            if (_main.HasChunk(chunk.RelativePosition + new Vector3Int(1, 1, -1)))
+            {
+                chunk.UpSoutheast = _main.GetChunk(chunk.RelativePosition + new Vector3Int(1, 1, -1));
+            }
+
+
+            if (chunk.HasNeighbors())
             {
                 Chunk.OnChunkHasNeighbors?.Invoke(chunk);
-            }
-            
-
-            return;
-            if (chunk.West == null)
-            {
-                Chunk leftNeighborChunk = Main.Instance.GetChunkNeighborLeft(chunk);
-                if (leftNeighborChunk != null)
-                {
-                    chunk.SetNeighbors(BlockSide.Left, leftNeighborChunk);
-                    leftNeighborChunk.SetNeighbors(BlockSide.Right, chunk);
-                }
-            }
-            if (chunk.East == null)
-            {
-                Chunk rightNeighborChunk = Main.Instance.GetChunkNeighborRight(chunk);
-                if (rightNeighborChunk != null)
-                {
-                    chunk.SetNeighbors(BlockSide.Right, rightNeighborChunk);
-                    rightNeighborChunk.SetNeighbors(BlockSide.Left, chunk);
-                }
-            }
-            if (chunk.North == null)
-            {
-                Chunk frontNeighborChunk = Main.Instance.GetChunkNeighborFront(chunk);
-                if (frontNeighborChunk != null)
-                {
-                    chunk.SetNeighbors(BlockSide.Front, frontNeighborChunk);
-                    frontNeighborChunk.SetNeighbors(BlockSide.Back, chunk);
-                }
-            }
-            if (chunk.South == null)
-            {
-                Chunk backNeighborChunk = Main.Instance.GetChunkNeighborBack(chunk);
-                if (backNeighborChunk != null)
-                {
-                    chunk.SetNeighbors(BlockSide.Back, backNeighborChunk);
-                    backNeighborChunk.SetNeighbors(BlockSide.Front, chunk);
-                }
             }
         }
         #endregion

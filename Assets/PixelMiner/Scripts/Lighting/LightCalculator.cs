@@ -5,8 +5,6 @@ using UnityEngine;
 using PixelMiner.Core;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
-using System.Collections;
-using TMPro;
 
 namespace PixelMiner.Lighting
 {
@@ -35,7 +33,7 @@ namespace PixelMiner.Lighting
     /// <summary>
     /// To calculate lighting i use global position for LightNode.Position for easily calcualting light propagate cross chunk.
     /// </summary>
-    public class LightCalculator : MonoBehaviour
+    public class LightCalculator 
     {
         private static Vector3Int[] _neighborsPosition = new Vector3Int[10];
         private static Vector3Int[] _diagonalNeighborsPosition = new Vector3Int[4];
@@ -76,7 +74,7 @@ namespace PixelMiner.Lighting
                     var neighbors = GetVoxelNeighborPosition(currentNode.GlobalPosition);
                     for (int i = 0; i < neighbors.Length; i++)
                     {
-                        if (neighbors[i].y > CHUNK_VOLUME[1] - 1) continue;
+                        //if (neighbors[i].y > CHUNK_VOLUME[1] - 1) continue;
 
 
                         BlockType currentBlock = main.GetBlock(neighbors[i]);
@@ -107,8 +105,6 @@ namespace PixelMiner.Lighting
                         break;
                     }
                 }
-
-                //Debug.Log($"Propagate Attempts: {attempts}");
             });
 
             

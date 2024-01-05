@@ -46,6 +46,19 @@ namespace PixelMiner.World
         [field: SerializeField] public Chunk Southwest { get; set; }
         [field: SerializeField] public Chunk Southeast { get; set; }
 
+        [field: SerializeField] public Chunk Up { get; set; }
+        [field: SerializeField] public Chunk Down { get; set; }
+
+
+        [field: SerializeField] public Chunk UpWest { get; set; }
+        [field: SerializeField] public Chunk UpEast { get; set; }
+        [field: SerializeField] public Chunk UpNorth { get; set; }
+        [field: SerializeField] public Chunk UpSouth { get; set; }
+        [field: SerializeField] public Chunk UpNorthwest { get; set; }
+        [field: SerializeField] public Chunk UpNortheast { get; set; }
+        [field: SerializeField] public Chunk UpSouthwest { get; set; }
+        [field: SerializeField] public Chunk UpSoutheast { get; set; }
+
         [Header("Data")]
         [HideInInspector] public BlockType[] ChunkData;
         [HideInInspector] public HeatType[] HeatData;
@@ -55,7 +68,7 @@ namespace PixelMiner.World
         [HideInInspector] public byte[] AmbientLightData;
 
         public AnimationCurve LightAnimCurve;
-    
+
 
         private void Awake()
         {
@@ -160,62 +173,17 @@ namespace PixelMiner.World
             }
             else
             {
-                if (relativePosition.x == _width && relativePosition.z == _depth)
+                if (FindNeighbor(relativePosition, out Chunk neighborChunk, out Vector3Int nbRelativePosition))
                 {
-                    return Northeast.ChunkData[IndexOf(0, relativePosition.y, 0)];
+                    return neighborChunk.ChunkData[IndexOf(nbRelativePosition.x, nbRelativePosition.y, nbRelativePosition.z)];
                 }
-                if (relativePosition.x == -1 && relativePosition.z == _depth)
+                else
                 {
-                    return Northwest.ChunkData[IndexOf(_width - 1, relativePosition.y, 0)];
+                    return BlockType.Air;
                 }
-                if (relativePosition.x == _width && relativePosition.z == -1)
-                {
-                    return Southeast.ChunkData[IndexOf(0, relativePosition.y, _depth - 1)];
-                }
-                if (relativePosition.x == -1 && relativePosition.z == -1)
-                {
-                    return Southwest.ChunkData[IndexOf(_width - 1, relativePosition.y, _depth - 1)];
-                }
-
-
-                if (relativePosition.y >= 0 && relativePosition.y < _height && relativePosition.z >= 0 && relativePosition.z < _depth)
-                {
-                    if (relativePosition.x == -1)
-                    {
-                        return West.ChunkData[IndexOf(_width - 1, relativePosition.y, relativePosition.z)];
-                    }
-                    if (relativePosition.x == _width)
-                    {
-                        return East.ChunkData[IndexOf(0, relativePosition.y, relativePosition.z)];
-                    }
-                }
-                if (relativePosition.y >= 0 && relativePosition.y < _height && relativePosition.x >= 0 && relativePosition.x < _width)
-                {
-                    if (relativePosition.z == -1)
-                    {
-                        return South.ChunkData[IndexOf(relativePosition.x, relativePosition.y, _depth - 1)];
-                    }
-                    if (relativePosition.z == _depth)
-                    {
-                        return North.ChunkData[IndexOf(relativePosition.x, relativePosition.y, 0)];
-                    }
-                }
-
-                if(relativePosition.x >= 0 && relativePosition.x < _width && relativePosition.z >= 0 && relativePosition.z < _depth)
-                {
-                    if(relativePosition.y == -1)
-                    {
-                        return ChunkData[IndexOf(relativePosition.x, 0, relativePosition.z)];
-                    }
-                    if(relativePosition.y == _height)
-                    {
-                        return ChunkData[IndexOf(relativePosition.x, _height - 1, relativePosition.z)];
-                    }
-                }
-            }
-
-            throw new System.Exception($"Currently we not calculate height of chunk. {relativePosition}");
+            }   
         }
+
         public void SetBlock(Vector3Int relativePosition, BlockType blockType)
         {
             ChunkData[IndexOf(relativePosition.x, relativePosition.y, relativePosition.z)] = blockType;
@@ -234,134 +202,196 @@ namespace PixelMiner.World
         }
 
 
-        //public async void DrawChunkAsync()
-        //{
-        //    if (ChunkHasDrawn) return;
+        #region Neighbors
 
-        //    MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this, LightAnimCurve);
-        //    //MeshData waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(this);
-        //    MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(this);
-
-        //    SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
-        //    //WaterMeshFilter.sharedMesh =  CreateMesh(waterMeshData);
-
-        //    MeshCollider.sharedMesh = null;
-        //    MeshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
-
-
-        //    // Release mesh data
-        //    MeshDataPool.Release(solidMeshData);
-        //    //MeshDataPool.Release(waterMeshData);
-        //    MeshDataPool.Release(colliderMeshData);
-
-        //    //LogUtils.WriteMeshToFile(SolidMeshFilter.sharedMesh, "Meshdata.txt");
-        //    ChunkHasDrawn = true;
-        //}
-        //public async void ReDrawChunkAsync()
-        //{
-        //    MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this, LightAnimCurve);
-        //    MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(this);
-
-        //    SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
-
-        //    MeshCollider.sharedMesh = null;
-        //    MeshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
-
-        //    // Release mesh data
-        //    MeshDataPool.Release(solidMeshData);
-        //    MeshDataPool.Release(colliderMeshData);
-        //}
-        //public async Task ReDrawChunkTask()
-        //{
-        //    MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(this, LightAnimCurve);
-        //    MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(this);
-
-        //    SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
-
-        //    MeshCollider.sharedMesh = null;
-        //    MeshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
-
-
-        //    // Release mesh data
-        //    MeshDataPool.Release(solidMeshData);
-        //    MeshDataPool.Release(colliderMeshData);
-        //}
-
-
-        //public Mesh CreateMesh(MeshData meshData)
-        //{
-        //    Mesh mesh = new Mesh();
-        //    mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
-        //    mesh.SetVertices(meshData.Vertices);
-        //    mesh.SetColors(meshData.Colors);
-        //    mesh.SetTriangles(meshData.Triangles, 0);
-        //    mesh.SetUVs(0, meshData.UVs);
-        //    mesh.SetUVs(1, meshData.UV2s);
-        //    mesh.SetUVs(2, meshData.UV3s);
-        //    mesh.RecalculateNormals();
-        //    mesh.RecalculateBounds();
-
-        //    return mesh;
-        //}
-        //private Mesh CreateColliderMesh(MeshData meshData)
-        //{
-        //    Mesh colliderMesh = new Mesh();
-        //    colliderMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
-        //    colliderMesh.SetVertices(meshData.Vertices);
-        //    colliderMesh.SetTriangles(meshData.Triangles, 0);
-        //    return colliderMesh;
-        //}
-
-
-
-
-        public void SetNeighbors(BlockSide side, Chunk neighbour)
-        {
-            switch (side)
-            {
-                default:
-                    throw new System.Exception();
-                case BlockSide.Left:
-                    if (West == null)
-                    {
-                        West = neighbour;
-                    }
-                    break;
-                case BlockSide.Right:
-                    if (East == null)
-                    {
-                        East = neighbour;
-                    }
-                    break;
-                case BlockSide.Front:
-                    if (North == null)
-                    {
-                        North = neighbour;
-                    }
-                    break;
-                case BlockSide.Back:
-                    if (South == null)
-                    {
-                        South = neighbour;
-                    }
-                    break;
-            }
-
-            if (HasNeighbors())
-            {
-                OnChunkHasNeighbors?.Invoke(this);
-            }
-        }
         public bool HasNeighbors()
         {
             return West != null && East != null && North != null && South != null &&
-                   Northeast != null && Northwest != null && Southeast != null && Southwest != null;
+                   Northeast != null && Northwest != null && Southeast != null && Southwest != null && Up != null && Down != null
+
+                   && UpWest != null && UpEast != null && UpNorth != null && UpSouth != null &&
+                   UpNortheast != null && UpNorthwest != null && UpSoutheast != null && UpSouthwest != null;
+        }
+        private bool FindNeighbor(Vector3Int relativePosition, out Chunk neighborChunk, out Vector3Int nbRelativePosition)
+        {
+            Vector3Int neighborOffset = default;
+            nbRelativePosition = default;
+            bool foundNeighborChunk = false;
+
+            if (relativePosition.x >= _width)
+            {
+                neighborOffset.x = 1;
+            }
+            else if (relativePosition.x < 0)
+            {
+                neighborOffset.x = -1;
+            }
+            if (relativePosition.y >= _height)
+            {
+                neighborOffset.y = 1;
+            }
+            else if (relativePosition.y < 0)
+            {
+                neighborOffset.y = -1;
+            }
+            if (relativePosition.z >= _depth)
+            {
+                neighborOffset.z = 1;
+            }
+            else if (relativePosition.z < 0)
+            {
+                neighborOffset.z = -1;
+            }
+
+
+
+            neighborChunk = FindNeighbor(neighborOffset);
+            if (neighborChunk != null)
+            {
+                foundNeighborChunk = true;
+
+                if (neighborOffset.x == -1)
+                {
+                    nbRelativePosition.x = _width - 1;
+                }
+                else if (neighborOffset.x == 0)
+                {
+                    nbRelativePosition.x = relativePosition.x;
+                }
+                else if (neighborOffset.x == 1)
+                {
+                    nbRelativePosition.x = 0;
+                }
+                else
+                {
+                    Debug.LogError("Out of range width!");
+                }
+
+                if (neighborOffset.y == -1)
+                {
+                    nbRelativePosition.y = _height - 1;
+                }
+                else if (neighborOffset.y == 0)
+                {
+                    nbRelativePosition.y = relativePosition.y;
+                }
+                else if (neighborOffset.y == 1)
+                {
+                    nbRelativePosition.y = 0;
+                }
+                else
+                {
+                    Debug.LogError("Out of range height!");
+                }
+
+                if (neighborOffset.z == -1)
+                {
+                    nbRelativePosition.z = _depth - 1;
+                }
+                else if (neighborOffset.z == 0)
+                {
+                    nbRelativePosition.z = relativePosition.z;
+                }
+                else if (neighborOffset.z == 1)
+                {
+                    nbRelativePosition.z = 0;
+                }
+                else
+                {
+                    Debug.LogError("Out of range depth!");
+                }
+            }
+
+            return foundNeighborChunk;
+        }
+        private Chunk FindNeighbor(Vector3Int neighborOffset)
+        {
+            if (neighborOffset == new Vector3Int(-1, 0, 0))
+            {
+                return West;
+            }
+            else if (neighborOffset == new Vector3Int(1, 0, 0))
+            {
+                return East;
+            }
+            else if (neighborOffset == new Vector3Int(0, 0, 1))
+            {
+                return North;
+            }
+            else if (neighborOffset == new Vector3Int(0, 0, -1))
+            {
+                return South;
+            }
+            else if (neighborOffset == new Vector3Int(-1, 0, -1))
+            {
+                return Southwest;
+            }
+            else if (neighborOffset == new Vector3Int(1, 0, -1))
+            {
+                return Southeast;
+            }
+            else if (neighborOffset == new Vector3Int(-1, 0, 1))
+            {
+                return Northwest;
+            }
+            else if (neighborOffset == new Vector3Int(1, 0, 1))
+            {
+                return Northeast;
+            }
+
+
+            else if (neighborOffset == new Vector3Int(0, 1, 0))
+            {
+                return Up;
+            }
+            else if (neighborOffset == new Vector3Int(0, -1, 0))
+            {
+                return Down;
+            }
+
+
+            else if (neighborOffset == new Vector3Int(-1, 1, 0))
+            {
+                return UpWest;
+            }
+            else if (neighborOffset == new Vector3Int(1, 1, 0))
+            {
+                return UpEast;
+            }
+            else if (neighborOffset == new Vector3Int(0, 1, 1))
+            {
+                return UpNorth;
+            }
+            else if (neighborOffset == new Vector3Int(0, 1, -1))
+            {
+                return UpSouth;
+            }
+            else if (neighborOffset == new Vector3Int(-1, 1, -1))
+            {
+                return UpSouthwest;
+            }
+            else if (neighborOffset == new Vector3Int(1, 1, -1))
+            {
+                return UpSoutheast;
+            }
+            else if (neighborOffset == new Vector3Int(-1, 1, 1))
+            {
+                return UpNorthwest;
+            }
+            else if (neighborOffset == new Vector3Int(1, 1, 1))
+            {
+                return UpNortheast;
+            }
+
+
+            return null;
         }
 
+        #endregion
 
 
 
-        #region Light
+        #region Lighting
         public byte GetBlockLight(int x, int y, int z)
         {
             return VoxelLightData[IndexOf(x, y, z)];
@@ -374,6 +404,17 @@ namespace PixelMiner.World
             }
             else
             {
+                if (FindNeighbor(relativePosition, out Chunk neighborChunk, out Vector3Int nbRelativePosition))
+                {    
+                    return neighborChunk.VoxelLightData[IndexOf(nbRelativePosition.x, nbRelativePosition.y, nbRelativePosition.z)];
+                }
+                else
+                {
+                    //Debug.LogError("Not found this chunk");
+                    return 0;
+                }
+
+
                 if (relativePosition.x == _width && relativePosition.z == _depth)
                 {
                     return Northeast.VoxelLightData[IndexOf(0, relativePosition.y, 0)];
@@ -416,7 +457,7 @@ namespace PixelMiner.World
                 }
             }
 
-            if(relativePosition.y < 0 || relativePosition.y > _height - 1)
+            if (relativePosition.y < 0 || relativePosition.y > _height - 1)
             {
                 return 0;
             }
@@ -478,6 +519,17 @@ namespace PixelMiner.World
             }
             else
             {
+                if (FindNeighbor(relativePosition, out Chunk neighborChunk, out Vector3Int nbRelativePosition))
+                {
+                    return neighborChunk.AmbientLightData[IndexOf(nbRelativePosition.x, nbRelativePosition.y, nbRelativePosition.z)];
+                }
+                else
+                {
+                    Debug.LogError("Not found this chunk");
+                    return 0;
+                }
+
+
                 if (relativePosition.x == _width && relativePosition.z == _depth)
                 {
                     return Northeast.AmbientLightData[IndexOf(0, relativePosition.y, 0)];
@@ -519,10 +571,9 @@ namespace PixelMiner.World
                     }
                 }
             }
-           
+
             throw new System.Exception($"Currently we not calculate height of chunk. {relativePosition}");
         }
-
         public void SetAmbientLight(Vector3Int relativePosition, byte intensity)
         {
             if (IsValidRelativePosition(relativePosition))
@@ -532,72 +583,80 @@ namespace PixelMiner.World
             }
             else
             {
-                if (relativePosition.x == _width && relativePosition.z == _depth)
+                if (FindNeighbor(relativePosition, out Chunk neighborChunk, out Vector3Int nbRelativePosition))
                 {
-                    Northeast.AmbientLightData[IndexOf(0, relativePosition.y, 0)] = intensity; 
-                    return;
+                    neighborChunk.AmbientLightData[IndexOf(nbRelativePosition.x, nbRelativePosition.y, nbRelativePosition.z)] = intensity;
                 }
-                if (relativePosition.x == -1 && relativePosition.z == _depth)
+                else
                 {
-                    Northwest.AmbientLightData[IndexOf(_width - 1, relativePosition.y, 0)] = intensity;
-                    return;
-                }
-                if (relativePosition.x == _width && relativePosition.z == -1)
-                {
-                    Southeast.AmbientLightData[IndexOf(0, relativePosition.y, _depth - 1)] = intensity;
-                    return;
-                }
-                if (relativePosition.x == -1 && relativePosition.z == -1)
-                {
-                    Southwest.AmbientLightData[IndexOf(_width - 1, relativePosition.y, _depth - 1)] = intensity;
-                    return;
+                    Debug.LogError("Not found this chunk");
                 }
 
 
-                if (relativePosition.y >= 0 && relativePosition.y < _height && relativePosition.z >= 0 && relativePosition.z < _depth)
-                {
-                    if (relativePosition.x == -1)
-                    {
-                        West.AmbientLightData[IndexOf(_width - 1, relativePosition.y, relativePosition.z)] = intensity;
-                        return;
-                    }
-                    if (relativePosition.x == _width)
-                    {
-                        East.AmbientLightData[IndexOf(0, relativePosition.y, relativePosition.z)] = intensity;
-                        return;
-                    }
-                }
-                if (relativePosition.y >= 0 && relativePosition.y < _height && relativePosition.x >= 0 && relativePosition.x < _width)
-                {
-                    if (relativePosition.z == -1)
-                    {
-                        South.AmbientLightData[IndexOf(relativePosition.x, relativePosition.y, _depth - 1)] = intensity;
-                        return;
-                    }
-                    if (relativePosition.z == _depth)
-                    {
-                        North.AmbientLightData[IndexOf(relativePosition.x, relativePosition.y, 0)] = intensity;
-                        return;
-                    }
-                }
+                //if (relativePosition.x == _width && relativePosition.z == _depth)
+                //{
+                //    Northeast.AmbientLightData[IndexOf(0, relativePosition.y, 0)] = intensity;
+                //    return;
+                //}
+                //if (relativePosition.x == -1 && relativePosition.z == _depth)
+                //{
+                //    Northwest.AmbientLightData[IndexOf(_width - 1, relativePosition.y, 0)] = intensity;
+                //    return;
+                //}
+                //if (relativePosition.x == _width && relativePosition.z == -1)
+                //{
+                //    Southeast.AmbientLightData[IndexOf(0, relativePosition.y, _depth - 1)] = intensity;
+                //    return;
+                //}
+                //if (relativePosition.x == -1 && relativePosition.z == -1)
+                //{
+                //    Southwest.AmbientLightData[IndexOf(_width - 1, relativePosition.y, _depth - 1)] = intensity;
+                //    return;
+                //}
+
+
+                //if (relativePosition.y >= 0 && relativePosition.y < _height && relativePosition.z >= 0 && relativePosition.z < _depth)
+                //{
+                //    if (relativePosition.x == -1)
+                //    {
+                //        West.AmbientLightData[IndexOf(_width - 1, relativePosition.y, relativePosition.z)] = intensity;
+                //        return;
+                //    }
+                //    if (relativePosition.x == _width)
+                //    {
+                //        East.AmbientLightData[IndexOf(0, relativePosition.y, relativePosition.z)] = intensity;
+                //        return;
+                //    }
+                //}
+                //if (relativePosition.y >= 0 && relativePosition.y < _height && relativePosition.x >= 0 && relativePosition.x < _width)
+                //{
+                //    if (relativePosition.z == -1)
+                //    {
+                //        South.AmbientLightData[IndexOf(relativePosition.x, relativePosition.y, _depth - 1)] = intensity;
+                //        return;
+                //    }
+                //    if (relativePosition.z == _depth)
+                //    {
+                //        North.AmbientLightData[IndexOf(relativePosition.x, relativePosition.y, 0)] = intensity;
+                //        return;
+                //    }
+                //}
             }
 
-            throw new System.Exception($"Currently we not calculate height of chunk. {relativePosition}");          
+            //throw new System.Exception($"Currently we not calculate height of chunk. {relativePosition}");
         }
         #endregion
 
 
-
-      
 
         #region Utilities
         public bool IsValidRelativePosition(Vector3Int relativePosition)
         {
             return relativePosition.x >= 0 && relativePosition.x < _width &&
                    relativePosition.y >= 0 && relativePosition.y < _height &&
-                   relativePosition.z >= 0 && relativePosition.z < _depth;         
+                   relativePosition.z >= 0 && relativePosition.z < _depth;
         }
-            
+
         public int IndexOf(int x, int y, int z)
         {
             return x + _width * (y + _height * z);
@@ -611,7 +670,7 @@ namespace PixelMiner.World
         public Vector3Int RelativePosition => new Vector3Int(FrameX, FrameY, FrameZ);
         public Vector3Int GetGlobalPosition(Vector3Int relativePosition)
         {
-            if(IsValidRelativePosition(relativePosition))
+            if (IsValidRelativePosition(relativePosition))
             {
                 return GlobalPosition + relativePosition;
             }

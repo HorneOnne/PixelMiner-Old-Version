@@ -127,11 +127,6 @@ namespace PixelMiner.WorldBuilding
         public static Color32 GetLightColor(byte light, AnimationCurve lightAnimCurve)
         {
             float maxLight = 150.0f;
-            //float channelValue = light / maxLight;
-            //return new Color(channelValue, channelValue, channelValue, 1.0f);
-
-            // Apply square function for a darker appearance
-            //float channelValue = Mathf.Pow(light / maxLight, 2);
             float channelValue = lightAnimCurve.Evaluate(light / maxLight);
             byte lightValue = (byte)Mathf.Clamp(channelValue * 255, 0, 255);
             return new Color32(lightValue, lightValue, lightValue, 255);
@@ -185,9 +180,9 @@ namespace PixelMiner.WorldBuilding
                 }
 
                 Vector3Int blockOffsetPosition = blockPosition + offset;
-                blockOffsetPosition = new Vector3Int(Mathf.Clamp(blockOffsetPosition.x, 0, chunk._width),
-                                               Mathf.Clamp(blockOffsetPosition.y, 0, chunk._height),
-                                               Mathf.Clamp(blockOffsetPosition.z, 0, chunk._depth));
+                //blockOffsetPosition = new Vector3Int(Mathf.Clamp(blockOffsetPosition.x, 0, chunk._width),
+                //                                     Mathf.Clamp(blockOffsetPosition.y, 0, chunk._height),
+                //                                     Mathf.Clamp(blockOffsetPosition.z, 0, chunk._depth));
 
                 return chunk.GetBlockLight(blockOffsetPosition);
             }

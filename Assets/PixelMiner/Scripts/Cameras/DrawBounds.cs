@@ -40,7 +40,9 @@ namespace PixelMiner.Cam
 
         private void RenderPipelineManager_endCameraRendering(ScriptableRenderContext context, Camera camera)
         {
+            //Debug.Log(camera.name);
             OnPostRender();
+
         }
 
 
