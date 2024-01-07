@@ -1268,7 +1268,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SeedInput: 7
   ChunkDimension: {x: 32, y: 32, z: 32}
-  AutoLoadChunk: 1
+  AutoLoadChunk: 0
   AutoUnloadChunk: 0
   ShowLog: 0
 --- !u!4 &587489646
@@ -1307,7 +1307,7 @@ MonoBehaviour:
   Minutes: 0
   Hours: 12
   Days: 0
-  _startHour: 19
+  _startHour: 12
 --- !u!1 &677337750
 GameObject:
   m_ObjectHideFlags: 0
@@ -1889,12 +1889,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22ae457847da8e43877aef4220ef471, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  InitWorldWidth: 3
+  InitWorldWidth: 1
   InitWorldHeight: 1
-  InitWorldDepth: 3
-  LoadChunkOffsetWidth: 3
+  InitWorldDepth: 1
+  LoadChunkOffsetWidth: 1
   LoadChunkOffsetHeight: 1
-  LoadChunkOffsetDepth: 3
+  LoadChunkOffsetDepth: 1
   InitFastDrawChunk: 0
   _playerTrans: {fileID: 314038816}
 --- !u!1 &1252983687
@@ -2372,21 +2372,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _chunkPrefab: {fileID: 285238837962715001, guid: e7881158402e9254ea53ae812194e94a, type: 3}
   _chunkParent: {fileID: 1497941757}
-  Octaves: 4
+  Octaves: 3
   Frequency: 0.009
-  Lacunarity: 2
-  Persistence: 0.5
-  DeepWater: 0.2
-  Water: 0.35
-  Sand: 0.4
+  Lacunarity: 2.255
+  Persistence: 0.443458980044346
+  Quality: 2
+  DeepWater: 0.3
+  Water: 0.45
+  Sand: 0.5
   Grass: 0.6
   Forest: 0.8
   Rock: 0.9
   Snow: 1
   HeatOctaves: 4
-  HeatFrequency: 0.025
-  HeatLacunarity: 2
-  HeatPersistence: 0.5
+  HeatFrequency: 0.006
+  HeatLacunarity: 16
+  HeatPersistence: 0.0625
+  HeatQuality: 2
   GradientHeatmapSize: 512
   HeatMapBlendFactor: 0.5
   ColdestValue: 0.2
@@ -2395,23 +2397,27 @@ MonoBehaviour:
   WarmValue: 0.7
   WarmerValue: 0.85
   WarmestValue: 1
-  MoistureOctaves: 2
-  MoistureFrequency: 0.0045
-  MoistureLacunarity: 2
-  MoisturePersistence: 0.5
+  MoistureOctaves: 4
+  MoistureFrequency: 0.00328
+  MoistureLacunarity: 7
+  MoisturePersistence: 0.142857142857143
+  MoistureQuality: 2
   DryestValue: 0.22
   DryerValue: 0.34855404
   DryValue: 0.54946727
   WetValue: 0.7503805
   WetterValue: 0.8508371
   WettestValue: 1
-  RiverOctaves: 2
-  RiverFrequency: 0.01
+  RiverOctaves: 5
+  RiverFrequency: 0.02
   RiverDisplacement: 1
   RiverDistance: 1
   RiverLacunarity: 2
   RiverPersistence: 0.5
+  RiverQuality: 2
   RiverRange: {x: 0.55, y: 0.6}
+  MaxHeightLevel: 4
+  UnderGroundLevel: 0
   LightAnimCurve:
     serializedVersion: 2
     m_Curve:

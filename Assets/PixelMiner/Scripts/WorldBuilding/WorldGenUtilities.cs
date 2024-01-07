@@ -2,7 +2,7 @@
 
 namespace PixelMiner.WorldBuilding
 {
-    internal static class WorldGenUtilities
+    public static class WorldGenUtilities
     {
         public static int GenerateNewSeed(int originalSeed)
         {
@@ -19,18 +19,18 @@ namespace PixelMiner.WorldBuilding
         public static float[] BlendMapData(float[] data01, float[] data02, float blendFactor)
         {
             int size = data01.Length;
-      
+
 
             float[] blendedData = new float[size];
 
-            for(int i = 0; i < size; i++)
+            for (int i = 0; i < size; i++)
             {
                 blendedData[i] = Mathf.Lerp(data01[i], data02[i], blendFactor);
             }
             return blendedData;
         }
 
-       
+
 
         public static int StringToSeed(string input)
         {
@@ -68,7 +68,7 @@ namespace PixelMiner.WorldBuilding
             z = index / (width * height);
         }
 
-        public static void CoordinatesOf(int index, byte width, out int x, out int y)
+        public static void CoordinatesOf(int index, int width, out int x, out int y)
         {
             x = index % width;
             y = index / width;

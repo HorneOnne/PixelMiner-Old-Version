@@ -9,7 +9,6 @@ namespace PixelMiner.Cam
     {
         public Material LineMat;
 
-        private UnityEngine.Camera _mainCam;
         private List<Bounds> _bounds = new List<Bounds>();
         private List<Color> _colors = new List<Color>();
 
@@ -22,7 +21,6 @@ namespace PixelMiner.Cam
 
         private void Awake()
         {
-            _mainCam = Camera.main;
             _matrix = Matrix4x4.identity;
         }
 
