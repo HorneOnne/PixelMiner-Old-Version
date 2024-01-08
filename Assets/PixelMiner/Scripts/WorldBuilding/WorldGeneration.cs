@@ -11,7 +11,7 @@ using PixelMiner.Enums;
 using PixelMiner.Core;
 using PixelMiner.Lighting;
 using PixelMiner.World;
-
+using Mono.CSharp;
 
 namespace PixelMiner.WorldBuilding
 {
@@ -494,15 +494,15 @@ namespace PixelMiner.WorldBuilding
 
             if (applyDefaultData)
             {
-                if(frameY <= 0)
+                if (frameY <= 0)
                 {
                     float[] heightValues = await GetHeightMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
                     //float[] heatValues = await GetHeatMapDataAysnc(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
                     float[] heatValues = await GetFractalHeatMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
                     float[] moistureValues = await GetMoistureMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
                     float[] riverValues = await GetRiverDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
-                   
-                  
+
+
                     await LoadHeightMapDataAsync(newChunk, heightValues);
                     await LoadHeatMapDataAsync(newChunk, heatValues);
                     await LoadMoistureMapDataAsync(newChunk, moistureValues);
@@ -517,14 +517,14 @@ namespace PixelMiner.WorldBuilding
                 {
                     float[] heatValues = await GetFractalHeatMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
                     float[] moistureValues = await GetMoistureMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
- 
+
                     await LoadHeightMapDataAsync(newChunk, BlockType.Air);
                     await LoadHeatMapDataAsync(newChunk, heatValues);
                     await LoadMoistureMapDataAsync(newChunk, moistureValues);
                     await GenerateBiomeMapDataAsync(newChunk);
                 }
 
-             
+
 
 
                 //// Apply ambient light
@@ -558,7 +558,7 @@ namespace PixelMiner.WorldBuilding
         /// Return 2D noise height map.
         /// </summary>
         /// <returns></returns>
-        public async Task<float[]> GetHeightMapDataAsync(int frameX, int frameZ, int width, int height)
+        public async Task<float[]> GetHeightMapDataAsync(int frameX, int frameZ, int width, int height, bool applyDomainWarping = false)
         {
             float[] heightValues = new float[width * height];
 
@@ -570,7 +570,17 @@ namespace PixelMiner.WorldBuilding
                     {
                         float offsetX = frameX * width + x;
                         float offsetZ = frameZ * height + z;
-                        float heightValue = (float)_heightModule.GetValue(offsetX, 0, offsetZ);
+                        float heightValue = float.PositiveInfinity;
+
+                        if (applyDomainWarping)
+                        {
+                            heightValue = DomainWarpingFbmPerlinNoise(offsetX, 0, offsetZ, _heightModule);
+                        }
+                        else
+                        {
+                            heightValue = (float)_heightModule.GetValue(offsetX, 0, offsetZ);
+                        }
+                     
                         float normalizeHeightValue = (heightValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
                         heightValues[WorldGenUtilities.IndexOf(x, z, width)] = normalizeHeightValue;
                     }
@@ -618,18 +628,19 @@ namespace PixelMiner.WorldBuilding
 
             await Task.Run(() =>
             {
-                for (int z = 0; z < height; z++)
+                Parallel.For(0, height, (z) =>
                 {
                     for (int x = 0; x < width; x++)
                     {
                         float offsetX = frameX * width + x;
                         float offsetZ = frameZ * height + z;
-                        float heatValue = (float)_heatModule.GetValue(offsetX, 0, offsetZ);
+                        float heatValue = DomainWarpingFbmPerlinNoise(offsetX, 0, offsetZ, _heatModule);
+                        //float heatValue = (float)_heatModule.GetValue(offsetX, 0, offsetZ);
                         float normalizeHeatValue = (heatValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
 
                         fractalNoiseData[WorldGenUtilities.IndexOf(x, z, width)] = normalizeHeatValue;
                     }
-                }
+                });
             });
 
             //Debug.Log("GetFractalHeatMapAsync Finish");
@@ -658,18 +669,19 @@ namespace PixelMiner.WorldBuilding
 
             await Task.Run(() =>
             {
-                for (int x = 0; x < width; x++)
+                Parallel.For(0, height, (z) =>
                 {
-                    for (int z = 0; z < height; z++)
+                    for (int x = 0; x < width; x++)
                     {
                         float offsetX = frameX * width + x;
                         float offsetZ = frameZ * height + z;
-                        float moisetureValue = (float)_moistureModule.GetValue(offsetX, 0, offsetZ);
+                        //float moisetureValue = (float)_moistureModule.GetValue(offsetX, 0, offsetZ);
+                        float moisetureValue = DomainWarpingFbmPerlinNoise(x, 0, z, _moistureModule);
                         float normalizeMoistureValue = (moisetureValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
 
                         moistureData[WorldGenUtilities.IndexOf(x, z, width)] = normalizeMoistureValue;
                     }
-                }
+                });
             });
 
             return moistureData;
@@ -688,7 +700,7 @@ namespace PixelMiner.WorldBuilding
                         float offsetZ = frameZ * height + y;
                         float riverValue = (float)_riverModulePerlin.GetValue(offsetX, 0, offsetZ);
 
-                        if(normalize)
+                        if (normalize)
                         {
                             float normalizeRiverValue = (riverValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
                             riverValues[x + y * width] = normalizeRiverValue;
@@ -697,7 +709,7 @@ namespace PixelMiner.WorldBuilding
                         {
                             riverValues[x + y * width] = riverValue;
                         }
-                        
+
 
                     }
                 });
@@ -733,9 +745,9 @@ namespace PixelMiner.WorldBuilding
                             int terrainHeight = Mathf.FloorToInt(heightValue * height);
 
                             int globalHeight = (chunk.FrameY * chunk._height) + y;
-                         
 
-                            if(flatWorld)
+
+                            if (flatWorld)
                             {
                                 if (globalHeight < UnderGroundLevel)
                                 {
@@ -819,7 +831,7 @@ namespace PixelMiner.WorldBuilding
                         for (int x = 0; x < width; x++)
                         {
                             int index3D = WorldGenUtilities.IndexOf(x, y, z, width, height);
-                            chunk.ChunkData[index3D] = blockType;                           
+                            chunk.ChunkData[index3D] = blockType;
                         }
                     }
                 }
@@ -1022,7 +1034,7 @@ namespace PixelMiner.WorldBuilding
                             float heightValue = heightValues[index2D];
                             float riverValue = riverValues[index2D];
 
-            
+
                             if (riverValue > -0.415f && riverValue <= 0.4105f && heightValue >= Water && heightValue < Forest)
                             {
                                 //if (BiomeTable[(int)moistureData[index2D], (int)heatData[index2D]] == BiomeType.Desert)
@@ -1090,7 +1102,7 @@ namespace PixelMiner.WorldBuilding
 
             return heightValues;
         }
-  
+
 
         #region BIOMES
         public BiomeType GetBiome(Vector3 globalPosition)
@@ -1248,7 +1260,32 @@ namespace PixelMiner.WorldBuilding
             }
             LightCalculator.PropagateAmbientLight(chunk, ambientLightList);
         }
-        #endregion       
+        #endregion
+
+
+        #region Noise
+        public float DomainWarpingFbmPerlinNoise(float x, float y, float z, ModuleBase noise)
+        {
+            Vector3 p = new Vector3(x, y, z);
+
+            Vector3 q = new Vector3((float)noise.GetValue(p + new Vector3(0,0,0)), 
+                                    0.0f,
+                                    (float)noise.GetValue(p + new Vector3(52.0f, 0, 13.0f)));
+
+            Vector3 r = new Vector3((float)noise.GetValue((p + 40 * q) + new Vector3(77, 0, 35)),
+                                    0.0f,
+                                    (float)noise.GetValue((p + 40 * q) + new Vector3(83, 0, 28)));
+
+            //Vector3 s = new Vector3((float)noise.GetValue((p + 40 * q + 80f * r) + new Vector3(124, 0, 66)),
+            //                       0.0f,
+            //                       (float)noise.GetValue((p + 40 * q + 80f * r) + new Vector3(201, 0, 50)));
+
+
+
+            return (float)noise.GetValue(p + 120 * r);
+            //return 1.0f - Mathf.Abs((float)noise.GetValue(p + 120f * s));
+        }
+        #endregion
     }
 }
 

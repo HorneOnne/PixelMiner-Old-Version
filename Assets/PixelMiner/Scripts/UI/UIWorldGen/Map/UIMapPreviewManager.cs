@@ -4,8 +4,8 @@ using System.Threading;
 using PixelMiner.WorldBuilding;
 using PixelMiner.Enums;
 using PixelMiner.World;
-
-
+using LibNoise;
+using LibNoise.Generator;
 
 namespace PixelMiner.UI.WorldGen
 {
@@ -29,9 +29,9 @@ namespace PixelMiner.UI.WorldGen
             BiomeMapPreview = transform.Find("BiomeMapPreview")?.GetComponent<UIMapPreview>();
         }
 
-        private void Update()
+        private async void Update()
         {
-            if(Input.GetKeyDown(KeyCode.F1))
+            if (Input.GetKeyDown(KeyCode.F1))
             {
                 SetActiveBiomeMap();
                 Debug.Log("Preview Biome");
@@ -48,11 +48,25 @@ namespace PixelMiner.UI.WorldGen
             }
             if (Input.GetKeyDown(KeyCode.F4))
             {
-                SetActiveHeightMap(true);
+                SetActiveHeightMap(true, false);
+                Debug.Log("Preview Height");
+            }
+            if (Input.GetKeyDown(KeyCode.F5))
+            {
+                SetActiveHeightMap(true, true);
                 Debug.Log("Preview Height");
             }
 
-            if (Input.GetKeyDown(KeyCode.F5))
+            if (Input.GetKeyDown(KeyCode.F7))
+            {
+                CloseAllMap();
+                Texture2D texture = await GetMyNoiseTexture();
+                HeightMapPreview.SetImage(texture);
+            }
+
+
+
+            if (Input.GetKeyDown(KeyCode.F11))
             {
                 WorldGeneration.Instance.UpdateNoiseModule();
                 Debug.Log("Update Noise Modules");
@@ -66,11 +80,11 @@ namespace PixelMiner.UI.WorldGen
         public bool HasBiomeMap() => BiomeMapPreview != null;
 
 
-        public void SetActiveHeightMap(bool digRiver)
+        public void SetActiveHeightMap(bool digRiver, bool domainWarping)
         {
             CloseAllMap();
 
-            UpdateHeightMapPreview(digRiver);
+            UpdateHeightMapPreview(digRiver, domainWarping);
         }
         public void SetActiveHeatMap()
         {
@@ -103,9 +117,9 @@ namespace PixelMiner.UI.WorldGen
 
 
 
-        private async void UpdateHeightMapPreview(bool digRiver)
+        private async void UpdateHeightMapPreview(bool digRiver, bool applyDomainWarping)
         {
-            Texture2D texture = await GetHeightmapTextureAsync(digRiver);
+            Texture2D texture = await GetHeightmapTextureAsync(digRiver, applyDomainWarping);
             HeightMapPreview.SetImage(texture);
         }
         private async void UpdateHeatMapPreview()
@@ -126,11 +140,13 @@ namespace PixelMiner.UI.WorldGen
 
 
 
-        private async Task<Texture2D> GetHeightmapTextureAsync(bool digRiver)
+        private async Task<Texture2D> GetHeightmapTextureAsync(bool digRiver, bool applyDomainWarping)
         {
             int textureWidth = 1920;
             int textureHeight = 1080;
-            float[] heightValues = await WorldGeneration.Instance.GetHeightMapDataAsync(0, 0, textureWidth, textureHeight);
+            float[] heightValues = await WorldGeneration.Instance.GetHeightMapDataAsync(0, 0, textureWidth, textureHeight, applyDomainWarping);
+
+
 
             //if (digRiver)
             //{
@@ -142,6 +158,8 @@ namespace PixelMiner.UI.WorldGen
 
             //}
 
+            bool greyScale = true;
+
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
 
@@ -150,34 +168,61 @@ namespace PixelMiner.UI.WorldGen
                 Parallel.For(0, heightValues.Length, i =>
                 {
                     float heightValue = heightValues[i];
-                    if (heightValue < WorldGeneration.Instance.DeepWater)
+
+                    if (greyScale)
                     {
-                        pixels[i] = WorldGeneration.DeepColor;
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Water)
-                    {
-                        pixels[i] = WorldGeneration.ShallowColor;
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Sand)
-                    {
-                        pixels[i] = WorldGeneration.SandColor;
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Grass)
-                    {
-                        pixels[i] = WorldGeneration.GrassColor;
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Forest)
-                    {
-                        pixels[i] = WorldGeneration.ForestColor;
-                    }
-                    else if (heightValue < WorldGeneration.Instance.Rock)
-                    {
-                        pixels[i] = WorldGeneration.RockColor;
+                        pixels[i] = new Color(heightValue, heightValue, heightValue, 1.0f);
+
+                        //if (heightValue > 0.5f && heightValue < 0.6f)
+                        //{
+                        //    pixels[i] = new Color(heightValue, heightValue, heightValue, 1.0f);
+                        //}
+                        //if (heightValue > 0.7f)
+                        //{
+                        //    pixels[i] = new Color(heightValue, heightValue, heightValue, 1.0f);
+                        //}
+                        //else if (heightValue < 0.25f)
+                        //{
+                        //    pixels[i] = Color.red;
+                        //}
+                        //else
+                        //{
+                        //    pixels[i] = Color.blue;
+                        //}
+
                     }
                     else
                     {
-                        pixels[i] = WorldGeneration.SnowColor;
+                        if (heightValue < WorldGeneration.Instance.DeepWater)
+                        {
+                            pixels[i] = WorldGeneration.DeepColor;
+                        }
+                        else if (heightValue < WorldGeneration.Instance.Water)
+                        {
+                            pixels[i] = WorldGeneration.ShallowColor;
+                        }
+                        else if (heightValue < WorldGeneration.Instance.Sand)
+                        {
+                            pixels[i] = WorldGeneration.SandColor;
+                        }
+                        else if (heightValue < WorldGeneration.Instance.Grass)
+                        {
+                            pixels[i] = WorldGeneration.GrassColor;
+                        }
+                        else if (heightValue < WorldGeneration.Instance.Forest)
+                        {
+                            pixels[i] = WorldGeneration.ForestColor;
+                        }
+                        else if (heightValue < WorldGeneration.Instance.Rock)
+                        {
+                            pixels[i] = WorldGeneration.RockColor;
+                        }
+                        else
+                        {
+                            pixels[i] = WorldGeneration.SnowColor;
+                        }
                     }
+
                 });
             });
 
@@ -295,11 +340,16 @@ namespace PixelMiner.UI.WorldGen
             int textureHeight = 1080;
             Vector3Int dimension = new Vector3Int(textureWidth, 1, textureHeight);
 
+            Task<float[]> heightTask = WorldGeneration.Instance.GetHeightMapDataAsync(0, 0, textureWidth, textureHeight);
+            Task<float[]> heatTask = WorldGeneration.Instance.GetFractalHeatMapDataAsync(0, 0, textureWidth, textureHeight);
+            Task<float[]> moistureTask = WorldGeneration.Instance.GetMoistureMapDataAsync(0, 0, textureWidth, textureHeight);
+            Task<float[]> riverTask = WorldGeneration.Instance.GetRiverDataAsync(0, 0, textureWidth, textureHeight);
+            await Task.WhenAll(heightTask, heatTask, moistureTask, riverTask);
+            float[] heightValues = heightTask.Result;
+            float[] heatValues = heatTask.Result;
+            float[] moistureValues = moistureTask.Result;
+            float[] riverValues = riverTask.Result;
 
-            float[] heightValues = await WorldGeneration.Instance.GetHeightMapDataAsync(0, 0, textureWidth, textureHeight);
-            float[] heatValues = await WorldGeneration.Instance.GetFractalHeatMapDataAsync(0, 0, textureWidth, textureHeight);
-            float[] moistureValues = await WorldGeneration.Instance.GetMoistureMapDataAsync(0, 0, textureWidth, textureHeight);
-            float[] riverValues = await WorldGeneration.Instance.GetRiverDataAsync(0, 0, textureWidth, textureHeight);
 
 
             BlockType[] blockData = await LoadHeightMapDataAsync(heightValues, textureWidth, 1, textureHeight);
@@ -427,44 +477,34 @@ namespace PixelMiner.UI.WorldGen
             HeatType[] heatData = new HeatType[heatValues.Length];
             await Task.Run(() =>
             {
-                for (int z = 0; z < depth; z++)
+                Parallel.For(0, heatValues.Length, (i) =>
                 {
-                    for (int y = 0; y < height; y++)
+                    float heatValue = heatValues[i];
+                    if (heatValue < WorldGeneration.Instance.ColdestValue)
                     {
-                        for (int x = 0; x < width; x++)
-                        {
-                            int index3D = WorldGenUtilities.IndexOf(x, y, z, width, height);
-                            int flattenedIndex = WorldGenUtilities.IndexOf(x, z, width);
-                            float heatValue = heatValues[flattenedIndex];
-
-                            if (heatValue < WorldGeneration.Instance.ColdestValue)
-                            {
-                                heatData[index3D] = HeatType.Coldest;
-                            }
-                            else if (heatValue < WorldGeneration.Instance.ColderValue)
-                            {
-                                heatData[index3D] = HeatType.Colder;
-                            }
-                            else if (heatValue < WorldGeneration.Instance.ColdValue)
-                            {
-                                heatData[index3D] = HeatType.Cold;
-                            }
-                            else if (heatValue < WorldGeneration.Instance.WarmValue)
-                            {
-                                heatData[index3D] = HeatType.Warm;
-                            }
-                            else if (heatValue < WorldGeneration.Instance.WarmerValue)
-                            {
-                                heatData[index3D] = HeatType.Warmer;
-                            }
-                            else
-                            {
-                                heatData[index3D] = HeatType.Warmest;
-                            }
-
-                        }
+                        heatData[i] = HeatType.Coldest;
                     }
-                }
+                    else if (heatValue < WorldGeneration.Instance.ColderValue)
+                    {
+                        heatData[i] = HeatType.Colder;
+                    }
+                    else if (heatValue < WorldGeneration.Instance.ColdValue)
+                    {
+                        heatData[i] = HeatType.Cold;
+                    }
+                    else if (heatValue < WorldGeneration.Instance.WarmValue)
+                    {
+                        heatData[i] = HeatType.Warm;
+                    }
+                    else if (heatValue < WorldGeneration.Instance.WarmerValue)
+                    {
+                        heatData[i] = HeatType.Warmer;
+                    }
+                    else
+                    {
+                        heatData[i] = HeatType.Warmest;
+                    }
+                });
             });
 
             return heatData;
@@ -474,43 +514,35 @@ namespace PixelMiner.UI.WorldGen
             MoistureType[] moistureData = new MoistureType[moistureValues.Length];
             await Task.Run(() =>
             {
-                for (int z = 0; z < depth; z++)
+                Parallel.For(0, moistureValues.Length, (i) =>
                 {
-                    for (int y = 0; y < height; y++)
-                    {
-                        for (int x = 0; x < width; x++)
-                        {
-                            int index2D = WorldGenUtilities.IndexOf(x, z, width);
-                            int index3D = WorldGenUtilities.IndexOf(x, y, z, width, height);
-                            float moistureValue = moistureValues[index2D];
+                    float moistureValue = moistureValues[i];
 
-                            if (moistureValue < WorldGeneration.Instance.DryestValue)
-                            {
-                                moistureData[index3D] = MoistureType.Dryest;
-                            }
-                            else if (moistureValue < WorldGeneration.Instance.DryerValue)
-                            {
-                                moistureData[index3D] = MoistureType.Dryer;
-                            }
-                            else if (moistureValue < WorldGeneration.Instance.DryValue)
-                            {
-                                moistureData[index3D] = MoistureType.Dry;
-                            }
-                            else if (moistureValue < WorldGeneration.Instance.WetValue)
-                            {
-                                moistureData[index3D] = MoistureType.Wet;
-                            }
-                            else if (moistureValue < WorldGeneration.Instance.WetterValue)
-                            {
-                                moistureData[index3D] = MoistureType.Wetter;
-                            }
-                            else
-                            {
-                                moistureData[index3D] = MoistureType.Wettest;
-                            }
-                        }
+                    if (moistureValue < WorldGeneration.Instance.DryestValue)
+                    {
+                        moistureData[i] = MoistureType.Dryest;
                     }
-                }
+                    else if (moistureValue < WorldGeneration.Instance.DryerValue)
+                    {
+                        moistureData[i] = MoistureType.Dryer;
+                    }
+                    else if (moistureValue < WorldGeneration.Instance.DryValue)
+                    {
+                        moistureData[i] = MoistureType.Dry;
+                    }
+                    else if (moistureValue < WorldGeneration.Instance.WetValue)
+                    {
+                        moistureData[i] = MoistureType.Wet;
+                    }
+                    else if (moistureValue < WorldGeneration.Instance.WetterValue)
+                    {
+                        moistureData[i] = MoistureType.Wetter;
+                    }
+                    else
+                    {
+                        moistureData[i] = MoistureType.Wettest;
+                    }
+                });
             });
 
             return moistureData;
@@ -520,17 +552,10 @@ namespace PixelMiner.UI.WorldGen
             BiomeType[] biomesData = new BiomeType[width * depth];
             await Task.Run(() =>
             {
-                for (int z = 0; z < depth; z++)
+                Parallel.For(0, biomesData.Length, (i) =>
                 {
-                    for (int y = 0; y < height; y++)
-                    {
-                        for (int x = 0; x < width; x++)
-                        {
-                            int index = WorldGenUtilities.IndexOf(x, z, width);
-                            biomesData[index] = WorldGeneration.Instance.BiomeTable[(int)moistureData[index], (int)heatData[index]];
-                        }
-                    }
-                }
+                    biomesData[i] = WorldGeneration.Instance.BiomeTable[(int)moistureData[i], (int)heatData[i]];
+                });
             });
 
             return biomesData;
@@ -540,33 +565,149 @@ namespace PixelMiner.UI.WorldGen
 
         private bool[] UpdateBiomesBorders(BiomeType[] biomeData, int width, int depth)
         {
-            bool[] borderEdges = new bool[width * depth];   
-            
-            for (int z = 0; z < depth; z++)
+            bool[] borderEdges = new bool[width * depth];
+
+
+            Parallel.For(0, borderEdges.Length, (i) =>
             {
-                for (int x = 0; x < width; x++)
+                int x = i % width;
+                int z = i / width;
+
+                borderEdges[i] = false;
+                if (x == 0 || x == width - 1 || z == 0 || z == depth - 1) return;
+
+                int bitmask = 0;
+                if (biomeData[x + (z + 1) * width] == biomeData[i])
+                    bitmask += 1;
+                if (biomeData[(x + 1) + z * width] == biomeData[i])
+                    bitmask += 2;
+                if (biomeData[x + (z - 1) * width] == biomeData[i])
+                    bitmask += 4;
+                if (biomeData[(x - 1) + z * width] == biomeData[i])
+                    bitmask += 8;
+
+                if (bitmask != 15)
                 {
-                    int index = x + z * width;
-                    borderEdges[index] = false;
-                    if (x == 0 || x == width - 1 || z == 0 || z == depth - 1) continue;
-
-                    int bitmask = 0;
-                    if (biomeData[x + (z+1) * width] == biomeData[index])
-                        bitmask += 1;
-                    if (biomeData[(x + 1) + z * width] == biomeData[index])
-                        bitmask += 2;
-                    if (biomeData[x + (z - 1) * width] == biomeData[index])
-                        bitmask += 4;
-                    if (biomeData[(x - 1) + z * width] == biomeData[index])
-                        bitmask += 8;
-
-                    if(bitmask != 15)
-                    {
-                        borderEdges[index] = true;
-                    }
+                    borderEdges[i] = true;
                 }
-            }
+            });
             return borderEdges;
+        }
+
+
+        private double RiverFrequency = 0.005;
+        private double RiverDisplacement = 1.0f;
+        private bool RiverDistance = false;
+        private async Task<Texture2D> GetMyNoiseTexture()
+        {
+            int textureWidth = 1920;
+            int textureHeight = 1080;
+            float[] noiseValues = new float[textureWidth * textureHeight];
+            Voronoi voronoi = new Voronoi(RiverFrequency, RiverDisplacement, 7, RiverDistance);
+            Perlin perlin = new Perlin(0.009f, 2, 0.5f, 5, 7, QualityMode.Medium);
+
+            bool greyScale = true;
+            Texture2D texture = new Texture2D(textureWidth, textureHeight);
+            Color[] pixels = new Color[textureWidth * textureHeight];
+
+            await Task.Run(() =>
+            {
+                Parallel.For(0, textureHeight, y =>
+                {
+                    for (int x = 0; x < textureWidth; x++)
+                    {
+                        //float noise01 = (1.0f + (float)voronoi.GetValue(x, 0, y)) / 2.0f;
+                        float noise02 = DomainWarpingFbmPerlinNoise(x,0,y, perlin, voronoi);
+
+                        noiseValues[x + y * textureWidth] = noise02;
+                    }
+                });
+            });
+
+
+
+            await Task.Run(() =>
+            {
+                Parallel.For(0, noiseValues.Length, i =>
+                {
+                    float noiseValue = noiseValues[i];
+
+                    if (greyScale)
+                    {
+                        pixels[i] = new Color(noiseValue, noiseValue, noiseValue, 1.0f);
+                        //if (heightValue > 0.35 && heightValue < 0.45f)
+                        //{
+                        //    pixels[i] = new Color(heightValue, heightValue, heightValue, 1.0f);
+                        //}
+                        //if (heightValue < 0.31)
+                        //{
+                        //    pixels[i] = new Color(heightValue, heightValue, heightValue, 1.0f);
+                        //}
+                        //else
+                        //{
+                        //    pixels[i] = Color.blue;
+                        //}
+
+                    }
+                    else
+                    {
+                        if (noiseValue < WorldGeneration.Instance.DeepWater)
+                        {
+                            pixels[i] = WorldGeneration.DeepColor;
+                        }
+                        else if (noiseValue < WorldGeneration.Instance.Water)
+                        {
+                            pixels[i] = WorldGeneration.ShallowColor;
+                        }
+                        else if (noiseValue < WorldGeneration.Instance.Sand)
+                        {
+                            pixels[i] = WorldGeneration.SandColor;
+                        }
+                        else if (noiseValue < WorldGeneration.Instance.Grass)
+                        {
+                            pixels[i] = WorldGeneration.GrassColor;
+                        }
+                        else if (noiseValue < WorldGeneration.Instance.Forest)
+                        {
+                            pixels[i] = WorldGeneration.ForestColor;
+                        }
+                        else if (noiseValue < WorldGeneration.Instance.Rock)
+                        {
+                            pixels[i] = WorldGeneration.RockColor;
+                        }
+                        else
+                        {
+                            pixels[i] = WorldGeneration.SnowColor;
+                        }
+                    }
+
+                });
+            });
+
+            texture.SetPixels(pixels);
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.filterMode = FilterMode.Bilinear;
+            texture.Apply();
+            return texture;
+        }
+
+        public float DomainWarpingFbmPerlinNoise(float x, float y, float z, ModuleBase perlin, ModuleBase voronoi)
+        {
+            Vector3 p = new Vector3(x, y, z);
+
+            Vector3 q = new Vector3((float)perlin.GetValue(p + new Vector3(0, 0, 0)),
+                                    0.0f,
+                                    (float)perlin.GetValue(p + new Vector3(52.0f, 0, 13.0f)));
+
+            //Vector3 r = new Vector3((float)noise.GetValue((p + 40 * q) + new Vector3(77, 0, 35)),
+            //                        0.0f,
+            //                        (float)noise.GetValue((p + 40 * q) + new Vector3(83, 0, 28)));
+
+
+
+            //return (float)noise.GetValue(p + 120 * r);
+            return (float)voronoi.GetValue(p + q * 40f);
+         
         }
 
     }

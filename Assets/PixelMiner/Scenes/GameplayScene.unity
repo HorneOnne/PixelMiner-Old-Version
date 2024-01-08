@@ -2386,8 +2386,8 @@ MonoBehaviour:
   Snow: 1
   HeatOctaves: 4
   HeatFrequency: 0.006
-  HeatLacunarity: 16
-  HeatPersistence: 0.0625
+  HeatLacunarity: 2
+  HeatPersistence: 0.5
   HeatQuality: 2
   GradientHeatmapSize: 512
   HeatMapBlendFactor: 0.5
