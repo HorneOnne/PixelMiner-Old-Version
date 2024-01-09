@@ -3,15 +3,15 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Generic;
 using UnityEngine;
-using LibNoise;
-using LibNoise.Generator;
+//using LibNoise;
+//using LibNoise.Generator;
 using Sirenix.OdinInspector;
 using PixelMiner.Utilities;
 using PixelMiner.Enums;
 using PixelMiner.Core;
 using PixelMiner.Lighting;
 using PixelMiner.World;
-using Mono.CSharp;
+
 
 namespace PixelMiner.WorldBuilding
 {
@@ -33,10 +33,10 @@ namespace PixelMiner.WorldBuilding
         // ==========
         [InfoBox("Height map noise settings")]
         [FoldoutGroup("Height map"), Indent(1)] public int Octaves = 6;
-        [FoldoutGroup("Height map"), Indent(1)] public double Frequency = 0.02f;
-        [FoldoutGroup("Height map"), Indent(1)] public double Lacunarity = 2.0f;
-        [FoldoutGroup("Height map"), Indent(1)] public double Persistence = 0.5f;
-        [FoldoutGroup("Height map"), Indent(1)] public QualityMode Quality;
+        [FoldoutGroup("Height map"), Indent(1)] public float Frequency = 0.02f;
+        [FoldoutGroup("Height map"), Indent(1)] public float Lacunarity = 2.0f;
+        [FoldoutGroup("Height map"), Indent(1)] public float Persistence = 0.5f;
+        //[FoldoutGroup("Height map"), Indent(1)] public QualityMode Quality;
 
         [InfoBox("Height map threshold"), Space(10)]
         [FoldoutGroup("Height map")]
@@ -53,17 +53,19 @@ namespace PixelMiner.WorldBuilding
         public float Rock = 0.9f;
         [FoldoutGroup("Height map")]
         public float Snow = 1;
-        private ModuleBase _heightModule;
+        //private ModuleBase _heightModule;
+        private FastNoiseLite _heightNoise;
+        
 
 
         // Heapmap
         // ======
         [InfoBox("Heat map noise settings")]
         [FoldoutGroup("Heatmap"), Indent(1)] public int HeatOctaves = 4;
-        [FoldoutGroup("Heatmap"), Indent(1)] public double HeatFrequency = 0.02;
-        [FoldoutGroup("Heatmap"), Indent(1)] public double HeatLacunarity = 2.0f;
-        [FoldoutGroup("Heatmap"), Indent(1)] public double HeatPersistence = 0.5f;
-        [FoldoutGroup("Heatmap"), Indent(1)] public QualityMode HeatQuality;
+        [FoldoutGroup("Heatmap"), Indent(1)] public float HeatFrequency = 0.02f;
+        [FoldoutGroup("Heatmap"), Indent(1)] public float HeatLacunarity = 2.0f;
+        [FoldoutGroup("Heatmap"), Indent(1)] public float HeatPersistence = 0.5f;
+        //[FoldoutGroup("Heatmap"), Indent(1)] public QualityMode HeatQuality;
 
         [InfoBox("Gradient map"), Space(10)]
         [FoldoutGroup("Heatmap"), Indent(1)] public ushort GradientHeatmapSize = 256;
@@ -76,7 +78,8 @@ namespace PixelMiner.WorldBuilding
         [FoldoutGroup("Heatmap")] public float WarmValue = 0.6f;
         [FoldoutGroup("Heatmap")] public float WarmerValue = 0.8f;
         [FoldoutGroup("Heatmap")] public float WarmestValue = 1.0f;
-        private ModuleBase _heatModule;
+        //private ModuleBase _heatModule;
+        private FastNoiseLite _heatNoise;
 
 
 
@@ -84,10 +87,10 @@ namespace PixelMiner.WorldBuilding
         // ======
         [InfoBox("Moisture map noise settings")]
         [FoldoutGroup("Moisture map"), Indent(1)] public int MoistureOctaves = 4;
-        [FoldoutGroup("Moisture map"), Indent(1)] public double MoistureFrequency = 0.03;
-        [FoldoutGroup("Moisture map"), Indent(1)] public double MoistureLacunarity = 2.0f;
-        [FoldoutGroup("Moisture map"), Indent(1)] public double MoisturePersistence = 0.5f;
-        [FoldoutGroup("Moisture map"), Indent(1)] public QualityMode MoistureQuality;
+        [FoldoutGroup("Moisture map"), Indent(1)] public float MoistureFrequency = 0.03f;
+        [FoldoutGroup("Moisture map"), Indent(1)] public float MoistureLacunarity = 2.0f;
+        [FoldoutGroup("Moisture map"), Indent(1)] public float MoisturePersistence = 0.5f;
+        //[FoldoutGroup("Moisture map"), Indent(1)] public QualityMode MoistureQuality;
         [InfoBox("Moisture map noise settings"), Space(10)]
         [FoldoutGroup("Moisture map")] public float DryestValue = 0.22f;
         [FoldoutGroup("Moisture map")] public float DryerValue = 0.35f;
@@ -95,22 +98,24 @@ namespace PixelMiner.WorldBuilding
         [FoldoutGroup("Moisture map")] public float WetValue = 0.75f;
         [FoldoutGroup("Moisture map")] public float WetterValue = 0.85f;
         [FoldoutGroup("Moisture map")] public float WettestValue = 1.0f;
-        private ModuleBase _moistureModule;
+        //private ModuleBase _moistureModule;
+        private FastNoiseLite _moistureNoise;
 
 
 
         // River
         // =====
         [FoldoutGroup("River"), Indent(1)] public int RiverOctaves = 4;
-        [FoldoutGroup("River"), Indent(1)] public double RiverFrequency = 0.02;
-        [FoldoutGroup("River"), Indent(1)] public double RiverDisplacement = 1.0f;
+        [FoldoutGroup("River"), Indent(1)] public float RiverFrequency = 0.02f;
+        [FoldoutGroup("River"), Indent(1)] public float RiverDisplacement = 1.0f;
         [FoldoutGroup("River"), Indent(1)] public bool RiverDistance = false;
-        [FoldoutGroup("River"), Indent(1)] public double RiverLacunarity = 2.0f;
-        [FoldoutGroup("River"), Indent(1)] public double RiverPersistence = 0.5f;
-        [FoldoutGroup("River"), Indent(1)] public QualityMode RiverQuality;
+        [FoldoutGroup("River"), Indent(1)] public float RiverLacunarity = 2.0f;
+        [FoldoutGroup("River"), Indent(1)] public float RiverPersistence = 0.5f;
+        //[FoldoutGroup("River"), Indent(1)] public QualityMode RiverQuality;
         [FoldoutGroup("River"), Indent(1), MinMaxSlider(0f, 1f, true)] public Vector2 RiverRange = new Vector2(0.7f, 0.75f);
-        private ModuleBase _riverModuleVoronoi;
-        private ModuleBase _riverModulePerlin;
+        //private ModuleBase _riverModuleVoronoi;
+        //private ModuleBase _riverModulePerlin;
+        private FastNoiseLite _riverNoise;
 
 
 
@@ -203,12 +208,45 @@ namespace PixelMiner.WorldBuilding
             _maxWorldNoiseValue = float.MinValue;
 
             // Init noise module
-            _heightModule = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, Quality);
-            _heatModule = new Perlin(HeatFrequency, HeatLacunarity, HeatPersistence, HeatOctaves, Seed + 1, HeatQuality);
-            _moistureModule = new Perlin(MoistureFrequency, MoistureLacunarity, MoisturePersistence, MoistureOctaves, Seed + 2, MoistureQuality);
 
-            _riverModulePerlin = new Perlin(RiverFrequency, RiverLacunarity, RiverPersistence, RiverOctaves, Seed + 3, RiverQuality);
-            _riverModuleVoronoi = new Voronoi(RiverFrequency, RiverDisplacement, Seed, RiverDistance);
+            // HEIGHT
+            _heightNoise = new FastNoiseLite(Seed);
+            _heightNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            _heightNoise.SetFrequency(Frequency);
+            _heightNoise.SetFractalLacunarity(Lacunarity);
+            _heightNoise.SetFractalGain(Persistence);
+
+
+            // HEAT
+            _heatNoise = new FastNoiseLite(Seed + 1);
+            _heatNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            _heatNoise.SetFrequency(HeatFrequency);
+            _heatNoise.SetFractalLacunarity(HeatLacunarity);
+            _heatNoise.SetFractalGain(HeatPersistence);
+
+
+            // MOISTURE
+            _moistureNoise = new FastNoiseLite(Seed + 2);
+            _moistureNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            _moistureNoise.SetFrequency(MoistureFrequency);
+            _moistureNoise.SetFractalLacunarity(MoistureLacunarity);
+            _moistureNoise.SetFractalGain(MoisturePersistence);
+
+
+            // RIVER
+            _riverNoise = new FastNoiseLite(Seed + 3);
+            _riverNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            _riverNoise.SetFrequency(RiverFrequency);
+            _riverNoise.SetFractalLacunarity(RiverLacunarity);
+            _riverNoise.SetFractalGain(RiverPersistence);
+
+
+            //_heightModule = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, Quality);
+            //_heatModule = new Perlin(HeatFrequency, HeatLacunarity, HeatPersistence, HeatOctaves, Seed + 1, HeatQuality);
+            //_moistureModule = new Perlin(MoistureFrequency, MoistureLacunarity, MoisturePersistence, MoistureOctaves, Seed + 2, MoistureQuality);
+
+            //_riverModulePerlin = new Perlin(RiverFrequency, RiverLacunarity, RiverPersistence, RiverOctaves, Seed + 3, RiverQuality);
+            //_riverModuleVoronoi = new Voronoi(RiverFrequency, RiverDisplacement, Seed, RiverDistance);
         }
 
         private void Start()
@@ -243,16 +281,6 @@ namespace PixelMiner.WorldBuilding
         {
             Chunk.OnChunkHasNeighbors += PropagateAmbientLight;
             Chunk.OnChunkHasNeighbors -= DrawChunk;
-        }
-
-        public void UpdateNoiseModule()
-        {
-            _heightModule = new Perlin(Frequency, Lacunarity, Persistence, Octaves, Seed, Quality);
-            _heatModule = new Perlin(HeatFrequency, HeatLacunarity, HeatPersistence, HeatOctaves, Seed + 1, HeatQuality);
-            _moistureModule = new Perlin(MoistureFrequency, MoistureLacunarity, MoisturePersistence, MoistureOctaves, Seed + 2, MoistureQuality);
-
-            _riverModulePerlin = new Perlin(RiverFrequency, RiverLacunarity, RiverPersistence, RiverOctaves, Seed + 3, RiverQuality);
-            _riverModuleVoronoi = new Voronoi(RiverFrequency, RiverDisplacement, Seed, RiverDistance);
         }
 
 
@@ -340,9 +368,9 @@ namespace PixelMiner.WorldBuilding
             {
                 for (int i = 0; i < _calculateNoiseRangeCount; i++)
                 {
-                    double x = rand.Next();
-                    double y = rand.Next();
-                    float noiseValue = (float)_heightModule.GetValue(x, y, 0); // Generate noise value
+                    float x = rand.Next();
+                    float y = rand.Next();
+                    float noiseValue = (float)_heightNoise.GetNoise(x, y); // Generate noise value
 
                     // Update min and max values
                     if (noiseValue < minNoiseValue)
@@ -437,9 +465,9 @@ namespace PixelMiner.WorldBuilding
             {
                 for (int i = 0; i < sampleCount; i++)
                 {
-                    double x = rand.Next();
-                    double y = rand.Next();
-                    float noiseValue = (float)_heightModule.GetValue(x, y, 0); // Generate noise value
+                    float x = rand.Next();
+                    float y = rand.Next();
+                    float noiseValue = (float)_heightNoise.GetNoise(x, y); // Generate noise value
 
                     // Update min and max values
                     if (noiseValue < minMax.MinValue)
@@ -574,11 +602,11 @@ namespace PixelMiner.WorldBuilding
 
                         if (applyDomainWarping)
                         {
-                            heightValue = DomainWarpingFbmPerlinNoise(offsetX, 0, offsetZ, _heightModule);
+                            heightValue = DomainWarpingFbmPerlinNoise(offsetX, offsetZ, _heightNoise);
                         }
                         else
                         {
-                            heightValue = (float)_heightModule.GetValue(offsetX, 0, offsetZ);
+                            heightValue = (float)_heightNoise.GetNoise(offsetX, offsetZ);
                         }
                      
                         float normalizeHeightValue = (heightValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
@@ -634,8 +662,7 @@ namespace PixelMiner.WorldBuilding
                     {
                         float offsetX = frameX * width + x;
                         float offsetZ = frameZ * height + z;
-                        float heatValue = DomainWarpingFbmPerlinNoise(offsetX, 0, offsetZ, _heatModule);
-                        //float heatValue = (float)_heatModule.GetValue(offsetX, 0, offsetZ);
+                        float heatValue = (float)_heatNoise.GetNoise(offsetX, offsetZ);
                         float normalizeHeatValue = (heatValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
 
                         fractalNoiseData[WorldGenUtilities.IndexOf(x, z, width)] = normalizeHeatValue;
@@ -675,8 +702,7 @@ namespace PixelMiner.WorldBuilding
                     {
                         float offsetX = frameX * width + x;
                         float offsetZ = frameZ * height + z;
-                        //float moisetureValue = (float)_moistureModule.GetValue(offsetX, 0, offsetZ);
-                        float moisetureValue = DomainWarpingFbmPerlinNoise(x, 0, z, _moistureModule);
+                        float moisetureValue = _moistureNoise.GetNoise(offsetX, offsetZ);
                         float normalizeMoistureValue = (moisetureValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
 
                         moistureData[WorldGenUtilities.IndexOf(x, z, width)] = normalizeMoistureValue;
@@ -698,7 +724,7 @@ namespace PixelMiner.WorldBuilding
                     {
                         float offsetX = frameX * width + x;
                         float offsetZ = frameZ * height + y;
-                        float riverValue = (float)_riverModulePerlin.GetValue(offsetX, 0, offsetZ);
+                        float riverValue = (float)_riverNoise.GetNoise(offsetX, offsetZ);
 
                         if (normalize)
                         {
@@ -1264,26 +1290,23 @@ namespace PixelMiner.WorldBuilding
 
 
         #region Noise
-        public float DomainWarpingFbmPerlinNoise(float x, float y, float z, ModuleBase noise)
+        public float DomainWarpingFbmPerlinNoise(float x, float y, FastNoiseLite noise)
         {
-            Vector3 p = new Vector3(x, y, z);
+            Vector2 p = new Vector2(x, y);
 
-            Vector3 q = new Vector3((float)noise.GetValue(p + new Vector3(0,0,0)), 
-                                    0.0f,
-                                    (float)noise.GetValue(p + new Vector3(52.0f, 0, 13.0f)));
-
-            Vector3 r = new Vector3((float)noise.GetValue((p + 40 * q) + new Vector3(77, 0, 35)),
-                                    0.0f,
-                                    (float)noise.GetValue((p + 40 * q) + new Vector3(83, 0, 28)));
-
-            //Vector3 s = new Vector3((float)noise.GetValue((p + 40 * q + 80f * r) + new Vector3(124, 0, 66)),
-            //                       0.0f,
-            //                       (float)noise.GetValue((p + 40 * q + 80f * r) + new Vector3(201, 0, 50)));
+            Vector2 q = new Vector2((float)noise.GetNoise(p.x, p.y),
+                                    (float)noise.GetNoise(p.x + 52.0f, p.y + 13.0f));
 
 
+            Vector2 l2p1 = (p + 40 * q) + new Vector2(77, 35);
+            Vector2 l2p2 = (p + 40 * q) + new Vector2(83, 28);
+ 
+            Vector2 r = new Vector3((float)noise.GetNoise(l2p1.x, l2p1.y),
+                                    (float)noise.GetNoise(l2p2.x, l2p2.y));
 
-            return (float)noise.GetValue(p + 120 * r);
-            //return 1.0f - Mathf.Abs((float)noise.GetValue(p + 120f * s));
+
+            Vector2 l3 = p + 120 * r;
+            return (float)noise.GetNoise(l3.x, l3.y);
         }
         #endregion
     }

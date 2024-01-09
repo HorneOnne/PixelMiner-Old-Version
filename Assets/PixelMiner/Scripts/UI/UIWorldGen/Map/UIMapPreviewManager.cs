@@ -4,8 +4,8 @@ using System.Threading;
 using PixelMiner.WorldBuilding;
 using PixelMiner.Enums;
 using PixelMiner.World;
-using LibNoise;
-using LibNoise.Generator;
+
+
 
 namespace PixelMiner.UI.WorldGen
 {
@@ -16,7 +16,7 @@ namespace PixelMiner.UI.WorldGen
         public UIMapPreview HeatMapPreview { get; private set; }
         public UIMapPreview MoistureMapPreview { get; private set; }
         public UIMapPreview BiomeMapPreview { get; private set; }
-
+  
 
 
 
@@ -62,14 +62,6 @@ namespace PixelMiner.UI.WorldGen
                 CloseAllMap();
                 Texture2D texture = await GetMyNoiseTexture();
                 HeightMapPreview.SetImage(texture);
-            }
-
-
-
-            if (Input.GetKeyDown(KeyCode.F11))
-            {
-                WorldGeneration.Instance.UpdateNoiseModule();
-                Debug.Log("Update Noise Modules");
             }
         }
 
@@ -603,28 +595,47 @@ namespace PixelMiner.UI.WorldGen
             int textureWidth = 1920;
             int textureHeight = 1080;
             float[] noiseValues = new float[textureWidth * textureHeight];
-            Voronoi voronoi = new Voronoi(RiverFrequency, RiverDisplacement, 7, RiverDistance);
-            Perlin perlin = new Perlin(0.009f, 2, 0.5f, 5, 7, QualityMode.Medium);
+
+            FastNoiseLite perlinNoise = new FastNoiseLite();
+            perlinNoise.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
+            perlinNoise.SetCellularReturnType(FastNoiseLite.CellularReturnType.CellValue);
+
+
 
             bool greyScale = true;
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
 
+            float min = float.MaxValue;
+            float max = float.MinValue;
+
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
             await Task.Run(() =>
             {
-                Parallel.For(0, textureHeight, y =>
+                Parallel.For(0, noiseValues.Length, (i) =>
                 {
-                    for (int x = 0; x < textureWidth; x++)
-                    {
-                        //float noise01 = (1.0f + (float)voronoi.GetValue(x, 0, y)) / 2.0f;
-                        float noise02 = DomainWarpingFbmPerlinNoise(x,0,y, perlin, voronoi);
+                    int x = i % textureWidth;
+                    int y = i / textureWidth;
 
-                        noiseValues[x + y * textureWidth] = noise02;
-                    }
+                    float noise01 = ((float)perlinNoise.GetNoise(x, 0, y) + 1.0f) / 2.0f;
+                    //float noise01 = ((float)voronoi.GetValue(x, 0, y) + 1.0f) / 2.0f;
+            
+
+                    if(min > noise01) min = noise01;
+                    if(max < noise01) max = noise01;
+
+
+                    noiseValues[i] = noise01;
                 });
+
             });
 
+            Debug.Log($"Min: {min}");
+            Debug.Log($"Max: {max}");
 
+            sw.Stop();
+            Debug.Log($"Elapse: {sw.ElapsedMilliseconds / 1000f} s");
 
             await Task.Run(() =>
             {
@@ -691,24 +702,23 @@ namespace PixelMiner.UI.WorldGen
             return texture;
         }
 
-        public float DomainWarpingFbmPerlinNoise(float x, float y, float z, ModuleBase perlin, ModuleBase voronoi)
+        public float DomainWarpingFbmPerlinNoise(float x, float y, FastNoiseLite noise)
         {
-            Vector3 p = new Vector3(x, y, z);
+            Vector2 p = new Vector2(x, y);
 
-            Vector3 q = new Vector3((float)perlin.GetValue(p + new Vector3(0, 0, 0)),
-                                    0.0f,
-                                    (float)perlin.GetValue(p + new Vector3(52.0f, 0, 13.0f)));
-
-            //Vector3 r = new Vector3((float)noise.GetValue((p + 40 * q) + new Vector3(77, 0, 35)),
-            //                        0.0f,
-            //                        (float)noise.GetValue((p + 40 * q) + new Vector3(83, 0, 28)));
+            Vector2 q = new Vector2((float)noise.GetNoise(p.x, p.y),
+                                    (float)noise.GetNoise(p.x + 52.0f, p.y + 13.0f));
 
 
+            Vector2 l2p1 = (p + 40 * q) + new Vector2(77, 35);
+            Vector2 l2p2 = (p + 40 * q) + new Vector2(83, 28);
 
-            //return (float)noise.GetValue(p + 120 * r);
-            return (float)voronoi.GetValue(p + q * 40f);
-         
+            Vector2 r = new Vector3((float)noise.GetNoise(l2p1.x, l2p1.y),
+                                    (float)noise.GetNoise(l2p2.x, l2p2.y));
+
+
+            Vector2 l3 = p + 120 * r;
+            return (float)noise.GetNoise(l3.x, l3.y);
         }
-
     }
 }

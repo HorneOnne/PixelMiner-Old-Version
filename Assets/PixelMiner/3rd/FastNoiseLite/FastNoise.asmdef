@@ -1,6 +1,6 @@
 {
-    "name": "LibNoise",
-    "rootNamespace": "LibNoise",
+    "name": "FastNoise",
+    "rootNamespace": "FastNoise",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
