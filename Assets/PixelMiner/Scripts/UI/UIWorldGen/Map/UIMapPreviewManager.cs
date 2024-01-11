@@ -4,8 +4,9 @@ using System.Threading;
 using PixelMiner.WorldBuilding;
 using PixelMiner.Enums;
 using PixelMiner.World;
-
-
+using System.Collections.Generic;
+using System.Linq;
+using System.Collections.Concurrent;
 
 namespace PixelMiner.UI.WorldGen
 {
@@ -150,7 +151,7 @@ namespace PixelMiner.UI.WorldGen
 
             //}
 
-            bool greyScale = true;
+            bool greyScale = false;
 
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
@@ -239,23 +240,51 @@ namespace PixelMiner.UI.WorldGen
                 {
                     float heatValue = heatValues[i];
 
-                    if (heatValue < WorldGeneration.Instance.ColdestValue)
+                    //if (heatValue < WorldGeneration.Instance.ColdestValue)
+                    //{
+                    //    pixels[i] = WorldGeneration.ColdestColor;
+                    //}
+                    //else if (heatValue < WorldGeneration.Instance.ColderValue)
+                    //{
+                    //    pixels[i] = WorldGeneration.ColderColor;
+                    //}
+                    //else if (heatValue < WorldGeneration.Instance.ColdValue)
+                    //{
+                    //    pixels[i] = WorldGeneration.ColdColor;
+                    //}
+                    //else if (heatValue < WorldGeneration.Instance.WarmValue)
+                    //{
+                    //    pixels[i] = WorldGeneration.WarmColor;
+                    //}
+                    //else if (heatValue < WorldGeneration.Instance.WarmerValue)
+                    //{
+                    //    pixels[i] = WorldGeneration.WarmerColor;
+                    //}
+                    //else
+                    //{
+                    //    pixels[i] = WorldGeneration.WarmestColor;
+                    //}
+
+
+                    float modN = heatValue % 0.1f;
+
+                    if (modN < 0.015f)
                     {
                         pixels[i] = WorldGeneration.ColdestColor;
                     }
-                    else if (heatValue < WorldGeneration.Instance.ColderValue)
+                    else if (modN < 0.03f)
                     {
                         pixels[i] = WorldGeneration.ColderColor;
                     }
-                    else if (heatValue < WorldGeneration.Instance.ColdValue)
+                    else if (modN < 0.045f)
                     {
                         pixels[i] = WorldGeneration.ColdColor;
                     }
-                    else if (heatValue < WorldGeneration.Instance.WarmValue)
+                    else if (modN < 0.06f)
                     {
                         pixels[i] = WorldGeneration.WarmColor;
                     }
-                    else if (heatValue < WorldGeneration.Instance.WarmerValue)
+                    else if (modN < 0.08f)
                     {
                         pixels[i] = WorldGeneration.WarmerColor;
                     }
@@ -263,6 +292,7 @@ namespace PixelMiner.UI.WorldGen
                     {
                         pixels[i] = WorldGeneration.WarmestColor;
                     }
+
                 });
             });
 
@@ -279,11 +309,11 @@ namespace PixelMiner.UI.WorldGen
 
             float[] moistureValues = await WorldGeneration.Instance.GetMoistureMapDataAsync(0, 0, textureWidth, textureHeight);
 
-            if (applyHeight)
-            {
-                float[] heightValues = await WorldGeneration.Instance.GetHeightMapDataAsync(0, 0, textureWidth, textureHeight);
-                moistureValues = await WorldGeneration.Instance.ApplyHeightDataToMoistureDataAsync(heightValues, moistureValues, textureWidth, textureHeight);
-            }
+            //if (applyHeight)
+            //{
+            //    float[] heightValues = await WorldGeneration.Instance.GetHeightMapDataAsync(0, 0, textureWidth, textureHeight);
+            //    moistureValues = await WorldGeneration.Instance.ApplyHeightDataToMoistureDataAsync(heightValues, moistureValues, textureWidth, textureHeight);
+            //}
 
 
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
@@ -342,8 +372,6 @@ namespace PixelMiner.UI.WorldGen
             float[] moistureValues = moistureTask.Result;
             float[] riverValues = riverTask.Result;
 
-
-
             BlockType[] blockData = await LoadHeightMapDataAsync(heightValues, textureWidth, 1, textureHeight);
             HeatType[] heatData = await LoadHeatMapDataAsync(heatValues, textureWidth, 1, textureHeight);
             MoistureType[] moistureData = await LoadMoistureMapDataAsync(moistureValues, textureWidth, 1, textureHeight);
@@ -359,6 +387,8 @@ namespace PixelMiner.UI.WorldGen
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
 
+
+            ConcurrentDictionary<BiomeType, BiomeType> biomeSet = new ConcurrentDictionary<BiomeType, BiomeType>();
 
             await Task.Run(() =>
             {
@@ -378,6 +408,11 @@ namespace PixelMiner.UI.WorldGen
                     else
                     {
                         BiomeType biomeType = biomeData[i];
+                        if(biomeSet.ContainsKey(biomeData[i]) == false)
+                        {
+                            biomeSet.TryAdd(biomeData[i], biomeData[i]);
+                        }
+
                         switch (biomeType)
                         {
                             default:
@@ -421,6 +456,20 @@ namespace PixelMiner.UI.WorldGen
 
                 });
             });
+
+
+            if(biomeSet.Count > 0)
+            {
+                foreach (var e in biomeSet)
+                {
+                    Debug.Log(e);
+                }
+            }
+            else
+            {
+                Debug.Log("Biome set count = 0");
+            }
+          
 
             texture.SetPixels(pixels);
             texture.wrapMode = TextureWrapMode.Clamp;
@@ -472,23 +521,50 @@ namespace PixelMiner.UI.WorldGen
                 Parallel.For(0, heatValues.Length, (i) =>
                 {
                     float heatValue = heatValues[i];
-                    if (heatValue < WorldGeneration.Instance.ColdestValue)
+
+                    //if (heatValue < WorldGeneration.Instance.ColdestValue)
+                    //{
+                    //    heatData[i] = HeatType.Coldest;
+                    //}
+                    //else if (heatValue < WorldGeneration.Instance.ColderValue)
+                    //{
+                    //    heatData[i] = HeatType.Colder;
+                    //}
+                    //else if (heatValue < WorldGeneration.Instance.ColdValue)
+                    //{
+                    //    heatData[i] = HeatType.Cold;
+                    //}
+                    //else if (heatValue < WorldGeneration.Instance.WarmValue)
+                    //{
+                    //    heatData[i] = HeatType.Warm;
+                    //}
+                    //else if (heatValue < WorldGeneration.Instance.WarmerValue)
+                    //{
+                    //    heatData[i] = HeatType.Warmer;
+                    //}
+                    //else
+                    //{
+                    //    heatData[i] = HeatType.Warmest;
+                    //}
+
+                    float modN = heatValue % 0.1f;
+                    if (modN < 0.015f)
                     {
                         heatData[i] = HeatType.Coldest;
                     }
-                    else if (heatValue < WorldGeneration.Instance.ColderValue)
+                    else if (modN < 0.03f)
                     {
                         heatData[i] = HeatType.Colder;
                     }
-                    else if (heatValue < WorldGeneration.Instance.ColdValue)
+                    else if (modN < 0.045f)
                     {
                         heatData[i] = HeatType.Cold;
                     }
-                    else if (heatValue < WorldGeneration.Instance.WarmValue)
+                    else if (modN < 0.06)
                     {
                         heatData[i] = HeatType.Warm;
                     }
-                    else if (heatValue < WorldGeneration.Instance.WarmerValue)
+                    else if (modN < 0.08)
                     {
                         heatData[i] = HeatType.Warmer;
                     }
@@ -496,6 +572,8 @@ namespace PixelMiner.UI.WorldGen
                     {
                         heatData[i] = HeatType.Warmest;
                     }
+
+
                 });
             });
 
@@ -596,21 +674,33 @@ namespace PixelMiner.UI.WorldGen
             int textureHeight = 1080;
             float[] noiseValues = new float[textureWidth * textureHeight];
 
-            FastNoiseLite perlinNoise = new FastNoiseLite();
-            perlinNoise.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
-            perlinNoise.SetCellularReturnType(FastNoiseLite.CellularReturnType.CellValue);
+            FastNoiseLite voronoi = new FastNoiseLite();
+            voronoi.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
+            voronoi.SetCellularReturnType(FastNoiseLite.CellularReturnType.CellValue);
+
+            FastNoiseLite voronoi2 = new FastNoiseLite();
+            voronoi2.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
+            //voronoi2.SetCellularDistanceFunction(FastNoiseLite.CellularDistanceFunction.Manhattan);
+            voronoi2.SetCellularReturnType(FastNoiseLite.CellularReturnType.Distance);
 
 
+            FastNoiseLite perlin = new FastNoiseLite();
+            perlin.SetFractalType(FastNoiseLite.FractalType.FBm);       
+            perlin.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            perlin.SetFractalOctaves(4);
 
-            bool greyScale = true;
+            FastNoiseLite perlin02 = new FastNoiseLite();
+            perlin02.SetFractalType(FastNoiseLite.FractalType.FBm);
+            perlin02.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            perlin02.SetFractalOctaves(4);
+            perlin02.SetFrequency(0.002f);
+
+
+            bool greyScale = false;
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
 
-            float min = float.MaxValue;
-            float max = float.MinValue;
 
-            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-            sw.Start();
             await Task.Run(() =>
             {
                 Parallel.For(0, noiseValues.Length, (i) =>
@@ -618,24 +708,24 @@ namespace PixelMiner.UI.WorldGen
                     int x = i % textureWidth;
                     int y = i / textureWidth;
 
-                    float noise01 = ((float)perlinNoise.GetNoise(x, 0, y) + 1.0f) / 2.0f;
-                    //float noise01 = ((float)voronoi.GetValue(x, 0, y) + 1.0f) / 2.0f;
-            
+                    //float noise01 = ((float)voronoi.GetNoise(x, 0, y) + 1.0f) / 2.0f;
+                    float noise01 = ((float)perlin02.GetNoise(x, y) + 1.0f) / 2.0f;
+                    float noise02 = (DomainWarpingFbmPerlinNoise(x, y, perlin, voronoi) + 1.0f) / 2.0f + 0.1f;
+                    //float noise02 = (voronoi.GetNoise(x,y) + 1.0f) / 2.0f;
+                    float result = noise02;
+                    if (noise02 < WorldGeneration.Instance.Water)
+                    {
+                        result = (DomainWarpingFbmPerlinNoise(x, y, perlin, voronoi2) + 1.0f) / 2.0f;
+                    }
+                    else
+                    {
+                        result = noise02;
+                    }
 
-                    if(min > noise01) min = noise01;
-                    if(max < noise01) max = noise01;
+                    noiseValues[i] = result;
 
-
-                    noiseValues[i] = noise01;
                 });
-
             });
-
-            Debug.Log($"Min: {min}");
-            Debug.Log($"Max: {max}");
-
-            sw.Stop();
-            Debug.Log($"Elapse: {sw.ElapsedMilliseconds / 1000f} s");
 
             await Task.Run(() =>
             {
@@ -646,15 +736,21 @@ namespace PixelMiner.UI.WorldGen
                     if (greyScale)
                     {
                         pixels[i] = new Color(noiseValue, noiseValue, noiseValue, 1.0f);
-                        //if (heightValue > 0.35 && heightValue < 0.45f)
+
+                        //if (noiseValue > 0.35 && noiseValue < 0.45f)
                         //{
-                        //    pixels[i] = new Color(heightValue, heightValue, heightValue, 1.0f);
+                        //    pixels[i] = new Color(noiseValue, noiseValue, noiseValue, 1.0f);
                         //}
-                        //if (heightValue < 0.31)
+                        //if (noiseValue < 0.5f)
                         //{
-                        //    pixels[i] = new Color(heightValue, heightValue, heightValue, 1.0f);
+                        //    pixels[i] = new Color(noiseValue, noiseValue, noiseValue, 1.0f);
                         //}
                         //else
+                        //{
+                        //    pixels[i] = Color.blue;
+                        //}
+
+                        //if(noiseValue < 0.2f)
                         //{
                         //    pixels[i] = Color.blue;
                         //}
@@ -702,23 +798,30 @@ namespace PixelMiner.UI.WorldGen
             return texture;
         }
 
-        public float DomainWarpingFbmPerlinNoise(float x, float y, FastNoiseLite noise)
+        public float DomainWarpingFbmPerlinNoise(float x, float y, FastNoiseLite perlin, FastNoiseLite voronoi)
         {
             Vector2 p = new Vector2(x, y);
 
-            Vector2 q = new Vector2((float)noise.GetNoise(p.x, p.y),
-                                    (float)noise.GetNoise(p.x + 52.0f, p.y + 13.0f));
+            Vector2 q = new Vector2((float)perlin.GetNoise(p.x, p.y),
+                                    (float)perlin.GetNoise(p.x + 52.0f, p.y + 13.0f));
 
 
-            Vector2 l2p1 = (p + 40 * q) + new Vector2(77, 35);
-            Vector2 l2p2 = (p + 40 * q) + new Vector2(83, 28);
+            //Vector2 l2p1 = (p + 40 * q) + new Vector2(77, 35);
+            //Vector2 l2p2 = (p + 40 * q) + new Vector2(83, 28);
 
-            Vector2 r = new Vector3((float)noise.GetNoise(l2p1.x, l2p1.y),
-                                    (float)noise.GetNoise(l2p2.x, l2p2.y));
+            //Vector2 r = new Vector3((float)perlin.GetNoise(l2p1.x, l2p1.y),
+            //                        (float)perlin.GetNoise(l2p2.x, l2p2.y));
 
 
-            Vector2 l3 = p + 120 * r;
-            return (float)noise.GetNoise(l3.x, l3.y);
+            //Vector2 l3 = p + 120 * r;
+            Vector2 l3 = p + 40 * q;
+            return (float)voronoi.GetNoise(l3.x, l3.y);
+        }
+
+        public float Map(float value, float fromMin, float fromMax, float toMin, float toMax)
+        {
+            value = Mathf.Clamp(value, fromMin, fromMax);
+            return (value - fromMin) / (fromMax - fromMin) * (toMax - toMin) + toMin;
         }
     }
 }

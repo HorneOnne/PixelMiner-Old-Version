@@ -1067,7 +1067,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 500
+  far clip plane: 1000
   field of view: 10
   orthographic: 0
   orthographic size: 10
@@ -1094,8 +1094,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: -61.237244, y: 54.000008, z: -61.23724}
+  m_LocalRotation: {x: 0.2588191, y: -0, z: -0, w: 0.9659258}
+  m_LocalPosition: {x: 0, y: 54.00001, z: -86.60253}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2372,15 +2372,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _chunkPrefab: {fileID: 285238837962715001, guid: e7881158402e9254ea53ae812194e94a, type: 3}
   _chunkParent: {fileID: 1497941757}
-  Octaves: 3
-  Frequency: 0.009
-  Lacunarity: 2.255
-  Persistence: 0.443458980044346
-  Quality: 2
-  DeepWater: 0.3
-  Water: 0.45
-  Sand: 0.5
-  Grass: 0.6
+  Octaves: 4
+  Frequency: 0.0045
+  Lacunarity: 2
+  Persistence: 0.5
+  DeepWater: 0.2
+  Water: 0.3
+  Sand: 0.42
+  Grass: 0.55
   Forest: 0.8
   Rock: 0.9
   Snow: 1
@@ -2388,25 +2387,23 @@ MonoBehaviour:
   HeatFrequency: 0.006
   HeatLacunarity: 2
   HeatPersistence: 0.5
-  HeatQuality: 2
   GradientHeatmapSize: 512
   HeatMapBlendFactor: 0.5
-  ColdestValue: 0.2
-  ColderValue: 0.33
-  ColdValue: 0.5
-  WarmValue: 0.7
-  WarmerValue: 0.85
+  ColdestValue: 0.15
+  ColderValue: 0.3
+  ColdValue: 0.45
+  WarmValue: 0.6
+  WarmerValue: 0.75
   WarmestValue: 1
   MoistureOctaves: 4
-  MoistureFrequency: 0.00328
-  MoistureLacunarity: 7
-  MoisturePersistence: 0.142857142857143
-  MoistureQuality: 2
-  DryestValue: 0.22
-  DryerValue: 0.34855404
-  DryValue: 0.54946727
-  WetValue: 0.7503805
-  WetterValue: 0.8508371
+  MoistureFrequency: 0.006
+  MoistureLacunarity: 2
+  MoisturePersistence: 0.5
+  DryestValue: 0.18
+  DryerValue: 0.36
+  DryValue: 0.54
+  WetValue: 0.72
+  WetterValue: 0.9
   WettestValue: 1
   RiverOctaves: 5
   RiverFrequency: 0.02
@@ -2414,7 +2411,6 @@ MonoBehaviour:
   RiverDistance: 1
   RiverLacunarity: 2
   RiverPersistence: 0.5
-  RiverQuality: 2
   RiverRange: {x: 0.55, y: 0.6}
   MaxHeightLevel: 4
   UnderGroundLevel: 0

@@ -54,7 +54,8 @@ namespace PixelMiner.WorldBuilding
         [FoldoutGroup("Height map")]
         public float Snow = 1;
         //private ModuleBase _heightModule;
-        private FastNoiseLite _heightNoise;
+        private FastNoiseLite _heightSimplex;
+        private FastNoiseLite _heightVoronoi;
         
 
 
@@ -79,7 +80,8 @@ namespace PixelMiner.WorldBuilding
         [FoldoutGroup("Heatmap")] public float WarmerValue = 0.8f;
         [FoldoutGroup("Heatmap")] public float WarmestValue = 1.0f;
         //private ModuleBase _heatModule;
-        private FastNoiseLite _heatNoise;
+        private FastNoiseLite _heatSimplex;
+        private FastNoiseLite _heatVoronoi;
 
 
 
@@ -99,7 +101,8 @@ namespace PixelMiner.WorldBuilding
         [FoldoutGroup("Moisture map")] public float WetterValue = 0.85f;
         [FoldoutGroup("Moisture map")] public float WettestValue = 1.0f;
         //private ModuleBase _moistureModule;
-        private FastNoiseLite _moistureNoise;
+        private FastNoiseLite _moistureSimplex;
+        private FastNoiseLite _moistureVoronoi;
 
 
 
@@ -210,32 +213,55 @@ namespace PixelMiner.WorldBuilding
             // Init noise module
 
             // HEIGHT
-            _heightNoise = new FastNoiseLite(Seed);
-            _heightNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
-            _heightNoise.SetFrequency(Frequency);
-            _heightNoise.SetFractalLacunarity(Lacunarity);
-            _heightNoise.SetFractalGain(Persistence);
+            _heightSimplex = new FastNoiseLite(Seed);
+            _heightSimplex.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            _heightSimplex.SetFractalType(FastNoiseLite.FractalType.FBm);
+            _heightSimplex.SetFrequency(Frequency);
+            _heightSimplex.SetFractalLacunarity(Lacunarity);
+            _heightSimplex.SetFractalGain(Persistence);
 
+            _heightVoronoi = new FastNoiseLite(Seed);
+            _heightVoronoi.SetFrequency(0.006f);
+            //_heightVoronoi.SetFractalOctaves(4);
+            _heightVoronoi.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
+            _heightVoronoi.SetCellularReturnType(FastNoiseLite.CellularReturnType.CellValue);
 
             // HEAT
-            _heatNoise = new FastNoiseLite(Seed + 1);
-            _heatNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
-            _heatNoise.SetFrequency(HeatFrequency);
-            _heatNoise.SetFractalLacunarity(HeatLacunarity);
-            _heatNoise.SetFractalGain(HeatPersistence);
+            _heatSimplex = new FastNoiseLite(Seed);
+            _heatSimplex.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            _heatSimplex.SetFractalType(FastNoiseLite.FractalType.FBm);
+            _heatSimplex.SetFrequency(HeatFrequency);
+            _heatSimplex.SetFractalLacunarity(HeatLacunarity);
+            _heatSimplex.SetFractalGain(HeatPersistence);
+
+            _heatVoronoi = new FastNoiseLite(Seed);
+            _heatVoronoi.SetFrequency(0.006f);
+            _heatVoronoi.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
+            _heatVoronoi.SetCellularReturnType(FastNoiseLite.CellularReturnType.CellValue);
+
+
 
 
             // MOISTURE
-            _moistureNoise = new FastNoiseLite(Seed + 2);
-            _moistureNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
-            _moistureNoise.SetFrequency(MoistureFrequency);
-            _moistureNoise.SetFractalLacunarity(MoistureLacunarity);
-            _moistureNoise.SetFractalGain(MoisturePersistence);
+            _moistureSimplex = new FastNoiseLite(Seed);
+            _moistureSimplex.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            _moistureSimplex.SetFractalType(FastNoiseLite.FractalType.FBm);
+            _moistureSimplex.SetFrequency(MoistureFrequency);
+            _moistureSimplex.SetFractalLacunarity(MoistureLacunarity);
+            _moistureSimplex.SetFractalGain(MoisturePersistence);
+
+            _moistureVoronoi = new FastNoiseLite(Seed);
+            _moistureVoronoi.SetFrequency(0.006f);
+            _moistureVoronoi.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
+            _moistureVoronoi.SetCellularReturnType(FastNoiseLite.CellularReturnType.CellValue);
+
+
 
 
             // RIVER
             _riverNoise = new FastNoiseLite(Seed + 3);
             _riverNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            _riverNoise.SetFractalType(FastNoiseLite.FractalType.FBm);
             _riverNoise.SetFrequency(RiverFrequency);
             _riverNoise.SetFractalLacunarity(RiverLacunarity);
             _riverNoise.SetFractalGain(RiverPersistence);
@@ -370,7 +396,7 @@ namespace PixelMiner.WorldBuilding
                 {
                     float x = rand.Next();
                     float y = rand.Next();
-                    float noiseValue = (float)_heightNoise.GetNoise(x, y); // Generate noise value
+                    float noiseValue = (float)_heightSimplex.GetNoise(x, y); // Generate noise value
 
                     // Update min and max values
                     if (noiseValue < minNoiseValue)
@@ -467,7 +493,7 @@ namespace PixelMiner.WorldBuilding
                 {
                     float x = rand.Next();
                     float y = rand.Next();
-                    float noiseValue = (float)_heightNoise.GetNoise(x, y); // Generate noise value
+                    float noiseValue = (float)_heightSimplex.GetNoise(x, y); // Generate noise value
 
                     // Update min and max values
                     if (noiseValue < minMax.MinValue)
@@ -589,6 +615,8 @@ namespace PixelMiner.WorldBuilding
         public async Task<float[]> GetHeightMapDataAsync(int frameX, int frameZ, int width, int height, bool applyDomainWarping = false)
         {
             float[] heightValues = new float[width * height];
+            Vector2 scale = new Vector2(1.0f, 1.0f);
+
 
             await Task.Run(() =>
             {
@@ -600,16 +628,34 @@ namespace PixelMiner.WorldBuilding
                         float offsetZ = frameZ * height + z;
                         float heightValue = float.PositiveInfinity;
 
-                        if (applyDomainWarping)
+                        //if (applyDomainWarping)
+                        //{
+                        //    heightValue = DomainWarping(offsetX * scale.x, offsetZ * scale.y, _heightSimplex);
+                        //}
+                        //else
+                        //{
+                        //    heightValue = (float)_heightSimplex.GetNoise(offsetX * scale.x, offsetZ * scale.y);                      
+                        //}
+
+                        float heightSimplex = (float)_heightSimplex.GetNoise(offsetX * scale.x, offsetZ * scale.y);
+                        float heightVoronoi = DomainWarping(offsetX * scale.x, offsetZ * scale.y, _heatSimplex, _heatVoronoi);
+                     
+                        float normalizeSimplexValue = (heightSimplex - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
+                        float normalizeVoronoiValue = (heightVoronoi - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
+                        float normalizeHeightValue = float.PositiveInfinity;
+
+       
+                        if (normalizeVoronoiValue < Water)
                         {
-                            heightValue = DomainWarpingFbmPerlinNoise(offsetX, offsetZ, _heightNoise);
+                            heightValue = (heightSimplex - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
+                            normalizeHeightValue = ScaleNoise(heightValue, 0f, 1f, 0f, Water - 0.001f);
                         }
                         else
                         {
-                            heightValue = (float)_heightNoise.GetNoise(offsetX, offsetZ);
+                            heightValue = (heightSimplex - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
+                            normalizeHeightValue = ScaleNoise(heightValue, 0f, 1f, Water + 0.001f, 1f);
                         }
-                     
-                        float normalizeHeightValue = (heightValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
+
                         heightValues[WorldGenUtilities.IndexOf(x, z, width)] = normalizeHeightValue;
                     }
                 });
@@ -662,9 +708,11 @@ namespace PixelMiner.WorldBuilding
                     {
                         float offsetX = frameX * width + x;
                         float offsetZ = frameZ * height + z;
-                        float heatValue = (float)_heatNoise.GetNoise(offsetX, offsetZ);
-                        float normalizeHeatValue = (heatValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
 
+                        //float heatValue = (float)_heatSimplex.GetNoise(offsetX, offsetZ);
+                        //float heatValue = (float)_heatVoronoi.GetNoise(offsetX, offsetZ);
+                        float heatValue = DomainWarping(offsetX, offsetZ, _heatSimplex, _heatVoronoi);
+                        float normalizeHeatValue = (heatValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
                         fractalNoiseData[WorldGenUtilities.IndexOf(x, z, width)] = normalizeHeatValue;
                     }
                 });
@@ -702,7 +750,9 @@ namespace PixelMiner.WorldBuilding
                     {
                         float offsetX = frameX * width + x;
                         float offsetZ = frameZ * height + z;
-                        float moisetureValue = _moistureNoise.GetNoise(offsetX, offsetZ);
+
+                        //float moisetureValue = _moistureNoise.GetNoise(offsetX, offsetZ);
+                        float moisetureValue = DomainWarping(offsetX, offsetZ, _moistureSimplex, _moistureVoronoi);                       
                         float normalizeMoistureValue = (moisetureValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
 
                         moistureData[WorldGenUtilities.IndexOf(x, z, width)] = normalizeMoistureValue;
@@ -882,23 +932,92 @@ namespace PixelMiner.WorldBuilding
                             int flattenedIndex = chunk.IndexOf(x, z);
                             float heatValue = heatValues[flattenedIndex];
 
-                            if (heatValue < WorldGeneration.Instance.ColdestValue)
+                            //if (heatValue < WorldGeneration.Instance.ColdestValue)
+                            //{
+                            //    chunk.HeatData[index3D] = HeatType.Coldest;
+                            //}
+                            //else if (heatValue < WorldGeneration.Instance.ColderValue)
+                            //{
+                            //    chunk.HeatData[index3D] = HeatType.Colder;
+                            //}
+                            //else if (heatValue < WorldGeneration.Instance.ColdValue)
+                            //{
+                            //    chunk.HeatData[index3D] = HeatType.Cold;
+                            //}
+                            //else if (heatValue < WorldGeneration.Instance.WarmValue)
+                            //{
+                            //    chunk.HeatData[index3D] = HeatType.Warm;
+                            //}
+                            //else if (heatValue < WorldGeneration.Instance.WarmerValue)
+                            //{
+                            //    chunk.HeatData[index3D] = HeatType.Warmer;
+                            //}
+                            //else
+                            //{
+                            //    chunk.HeatData[index3D] = HeatType.Warmest;
+                            //}
+
+
+
+
+
+                            //if (heatValue < WorldGeneration.Instance.ColderValue)
+                            //{
+                            //    if(Mathf.Round(heatValue) == Mathf.Floor(heatValue))
+                            //    {
+                            //        chunk.HeatData[index3D] = HeatType.Coldest;
+                            //    }
+                            //    else
+                            //    {
+                            //        chunk.HeatData[index3D] = HeatType.Colder;
+                            //    }
+                            //}
+                            //else if(heatValue < WorldGeneration.Instance.WarmValue)
+                            //{
+                            //    if (Mathf.Round(heatValue) == Mathf.Floor(heatValue))
+                            //    {
+                            //        chunk.HeatData[index3D] = HeatType.Cold;
+                            //    }
+                            //    else
+                            //    {
+                            //        chunk.HeatData[index3D] = HeatType.Warm;
+                            //    }
+                            //}
+                            //else
+                            //{
+                            //    if (Mathf.Round(heatValue) == Mathf.Floor(heatValue))
+                            //    {
+                            //        chunk.HeatData[index3D] = HeatType.Cold;
+                            //    }
+                            //    else
+                            //    {
+                            //        chunk.HeatData[index3D] = HeatType.Warm;
+                            //    }
+                            //}
+
+
+
+
+
+                            float modN = heatValue % 0.1f;
+
+                            if (modN < 0.015f)
                             {
                                 chunk.HeatData[index3D] = HeatType.Coldest;
                             }
-                            else if (heatValue < WorldGeneration.Instance.ColderValue)
+                            else if (modN < 0.03f)
                             {
                                 chunk.HeatData[index3D] = HeatType.Colder;
                             }
-                            else if (heatValue < WorldGeneration.Instance.ColdValue)
+                            else if (modN < 0.045f)
                             {
                                 chunk.HeatData[index3D] = HeatType.Cold;
                             }
-                            else if (heatValue < WorldGeneration.Instance.WarmValue)
+                            else if (modN < 0.06)
                             {
                                 chunk.HeatData[index3D] = HeatType.Warm;
                             }
-                            else if (heatValue < WorldGeneration.Instance.WarmerValue)
+                            else if (modN < 0.08)
                             {
                                 chunk.HeatData[index3D] = HeatType.Warmer;
                             }
@@ -906,6 +1025,7 @@ namespace PixelMiner.WorldBuilding
                             {
                                 chunk.HeatData[index3D] = HeatType.Warmest;
                             }
+
 
                         }
                     }
@@ -1290,23 +1410,49 @@ namespace PixelMiner.WorldBuilding
 
 
         #region Noise
-        public float DomainWarpingFbmPerlinNoise(float x, float y, FastNoiseLite noise)
+        public float DomainWarping(float x, float y, FastNoiseLite simplex)
         {
             Vector2 p = new Vector2(x, y);
 
-            Vector2 q = new Vector2((float)noise.GetNoise(p.x, p.y),
-                                    (float)noise.GetNoise(p.x + 52.0f, p.y + 13.0f));
+            Vector2 q = new Vector2((float)simplex.GetNoise(p.x, p.y),
+                                    (float)simplex.GetNoise(p.x + 52.0f, p.y + 13.0f));
 
 
-            Vector2 l2p1 = (p + 40 * q) + new Vector2(77, 35);
-            Vector2 l2p2 = (p + 40 * q) + new Vector2(83, 28);
- 
-            Vector2 r = new Vector3((float)noise.GetNoise(l2p1.x, l2p1.y),
-                                    (float)noise.GetNoise(l2p2.x, l2p2.y));
+            ////Vector2 l2p1 = (p + 40 * q) + new Vector2(77, 35);
+            ////Vector2 l2p2 = (p + 40 * q) + new Vector2(83, 28);
+
+            ////Vector2 r = new Vector3((float)simplex.GetNoise(l2p1.x, l2p1.y),
+            ////                        (float)simplex.GetNoise(l2p2.x, l2p2.y));
 
 
-            Vector2 l3 = p + 120 * r;
-            return (float)noise.GetNoise(l3.x, l3.y);
+            //Vector2 l3 = p + 120 * r;
+            Vector2 l3 = p + 40 * q;
+            return (float)simplex.GetNoise(l3.x, l3.y);
+        }
+
+        public float DomainWarping(float x, float y, FastNoiseLite simplex, FastNoiseLite voronoi)
+        {
+            Vector2 p = new Vector2(x, y);
+
+            Vector2 q = new Vector2((float)simplex.GetNoise(p.x, p.y),
+                                    (float)simplex.GetNoise(p.x + 52.0f, p.y + 13.0f));
+
+
+            //Vector2 l2p1 = (p + 40 * q) + new Vector2(77, 35);
+            //Vector2 l2p2 = (p + 40 * q) + new Vector2(83, 28);
+
+            //Vector2 r = new Vector3((float)simplex.GetNoise(l2p1.x, l2p1.y),
+            //                        (float)simplex.GetNoise(l2p2.x, l2p2.y));
+
+
+            //Vector2 l3 = p + 120 * r;
+            Vector2 l3 = p + 40 * q;
+            return voronoi.GetNoise(l3.x, l3.y);
+        }
+
+        public float ScaleNoise(float noiseValue, float oldMin, float oldMax, float newMin, float newMax)
+        {
+            return (noiseValue - oldMin) * (newMax - newMin) / (oldMax - oldMin) + newMin;
         }
         #endregion
     }

@@ -143,6 +143,8 @@ public class FastNoiseLite
     private TransformType3D mWarpTransformType3D = TransformType3D.DefaultOpenSimplex2;
     private float mDomainWarpAmp = 1.0f;
 
+    public int Octaves { get => mOctaves; }
+
     /// <summary>
     /// Create new FastNoise object with optional seed
     /// </summary>
