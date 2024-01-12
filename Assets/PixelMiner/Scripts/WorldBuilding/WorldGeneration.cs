@@ -189,6 +189,8 @@ namespace PixelMiner.WorldBuilding
         #endregion
 
 
+        private float _voronoiFrequency = 0.006f;
+
         public AnimationCurve LightAnimCurve;
 
         #region Properties
@@ -221,10 +223,12 @@ namespace PixelMiner.WorldBuilding
             _heightSimplex.SetFractalGain(Persistence);
 
             _heightVoronoi = new FastNoiseLite(Seed);
-            _heightVoronoi.SetFrequency(0.006f);
+            _heightVoronoi.SetFrequency(_voronoiFrequency);
             //_heightVoronoi.SetFractalOctaves(4);
             _heightVoronoi.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
             _heightVoronoi.SetCellularReturnType(FastNoiseLite.CellularReturnType.CellValue);
+
+
 
             // HEAT
             _heatSimplex = new FastNoiseLite(Seed);
@@ -235,7 +239,7 @@ namespace PixelMiner.WorldBuilding
             _heatSimplex.SetFractalGain(HeatPersistence);
 
             _heatVoronoi = new FastNoiseLite(Seed);
-            _heatVoronoi.SetFrequency(0.006f);
+            _heatVoronoi.SetFrequency(_voronoiFrequency);
             _heatVoronoi.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
             _heatVoronoi.SetCellularReturnType(FastNoiseLite.CellularReturnType.CellValue);
 
@@ -251,7 +255,7 @@ namespace PixelMiner.WorldBuilding
             _moistureSimplex.SetFractalGain(MoisturePersistence);
 
             _moistureVoronoi = new FastNoiseLite(Seed);
-            _moistureVoronoi.SetFrequency(0.006f);
+            _moistureVoronoi.SetFrequency(_voronoiFrequency);
             _moistureVoronoi.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
             _moistureVoronoi.SetCellularReturnType(FastNoiseLite.CellularReturnType.CellValue);
 
@@ -999,25 +1003,25 @@ namespace PixelMiner.WorldBuilding
 
 
 
-                            float modN = heatValue % 0.1f;
+                            float frac02 = heatValue % 0.1f;
 
-                            if (modN < 0.015f)
+                            if (frac02 < 0.015f)
                             {
                                 chunk.HeatData[index3D] = HeatType.Coldest;
                             }
-                            else if (modN < 0.03f)
+                            else if (frac02 < 0.03f)
                             {
                                 chunk.HeatData[index3D] = HeatType.Colder;
                             }
-                            else if (modN < 0.045f)
+                            else if (frac02 < 0.045f)
                             {
                                 chunk.HeatData[index3D] = HeatType.Cold;
                             }
-                            else if (modN < 0.06)
+                            else if (frac02 < 0.06)
                             {
                                 chunk.HeatData[index3D] = HeatType.Warm;
                             }
-                            else if (modN < 0.08)
+                            else if (frac02 < 0.08)
                             {
                                 chunk.HeatData[index3D] = HeatType.Warmer;
                             }

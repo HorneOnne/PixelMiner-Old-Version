@@ -7,6 +7,7 @@ using PixelMiner.World;
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections.Concurrent;
+using System.Collections;
 
 namespace PixelMiner.UI.WorldGen
 {
@@ -358,8 +359,10 @@ namespace PixelMiner.UI.WorldGen
         }
         private async Task<Texture2D> GetBiomesMapTextureAsync()
         {
-            int textureWidth = 1920;
-            int textureHeight = 1080;
+            int textureWidth = 1920 / 4;
+            int textureHeight = 1080 / 4;
+            Debug.Log($"Texture: {textureWidth} {textureHeight}");
+
             Vector3Int dimension = new Vector3Int(textureWidth, 1, textureHeight);
 
             Task<float[]> heightTask = WorldGeneration.Instance.GetHeightMapDataAsync(0, 0, textureWidth, textureHeight);
@@ -381,14 +384,15 @@ namespace PixelMiner.UI.WorldGen
             //    biomeData, riverValues, textureWidth, 1, textureHeight);
 
             blockData = await LoadHeightMapDataAsync(heightValues, textureWidth, 1, textureHeight);
-            bool[] biomesBorders = UpdateBiomesBorders(biomeData, textureWidth, textureHeight);
+            bool[] biomesBorders = UpdateBiomesEdges(biomeData, textureWidth, textureHeight);
 
+            Queue<RiverNode> riverNodes = UpdateBiomesEdgesVer2(biomeData, textureWidth, textureHeight);
+            Debug.Log($"River node count: {riverNodes.Count}");
+            int[] riversIndices = DigRiver(riverNodes, textureWidth, textureHeight);
+            Debug.Log($"{riversIndices.Length}\t{textureWidth * textureHeight}");
 
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
-
-
-            ConcurrentDictionary<BiomeType, BiomeType> biomeSet = new ConcurrentDictionary<BiomeType, BiomeType>();
 
             await Task.Run(() =>
             {
@@ -408,10 +412,7 @@ namespace PixelMiner.UI.WorldGen
                     else
                     {
                         BiomeType biomeType = biomeData[i];
-                        if(biomeSet.ContainsKey(biomeData[i]) == false)
-                        {
-                            biomeSet.TryAdd(biomeData[i], biomeData[i]);
-                        }
+
 
                         switch (biomeType)
                         {
@@ -448,27 +449,42 @@ namespace PixelMiner.UI.WorldGen
                                 break;
                         }
 
-                        if (biomesBorders[i])
+                        //if (biomesBorders[i])
+                        //{
+                        //    pixels[i] = Color.blue;
+                        //}
+
+                        if (riversIndices[i] == 1)
+                        {
+                            pixels[i] = new Color32(64, 94, 195, 255);
+                        }
+                        else if (riversIndices[i] == 2)
+                        {
+                            pixels[i] = new Color32(45, 65, 134, 255);
+                        }
+                        else if (riversIndices[i] == 3)
+                        {
+                            pixels[i] = new Color32(24, 42, 100, 255);
+                        }
+                        else if (riversIndices[i] == 4)
+                        {
+                            pixels[i] = new Color32(15, 29, 74, 255);
+                        }
+                        else if (riversIndices[i] == 5)
                         {
                             pixels[i] = Color.black;
                         }
                     }
-
                 });
+   
+
+                while (riverNodes.TryDequeue(out RiverNode node))
+                {
+                    pixels[node.GlobalPosition.x + node.GlobalPosition.y * textureWidth] = Color.blue;
+                }
             });
 
 
-            if(biomeSet.Count > 0)
-            {
-                foreach (var e in biomeSet)
-                {
-                    Debug.Log(e);
-                }
-            }
-            else
-            {
-                Debug.Log("Biome set count = 0");
-            }
           
 
             texture.SetPixels(pixels);
@@ -633,11 +649,10 @@ namespace PixelMiner.UI.WorldGen
         #endregion
 
 
-        private bool[] UpdateBiomesBorders(BiomeType[] biomeData, int width, int depth)
+        private bool[] UpdateBiomesEdges(BiomeType[] biomeData, int width, int depth)
         {
             bool[] borderEdges = new bool[width * depth];
-
-
+ 
             Parallel.For(0, borderEdges.Length, (i) =>
             {
                 int x = i % width;
@@ -662,6 +677,72 @@ namespace PixelMiner.UI.WorldGen
                 }
             });
             return borderEdges;
+        }
+
+        private Queue<RiverNode> UpdateBiomesEdgesVer2(BiomeType[] biomeData, int width, int depth)
+        {
+            //bool[] borderEdges = new bool[width * depth];
+            Queue<RiverNode> bfsRiverQueue = new Queue<RiverNode>();
+
+            int size = width * depth;
+            for(int i = 0;i < size; i++)
+            {
+                int x = i % width;
+                int z = i / width;
+
+                if (x == 0 || x == width - 1 || z == 0 || z == depth - 1) continue;
+
+                int bitmask = 0;
+                if (biomeData[x + (z + 1) * width] == biomeData[i])
+                    bitmask += 1;
+                if (biomeData[(x + 1) + z * width] == biomeData[i])
+                    bitmask += 2;
+                if (biomeData[x + (z - 1) * width] == biomeData[i])
+                    bitmask += 4;
+                if (biomeData[(x - 1) + z * width] == biomeData[i])
+                    bitmask += 8;
+
+                if (bitmask != 15)
+                {
+                    RiverNode riverNode = new RiverNode()
+                    {
+                        GlobalPosition = new Vector2Int(x, z),
+                        Density = 5
+                    };
+
+                    bfsRiverQueue.Enqueue(riverNode);
+                }
+            }
+            //Parallel.For(0, size, (i) =>
+            //{
+            //    int x = i % width;
+            //    int z = i / width;
+
+            //    if (x == 0 || x == width - 1 || z == 0 || z == depth - 1) return;
+
+            //    int bitmask = 0;
+            //    if (biomeData[x + (z + 1) * width] == biomeData[i])
+            //        bitmask += 1;
+            //    if (biomeData[(x + 1) + z * width] == biomeData[i])
+            //        bitmask += 2;
+            //    if (biomeData[x + (z - 1) * width] == biomeData[i])
+            //        bitmask += 4;
+            //    if (biomeData[(x - 1) + z * width] == biomeData[i])
+            //        bitmask += 8;
+
+            //    if (bitmask != 15)
+            //    {
+            //        RiverNode riverNode = new RiverNode()
+            //        {
+            //            GlobalPosition = new Vector2Int(x, z),
+            //            Density = 5
+            //        };
+
+            //        bfsRiverQueue.Enqueue(riverNode);
+            //    }
+            //});
+
+            return bfsRiverQueue;
         }
 
 
@@ -696,7 +777,7 @@ namespace PixelMiner.UI.WorldGen
             perlin02.SetFrequency(0.002f);
 
 
-            bool greyScale = false;
+            bool greyScale = true;
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
 
@@ -713,16 +794,16 @@ namespace PixelMiner.UI.WorldGen
                     float noise02 = (DomainWarpingFbmPerlinNoise(x, y, perlin, voronoi) + 1.0f) / 2.0f + 0.1f;
                     //float noise02 = (voronoi.GetNoise(x,y) + 1.0f) / 2.0f;
                     float result = noise02;
-                    if (noise02 < WorldGeneration.Instance.Water)
-                    {
-                        result = (DomainWarpingFbmPerlinNoise(x, y, perlin, voronoi2) + 1.0f) / 2.0f;
-                    }
-                    else
-                    {
-                        result = noise02;
-                    }
+                    //if (noise02 < WorldGeneration.Instance.Water)
+                    //{
+                    //    result = (DomainWarpingFbmPerlinNoise(x, y, perlin, voronoi2) + 1.0f) / 2.0f;
+                    //}
+                    //else
+                    //{
+                    //    result = noise02;
+                    //}
 
-                    noiseValues[i] = result;
+                    noiseValues[i] = noise02;
 
                 });
             });
@@ -736,25 +817,14 @@ namespace PixelMiner.UI.WorldGen
                     if (greyScale)
                     {
                         pixels[i] = new Color(noiseValue, noiseValue, noiseValue, 1.0f);
-
-                        //if (noiseValue > 0.35 && noiseValue < 0.45f)
+                        //if (noiseValue < 0.4f)
                         //{
-                        //    pixels[i] = new Color(noiseValue, noiseValue, noiseValue, 1.0f);
-                        //}
-                        //if (noiseValue < 0.5f)
-                        //{
-                        //    pixels[i] = new Color(noiseValue, noiseValue, noiseValue, 1.0f);
+                        //    pixels[i] = Color.black;
                         //}
                         //else
                         //{
-                        //    pixels[i] = Color.blue;
+                        //    pixels[i] = Color.white;
                         //}
-
-                        //if(noiseValue < 0.2f)
-                        //{
-                        //    pixels[i] = Color.blue;
-                        //}
-
                     }
                     else
                     {
@@ -822,6 +892,82 @@ namespace PixelMiner.UI.WorldGen
         {
             value = Mathf.Clamp(value, fromMin, fromMax);
             return (value - fromMin) / (fromMax - fromMin) * (toMax - toMin) + toMin;
+        }
+
+        public struct RiverNode
+        {
+            public Vector2Int GlobalPosition;
+            public int Density;
+        }
+        private int[] DigRiver(Queue<RiverNode> riverSpreadQueue, int width, int height)
+        {        
+            int attempts = 0;
+            int[] riversDensity = new int[width * height];
+            for(int i = 0; i < riversDensity.Length; i++)
+            {
+                riversDensity[i] = 0;
+            }
+
+
+            int ToIndex(int x, int y)
+            {
+                return x + (y * width);
+            }
+
+            RiverNode startNode = riverSpreadQueue.Peek();
+            riversDensity[ToIndex(startNode.GlobalPosition.x, startNode.GlobalPosition.y)] = 0;
+
+            while (riverSpreadQueue.Count > 0)
+            {
+                RiverNode currentNode = riverSpreadQueue.Dequeue();
+                var neighbors = GetNeighbors(currentNode.GlobalPosition);
+                for (int i = 0; i < neighbors.Length; i++)
+                {
+                    if (neighbors[i].x < 0 || neighbors[i].x > width - 1 || neighbors[i].y < 0 || neighbors[i].y > height - 1)
+                    {
+                        Debug.Log("Invalid");
+                        continue;
+                    }
+
+                    if (riversDensity[ToIndex(neighbors[i].x, neighbors[i].y)] + 1 < currentNode.Density && currentNode.Density > 0)
+                    {
+                        RiverNode nbRiverNode = new RiverNode()
+                        {
+                            GlobalPosition = neighbors[i],
+                            Density = currentNode.Density - 1
+                        };
+
+                        riverSpreadQueue.Enqueue(nbRiverNode);
+                        riversDensity[ToIndex(nbRiverNode.GlobalPosition.x, nbRiverNode.GlobalPosition.y)] = nbRiverNode.Density;
+                    }
+                }
+
+
+
+                attempts++;
+                if(attempts > 100000)
+                {
+                    Debug.Log("Infinite loop");
+                    break;
+                }
+            }
+
+
+            Debug.Log($"Spread river attempt: {attempts}");
+
+            return riversDensity;
+        }
+
+
+        private Vector2Int[] _neighborsPosition = new Vector2Int[4];
+        public Vector2Int[] GetNeighbors(Vector2Int position)
+        {        
+            _neighborsPosition[0] = position + new Vector2Int(1, 0);
+            _neighborsPosition[1] = position + new Vector2Int(-1, 0);
+            _neighborsPosition[2] = position + new Vector2Int(0, 1);
+            _neighborsPosition[3] = position + new Vector2Int(0, -1);
+
+            return _neighborsPosition;
         }
     }
 }

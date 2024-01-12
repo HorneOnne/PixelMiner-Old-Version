@@ -1067,7 +1067,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1000
+  far clip plane: 500
   field of view: 10
   orthographic: 0
   orthographic size: 10
@@ -1094,8 +1094,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.2588191, y: -0, z: -0, w: 0.9659258}
-  m_LocalPosition: {x: 0, y: 54.00001, z: -86.60253}
+  m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
+  m_LocalPosition: {x: -61.237244, y: 54.000008, z: -61.23724}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2389,9 +2389,9 @@ MonoBehaviour:
   HeatPersistence: 0.5
   GradientHeatmapSize: 512
   HeatMapBlendFactor: 0.5
-  ColdestValue: 0.15
-  ColderValue: 0.3
-  ColdValue: 0.45
+  ColdestValue: 0.1
+  ColderValue: 0.2
+  ColdValue: 0.4
   WarmValue: 0.6
   WarmerValue: 0.75
   WarmestValue: 1
@@ -2401,8 +2401,8 @@ MonoBehaviour:
   MoisturePersistence: 0.5
   DryestValue: 0.18
   DryerValue: 0.36
-  DryValue: 0.54
-  WetValue: 0.72
+  DryValue: 0.5
+  WetValue: 0.8
   WetterValue: 0.9
   WettestValue: 1
   RiverOctaves: 5

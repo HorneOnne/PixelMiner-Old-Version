@@ -220,11 +220,6 @@ namespace PixelMiner.Lighting
                     chunk.SetAmbientLight(ambientLightList[i].GlobalPosition, ambientLightList[i].Intensity);
                     LightNode currentNode = ambientLightList[i];
 
-                    //if(Dict.ContainsKey(currentNode.position) == false)
-                    //{
-                    //    Dict.TryAdd(currentNode.position, currentNode.val);
-                    //}
-
                     while (true)
                     {
                         Vector3Int dLPos = new Vector3Int(currentNode.GlobalPosition.x, currentNode.GlobalPosition.y - 1, currentNode.GlobalPosition.z);
@@ -239,14 +234,7 @@ namespace PixelMiner.Lighting
                             if (chunk.GetAmbientLight(dLPos) + 1 < currentNode.Intensity && currentNode.Intensity > 0)
                             {
                                 chunk.SetAmbientLight(dLPos, currentNode.Intensity);
-                                //if (Dict.ContainsKey(dLPos) == false)
-                                //{
-                                //    Dict.TryAdd(dLPos, currentNode.val);
-                                //}
-
                                 currentNode = new LightNode(dLPos, currentNode.Intensity);
-
-
                             }
                             else
                             {
