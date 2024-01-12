@@ -52,8 +52,6 @@ using System.Runtime.CompilerServices;
 
 // Switch between using floats or doubles for input position
 using FNLfloat = System.Single;
-//using FNLfloat = System.Double;
-
 public class FastNoiseLite
 {
     private const short INLINE = 256; // MethodImplOptions.AggressiveInlining;

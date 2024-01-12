@@ -415,7 +415,7 @@ namespace PixelMiner.WorldBuilding
                                 vertexColorIntensity[2] = GetBlockLightPropagationForAdjacentFace(startPos + m + n, voxelFace);
                                 vertexColorIntensity[3] = GetBlockLightPropagationForAdjacentFace(startPos + n, voxelFace);
 
-                                if(smoothLight)
+                                if (smoothLight)
                                 {
                                     if (voxelFace == 1 || voxelFace == 5 || voxelFace == 0)
                                     {

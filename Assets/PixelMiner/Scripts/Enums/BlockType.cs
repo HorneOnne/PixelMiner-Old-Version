@@ -12,6 +12,7 @@
         Sand = 18,
         Glass = 49,
         Snow = 66,
+        Ice = 67,
 
         Light = 105,
 

@@ -111,6 +111,20 @@ namespace PixelMiner.WorldBuilding
                 {
                     for (int z = frameZ - offsetDepth; z <= frameZ + offsetDepth; z++)
                     {
+                        if (y < 0)
+                        {
+                            if (x == frameX && z == frameZ)
+                            {
+
+                            }
+                            else
+                            {
+                                continue;
+                            }
+                        }
+                    
+                   
+
                         Vector3Int nbFrame = new Vector3Int(x, y, z);
                         Chunk chunk = _main.GetChunk(nbFrame);
                         if (chunk == null)   // Create new chunk

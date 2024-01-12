@@ -67,8 +67,6 @@ namespace PixelMiner.World
         [HideInInspector] public byte[] VoxelLightData;
         [HideInInspector] public byte[] AmbientLightData;
 
-        public AnimationCurve LightAnimCurve;
-
 
         private void Awake()
         {
@@ -188,6 +186,11 @@ namespace PixelMiner.World
         {
             ChunkData[IndexOf(relativePosition.x, relativePosition.y, relativePosition.z)] = blockType;
         }
+        public void SetBiome(Vector3Int relativePosition, BiomeType biomeType)
+        {
+            BiomesData[IndexOf(relativePosition.x, relativePosition.y, relativePosition.z)] = biomeType;
+        }
+
 
 
         public bool IsBlockFaceVisible(Vector3Int position, int dimension, bool isBackFace)
@@ -413,56 +416,7 @@ namespace PixelMiner.World
                     //Debug.LogError("Not found this chunk");
                     return 0;
                 }
-
-
-                if (relativePosition.x == _width && relativePosition.z == _depth)
-                {
-                    return Northeast.VoxelLightData[IndexOf(0, relativePosition.y, 0)];
-                }
-                if (relativePosition.x == -1 && relativePosition.z == _depth)
-                {
-                    return Northwest.VoxelLightData[IndexOf(_width - 1, relativePosition.y, 0)];
-                }
-                if (relativePosition.x == _width && relativePosition.z == -1)
-                {
-                    return Southeast.VoxelLightData[IndexOf(0, relativePosition.y, _depth - 1)];
-                }
-                if (relativePosition.x == -1 && relativePosition.z == -1)
-                {
-                    return Southwest.VoxelLightData[IndexOf(_width - 1, relativePosition.y, _depth - 1)];
-                }
-
-
-                if (relativePosition.y >= 0 && relativePosition.y < _height && relativePosition.z >= 0 && relativePosition.z < _depth)
-                {
-                    if (relativePosition.x == -1)
-                    {
-                        return West.VoxelLightData[IndexOf(_width - 1, relativePosition.y, relativePosition.z)];
-                    }
-                    if (relativePosition.x == _width)
-                    {
-                        return East.VoxelLightData[IndexOf(0, relativePosition.y, relativePosition.z)];
-                    }
-                }
-                if (relativePosition.y >= 0 && relativePosition.y < _height && relativePosition.x >= 0 && relativePosition.x < _width)
-                {
-                    if (relativePosition.z == -1)
-                    {
-                        return South.VoxelLightData[IndexOf(relativePosition.x, relativePosition.y, _depth - 1)];
-                    }
-                    if (relativePosition.z == _depth)
-                    {
-                        return North.VoxelLightData[IndexOf(relativePosition.x, relativePosition.y, 0)];
-                    }
-                }
             }
-
-            if (relativePosition.y < 0 || relativePosition.y > _height - 1)
-            {
-                return 0;
-            }
-
-            throw new System.Exception($"Currently we not calculate height of chunk. {relativePosition}");
         }
 
 
@@ -528,48 +482,6 @@ namespace PixelMiner.World
                     Debug.LogError("Not found this chunk");
                     return 0;
                 }
-
-
-                if (relativePosition.x == _width && relativePosition.z == _depth)
-                {
-                    return Northeast.AmbientLightData[IndexOf(0, relativePosition.y, 0)];
-                }
-                if (relativePosition.x == -1 && relativePosition.z == _depth)
-                {
-                    return Northwest.AmbientLightData[IndexOf(_width - 1, relativePosition.y, 0)];
-                }
-                if (relativePosition.x == _width && relativePosition.z == -1)
-                {
-                    return Southeast.AmbientLightData[IndexOf(0, relativePosition.y, _depth - 1)];
-                }
-                if (relativePosition.x == -1 && relativePosition.z == -1)
-                {
-                    return Southwest.AmbientLightData[IndexOf(_width - 1, relativePosition.y, _depth - 1)];
-                }
-
-
-                if (relativePosition.y >= 0 && relativePosition.y < _height && relativePosition.z >= 0 && relativePosition.z < _depth)
-                {
-                    if (relativePosition.x == -1)
-                    {
-                        return West.AmbientLightData[IndexOf(_width - 1, relativePosition.y, relativePosition.z)];
-                    }
-                    if (relativePosition.x == _width)
-                    {
-                        return East.AmbientLightData[IndexOf(0, relativePosition.y, relativePosition.z)];
-                    }
-                }
-                if (relativePosition.y >= 0 && relativePosition.y < _height && relativePosition.x >= 0 && relativePosition.x < _width)
-                {
-                    if (relativePosition.z == -1)
-                    {
-                        return South.AmbientLightData[IndexOf(relativePosition.x, relativePosition.y, _depth - 1)];
-                    }
-                    if (relativePosition.z == _depth)
-                    {
-                        return North.AmbientLightData[IndexOf(relativePosition.x, relativePosition.y, 0)];
-                    }
-                }
             }
 
             throw new System.Exception($"Currently we not calculate height of chunk. {relativePosition}");
@@ -591,59 +503,7 @@ namespace PixelMiner.World
                 {
                     Debug.LogError("Not found this chunk");
                 }
-
-
-                //if (relativePosition.x == _width && relativePosition.z == _depth)
-                //{
-                //    Northeast.AmbientLightData[IndexOf(0, relativePosition.y, 0)] = intensity;
-                //    return;
-                //}
-                //if (relativePosition.x == -1 && relativePosition.z == _depth)
-                //{
-                //    Northwest.AmbientLightData[IndexOf(_width - 1, relativePosition.y, 0)] = intensity;
-                //    return;
-                //}
-                //if (relativePosition.x == _width && relativePosition.z == -1)
-                //{
-                //    Southeast.AmbientLightData[IndexOf(0, relativePosition.y, _depth - 1)] = intensity;
-                //    return;
-                //}
-                //if (relativePosition.x == -1 && relativePosition.z == -1)
-                //{
-                //    Southwest.AmbientLightData[IndexOf(_width - 1, relativePosition.y, _depth - 1)] = intensity;
-                //    return;
-                //}
-
-
-                //if (relativePosition.y >= 0 && relativePosition.y < _height && relativePosition.z >= 0 && relativePosition.z < _depth)
-                //{
-                //    if (relativePosition.x == -1)
-                //    {
-                //        West.AmbientLightData[IndexOf(_width - 1, relativePosition.y, relativePosition.z)] = intensity;
-                //        return;
-                //    }
-                //    if (relativePosition.x == _width)
-                //    {
-                //        East.AmbientLightData[IndexOf(0, relativePosition.y, relativePosition.z)] = intensity;
-                //        return;
-                //    }
-                //}
-                //if (relativePosition.y >= 0 && relativePosition.y < _height && relativePosition.x >= 0 && relativePosition.x < _width)
-                //{
-                //    if (relativePosition.z == -1)
-                //    {
-                //        South.AmbientLightData[IndexOf(relativePosition.x, relativePosition.y, _depth - 1)] = intensity;
-                //        return;
-                //    }
-                //    if (relativePosition.z == _depth)
-                //    {
-                //        North.AmbientLightData[IndexOf(relativePosition.x, relativePosition.y, 0)] = intensity;
-                //        return;
-                //    }
-                //}
             }
-
-            //throw new System.Exception($"Currently we not calculate height of chunk. {relativePosition}");
         }
         #endregion
 

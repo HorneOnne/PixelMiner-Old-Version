@@ -599,7 +599,7 @@ Transform:
   m_GameObject: {fileID: 314038815}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 4, z: 0}
+  m_LocalPosition: {x: 64, y: 5, z: -122.72}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -836,7 +836,7 @@ Transform:
   m_GameObject: {fileID: 473416387}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalPosition: {x: 5.55, y: 1, z: 0}
   m_LocalScale: {x: 0.9, y: 2, z: 0.9}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1095,7 +1095,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: -61.237244, y: 54.000008, z: -61.23724}
+  m_LocalPosition: {x: 2.762752, y: 55.000008, z: -183.95724}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2088,7 +2088,7 @@ Transform:
   m_GameObject: {fileID: 1334762261}
   serializedVersion: 2
   m_LocalRotation: {x: 0.2588191, y: 0, z: 0, w: 0.9659258}
-  m_LocalPosition: {x: 0, y: 54.00001, z: -86.60253}
+  m_LocalPosition: {x: 64, y: 55.000008, z: -209.32253}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2405,14 +2405,11 @@ MonoBehaviour:
   WetValue: 0.8
   WetterValue: 0.9
   WettestValue: 1
-  RiverOctaves: 5
-  RiverFrequency: 0.02
-  RiverDisplacement: 1
-  RiverDistance: 1
+  RiverOctaves: 2
+  RiverFrequency: 0.007
   RiverLacunarity: 2
   RiverPersistence: 0.5
-  RiverRange: {x: 0.55, y: 0.6}
-  MaxHeightLevel: 4
+  GroundLevel: 4
   UnderGroundLevel: 0
   LightAnimCurve:
     serializedVersion: 2
@@ -2864,7 +2861,7 @@ Transform:
   m_GameObject: {fileID: 1694405455}
   serializedVersion: 2
   m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: -61.237244, y: 54.000008, z: -61.23724}
+  m_LocalPosition: {x: 2.762752, y: 55.000008, z: -183.95724}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
