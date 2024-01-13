@@ -2409,7 +2409,6 @@ MonoBehaviour:
   RiverFrequency: 0.007
   RiverLacunarity: 2
   RiverPersistence: 0.5
-  UnderGroundLevel: 0
   LightAnimCurve:
     serializedVersion: 2
     m_Curve:

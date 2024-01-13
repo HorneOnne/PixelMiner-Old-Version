@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using PixelMiner.Enums;
-
+using System.Collections.Generic;
 
 namespace PixelMiner.World
 {
@@ -68,6 +68,9 @@ namespace PixelMiner.World
         [HideInInspector] public byte[] AmbientLightData;
 
 
+        public Queue<RiverNode> RiverBfsQueue = new Queue<RiverNode>();
+        public BiomeType[] RiverBiomes;
+
         private void Awake()
         {
             MeshCollider = SolidMeshFilter.GetComponent<MeshCollider>();
@@ -133,6 +136,7 @@ namespace PixelMiner.World
             VoxelLightData = new byte[size3D];
             AmbientLightData = new byte[size3D];
 
+            RiverBiomes = new BiomeType[_width * _depth];
 
 
             // Set all light dark by default
@@ -218,7 +222,7 @@ namespace PixelMiner.World
                    UpWest != null && UpEast != null && UpNorth != null && UpSouth != null &&
                    UpNortheast != null && UpNorthwest != null && UpSoutheast != null && UpSouthwest != null;
         }
-        private bool FindNeighbor(Vector3Int relativePosition, out Chunk neighborChunk, out Vector3Int nbRelativePosition)
+        public bool FindNeighbor(Vector3Int relativePosition, out Chunk neighborChunk, out Vector3Int nbRelativePosition)
         {
             Vector3Int neighborOffset = default;
             nbRelativePosition = default;
@@ -556,5 +560,11 @@ namespace PixelMiner.World
             return new Bounds(center, new Vector3(_width, _height, _depth));
         }
         #endregion
+    }
+
+    public struct RiverNode
+    {
+        public Vector3Int RelativePosition;
+        public int Density;
     }
 }
