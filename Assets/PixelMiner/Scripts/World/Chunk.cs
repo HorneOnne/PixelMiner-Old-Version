@@ -210,9 +210,12 @@ namespace PixelMiner.World
         public bool HasNeighbors()
         {
             return West != null && East != null && North != null && South != null &&
-                   Northeast != null && Northwest != null && Southeast != null && Southwest != null && Up != null && Down != null
+                   Northeast != null && Northwest != null && Southeast != null && Southwest != null && 
+                   
+                   Up != null &&
+                   //Down != null &&
 
-                   && UpWest != null && UpEast != null && UpNorth != null && UpSouth != null &&
+                   UpWest != null && UpEast != null && UpNorth != null && UpSouth != null &&
                    UpNortheast != null && UpNorthwest != null && UpSoutheast != null && UpSouthwest != null;
         }
         private bool FindNeighbor(Vector3Int relativePosition, out Chunk neighborChunk, out Vector3Int nbRelativePosition)

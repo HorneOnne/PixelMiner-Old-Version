@@ -139,7 +139,7 @@ namespace PixelMiner.UI.WorldGen
         {
             int textureWidth = 1920;
             int textureHeight = 1080;
-            float[] heightValues = await WorldGeneration.Instance.GetHeightMapDataAsync(0, 0, textureWidth, textureHeight, applyDomainWarping);
+            float[] heightValues = await WorldGeneration.Instance.GetHeightMapDataAsync(0, 0, textureWidth, textureHeight);
 
 
 
@@ -382,7 +382,6 @@ namespace PixelMiner.UI.WorldGen
             BlockType[] blockData = await LoadHeightMapDataAsync(heightValues, textureWidth, 1, textureHeight);
             HeatType[] heatData = await LoadHeatMapDataAsync(heatValues, textureWidth, 1, textureHeight);
             MoistureType[] moistureData = await LoadMoistureMapDataAsync(moistureValues, textureWidth, 1, textureHeight);
-
             BiomeType[] biomeData = await GenerateBiomeMapDataAsync(moistureData, heatData, heightValues, textureWidth, 1, textureHeight);
 
 

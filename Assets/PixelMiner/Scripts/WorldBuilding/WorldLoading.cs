@@ -111,19 +111,16 @@ namespace PixelMiner.WorldBuilding
                 {
                     for (int z = frameZ - offsetDepth; z <= frameZ + offsetDepth; z++)
                     {
+                        // Only need 1 down neighbor
                         if (y < 0)
                         {
-                            if (x == frameX && z == frameZ)
-                            {
-
-                            }
-                            else
-                            {
-                                continue;
-                            }
+                            //if (!(x == frameX && z == frameZ))
+                            //{
+                            //    continue;
+                            //}
+                            y = 0;
                         }
-                    
-                   
+                                     
 
                         Vector3Int nbFrame = new Vector3Int(x, y, z);
                         Chunk chunk = _main.GetChunk(nbFrame);
@@ -141,16 +138,8 @@ namespace PixelMiner.WorldBuilding
 
                             if (newChunk.ChunkHasDrawn == false)
                             {
-                                //newChunk.DrawChunkAsync();
-                                //_main.Chunks[nbIsoFrame].ShowTextTest();
-
-                                //if (_main.InitWorldWithHeatmap)
-                                //    _worldGen.PaintHeatMap(newChunk);
-                                //if (_main.InitWorldWithMoisturemap)
-                                //    _worldGen.PaintMoistureMap(newChunk);
+      
                             }
-
-                            //_main.GetChunk(nbFrame).LoadChunk();
                         }
                         else // Load chunk cached.
                         {
@@ -164,14 +153,7 @@ namespace PixelMiner.WorldBuilding
 
                             if (_main.Chunks[nbFrame].ChunkHasDrawn == false)
                             {
-                                //_main.Chunks[nbFrame].DrawChunkAsync();
-
-                                //_main.Chunks[nbIsoFrame].ShowTextTest();
-
-                                //if (_main.InitWorldWithHeatmap)
-                                //    _worldGen.PaintHeatMap(_main.Chunks[nbFrame]);
-                                //if (_main.InitWorldWithMoisturemap)
-                                //    _worldGen.PaintMoistureMap(_main.Chunks[nbFrame]);
+           
                             }
                         }
                     }

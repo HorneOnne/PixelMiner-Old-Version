@@ -3,15 +3,14 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Generic;
 using UnityEngine;
-//using LibNoise;
-//using LibNoise.Generator;
 using Sirenix.OdinInspector;
 using PixelMiner.Utilities;
 using PixelMiner.Enums;
 using PixelMiner.Core;
 using PixelMiner.Lighting;
 using PixelMiner.World;
-
+using TMPro;
+using System.Collections;
 
 namespace PixelMiner.WorldBuilding
 {
@@ -166,8 +165,8 @@ namespace PixelMiner.WorldBuilding
 
 
         // Cached
-        [HideInInspector] public int GroundLevel = 4;
-        [HideInInspector] public int UnderGroundLevel = 0;
+        [HideInInspector] private int _groundLevel = 7;
+        [HideInInspector] private int _underGroundLevel = 0;
         private Vector3Int _chunkDimension;
         private byte _calculateNoiseRangeSampleMultiplier = 15;  // 50 times. 50 * 100000 = 5 mil times.
         private int _calculateNoiseRangeCount = 1000000;    // 1 mil times.
@@ -179,8 +178,8 @@ namespace PixelMiner.WorldBuilding
 
 
         private float _voronoiFrequency = 0.006f;
-
         public AnimationCurve LightAnimCurve;
+        public GameObject TextPrefab;
 
         #region Properties
         [FoldoutGroup("World Properties"), Indent(1), ReadOnly, ShowInInspector] public int Seed { get; private set; }
@@ -543,23 +542,28 @@ namespace PixelMiner.WorldBuilding
             {
                 if (frameY <= 0)
                 {
-                    float[] heightValues = await GetHeightMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
-                    float[] heatValues = await GetFractalHeatMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
-                    float[] moistureValues = await GetMoistureMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
-                    float[] riverValues = await GetRiverDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
 
-        
+                    //float[] heightValues = await GetHeightMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                    //float[] heatValues = await GetFractalHeatMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                    //float[] moistureValues = await GetMoistureMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                    //float[] riverValues = await GetRiverDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+
+                    Task<float[]> heightTask = GetHeightMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                    Task<float[]> heatTask =  GetFractalHeatMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                    Task<float[]> moistureTask =  GetMoistureMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                    Task<float[]> riverTask =  GetRiverDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                    await Task.WhenAll(heightTask, heatTask, moistureTask, riverTask);
+                    float[] heightValues = heightTask.Result;
+                    float[] heatValues = heatTask.Result;
+                    float[] moistureValues = moistureTask.Result;
+                    float[] riverValues = riverTask.Result;
+
+
                     await LoadHeatMapDataAsync(newChunk, heatValues);
                     await LoadMoistureMapDataAsync(newChunk, moistureValues);
                     await GenerateBiomeMapDataAsync(newChunk);
-                   
-                    //heightValues = await DigRiverAsync(heightValues, heatValues, moistureValues, newChunk.HeatData, newChunk.MoistureData, riverValues, chunkDimension[0], chunkDimension[1], chunkDimension[2]);
-                    //moistureValues = await ApplyHeightDataToMoistureDataAsync(heightValues, moistureValues, chunkDimension[0], chunkDimension[2]);
-                    //await LoadHeightMapDataAsync(newChunk, heightValues);
-
-
-
-                    //if (frameX == 2 && frameZ == -4)
+                         
+                    //if (frameX == 2 && frameZ == -4 && frameY == 0)
                     {
                         BiomeType[] riverBiomes = new BiomeType[riverValues.Length];
                         for (int i = 0; i < riverValues.Length; i++)
@@ -575,21 +579,25 @@ namespace PixelMiner.WorldBuilding
                         }
 
                         Queue<RiverNode> riverNodeBfsQueue = GetRiverBfsNodes(riverBiomes, chunkDimension[0], chunkDimension[2]);
-                        Debug.Log($"{newChunk.FrameX}  {newChunk.FrameZ}   riverBfsNode: {riverNodeBfsQueue.Count}");
-                        DigRiver(newChunk, riverNodeBfsQueue);
+                       
+                        if (riverNodeBfsQueue.Count > 0)
+                        {
+                            DigRiver(newChunk, riverNodeBfsQueue);
+                            //StartCoroutine(DigRiver(newChunk, riverNodeBfsQueue));
+                        }              
                     }
 
                     await LoadChunkMapDataAsync(newChunk, heightValues);
                 }
                 else
                 {
-                    float[] heatValues = await GetFractalHeatMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
-                    float[] moistureValues = await GetMoistureMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                    //float[] heatValues = await GetFractalHeatMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                    //float[] moistureValues = await GetMoistureMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
 
                     await LoadHeightMapDataAsync(newChunk, BlockType.Air);
-                    await LoadHeatMapDataAsync(newChunk, heatValues);
-                    await LoadMoistureMapDataAsync(newChunk, moistureValues);
-                    await GenerateBiomeMapDataAsync(newChunk);
+                    //await LoadHeatMapDataAsync(newChunk, heatValues);
+                    //await LoadMoistureMapDataAsync(newChunk, moistureValues);
+                    //await GenerateBiomeMapDataAsync(newChunk);
                 }
 
 
@@ -622,7 +630,7 @@ namespace PixelMiner.WorldBuilding
         /// Return 2D noise height map.
         /// </summary>
         /// <returns></returns>
-        public async Task<float[]> GetHeightMapDataAsync(int frameX, int frameZ, int width, int height, bool applyDomainWarping = false)
+        public async Task<float[]> GetHeightMapDataAsync(int frameX, int frameZ, int width, int height)
         {
             float[] heightValues = new float[width * height];
             Vector2 scale = new Vector2(1.0f, 1.0f);
@@ -638,14 +646,6 @@ namespace PixelMiner.WorldBuilding
                         float offsetZ = frameZ * height + z;
                         float heightValue = float.PositiveInfinity;
 
-                        //if (applyDomainWarping)
-                        //{
-                        //    heightValue = DomainWarping(offsetX * scale.x, offsetZ * scale.y, _heightSimplex);
-                        //}
-                        //else
-                        //{
-                        //    heightValue = (float)_heightSimplex.GetNoise(offsetX * scale.x, offsetZ * scale.y);                      
-                        //}
 
                         float heightSimplex = (float)_heightSimplex.GetNoise(offsetX * scale.x, offsetZ * scale.y);
                         float heightVoronoi = DomainWarping(offsetX * scale.x, offsetZ * scale.y, _heatSimplex, _heatVoronoi);
@@ -864,11 +864,11 @@ namespace PixelMiner.WorldBuilding
                                 //    chunk.ChunkData[index3D] = BlockType.Air;
                                 //}
 
-                                if (globalHeight < UnderGroundLevel)
+                                if (globalHeight < _underGroundLevel)
                                 {
                                     chunk.ChunkData[index3D] = BlockType.Stone;
                                 }
-                                else if (globalHeight <= GroundLevel)
+                                else if (globalHeight <= _groundLevel)
                                 {
                                     //if (y < terrainHeight)
                                     //{
@@ -894,40 +894,67 @@ namespace PixelMiner.WorldBuilding
                                     //    chunk.ChunkData[index3D] = BlockType.Air;
                                     //}
 
-                                    if(y < terrainHeight)
+                                    switch (chunk.BiomesData[index3D])
                                     {
-                                        switch (chunk.BiomesData[index3D])
-                                        {
-                                            case BiomeType.Desert:
-                                                chunk.ChunkData[index3D] = BlockType.Sand;
-                                                break;
-                                            case BiomeType.Grassland:
-                                                chunk.ChunkData[index3D] = BlockType.Sand;
-                                                break;
-                                            case BiomeType.Woodland:
-                                                chunk.ChunkData[index3D] = BlockType.GrassSide;
-                                                break;
-                                            case BiomeType.Forest:
-                                                chunk.ChunkData[index3D] = BlockType.GrassSide;
-                                                break;
-                                            case BiomeType.Ice:
-                                                chunk.ChunkData[index3D] = BlockType.Ice;
-                                                break;
-                                            case BiomeType.Ocean:
-                                                chunk.ChunkData[index3D] = BlockType.Water;
-                                                break;
-                                            case BiomeType.River:
-                                                chunk.ChunkData[index3D] = BlockType.Water;
-                                                break;
-                                            default:
-                                                Debug.LogError($"Not found {chunk.BiomesData[index3D]} biome.");
-                                                break;
-                                        }
+                                        case BiomeType.Desert:
+                                            chunk.ChunkData[index3D] = BlockType.Sand;
+                                            break;
+                                        case BiomeType.Grassland:
+                                            chunk.ChunkData[index3D] = BlockType.Sand;
+                                            break;
+                                        case BiomeType.Woodland:
+                                            chunk.ChunkData[index3D] = BlockType.GrassSide;
+                                            break;
+                                        case BiomeType.Forest:
+                                            chunk.ChunkData[index3D] = BlockType.GrassSide;
+                                            break;
+                                        case BiomeType.Ice:
+                                            chunk.ChunkData[index3D] = BlockType.Ice;
+                                            break;
+                                        case BiomeType.Ocean:
+                                            chunk.ChunkData[index3D] = BlockType.Water;
+                                            break;
+                                        case BiomeType.River:
+                                            chunk.ChunkData[index3D] = BlockType.Water;
+                                            break;
+                                        default:
+                                            Debug.LogError($"Not found {chunk.BiomesData[index3D]} biome.");
+                                            break;
                                     }
-                                    else
-                                    {
-                                        chunk.ChunkData[index3D] = BlockType.Air;
-                                    }                                 
+                                    //if (y < terrainHeight)
+                                    //{
+                                    //    switch (chunk.BiomesData[index3D])
+                                    //    {
+                                    //        case BiomeType.Desert:
+                                    //            chunk.ChunkData[index3D] = BlockType.Sand;
+                                    //            break;
+                                    //        case BiomeType.Grassland:
+                                    //            chunk.ChunkData[index3D] = BlockType.Sand;
+                                    //            break;
+                                    //        case BiomeType.Woodland:
+                                    //            chunk.ChunkData[index3D] = BlockType.GrassSide;
+                                    //            break;
+                                    //        case BiomeType.Forest:
+                                    //            chunk.ChunkData[index3D] = BlockType.GrassSide;
+                                    //            break;
+                                    //        case BiomeType.Ice:
+                                    //            chunk.ChunkData[index3D] = BlockType.Ice;
+                                    //            break;
+                                    //        case BiomeType.Ocean:
+                                    //            chunk.ChunkData[index3D] = BlockType.Water;
+                                    //            break;
+                                    //        case BiomeType.River:
+                                    //            chunk.ChunkData[index3D] = BlockType.Water;
+                                    //            break;
+                                    //        default:
+                                    //            Debug.LogError($"Not found {chunk.BiomesData[index3D]} biome.");
+                                    //            break;
+                                    //    }
+                                    //}
+                                    //else
+                                    //{
+                                    //    chunk.ChunkData[index3D] = BlockType.Air;
+                                    //}                                 
                                 }
                                 else
                                 {
@@ -1240,41 +1267,7 @@ namespace PixelMiner.WorldBuilding
         private Queue<RiverNode> GetRiverBfsNodes(BiomeType[] riverBiome, int width, int depth)
         {
             Queue<RiverNode> bfsRiverQueue = new Queue<RiverNode>();
-
-            //int size = chunk.BiomesData.Length;
-            //for (int i = 0; i < size; i++)
-            //{
-            //    int x = i % width;
-            //    int y = (i / width) % chunk._height;
-            //    int z = i / (width * chunk._height);
-
-            //    //int x = i % width;
-            //    //int z = i / width;
-
-            //    if (x == 0 || x == width - 1 || z == 0 || z == depth - 1) continue;
-
-            //    int bitmask = 0;
-            //    if (chunk.BiomesData[x + (z + 1) * width] == chunk.BiomesData[i])
-            //        bitmask += 1;
-            //    if (chunk.BiomesData[(x + 1) + z * width] == chunk.BiomesData[i])
-            //        bitmask += 2;
-            //    if (chunk.BiomesData[x + (z - 1) * width] == chunk.BiomesData[i])
-            //        bitmask += 4;
-            //    if (chunk.BiomesData[(x - 1) + z * width] == chunk.BiomesData[i])
-            //        bitmask += 8;
-
-            //    if (bitmask != 15)
-            //    {
-            //        RiverNode riverNode = new RiverNode()
-            //        {
-            //            GlobalPosition = new Vector3Int(x, z, 0),
-            //            Density = 5
-            //        };
-
-            //        bfsRiverQueue.Enqueue(riverNode);
-            //    }
-            //}
-
+ 
             int size = width * depth;
             for (int i = 0; i < size; i++)
             {
@@ -1297,7 +1290,7 @@ namespace PixelMiner.WorldBuilding
                 {
                     RiverNode riverNode = new RiverNode()
                     {
-                        RelativePosition = new Vector3Int(x, GroundLevel, z),
+                        RelativePosition = new Vector3Int(x, _groundLevel, z),
                         Density = 5
                     };
 
@@ -1308,39 +1301,82 @@ namespace PixelMiner.WorldBuilding
         }
         private void DigRiver(Chunk chunk, Queue<RiverNode> riverSpreadQueue)
         {
-            if (riverSpreadQueue.Count == 0) return;
-            
+            Debug.Log("DigRiver");
+            //Dictionary<Vector3Int, GameObject> textDict = new Dictionary<Vector3Int, GameObject>();
+
             int attempts = 0;
-            int[] riversDensity = new int[chunk._width * chunk._height * chunk._depth];
-            for (int i = 0; i < riversDensity.Length; i++)
+            int[,,] riversDensity = new int[chunk._width, chunk._height, chunk._depth];
+            //for (int i = 0; i < riversDensity.Length; i++)
+            //{
+            //    riversDensity[i] = 0;
+            //}
+            for(int z = 0; z < chunk._width; z++)
             {
-                riversDensity[i] = 0;
+                for(int y = 0; y < chunk._height; y++)
+                {
+                    for(int x = 0; x < chunk._width; x++)
+                    {
+                        riversDensity[x, y, z] = 0;
+                    }
+                }
             }
 
+            foreach(var riverNode in riverSpreadQueue)
+            {
+                riversDensity[riverNode.RelativePosition.x, riverNode.RelativePosition.y, riverNode.RelativePosition.z] = riverNode.Density;
+            }
+
+
             RiverNode startNode = riverSpreadQueue.Peek();
-            riversDensity[WorldGenUtilities.IndexOf(startNode.RelativePosition.x, startNode.RelativePosition.y, startNode.RelativePosition.z)] = startNode.Density;
+         
+            riversDensity[startNode.RelativePosition.x, startNode.RelativePosition.y, startNode.RelativePosition.z] = startNode.Density;
+
+            //if (textDict.ContainsKey(startNode.RelativePosition) == false)
+            //{
+            //    GameObject textObj = Instantiate(TextPrefab, chunk.GetGlobalPosition(startNode.RelativePosition) + new Vector3(0.0f, 1.01f, 0.0f), Quaternion.Euler(90f, 0f, 0f));
+            //    textObj.GetComponent<TextMeshPro>().text = $"{startNode.Density}";
+            //    textDict.Add(startNode.RelativePosition, textObj);
+            //}
 
             while (riverSpreadQueue.Count > 0)
             {
                 RiverNode currentNode = riverSpreadQueue.Dequeue();
+                riversDensity[currentNode.RelativePosition.x, currentNode.RelativePosition.y, currentNode.RelativePosition.z] = currentNode.Density;
                 chunk.SetBiome(currentNode.RelativePosition, BiomeType.River);
+
+                //if (textDict.ContainsKey(currentNode.RelativePosition) == false)
+                //{
+                //    GameObject textObj = Instantiate(TextPrefab, chunk.GetGlobalPosition(currentNode.RelativePosition) + new Vector3(0.0f, 1.01f, 0.0f), Quaternion.Euler(90f, 0f, 0f));
+                //    textObj.GetComponent<TextMeshPro>().text = $"{currentNode.Density}";
+                //    textDict.Add(currentNode.RelativePosition, textObj);
+
+                //    Debug.Log("Not contain");
+                //}
+                //else
+                //{
+                //    Debug.Log($"Contain: {textDict[currentNode.RelativePosition].GetComponent<TextMeshPro>().text}     {currentNode.Density}");
+                //    textDict[currentNode.RelativePosition].GetComponent<TextMeshPro>().text = $"{currentNode.Density}";
+                //    textDict[currentNode.RelativePosition].GetComponent<TextMeshPro>().color = Color.black;
+                //}
+
 
                 var neighbors = GetNeighborsForBfsRiver(currentNode.RelativePosition);
                 for (int i = 0; i < neighbors.Length; i++)
                 {
                     if (chunk.IsValidRelativePosition(neighbors[i]) == false)
                     {
-                        Debug.Log("Invalid");
+                        Debug.Log($"Invalid");
                         continue;
                     }
-                    //if (neighbors[i].x < 0 || neighbors[i].x > chunk._width - 1 || neighbors[i].z < 0 || neighbors[i].z > chunk._depth - 1)
-                    //{
-                    //    Debug.Log("Invalid");
-                    //    continue;
-                    //}
-
-                    if (riversDensity[WorldGenUtilities.IndexOf(neighbors[i].x, neighbors[i].y, neighbors[i].z)] + 1 < currentNode.Density && currentNode.Density > 0)
+                    if (neighbors[i] == currentNode.RelativePosition)
                     {
+                        continue;
+                    }
+
+
+                    
+                    if ((riversDensity[neighbors[i].x, neighbors[i].y, neighbors[i].z] + 1 < currentNode.Density) && currentNode.Density > 0)
+                    {                   
                         RiverNode nbRiverNode = new RiverNode()
                         {
                             RelativePosition = neighbors[i],
@@ -1348,7 +1384,7 @@ namespace PixelMiner.WorldBuilding
                         };
 
                         riverSpreadQueue.Enqueue(nbRiverNode);
-                        riversDensity[WorldGenUtilities.IndexOf(neighbors[i].x, neighbors[i].y, neighbors[i].z)] = nbRiverNode.Density;                       
+                        riversDensity[nbRiverNode.RelativePosition.x, nbRiverNode.RelativePosition.y, nbRiverNode.RelativePosition.z] = nbRiverNode.Density;
                     }
                 }
 
@@ -1361,18 +1397,18 @@ namespace PixelMiner.WorldBuilding
                     break;
                 }
             }
-
-
-            Debug.Log($"Spread river attempt: {attempts}");
+            //Debug.Log($"Spread river attempt: {attempts}");
         }
 
-        private Vector3Int[] _riverBfsNeighbors = new Vector3Int[4];
+        private Vector3Int[] _riverBfsNeighbors = new Vector3Int[5];
         private Vector3Int[] GetNeighborsForBfsRiver(Vector3Int position)
         {
             _riverBfsNeighbors[0] = position + new Vector3Int(1, 0, 0);
             _riverBfsNeighbors[1] = position + new Vector3Int(-1, 0, 0);
             _riverBfsNeighbors[2] = position + new Vector3Int(0, 0, 1);
             _riverBfsNeighbors[3] = position + new Vector3Int(0, 0, -1);
+
+            _riverBfsNeighbors[3] = position + new Vector3Int(0, -1, 0);
 
             return _riverBfsNeighbors;
         }
