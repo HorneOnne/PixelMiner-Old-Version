@@ -309,7 +309,7 @@ namespace PixelMiner.WorldBuilding
                             for (startPos[v] = 0; startPos[v] < dimensions[v]; startPos[v]++)
                             {
                                 currBlock = chunk.GetBlock(startPos);
-
+      
                                 // Because at solid block light not exist. We can only get light by the adjacent block and use it as the light as solid voxel face.
                                 byte lightValue = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
                                 lightColor = GetLightColor(lightValue, lightAnimCurve);
@@ -712,12 +712,11 @@ namespace PixelMiner.WorldBuilding
         //}
 
 
-        public static async Task<MeshData> GetChunkGrassMeshData(Chunk chunk, AnimationCurve lightAnimCurve)
+        public static async Task<MeshData> GetChunkGrassMeshData(Chunk chunk, int seed, AnimationCurve lightAnimCurve)
         {
             ChunkMeshBuilder builder = ChunkMeshBuilderPool.Get();
             builder.InitOrLoad(chunk.Dimensions);
 
-            Vector3Int startPos, currPos, quadSize, m, n, offsetPos;
             Vector3[] vertices = new Vector3[4];
             Vector3[] uvs = new Vector3[4];
             Vector2[] uv2s = new Vector2[4];
@@ -725,243 +724,61 @@ namespace PixelMiner.WorldBuilding
             Color32[] colors = new Color32[4];
             byte[] verticesAO = new byte[4];
             byte[] vertexColorIntensity = new byte[4];
-            BlockType currBlock;
-            int d, u, v;
-            Vector3Int dimensions = chunk.Dimensions;
-            Color lightColor;
-            bool smoothLight = true;
-            bool greedyMeshing = false;
-
-
+            System.Random rand = new System.Random(seed);
+    
             await Task.Run(() =>
             {
-                for(int i = 0; i < chunk.ChunkData.Length; i++)
+                for (int i = 0; i < chunk.ChunkData.Length; i++)
                 {
-
-                }
-
-
-
-                // Iterate over each aface of the blocks.
-                for (int voxelFace = 0; voxelFace < 6; voxelFace++)
-                {
-                    /* Voxel Face Index
-                    * 0: Right
-                    * 1: Up
-                    * 2: Front
-                    * 3: Left
-                    * 4: Down 
-                    * 5: Back
-                    * 
-                    * BackFace -> Face that drawn in clockwise direction. (Need detect which face is clockwise in order to draw it on 
-                    * Unity scene).
-                    */
-                    //if (voxelFace == 4) continue;    // Don't draw down face (because player cannot see it).
-
-                    bool isBackFace = voxelFace > 2;
-                    d = voxelFace % 3;
-                    switch (d)
+                    if (chunk.ChunkData[i] == BlockType.Grass)
                     {
-                        case 0:
-                            u = 2;
-                            v = 1;
-                            break;
-                        case 1:
-                            u = 0;
-                            v = 2;
-                            break;
-                        default:
-                            u = 0;
-                            v = 1;
-                            break;
-                    }
+                        int x = i % chunk._width;
+                        int y = (i / chunk._width) % chunk._height;
+                        int z = i / (chunk._width * chunk._height);
+
+                        Vector3Int curBlockPos = new Vector3Int(x, y, z);
+                        Vector3 randomOffset = new Vector3((float)rand.NextDouble() / 5f, 0, (float)rand.NextDouble() / 5f);
+
+                        Vector3 offsetPos = curBlockPos + randomOffset;
+
+                        vertices[0] = offsetPos;
+                        vertices[1] = offsetPos + new Vector3Int(1, 0, 1);
+                        vertices[2] = offsetPos + new Vector3Int(1, 1, 1);
+                        vertices[3] = offsetPos + new Vector3Int(0, 1, 0);
+                        GetGrassUVs(ref uvs, ref uv2s);
+                        builder.AddQuadFace(vertices, uvs);
 
 
-
-                    startPos = new Vector3Int();
-                    currPos = new Vector3Int();
-
-
-                    for (startPos[d] = 0; startPos[d] < dimensions[d]; startPos[d]++)
-                    {
-                        Array.Clear(builder.Merged[d], 0, builder.Merged[d].Length);
-
-                        // Build the slices of mesh.
-                        for (startPos[u] = 0; startPos[u] < dimensions[u]; startPos[u]++)
-                        {
-                            for (startPos[v] = 0; startPos[v] < dimensions[v]; startPos[v]++)
-                            {
-                                currBlock = chunk.GetBlock(startPos);
-
-                                // Because at solid block light not exist. We can only get light by the adjacent block and use it as the light as solid voxel face.
-                                byte lightValue = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                                lightColor = GetLightColor(lightValue, lightAnimCurve);
-
-                                // If this block has already been merged, is air, or not visible -> skip it.
-                                if (chunk.IsSolid(startPos) == false ||
-                                    chunk.IsBlockFaceVisible(startPos, d, isBackFace) == false ||
-                                    builder.Merged[d][startPos[u], startPos[v]])
-                                {
-                                    continue;
-                                }
-
-
-
-
-                                quadSize = Vector3Int.one;
-
-
-
-                                // Add new quad to mesh data.
-                                m = new Vector3Int();
-                                n = new Vector3Int();
-
-                                m[u] = quadSize[u];
-                                n[v] = quadSize[v];
-
-                                offsetPos = startPos;
-                                offsetPos[d] += isBackFace ? 0 : 1;
-
-
-                                vertices[0] = offsetPos;
-                                vertices[1] = offsetPos + m;
-                                vertices[2] = offsetPos + m + n;
-                                vertices[3] = offsetPos + n;
-
-
-                                // Ambient occlusion
-                                // =================
-                                bool anisotropy = false;
-                                verticesAO[0] = (byte)VoxelAO.ProcessAO(chunk, startPos, 0, voxelFace);
-                                verticesAO[1] = (byte)VoxelAO.ProcessAO(chunk, startPos, 1, voxelFace);
-                                verticesAO[2] = (byte)VoxelAO.ProcessAO(chunk, startPos, 2, voxelFace);
-                                verticesAO[3] = (byte)VoxelAO.ProcessAO(chunk, startPos, 3, voxelFace);
-
-
-
-                                // BLock light
-                                // ===========
-                                vertexColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                                vertexColorIntensity[1] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
-                                vertexColorIntensity[2] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace);
-                                vertexColorIntensity[3] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
-
-                                if (smoothLight)
-                                {
-                                    if (voxelFace == 1 || voxelFace == 5 || voxelFace == 0)
-                                    {
-                                        if (vertexColorIntensity[0] == 0)
-                                        {
-                                            colors[0] = lightColor;
-                                        }
-                                        else
-                                        {
-                                            colors[0] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
-                                        }
-                                        if (vertexColorIntensity[1] == 0)
-                                        {
-                                            colors[1] = lightColor;
-                                        }
-                                        else
-                                        {
-                                            colors[1] = GetLightColor(vertexColorIntensity[1], lightAnimCurve);
-                                        }
-                                        if (vertexColorIntensity[2] == 0)
-                                        {
-                                            colors[2] = lightColor;
-                                        }
-                                        else
-                                        {
-                                            colors[2] = GetLightColor(vertexColorIntensity[2], lightAnimCurve);
-                                        }
-                                        if (vertexColorIntensity[3] == 0)
-                                        {
-                                            colors[3] = lightColor;
-                                        }
-                                        else
-                                        {
-                                            colors[3] = GetLightColor(vertexColorIntensity[3], lightAnimCurve);
-                                        }
-                                    }
-                                    else if (voxelFace == 2 || voxelFace == 3)
-                                    {
-                                        if (vertexColorIntensity[1] == 0)
-                                        {
-                                            colors[0] = lightColor;
-                                        }
-                                        else
-                                        {
-                                            colors[0] = GetLightColor(vertexColorIntensity[1], lightAnimCurve);
-                                        }
-                                        if (vertexColorIntensity[0] == 0)
-                                        {
-                                            colors[1] = lightColor;
-                                        }
-                                        else
-                                        {
-                                            colors[1] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
-                                        }
-                                        if (vertexColorIntensity[3] == 0)
-                                        {
-                                            colors[2] = lightColor;
-                                        }
-                                        else
-                                        {
-                                            colors[2] = GetLightColor(vertexColorIntensity[3], lightAnimCurve);
-                                        }
-                                        if (vertexColorIntensity[2] == 0)
-                                        {
-                                            colors[3] = lightColor;
-                                        }
-                                        else
-                                        {
-                                            colors[3] = GetLightColor(vertexColorIntensity[2], lightAnimCurve);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        colors[0] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
-                                        colors[1] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
-                                        colors[2] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
-                                        colors[3] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
-                                    }
-                                }
-                                else
-                                {
-                                    colors[0] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
-                                    colors[1] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
-                                    colors[2] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
-                                    colors[3] = GetLightColor(vertexColorIntensity[0], lightAnimCurve);
-                                }
-
-
-                                // Ambient Lights
-                                byte ambientLight = chunk.GetAmbientLight(startPos);
-
-
-                                GetBlockUVs(currBlock, voxelFace, quadSize[u], quadSize[v], ref uvs, ref uv2s, ref uv3s);
-                                builder.AddQuadFace(vertices, uvs, uv2s, uv3s, colors, voxelFace, verticesAO, anisotropy, ambientLight);
-
-
-                                // Mark at this position has been merged
-                                for (int g = 0; g < quadSize[u]; g++)
-                                {
-                                    for (int h = 0; h < quadSize[v]; h++)
-                                    {
-                                        builder.Merged[d][startPos[u] + g, startPos[v] + h] = true;
-                                    }
-                                }
-                            }
-                        }
-
-
+                        vertices[0] = offsetPos + new Vector3Int(0, 0, 1);
+                        vertices[1] = offsetPos + new Vector3Int(1, 0, 0);
+                        vertices[2] = offsetPos + new Vector3Int(1, 1, 0);
+                        vertices[3] = offsetPos + new Vector3Int(0, 1, 1);
+                        GetGrassUVs(ref uvs, ref uv2s);
+                        builder.AddQuadFace(vertices, uvs);
                     }
                 }
             });
 
+
+
             MeshData meshData = builder.ToMeshData();
             ChunkMeshBuilderPool.Release(builder);
             return meshData;
+        }
+
+        private static void GetGrassUVs(ref Vector3[] uvs, ref Vector2[] uv2s)
+        {
+            int blockIndex;
+            ColorMapType colorMapType;
+            blockIndex = (ushort)BlockType.Grass;
+            colorMapType = ColorMapType.Plains;
+
+            uvs[0] = new Vector3(0, 0, blockIndex);
+            uvs[1] = new Vector3(1, 0, blockIndex);
+            uvs[2] = new Vector3(1, 1, blockIndex);
+            uvs[3] = new Vector3(0, 1, blockIndex);
+
+            GetColorMapkUVs(colorMapType, ref uv2s);
         }
         private static void GetBlockUVs(BlockType blockType, int face, int width, int height, ref Vector3[] uvs, ref Vector2[] uv2s, ref Vector4[] uv3s)
         {

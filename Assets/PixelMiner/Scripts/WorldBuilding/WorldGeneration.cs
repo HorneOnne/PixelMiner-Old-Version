@@ -11,8 +11,8 @@ using PixelMiner.Lighting;
 using PixelMiner.World;
 using TMPro;
 using System.Collections;
-using Codice.CM.WorkspaceServer.DataStore.Merge;
 using System.Linq;
+
 
 namespace PixelMiner.WorldBuilding
 {
@@ -599,6 +599,7 @@ namespace PixelMiner.WorldBuilding
 
 
                 await LoadChunkMapDataAsync(chunk, heightValues);
+                await PlaceGrassAsync(chunk);
 
 
 
@@ -606,18 +607,31 @@ namespace PixelMiner.WorldBuilding
                 // ----
 
                 MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(chunk, LightAnimCurve);
+                MeshData grassMeshData = await MeshUtils.GetChunkGrassMeshData(chunk, Seed, LightAnimCurve);
                 //MeshData waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(this);
                 MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(chunk);
+
+
 
                 chunk.SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
                 //WaterMeshFilter.sharedMesh =  CreateMesh(waterMeshData);
 
+
+                // Grass
+                // -----
+                chunk.GrassMeshFilter.sharedMesh = CreateMesh(grassMeshData);
+
+
+
+                // Collider
+                // -------
                 chunk.MeshCollider.sharedMesh = null;
                 chunk.MeshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
 
 
                 // Release mesh data
                 MeshDataPool.Release(solidMeshData);
+                MeshDataPool.Release(grassMeshData);
                 //MeshDataPool.Release(waterMeshData);
                 MeshDataPool.Release(colliderMeshData);
 
@@ -866,13 +880,12 @@ namespace PixelMiner.WorldBuilding
                             int indexHighestY = WorldGenUtilities.IndexOf(x, height - 1, z, width, height);
                             int averageGroundLayer = Mathf.FloorToInt(Water * height);
 
-                            int terrainHeight = Mathf.FloorToInt(heightValue * height);
-
+                            int terrainHeight = Mathf.FloorToInt(heightValue * _groundLevel);
                             int globalHeight = (chunk.FrameY * chunk._height) + y;
 
 
                             if (flatWorld)
-                            {                           
+                            {
                                 if (globalHeight < _underGroundLevel)
                                 {
                                     chunk.ChunkData[index3D] = BlockType.Stone;
@@ -888,10 +901,24 @@ namespace PixelMiner.WorldBuilding
                                             chunk.ChunkData[index3D] = BlockType.Sand;
                                             break;
                                         case BiomeType.Woodland:
-                                            chunk.ChunkData[index3D] = BlockType.DirtGrass;
+                                            if (globalHeight < _groundLevel)
+                                            {
+                                                chunk.ChunkData[index3D] = BlockType.Dirt;
+                                            }
+                                            else if (globalHeight == _groundLevel)
+                                            {
+                                                chunk.ChunkData[index3D] = BlockType.DirtGrass;
+                                            }
                                             break;
                                         case BiomeType.Forest:
-                                            chunk.ChunkData[index3D] = BlockType.DirtGrass;
+                                            if (globalHeight < _groundLevel)
+                                            {
+                                                chunk.ChunkData[index3D] = BlockType.Dirt;
+                                            }
+                                            else if (globalHeight == _groundLevel)
+                                            {
+                                                chunk.ChunkData[index3D] = BlockType.DirtGrass;
+                                            }
                                             break;
                                         case BiomeType.Ice:
                                             chunk.ChunkData[index3D] = BlockType.Ice;
@@ -905,41 +932,7 @@ namespace PixelMiner.WorldBuilding
                                         default:
                                             Debug.LogError($"Not found {chunk.BiomesData[index3D]} biome.");
                                             break;
-                                    }
-                                    //if (y < terrainHeight)
-                                    //{
-                                    //    switch (chunk.BiomesData[index3D])
-                                    //    {
-                                    //        case BiomeType.Desert:
-                                    //            chunk.ChunkData[index3D] = BlockType.Sand;
-                                    //            break;
-                                    //        case BiomeType.Grassland:
-                                    //            chunk.ChunkData[index3D] = BlockType.Sand;
-                                    //            break;
-                                    //        case BiomeType.Woodland:
-                                    //            chunk.ChunkData[index3D] = BlockType.GrassSide;
-                                    //            break;
-                                    //        case BiomeType.Forest:
-                                    //            chunk.ChunkData[index3D] = BlockType.GrassSide;
-                                    //            break;
-                                    //        case BiomeType.Ice:
-                                    //            chunk.ChunkData[index3D] = BlockType.Ice;
-                                    //            break;
-                                    //        case BiomeType.Ocean:
-                                    //            chunk.ChunkData[index3D] = BlockType.Water;
-                                    //            break;
-                                    //        case BiomeType.River:
-                                    //            chunk.ChunkData[index3D] = BlockType.Water;
-                                    //            break;
-                                    //        default:
-                                    //            Debug.LogError($"Not found {chunk.BiomesData[index3D]} biome.");
-                                    //            break;
-                                    //    }
-                                    //}
-                                    //else
-                                    //{
-                                    //    chunk.ChunkData[index3D] = BlockType.Air;
-                                    //}                                 
+                                    }                             
                                 }
                                 else
                                 {
@@ -1554,6 +1547,31 @@ namespace PixelMiner.WorldBuilding
 
 
 
+
+        #region DECORs
+        public async Task PlaceGrassAsync(Chunk chunk)
+        {
+            await Task.Run(() =>
+            {
+                Parallel.For(0, chunk.BiomesData.Length, (i) =>
+                {
+                    int x = i % chunk._width;
+                    int y = (i / chunk._width) % chunk._height;
+                    int z = i / (chunk._width * chunk._height);
+
+                    if (chunk.ChunkData[i] == BlockType.DirtGrass)
+                    {
+                        Vector3Int upperRelativePos = new Vector3Int(x, y + 1, z);
+                        if (chunk.OnGroundLevel(upperRelativePos))
+                        {
+                            chunk.SetBlock(upperRelativePos, BlockType.Grass);
+                        }
+                    }
+                });
+            });      
+        }
+
+        #endregion
 
 
 

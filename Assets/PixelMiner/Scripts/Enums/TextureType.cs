@@ -17,6 +17,8 @@
         Light = 105,
 
         Wood = 4,
+
+        Grass = 39,
     }
 
     

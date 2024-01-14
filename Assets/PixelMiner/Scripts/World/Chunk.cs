@@ -11,6 +11,7 @@ namespace PixelMiner.World
         public static System.Action<Chunk> OnChunkHasNeighbors;
 
         [SerializeField] public MeshFilter SolidMeshFilter;
+        [SerializeField] public MeshFilter GrassMeshFilter;
         [SerializeField] public MeshFilter WaterMeshFilter;
         public MeshCollider MeshCollider;
 
@@ -158,7 +159,8 @@ namespace PixelMiner.World
         public bool IsSolid(Vector3Int relativePosition)
         {
             BlockType block = GetBlock(relativePosition);
-            return block != BlockType.Air && block != BlockType.Water;
+            return block.IsSolid();
+            //return block != BlockType.Air && block != BlockType.Water;
         }
         public bool IsWater(Vector3Int relativePosition)
         {
@@ -558,6 +560,31 @@ namespace PixelMiner.World
         {
             Vector3 center = GlobalPosition + new Vector3(_width / 2.0f, _height / 2.0f, _depth / 2.0f);
             return new Bounds(center, new Vector3(_width, _height, _depth));
+        }
+
+        public bool OnGroundLevel(Vector3Int relativePosition)
+        {
+            if(IsValidRelativePosition(relativePosition))
+            {
+                Vector3Int belowRelativePos = relativePosition + Vector3Int.down;
+                Vector3Int upperRelativePos = relativePosition + Vector3Int.up;
+
+                if(GetBlock(relativePosition) == BlockType.Air)
+                {
+                    if (GetBlock(belowRelativePos) != BlockType.Air)
+                    {
+                        if (GetBlock(upperRelativePos) == BlockType.Air)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+
+            Debug.LogError($"Out of chunk volume range. {relativePosition}");
+            return false;
         }
         #endregion
     }

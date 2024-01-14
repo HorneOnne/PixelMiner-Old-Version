@@ -20,14 +20,13 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Voxel
-  m_Shader: {fileID: 4800000, guid: 3cb73cf77094bc2428259b5edf4a8e50, type: 3}
+  m_Name: Grass
+  m_Shader: {fileID: 4800000, guid: 232fc1b47357bf845806ed467f373442, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords:
   - _AMBIENTOCCLUSION_ON
-  - _AO_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0

@@ -14,16 +14,20 @@
         Ice = 67,
 
         Light = 105,
-
         Wood = 4,
+
+        Grass = 39,
     }
 
     public static class BlockTypeExtensions
     {
         public static bool IsSolid(this BlockType blockType)
         {
+            //return blockType != BlockType.Air;
+
             return blockType != BlockType.Air &&
-                   blockType != BlockType.Water;
+                   blockType != BlockType.Water &&
+                    blockType != BlockType.Grass;
         }
     }
 }
