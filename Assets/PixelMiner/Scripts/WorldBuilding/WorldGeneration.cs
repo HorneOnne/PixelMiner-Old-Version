@@ -872,72 +872,13 @@ namespace PixelMiner.WorldBuilding
 
 
                             if (flatWorld)
-                            {
-                                //if (globalHeight < UnderGroundLevel)
-                                //{
-                                //    chunk.ChunkData[index3D] = BlockType.Stone;
-                                //}
-                                //else if (globalHeight < GroundLevel)
-                                //{
-                                //    if (y < terrainHeight)
-                                //    {
-                                //        if (heightValue < Water)
-                                //            chunk.ChunkData[index3D] = BlockType.Water;
-                                //        if (heightValue < Sand)
-                                //            chunk.ChunkData[index3D] = BlockType.Sand;
-                                //        else if (heightValue < Grass)
-                                //            chunk.ChunkData[index3D] = BlockType.Dirt;
-                                //        else if (heightValue < Forest)
-                                //            chunk.ChunkData[index3D] = BlockType.GrassSide;
-                                //        else if (heightValue < Rock)
-                                //            chunk.ChunkData[index3D] = BlockType.Stone;
-                                //        else
-                                //            chunk.ChunkData[index3D] = BlockType.Glass;
-                                //    }
-                                //    else if (y < height * Water)
-                                //    {
-                                //        chunk.ChunkData[index3D] = BlockType.Water;
-                                //    }
-                                //    else
-                                //    {
-                                //        chunk.ChunkData[index3D] = BlockType.Air;
-                                //    }
-                                //}
-                                //else
-                                //{
-                                //    chunk.ChunkData[index3D] = BlockType.Air;
-                                //}
-
+                            {                           
                                 if (globalHeight < _underGroundLevel)
                                 {
                                     chunk.ChunkData[index3D] = BlockType.Stone;
                                 }
                                 else if (globalHeight <= _groundLevel)
                                 {
-                                    //if (y < terrainHeight)
-                                    //{
-                                    //    if (heightValue < Water)
-                                    //        chunk.ChunkData[index3D] = BlockType.Water;
-                                    //    if (heightValue < Sand)
-                                    //        chunk.ChunkData[index3D] = BlockType.Sand;
-                                    //    else if (heightValue < Grass)
-                                    //        chunk.ChunkData[index3D] = BlockType.Dirt;
-                                    //    else if (heightValue < Forest)
-                                    //        chunk.ChunkData[index3D] = BlockType.GrassSide;
-                                    //    else if (heightValue < Rock)
-                                    //        chunk.ChunkData[index3D] = BlockType.Stone;
-                                    //    else
-                                    //        chunk.ChunkData[index3D] = BlockType.Glass;
-                                    //}
-                                    //else if (y < height * Water)
-                                    //{
-                                    //    chunk.ChunkData[index3D] = BlockType.Water;
-                                    //}
-                                    //else
-                                    //{
-                                    //    chunk.ChunkData[index3D] = BlockType.Air;
-                                    //}
-
                                     switch (chunk.BiomesData[index3D])
                                     {
                                         case BiomeType.Desert:
@@ -947,10 +888,10 @@ namespace PixelMiner.WorldBuilding
                                             chunk.ChunkData[index3D] = BlockType.Sand;
                                             break;
                                         case BiomeType.Woodland:
-                                            chunk.ChunkData[index3D] = BlockType.GrassSide;
+                                            chunk.ChunkData[index3D] = BlockType.DirtGrass;
                                             break;
                                         case BiomeType.Forest:
-                                            chunk.ChunkData[index3D] = BlockType.GrassSide;
+                                            chunk.ChunkData[index3D] = BlockType.DirtGrass;
                                             break;
                                         case BiomeType.Ice:
                                             chunk.ChunkData[index3D] = BlockType.Ice;
@@ -1016,7 +957,7 @@ namespace PixelMiner.WorldBuilding
                                     else if (heightValue < Grass)
                                         chunk.ChunkData[index3D] = BlockType.Dirt;
                                     else if (heightValue < Forest)
-                                        chunk.ChunkData[index3D] = BlockType.GrassSide;
+                                        chunk.ChunkData[index3D] = BlockType.DirtGrass;
                                     else if (heightValue < Rock)
                                         chunk.ChunkData[index3D] = BlockType.Stone;
                                     else
@@ -1404,18 +1345,6 @@ namespace PixelMiner.WorldBuilding
                         if (chunk.RiverBiomes[(x - 1) + z * width] == chunk.RiverBiomes[i])
                             bitmask += 8;
                     }
-
-
-
-
-                    //if (chunk.RiverBiomes[x + (z + 1) * width] == chunk.RiverBiomes[i])
-                    //    bitmask += 1;
-                    //if (chunk.RiverBiomes[(x + 1) + z * width] == chunk.RiverBiomes[i])
-                    //    bitmask += 2;
-                    //if (nbChunk3.RiverBiomes[nbRelativePosition3.x + nbRelativePosition3.z * width] == chunk.RiverBiomes[i])
-                    //    bitmask += 4;
-                    //if (nbChunk4.RiverBiomes[nbRelativePosition4.x + nbRelativePosition4.z * width] == chunk.RiverBiomes[i])
-                    //    bitmask += 8;
 
                     if (bitmask != 15)
                     {

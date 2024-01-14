@@ -147,7 +147,7 @@ namespace PixelMiner.WorldInteraction
             return new Vector3Int(relativeX, relativeY, relativeZ);
         }
 
-        private void PlaceBlock(Vector3 globalPosition, BlockType blockType)
+        private void PlaceBlock(Vector3 globalPosition, TextureType blockType)
         {
 
         }

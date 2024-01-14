@@ -83,7 +83,7 @@ namespace PixelMiner
         private static void GetUV(int u, int v, ushort blockType = 0)
         {
             float tileSize = 1 / 16f;
-            Debug.Log($"\n\n/*{((BlockType)blockType).ToString().ToUpper()}*/" +
+            Debug.Log($"\n\n/*{((TextureType)blockType).ToString().ToUpper()}*/" +
                $"\n{{new Vector2({tileSize * u}f, {tileSize * v}f), " +
                $"new Vector2({tileSize * u + tileSize}f, {tileSize * v}f)," +
                $"\nnew Vector2({tileSize * u}f, {tileSize * v + tileSize}f), " +

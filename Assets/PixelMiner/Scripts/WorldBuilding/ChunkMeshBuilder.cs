@@ -48,6 +48,27 @@ namespace PixelMiner.WorldBuilding
             _isInit = true;
         }
 
+
+        public void AddQuadFace(Vector3[] vertices, Vector2[] uvs)
+        {
+            if (vertices.Length != 4)
+            {
+                throw new System.ArgumentException("A quad requires 4 vertices");
+            }
+
+            this._vertices.Add(vertices[0]);
+            this._vertices.Add(vertices[1]);
+            this._vertices.Add(vertices[2]);
+            this._vertices.Add(vertices[3]);
+
+
+            this._uvs.Add(uvs[0]);
+            this._uvs.Add(uvs[1]);
+            this._uvs.Add(uvs[2]);
+            this._uvs.Add(uvs[3]);
+        }
+
+
         public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, Vector2[] uv2s = null, Vector4[] uv3s = null, Color32[] colors = null, int voxelFace = 0, byte[] vertexAO = null, bool anisotropy = false, byte ambientLight = 0)
         {
             if (vertices.Length != 4)
@@ -78,10 +99,6 @@ namespace PixelMiner.WorldBuilding
                 this._vertices.Add(vertices[3]);
             }
 
-            //this._vertices.Add(vertices[0]);
-            //this._vertices.Add(vertices[1]);
-            //this._vertices.Add(vertices[2]);
-            //this._vertices.Add(vertices[3]);
 
 
 
@@ -110,29 +127,6 @@ namespace PixelMiner.WorldBuilding
                 {
                     this._uv2s.Add(uv2s[i]);
                 }
-            }
-
-
-
-            if (uv3s != null)
-            {
-                //if(anisotropy)
-                //{
-                //    this._uv3s.Add(uv3s[1]);
-                //    this._uv3s.Add(uv3s[2]);
-                //    this._uv3s.Add(uv3s[3]);
-                //    this._uv3s.Add(uv3s[0]);
-                //}
-                //else
-                //{
-                //    this._uv3s.Add(uv3s[0]);
-                //    this._uv3s.Add(uv3s[1]);
-                //    this._uv3s.Add(uv3s[2]);
-                //    this._uv3s.Add(uv3s[3]);
-                //}
-               
-
-            
             }
 
 
@@ -213,71 +207,7 @@ namespace PixelMiner.WorldBuilding
 
                 return vertexColor;
             }
-
-
-            Color32 AdditiveBlend(Color32 color1, Color32 color2)
-            {
-                byte newR = (byte)Mathf.Clamp(color1.r + color2.r, 0, 255);
-                byte newG = (byte)Mathf.Clamp(color1.g + color2.g, 0, 255);
-                byte newB = (byte)Mathf.Clamp(color1.b + color2.b, 0, 255);
-                byte newA = (byte)Mathf.Max(color1.a, color2.a); // Use the maximum alpha value
-
-                return new Color32(newR, newG, newB, newA);
-            }
-
-
-            Color32 MyBlend(Color32 blockColor, byte vertexAO)
-            {
-
-                switch (vertexAO)
-                {
-                    case 0:
-                        float percentage = 1.0f;
-                        byte newR = (byte)Mathf.Clamp(blockColor.r * (1f - percentage), 0, 255);
-                        byte newG = (byte)Mathf.Clamp(blockColor.g * (1f - percentage), 0, 255);
-                        byte newB = (byte)Mathf.Clamp(blockColor.b * (1f - percentage), 0, 255);
-                        return new Color32(newR, newG, newB, blockColor.a);
-                    case 1:
-                        float percentage2 = 0.9f;
-                        byte newR2 = (byte)Mathf.Clamp(blockColor.r * (1f - percentage2), 0, 255);
-                        byte newG2 = (byte)Mathf.Clamp(blockColor.g * (1f - percentage2), 0, 255);
-                        byte newB2 = (byte)Mathf.Clamp(blockColor.b * (1f - percentage2), 0, 255);
-                        return new Color32(newR2, newG2, newB2, blockColor.a);
-                    case 2:
-                        float percentage3 = 0.85f;
-                        byte newR3 = (byte)Mathf.Clamp(blockColor.r * (1f - percentage3), 0, 255);
-                        byte newG3 = (byte)Mathf.Clamp(blockColor.g * (1f - percentage3), 0, 255);
-                        byte newB3 = (byte)Mathf.Clamp(blockColor.b * (1f - percentage3), 0, 255);
-                        return new Color32(newR3, newG3, newB3, blockColor.a);
-                    default:
-                        float percentage4 = 0.0f;
-                        byte newR4 = (byte)Mathf.Clamp(blockColor.r * (1f - percentage4), 0, 255);
-                        byte newG4 = (byte)Mathf.Clamp(blockColor.g * (1f - percentage4), 0, 255);
-                        byte newB4 = (byte)Mathf.Clamp(blockColor.b * (1f - percentage4), 0, 255);
-                        return new Color32(newR4, newG4, newB4, blockColor.a);
-                }
-            }
-
         }
-        private Color32 DarkenBlend(Color32 baseColor, Color32 blendColor)
-        {
-            float factor = 0.5f; // Adjust this factor as needed for the darkness level
-
-            byte newR = (byte)Mathf.Clamp(baseColor.r * blendColor.r / 255f * factor, 0, 255);
-            byte newG = (byte)Mathf.Clamp(baseColor.g * blendColor.g / 255f * factor, 0, 255);
-            byte newB = (byte)Mathf.Clamp(baseColor.b * blendColor.b / 255f * factor, 0, 255);
-            byte newA = (byte)Mathf.Max(baseColor.a, blendColor.a); // Use the maximum alpha value
-
-            return new Color32(newR, newG, newB, newA);
-        }
-
-        private Color32 GetAmbientLightColor(byte ambientValue)
-        {
-            float channelValuePercent = (ambientValue / LightUtils.MaxLightIntensity);
-            byte channelValue = (byte)(channelValuePercent * 255);
-            return new Color32(channelValue, channelValue, channelValue, 255);
-        }
-
 
 
         public MeshData ToMeshData()

@@ -360,8 +360,8 @@ namespace PixelMiner.UI.WorldGen
         }
         private async Task<Texture2D> GetBiomesMapTextureAsync()
         {
-            int textureWidth = 1920;
-            int textureHeight = 1080;
+            int textureWidth = 1920 * 2;
+            int textureHeight = 1080 * 2;
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
 
@@ -379,7 +379,7 @@ namespace PixelMiner.UI.WorldGen
             float[] moistureValues = moistureTask.Result;
             float[] riverValues = riverTask.Result;
 
-            BlockType[] blockData = await LoadHeightMapDataAsync(heightValues, textureWidth, 1, textureHeight);
+            TextureType[] blockData = await LoadHeightMapDataAsync(heightValues, textureWidth, 1, textureHeight);
             HeatType[] heatData = await LoadHeatMapDataAsync(heatValues, textureWidth, 1, textureHeight);
             MoistureType[] moistureData = await LoadMoistureMapDataAsync(moistureValues, textureWidth, 1, textureHeight);
             BiomeType[] biomeData = await GenerateBiomeMapDataAsync(moistureData, heatData, heightValues, textureWidth, 1, textureHeight);
@@ -411,7 +411,7 @@ namespace PixelMiner.UI.WorldGen
             {
                 Parallel.For(0, pixels.Length, (i) =>
                 {
-                    if (blockData[i] == BlockType.Water)
+                    if (blockData[i] == TextureType.Water)
                     {
                         if (heightValues[i] < WorldGeneration.Instance.DeepWater)
                         {
@@ -573,27 +573,27 @@ namespace PixelMiner.UI.WorldGen
 
 
         #region Load data
-        public async Task<BlockType[]> LoadHeightMapDataAsync(float[] heightValues, int width, int height, int depth)
+        public async Task<TextureType[]> LoadHeightMapDataAsync(float[] heightValues, int width, int height, int depth)
         {
-            BlockType[] chunkData = new BlockType[heightValues.Length];
+            TextureType[] chunkData = new TextureType[heightValues.Length];
             await Task.Run(() =>
             {
                 for (int i = 0; i < heightValues.Length; i++)
                 {
                     if (heightValues[i] < WorldGeneration.Instance.Water)
                     {
-                        chunkData[i] = BlockType.Water;
+                        chunkData[i] = TextureType.Water;
                     }
                     else if (heightValues[i] < WorldGeneration.Instance.Sand)
-                        chunkData[i] = BlockType.Sand;
+                        chunkData[i] = TextureType.Sand;
                     else if (heightValues[i] < WorldGeneration.Instance.Grass)
-                        chunkData[i] = BlockType.Dirt;
+                        chunkData[i] = TextureType.Dirt;
                     else if (heightValues[i] < WorldGeneration.Instance.Forest)
-                        chunkData[i] = BlockType.GrassSide;
+                        chunkData[i] = TextureType.GrassSide;
                     else if (heightValues[i] < WorldGeneration.Instance.Rock)
-                        chunkData[i] = BlockType.Stone;
+                        chunkData[i] = TextureType.Stone;
                     else
-                        chunkData[i] = BlockType.Ice;
+                        chunkData[i] = TextureType.Ice;
                 }
 
 

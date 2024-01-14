@@ -11,8 +11,7 @@ namespace PixelMiner.Lighting
         private static Dictionary<BlockType, byte> _opacityMap = new Dictionary<BlockType, byte>
         {
             { BlockType.Air, 10 },     
-            { BlockType.GrassTop, 150 },  
-            { BlockType.GrassSide, 150 },
+            { BlockType.DirtGrass, 150 },
             { BlockType.Dirt, 150 },
             { BlockType.Stone, 150 },
 
