@@ -71,10 +71,12 @@ namespace PixelMiner.World
 
         public Queue<RiverNode> RiverBfsQueue = new Queue<RiverNode>();
         public BiomeType[] RiverBiomes;
+        public bool HasOceanBiome;
 
         private void Awake()
         {
             MeshCollider = SolidMeshFilter.GetComponent<MeshCollider>();
+            HasOceanBiome = false;
         }
 
         private void Start()
@@ -192,11 +194,30 @@ namespace PixelMiner.World
         {
             ChunkData[IndexOf(relativePosition.x, relativePosition.y, relativePosition.z)] = blockType;
         }
+
+
         public void SetBiome(Vector3Int relativePosition, BiomeType biomeType)
         {
             BiomesData[IndexOf(relativePosition.x, relativePosition.y, relativePosition.z)] = biomeType;
         }
-
+        public BiomeType GetBiome(Vector3Int relativePosition)
+        {
+            if (IsValidRelativePosition(relativePosition))
+            {
+                return BiomesData[IndexOf(relativePosition.x, relativePosition.y, relativePosition.z)];
+            }
+            else
+            {
+                if (FindNeighbor(relativePosition, out Chunk neighborChunk, out Vector3Int nbRelativePosition))
+                {
+                    return neighborChunk.BiomesData[IndexOf(nbRelativePosition.x, nbRelativePosition.y, nbRelativePosition.z)];
+                }
+                else
+                {
+                    return BiomeType.Ocean;
+                }
+            }
+        }
 
 
         public bool IsBlockFaceVisible(Vector3Int position, int dimension, bool isBackFace)

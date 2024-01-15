@@ -519,7 +519,7 @@ namespace PixelMiner.WorldBuilding
                 Task<float[]> heatTask = GetFractalHeatMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
                 Task<float[]> moistureTask = GetMoistureMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
                 Task<float[]> riverTask = GetRiverDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
-                await Task.WhenAll(heightTask, heatTask, moistureTask, riverTask);
+                await Task.WhenAll(heightTask, heatTask, moistureTask, riverTask).ConfigureAwait(false);
                 //await Task.WhenAll(heatTask, moistureTask, riverTask);
                 float[] heightValues = heightTask.Result;
                 float[] heatValues = heatTask.Result;
@@ -585,7 +585,12 @@ namespace PixelMiner.WorldBuilding
 
 
         #region DRAW CHUNK
-        private async void DrawChunk(Chunk chunk)
+        private void DrawChunk(Chunk chunk)
+        {
+            DrawChunkAsync(chunk);
+        }
+
+        private async void DrawChunkAsync(Chunk chunk)
         {
             if (!chunk.ChunkHasDrawn)
             {
@@ -595,7 +600,7 @@ namespace PixelMiner.WorldBuilding
                 GetRiverBfsNodes(chunk, chunk._width, chunk._height);
                 if (chunk.RiverBfsQueue.Count > 0)
                 {
-                    DigRiver(chunk, chunk.RiverBfsQueue);
+                    await DigRiverAsync(chunk, chunk.RiverBfsQueue);
                 }
 
 
@@ -678,6 +683,9 @@ namespace PixelMiner.WorldBuilding
             colliderMesh.SetTriangles(meshData.Triangles, 0);
             return colliderMesh;
         }
+
+
+  
         #endregion
 
 
@@ -1115,7 +1123,8 @@ namespace PixelMiner.WorldBuilding
 
                             if (heightValues[index2D] < Water)
                             {
-                                chunk.BiomesData[index3D] = BiomeType.Ocean;  
+                                chunk.BiomesData[index3D] = BiomeType.Ocean;
+                                chunk.HasOceanBiome = true;
                             }
                             else
                             {
@@ -1322,70 +1331,44 @@ namespace PixelMiner.WorldBuilding
             }
         }
 
-        private void DigRiver(Chunk chunk, Queue<RiverNode> riverSpreadQueue)
+        private async Task DigRiverAsync(Chunk chunk, Queue<RiverNode> riverSpreadQueue)
         {
             Debug.Log("DigRiver");
-            //Dictionary<Vector3Int, GameObject> textDict = new Dictionary<Vector3Int, GameObject>();
 
             int attempts = 0;
-            int[,,] riversDensity = new int[chunk._width, chunk._height, chunk._depth];
-            //for (int i = 0; i < riversDensity.Length; i++)
-            //{
-            //    riversDensity[i] = 0;
-            //}
-            for (int z = 0; z < chunk._width; z++)
+            int[] riversDensity = new int[chunk._width * chunk._height * chunk._depth];
+
+            await Task.Run(() =>
             {
-                for (int y = 0; y < chunk._height; y++)
+                Parallel.For(0, riversDensity.Length, (i) =>
                 {
-                    for (int x = 0; x < chunk._width; x++)
-                    {
-                        riversDensity[x, y, z] = 0;
-                    }
-                }
-            }
+                    riversDensity[i] = 0;
+                });
 
-            foreach (var riverNode in riverSpreadQueue)
-            {
-                riversDensity[riverNode.RelativePosition.x, riverNode.RelativePosition.y, riverNode.RelativePosition.z] = riverNode.Density;
-            }
-
+                Parallel.ForEach(riverSpreadQueue, riverNode =>
+                {
+                    int index = WorldGenUtilities.IndexOf(riverNode.RelativePosition.x, riverNode.RelativePosition.y, riverNode.RelativePosition.z, chunk._width, chunk._height);
+                    riversDensity[index] = riverNode.Density;
+                });
+            });
 
             RiverNode startNode = riverSpreadQueue.Peek();
-
-            riversDensity[startNode.RelativePosition.x, startNode.RelativePosition.y, startNode.RelativePosition.z] = startNode.Density;
-
-            //if (textDict.ContainsKey(startNode.RelativePosition) == false)
-            //{
-            //    GameObject textObj = Instantiate(TextPrefab, chunk.GetGlobalPosition(startNode.RelativePosition) + new Vector3(0.0f, 1.01f, 0.0f), Quaternion.Euler(90f, 0f, 0f));
-            //    textObj.GetComponent<TextMeshPro>().text = $"{startNode.Density}";
-            //    textDict.Add(startNode.RelativePosition, textObj);
-            //}
-
+            riversDensity[WorldGenUtilities.IndexOf(startNode.RelativePosition.x, startNode.RelativePosition.y, startNode.RelativePosition.z, chunk._width, chunk._height)] = startNode.Density;
             while (riverSpreadQueue.Count > 0)
             {
                 RiverNode currentNode = riverSpreadQueue.Dequeue();
-                riversDensity[currentNode.RelativePosition.x, currentNode.RelativePosition.y, currentNode.RelativePosition.z] = currentNode.Density;
+                riversDensity[WorldGenUtilities.IndexOf(currentNode.RelativePosition.x, currentNode.RelativePosition.y, currentNode.RelativePosition.z, chunk._width, chunk._height)] = currentNode.Density;
                 chunk.SetBiome(currentNode.RelativePosition, BiomeType.River);
-
-                //if (textDict.ContainsKey(currentNode.RelativePosition) == false)
-                //{
-                //    GameObject textObj = Instantiate(TextPrefab, chunk.GetGlobalPosition(currentNode.RelativePosition) + new Vector3(0.0f, 1.01f, 0.0f), Quaternion.Euler(90f, 0f, 0f));
-                //    textObj.GetComponent<TextMeshPro>().text = $"{currentNode.Density}";
-                //    textDict.Add(currentNode.RelativePosition, textObj);
-
-                //    Debug.Log("Not contain");
-                //}
-                //else
-                //{
-                //    Debug.Log($"Contain: {textDict[currentNode.RelativePosition].GetComponent<TextMeshPro>().text}     {currentNode.Density}");
-                //    textDict[currentNode.RelativePosition].GetComponent<TextMeshPro>().text = $"{currentNode.Density}";
-                //    textDict[currentNode.RelativePosition].GetComponent<TextMeshPro>().color = Color.black;
-                //}
 
 
                 var neighbors = GetNeighborsForBfsRiver(currentNode.RelativePosition);
-                for (int i = 0; i < neighbors.Length; i++)
+                Parallel.For(0, neighbors.Length, (i) =>
                 {
+
+                    if (chunk.GetBiome(neighbors[i]) == BiomeType.Ocean) return;
+                    if (neighbors[i] == currentNode.RelativePosition) return;
+
+
                     if (chunk.IsValidRelativePosition(neighbors[i]) == false)
                     {
                         if (chunk.FindNeighbor(neighbors[i], out Chunk neighborChunk, out Vector3Int nbRelativePosition))
@@ -1402,16 +1385,10 @@ namespace PixelMiner.WorldBuilding
                         {
                             //Debug.LogWarning($"Not found this chunk at: {neighbors[i]}");
                         }
-                        continue;
-                    }
-                    if (neighbors[i] == currentNode.RelativePosition)
-                    {
-                        continue;
+                        return;
                     }
 
-
-
-                    if ((riversDensity[neighbors[i].x, neighbors[i].y, neighbors[i].z] + 1 < currentNode.Density) && currentNode.Density > 0)
+                    if ((riversDensity[WorldGenUtilities.IndexOf(neighbors[i].x, neighbors[i].y, neighbors[i].z, chunk._width, chunk._height)] + 1 < currentNode.Density) && currentNode.Density > 0)
                     {
                         RiverNode nbRiverNode = new RiverNode()
                         {
@@ -1420,9 +1397,49 @@ namespace PixelMiner.WorldBuilding
                         };
 
                         riverSpreadQueue.Enqueue(nbRiverNode);
-                        riversDensity[nbRiverNode.RelativePosition.x, nbRiverNode.RelativePosition.y, nbRiverNode.RelativePosition.z] = nbRiverNode.Density;
+                        riversDensity[WorldGenUtilities.IndexOf(nbRiverNode.RelativePosition.x, nbRiverNode.RelativePosition.y, nbRiverNode.RelativePosition.z, chunk._width, chunk._height)] = nbRiverNode.Density;
                     }
-                }
+                });
+
+                //for (int i = 0; i < neighbors.Length; i++)
+                //{
+                //    if (chunk.GetBiome(neighbors[i]) == BiomeType.Ocean) continue;
+                //    if (neighbors[i] == currentNode.RelativePosition)
+                //    {
+                //        continue;
+                //    }
+
+                //    if (chunk.IsValidRelativePosition(neighbors[i]) == false)
+                //    {
+                //        if (chunk.FindNeighbor(neighbors[i], out Chunk neighborChunk, out Vector3Int nbRelativePosition))
+                //        {
+                //            //Debug.Log($"found chunk: {neighbors[i]}");
+                //            RiverNode nbRiverNode = new RiverNode()
+                //            {
+                //                RelativePosition = nbRelativePosition,
+                //                Density = currentNode.Density - 1
+                //            };
+                //            neighborChunk.RiverBfsQueue.Enqueue(nbRiverNode);
+                //        }
+                //        else
+                //        {
+                //            //Debug.LogWarning($"Not found this chunk at: {neighbors[i]}");
+                //        }
+                //        continue;
+                //    }
+
+                //    if ((riversDensity[WorldGenUtilities.IndexOf(neighbors[i].x, neighbors[i].y, neighbors[i].z, chunk._width, chunk._height)] + 1 < currentNode.Density) && currentNode.Density > 0)
+                //    {
+                //        RiverNode nbRiverNode = new RiverNode()
+                //        {
+                //            RelativePosition = neighbors[i],
+                //            Density = currentNode.Density - 1
+                //        };
+
+                //        riverSpreadQueue.Enqueue(nbRiverNode);
+                //        riversDensity[WorldGenUtilities.IndexOf(nbRiverNode.RelativePosition.x, nbRiverNode.RelativePosition.y, nbRiverNode.RelativePosition.z, chunk._width, chunk._height)] = nbRiverNode.Density;
+                //    }
+                //}
 
 
 
@@ -1433,7 +1450,7 @@ namespace PixelMiner.WorldBuilding
                     break;
                 }
             }
-            //Debug.Log($"Spread river attempt: {attempts}");
+
         }
 
         private Vector3Int[] _riverBfsNeighbors = new Vector3Int[5];
@@ -1444,7 +1461,7 @@ namespace PixelMiner.WorldBuilding
             _riverBfsNeighbors[2] = position + new Vector3Int(0, 0, 1);
             _riverBfsNeighbors[3] = position + new Vector3Int(0, 0, -1);
 
-            _riverBfsNeighbors[3] = position + new Vector3Int(0, -1, 0);
+            _riverBfsNeighbors[4] = position + new Vector3Int(0, -1, 0);
 
             return _riverBfsNeighbors;
         }

@@ -8,8 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Collections.Concurrent;
 using System.Collections;
-using UnityEngine.Rendering;
-using Codice.CM.Common.Merge;
+using JetBrains.Annotations;
+using System.Security.Cryptography;
 
 namespace PixelMiner.UI.WorldGen
 {
@@ -20,7 +20,7 @@ namespace PixelMiner.UI.WorldGen
         public UIMapPreview HeatMapPreview { get; private set; }
         public UIMapPreview MoistureMapPreview { get; private set; }
         public UIMapPreview BiomeMapPreview { get; private set; }
-  
+
 
 
 
@@ -65,6 +65,13 @@ namespace PixelMiner.UI.WorldGen
             {
                 CloseAllMap();
                 Texture2D texture = await GetMyNoiseTexture();
+                HeightMapPreview.SetImage(texture);
+            }
+
+            if (Input.GetKeyDown(KeyCode.F8))
+            {
+                CloseAllMap();
+                Texture2D texture = await GetPoissonDiscTexture();
                 HeightMapPreview.SetImage(texture);
             }
         }
@@ -439,7 +446,7 @@ namespace PixelMiner.UI.WorldGen
                                 break;
                             case BiomeType.Woodland:
                                 pixels[i] = WorldGeneration.Woodland;
-                                break;                        
+                                break;
                             case BiomeType.Ice:
                                 pixels[i] = WorldGeneration.Ice;
                                 break;
@@ -472,7 +479,7 @@ namespace PixelMiner.UI.WorldGen
                         }
                     }
                 });
-   
+
 
                 while (riverNodes.TryDequeue(out RiverNode node))
                 {
@@ -481,7 +488,7 @@ namespace PixelMiner.UI.WorldGen
             });
 
 
-          
+
 
             texture.SetPixels(pixels);
             texture.wrapMode = TextureWrapMode.Clamp;
@@ -489,6 +496,179 @@ namespace PixelMiner.UI.WorldGen
             texture.Apply();
 
             return texture;
+        }
+
+        private async Task<Texture2D> GetPoissonDiscTexture()
+        {
+            Debug.Log("GetPoissonDiscTexture");
+            int textureWidth = 1920;
+            int textureHeight = 1080;
+
+            //int textureWidth = 160;
+            //int textureHeight = 90;
+
+
+
+            Texture2D texture = new Texture2D(textureWidth, textureHeight);
+            Color[] pixels = new Color[textureWidth * textureHeight];
+
+            var samplePoints = PoissonDisc(textureWidth, textureHeight);
+            await Task.Run(() =>
+            {
+                Parallel.For(0, pixels.Length, (i) =>
+                {
+                    pixels[i] = Color.black;
+                });
+
+
+                Debug.Log($"Sample count: {samplePoints.Count}");
+                Parallel.For(0, samplePoints.Count, (i) =>
+                {
+                    int index = (int)samplePoints[i].x + (int)samplePoints[i].y * textureWidth;
+                    pixels[index] = Color.white;
+
+                });
+            });
+
+            texture.SetPixels(pixels);
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.filterMode = FilterMode.Point;
+            texture.Apply();
+            return texture;
+        }
+
+        // Poisson Disc Reference: https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf
+        private List<Vector2> PoissonDisc(int width, int height)
+        {
+            int r = 10;  // minimum distance R
+            int k = 60; // limit of samples           
+            float cellSize = r / Mathf.Sqrt(2);
+
+            // Create a grid
+            int[,] grid = new int[Mathf.CeilToInt(width / cellSize), Mathf.CeilToInt(height / cellSize)];
+            List<Vector2> processList = new List<Vector2>();
+            List<Vector2> samplePoints = new List<Vector2>();
+
+            //for(int y  = 0; y < grid.GetLength(1); y++)
+            //{
+            //    for(int x = 0; x < grid.GetLength(0); x++)
+            //    {
+            //        grid[x, y] = -1;
+            //    }
+            //}
+
+            // Generate the first point randomly and update
+            Vector2 firstPoint = new Vector2(Random.Range(0, width), Random.Range(0, height));
+
+            // Update containers
+            processList.Add(firstPoint);
+            samplePoints.Add(firstPoint);
+
+            grid[(int)(firstPoint.x / cellSize), (int)(firstPoint.y / cellSize)] = samplePoints.Count;
+
+
+            int attempt = 0;
+            // Generate other points from points in processList
+            while (processList.Count > 0)
+            {
+                //Debug.Log(processList.Count);
+
+                int randomIndex = Random.Range(0, processList.Count);
+                Vector2 currPoint = samplePoints[randomIndex];
+                bool aceepted = false;
+                for (int i = 0; i < k; i++)
+                {
+                    Vector2 newPoint = GenerateRandomPointAround(currPoint, r);
+
+                    // Check that the oin is in the image region
+                    // and no point exists in the point's neighbors
+
+                    if (IsValid(newPoint))
+                    {
+                        processList.Add(newPoint);
+                        samplePoints.Add(newPoint);
+                        //Debug.Log($"{currPoint}   {newPoint}  {(int)(newPoint.x / cellSize)}  {(int)(newPoint.y / cellSize)}");
+                        grid[(int)(newPoint.x / cellSize), (int)(newPoint.y / cellSize)] = samplePoints.Count;
+                        aceepted = true;
+                        break;
+                    }
+                }
+
+                if(aceepted == false)
+                {
+                    processList.RemoveAt(randomIndex);
+                }
+
+
+                //if (attempt++ > 10000)
+                //{
+                //    Debug.Log("Infinite Loop");
+                //    break;
+                //}
+            }
+
+
+
+            Vector2 GenerateRandomPointAround(Vector2 point, float minDistance)
+            {
+                float r1 = Random.value;
+                float r2 = Random.value;
+
+                // Random radius between min distance and 2 * min distance
+                float radius = minDistance * (r1 + 1);
+
+
+                // random angle
+                float angle = Mathf.PI * 2 * r2;
+                //Debug.Log($"angle: {angle}  raidus: {radius}");
+
+                float newX = point.x + radius * Mathf.Cos(angle);
+                float newY = point.y + radius * Mathf.Sin(angle);
+                return new Vector2(newX, newY);
+
+                //Vector2 randomPoint = Random.insideUnitCircle.normalized * Random.Range(minDistance, 2 * minDistance);
+                //return point + randomPoint;
+            }
+
+
+            bool IsValid(Vector2 point)
+            {
+                if (point.x >= 0 && point.x < width && point.y >= 0 && point.y < height)
+                {
+                    int cellX = (int)(point.x / cellSize);
+                    int cellY = (int)(point.y / cellSize);
+
+
+                    int startX = Mathf.Max(0, cellX - 2);
+                    int endX = Mathf.Min(cellX + 2, grid.GetLength(0) - 1);
+                    int startY = Mathf.Max(0, cellY - 2);
+                    int endY = Mathf.Min(cellY + 2, grid.GetLength(1) - 1);
+
+                    //Debug.Log($"STET: {startX} {endX}      {startY} {endY}    {cellX}  {cellY}");
+
+                    for (int y = startY; y <= endY; y++)
+                    {
+                        for (int x = startX; x <= endX; x++)
+                        {
+                            //Debug.Log($"{x}  {y}   {grid.GetLength(0)}    {grid.GetLength(1)}");
+                            int pointIndex = grid[x, y] - 1;
+                            if (pointIndex != -1)
+                            {
+                                float sqrtDst = (point - samplePoints[pointIndex]).sqrMagnitude;
+                                if (sqrtDst < r * r)
+                                {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+                return true;
+            }
+
+            return samplePoints;
         }
 
 
@@ -573,7 +753,7 @@ namespace PixelMiner.UI.WorldGen
             });
 
 
-           
+
             texture.SetPixels(pixels);
             texture.wrapMode = TextureWrapMode.Clamp;
             texture.filterMode = FilterMode.Bilinear;
@@ -726,13 +906,14 @@ namespace PixelMiner.UI.WorldGen
                 Parallel.For(0, biomesData.Length, (i) =>
                 {
                     if (heightValues[i] < WorldGeneration.Instance.Water)
-                    {;
+                    {
+                        ;
                         biomesData[i] = BiomeType.Ocean;
                     }
                     else
                     {
                         biomesData[i] = WorldGeneration.Instance.BiomeTable[(int)moistureData[i], (int)heatData[i]];
-                    }              
+                    }
                 });
             });
 
@@ -741,7 +922,7 @@ namespace PixelMiner.UI.WorldGen
         #endregion
 
 
-      
+
         private Queue<RiverNode> GetRiverNodes(BiomeType[] biomeData, int width, int depth)
         {
             Queue<RiverNode> bfsRiverQueue = new Queue<RiverNode>();
@@ -807,12 +988,12 @@ namespace PixelMiner.UI.WorldGen
             return (value - fromMin) / (fromMax - fromMin) * (toMax - toMin) + toMin;
         }
 
-       
+
         private int[] DigRiver(Queue<RiverNode> riverSpreadQueue, int width, int height)
-        {        
+        {
             int attempts = 0;
             int[] riversDensity = new int[width * height];
-            for(int i = 0; i < riversDensity.Length; i++)
+            for (int i = 0; i < riversDensity.Length; i++)
             {
                 riversDensity[i] = 0;
             }
@@ -854,7 +1035,7 @@ namespace PixelMiner.UI.WorldGen
 
 
                 attempts++;
-                if(attempts > 500000)
+                if (attempts > 500000)
                 {
                     Debug.Log("Infinite loop");
                     break;
@@ -870,11 +1051,11 @@ namespace PixelMiner.UI.WorldGen
 
         private Vector3Int[] _neighborsPosition = new Vector3Int[4];
         public Vector3Int[] GetNeighbors(Vector3Int position)
-        {        
+        {
             _neighborsPosition[0] = position + new Vector3Int(1, 0, 0);
             _neighborsPosition[1] = position + new Vector3Int(-1, 0, 0);
-            _neighborsPosition[2] = position + new Vector3Int(0,0, 1);
-            _neighborsPosition[3] = position + new Vector3Int(0,0, -1);
+            _neighborsPosition[2] = position + new Vector3Int(0, 0, 1);
+            _neighborsPosition[3] = position + new Vector3Int(0, 0, -1);
 
             return _neighborsPosition;
         }
