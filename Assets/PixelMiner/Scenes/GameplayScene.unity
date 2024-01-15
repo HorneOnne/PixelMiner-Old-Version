@@ -2377,7 +2377,7 @@ MonoBehaviour:
   _chunkPrefab: {fileID: 285238837962715001, guid: e7881158402e9254ea53ae812194e94a, type: 3}
   _chunkParent: {fileID: 1497941757}
   Octaves: 4
-  Frequency: 0.0045
+  Frequency: 0.008
   Lacunarity: 2
   Persistence: 0.5
   DeepWater: 0.2

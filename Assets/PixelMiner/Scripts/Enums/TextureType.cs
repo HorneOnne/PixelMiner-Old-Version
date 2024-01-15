@@ -20,7 +20,10 @@
 
         Grass = 39,
         BelowTallGrass = 185,
-        AboveTallGrass = 169
+        AboveTallGrass = 169,
+
+        Bedrock = 17,
+        Gravel = 0,
 
     }
 

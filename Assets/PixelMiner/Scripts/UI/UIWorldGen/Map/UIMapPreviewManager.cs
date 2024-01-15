@@ -726,7 +726,7 @@ namespace PixelMiner.UI.WorldGen
                 Parallel.For(0, biomesData.Length, (i) =>
                 {
                     if (heightValues[i] < WorldGeneration.Instance.Water)
-                    {
+                    {;
                         biomesData[i] = BiomeType.Ocean;
                     }
                     else

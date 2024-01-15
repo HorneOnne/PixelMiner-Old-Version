@@ -17,7 +17,10 @@
         Wood = 4,
 
         Grass = 39,
-        TallGrass = 169
+        TallGrass = 169,
+
+        Bedrock = 17,
+        Gravel = 0,
     }
 
     public static class BlockTypeExtensions
