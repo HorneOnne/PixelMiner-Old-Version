@@ -49,7 +49,7 @@ namespace PixelMiner.WorldBuilding
         }
 
 
-        public void AddQuadFace(Vector3[] vertices, Vector2[] uvs)
+        public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, Vector2[] uv2s)
         {
             if (vertices.Length != 4)
             {
@@ -62,10 +62,24 @@ namespace PixelMiner.WorldBuilding
             this._vertices.Add(vertices[3]);
 
 
+            _triangles.Add(this._vertices.Count - 2);
+            _triangles.Add(this._vertices.Count - 3);
+            _triangles.Add(this._vertices.Count - 4);
+
+            _triangles.Add(this._vertices.Count - 1);
+            _triangles.Add(this._vertices.Count - 2);
+            _triangles.Add(this._vertices.Count - 4);
+
+
             this._uvs.Add(uvs[0]);
             this._uvs.Add(uvs[1]);
             this._uvs.Add(uvs[2]);
             this._uvs.Add(uvs[3]);
+
+            this._uv2s.Add(uv2s[0]);
+            this._uv2s.Add(uv2s[1]);
+            this._uv2s.Add(uv2s[2]);
+            this._uv2s.Add(uv2s[3]);
         }
 
 

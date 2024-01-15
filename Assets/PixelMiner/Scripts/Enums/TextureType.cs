@@ -19,6 +19,9 @@
         Wood = 4,
 
         Grass = 39,
+        BelowTallGrass = 185,
+        AboveTallGrass = 169
+
     }
 
     

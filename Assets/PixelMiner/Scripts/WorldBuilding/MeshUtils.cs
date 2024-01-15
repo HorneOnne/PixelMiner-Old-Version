@@ -18,7 +18,7 @@ namespace PixelMiner.WorldBuilding
         */
 
     public static class MeshUtils
-    {
+    {      
         public static Vector2[,] ColorMapUVs =
         {
             /*
@@ -219,8 +219,8 @@ namespace PixelMiner.WorldBuilding
                        GetBlockLightPropagationForAdjacentFace(chunk, a, voxelFace) == GetBlockLightPropagationForAdjacentFace(chunk, e, voxelFace) &&
                        chunk.IsBlockFaceVisible(b, dimension, isBackFace);
             }
-           
-           
+
+
             byte FindMaxDifference(byte[] vertexColors)
             {
                 byte maxDistance = 0;
@@ -309,7 +309,7 @@ namespace PixelMiner.WorldBuilding
                             for (startPos[v] = 0; startPos[v] < dimensions[v]; startPos[v]++)
                             {
                                 currBlock = chunk.GetBlock(startPos);
-      
+
                                 // Because at solid block light not exist. We can only get light by the adjacent block and use it as the light as solid voxel face.
                                 byte lightValue = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
                                 lightColor = GetLightColor(lightValue, lightAnimCurve);
@@ -323,9 +323,9 @@ namespace PixelMiner.WorldBuilding
                                 }
 
 
-                               
 
-                                if(greedyMeshing)
+
+                                if (greedyMeshing)
                                 {
                                     quadSize = new Vector3Int();
                                     // Next step is loop to figure out width and height of the new merged quad.
@@ -369,7 +369,7 @@ namespace PixelMiner.WorldBuilding
                                 {
                                     quadSize = Vector3Int.one;
                                 }
-                               
+
 
 
                                 // Add new quad to mesh data.
@@ -712,7 +712,7 @@ namespace PixelMiner.WorldBuilding
         //}
 
 
-        public static async Task<MeshData> GetChunkGrassMeshData(Chunk chunk, int seed, AnimationCurve lightAnimCurve)
+        public static async Task<MeshData> GetChunkGrassMeshData(Chunk chunk, AnimationCurve lightAnimCurve, FastNoiseLite randomNoise)
         {
             ChunkMeshBuilder builder = ChunkMeshBuilderPool.Get();
             builder.InitOrLoad(chunk.Dimensions);
@@ -724,37 +724,123 @@ namespace PixelMiner.WorldBuilding
             Color32[] colors = new Color32[4];
             byte[] verticesAO = new byte[4];
             byte[] vertexColorIntensity = new byte[4];
-            System.Random rand = new System.Random(seed);
-    
+            Vector3 _centerOffset = new Vector3(0.5f, 0.5f, 0.5f);
+            bool applyRotation = true;
+            float minRotationAngle = 25f;
+            float maxRotationAngle = 75f;
+            Vector3 RotatePointAroundPivot(Vector3 point, Vector3 pivot, Quaternion rotation)
+            {
+                return rotation * (point - pivot) + pivot;
+            }
+
             await Task.Run(() =>
             {
+                
                 for (int i = 0; i < chunk.ChunkData.Length; i++)
                 {
+                    int x = i % chunk._width;
+                    int y = (i / chunk._width) % chunk._height;
+                    int z = i / (chunk._width * chunk._height);
                     if (chunk.ChunkData[i] == BlockType.Grass)
                     {
-                        int x = i % chunk._width;
-                        int y = (i / chunk._width) % chunk._height;
-                        int z = i / (chunk._width * chunk._height);
-
                         Vector3Int curBlockPos = new Vector3Int(x, y, z);
-                        Vector3 randomOffset = new Vector3((float)rand.NextDouble() / 5f, 0, (float)rand.NextDouble() / 5f);
-
+                        // Generate a random float in the range -0.3 to 0.3
+                        float randomFloatX = MapValue(randomNoise.GetNoise(x, z), -1f, 1f, -0.3f, 0.3f);
+                        float randomFloatZ = MapValue(randomNoise.GetNoise(x + 1, z), -1f, 1f, -0.3f, 0.3f);
+                        Vector3 randomOffset = new Vector3(randomFloatX, 0, randomFloatZ);
                         Vector3 offsetPos = curBlockPos + randomOffset;
+                       
 
-                        vertices[0] = offsetPos;
-                        vertices[1] = offsetPos + new Vector3Int(1, 0, 1);
-                        vertices[2] = offsetPos + new Vector3Int(1, 1, 1);
-                        vertices[3] = offsetPos + new Vector3Int(0, 1, 0);
-                        GetGrassUVs(ref uvs, ref uv2s);
-                        builder.AddQuadFace(vertices, uvs);
+                        if (applyRotation)
+                        {
+                            float rotationAngle = ((float)(randomNoise.GetNoise(x,y+1) + 1.0f) / 2.0f * (maxRotationAngle - minRotationAngle) + minRotationAngle);
+                            float rotationAngleRad = rotationAngle * Mathf.Deg2Rad;
+                            Quaternion rotation = Quaternion.Euler(0f, rotationAngle, 0f);
+                            vertices[0] = RotatePointAroundPivot(offsetPos, _centerOffset + offsetPos, rotation);
+                            vertices[1] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 0, 1), _centerOffset + offsetPos, rotation);
+                            vertices[2] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 1, 1), _centerOffset + offsetPos, rotation);
+                            vertices[3] = RotatePointAroundPivot(offsetPos + new Vector3Int(0, 1, 0), _centerOffset + offsetPos, rotation);
+                            GetGrassUVs(BlockType.Grass, ref uvs, ref uv2s);
+                            builder.AddQuadFace(vertices, uvs, uv2s);
 
 
-                        vertices[0] = offsetPos + new Vector3Int(0, 0, 1);
-                        vertices[1] = offsetPos + new Vector3Int(1, 0, 0);
-                        vertices[2] = offsetPos + new Vector3Int(1, 1, 0);
-                        vertices[3] = offsetPos + new Vector3Int(0, 1, 1);
-                        GetGrassUVs(ref uvs, ref uv2s);
-                        builder.AddQuadFace(vertices, uvs);
+                            vertices[0] = RotatePointAroundPivot(offsetPos + new Vector3Int(0, 0, 1), _centerOffset + offsetPos, rotation);
+                            vertices[1] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 0, 0), _centerOffset + offsetPos, rotation);
+                            vertices[2] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 1, 0), _centerOffset + offsetPos, rotation);
+                            vertices[3] = RotatePointAroundPivot(offsetPos + new Vector3Int(0, 1, 1), _centerOffset + offsetPos, rotation);
+                            GetGrassUVs(BlockType.Grass, ref uvs, ref uv2s);
+                            builder.AddQuadFace(vertices, uvs, uv2s);
+                        }
+                        else
+                        {
+                            vertices[0] = offsetPos;
+                            vertices[1] = offsetPos + new Vector3Int(1, 0, 1);
+                            vertices[2] = offsetPos + new Vector3Int(1, 1, 1);
+                            vertices[3] = offsetPos + new Vector3Int(0, 1, 0);
+                            GetGrassUVs(BlockType.Grass, ref uvs, ref uv2s);
+                            builder.AddQuadFace(vertices, uvs, uv2s);
+
+
+                            vertices[0] = offsetPos + new Vector3Int(0, 0, 1);
+                            vertices[1] = offsetPos + new Vector3Int(1, 0, 0);
+                            vertices[2] = offsetPos + new Vector3Int(1, 1, 0);
+                            vertices[3] = offsetPos + new Vector3Int(0, 1, 1);
+                            GetGrassUVs(BlockType.Grass, ref uvs, ref uv2s);
+                            builder.AddQuadFace(vertices, uvs, uv2s);
+                        }
+
+                    }
+                    else if (chunk.ChunkData[i] == BlockType.TallGrass)
+                    {
+                        Vector3Int curBlockPos = new Vector3Int(x, y, z);
+                        // Generate a random float in the range -0.3 to 0.3
+                        float randomFloatX = MapValue(randomNoise.GetNoise(x, z), -1f, 1f, -0.3f, 0.3f);
+                        float randomFloatZ = MapValue(randomNoise.GetNoise(x + 1, z), -1f, 1f, -0.3f, 0.3f);
+                        Vector3 randomOffset = new Vector3(randomFloatX, 0, randomFloatZ);
+                        Vector3 offsetPos = curBlockPos + randomOffset;
+                        if (applyRotation)
+                        {
+                            float rotationAngle = ((float)(randomNoise.GetNoise(x + 1, y + 1) + 1.0f) / 2.0f * (maxRotationAngle - minRotationAngle) + minRotationAngle);
+                            float rotationAngleRad = rotationAngle * Mathf.Deg2Rad;
+                            Quaternion rotation = Quaternion.Euler(0f, rotationAngle, 0f);
+                            int heightFromOrigin = WorldGeneration.Instance.GetBlockHeightFromOrigin(chunk, curBlockPos);
+                            vertices[0] = RotatePointAroundPivot(offsetPos, _centerOffset + offsetPos, rotation);
+                            vertices[1] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 0, 1), _centerOffset + offsetPos, rotation);
+                            vertices[2] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 1, 1), _centerOffset + offsetPos, rotation);
+                            vertices[3] = RotatePointAroundPivot(offsetPos + new Vector3Int(0, 1, 0), _centerOffset + offsetPos, rotation);
+                            GetGrassUVs(BlockType.TallGrass, ref uvs, ref uv2s, heightFromOrigin);
+                            builder.AddQuadFace(vertices, uvs, uv2s);
+
+
+                            vertices[0] = RotatePointAroundPivot(offsetPos + new Vector3Int(0, 0, 1), _centerOffset + offsetPos, rotation);
+                            vertices[1] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 0, 0), _centerOffset + offsetPos, rotation);
+                            vertices[2] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 1, 0), _centerOffset + offsetPos, rotation);
+                            vertices[3] = RotatePointAroundPivot(offsetPos + new Vector3Int(0, 1, 1), _centerOffset + offsetPos, rotation);
+                            GetGrassUVs(BlockType.TallGrass, ref uvs, ref uv2s, heightFromOrigin);
+                            builder.AddQuadFace(vertices, uvs, uv2s);
+                        }
+                        else
+                        {
+                            int heightFromOrigin = WorldGeneration.Instance.GetBlockHeightFromOrigin(chunk, curBlockPos);
+                            vertices[0] = offsetPos;
+                            vertices[1] = offsetPos + new Vector3Int(1, 0, 1);
+                            vertices[2] = offsetPos + new Vector3Int(1, 1, 1);
+                            vertices[3] = offsetPos + new Vector3Int(0, 1, 0);
+                            GetGrassUVs(BlockType.TallGrass, ref uvs, ref uv2s, heightFromOrigin);
+                            builder.AddQuadFace(vertices, uvs, uv2s);
+
+
+                            vertices[0] = offsetPos + new Vector3Int(0, 0, 1);
+                            vertices[1] = offsetPos + new Vector3Int(1, 0, 0);
+                            vertices[2] = offsetPos + new Vector3Int(1, 1, 0);
+                            vertices[3] = offsetPos + new Vector3Int(0, 1, 1);
+                            GetGrassUVs(BlockType.TallGrass, ref uvs, ref uv2s, heightFromOrigin);
+                            builder.AddQuadFace(vertices, uvs, uv2s);
+                        }
+
+                        
+
+                     
                     }
                 }
             });
@@ -766,17 +852,39 @@ namespace PixelMiner.WorldBuilding
             return meshData;
         }
 
-        private static void GetGrassUVs(ref Vector3[] uvs, ref Vector2[] uv2s)
+        private static void GetGrassUVs(BlockType blockType, ref Vector3[] uvs, ref Vector2[] uv2s, int heightFromOrigin = 0)
         {
             int blockIndex;
             ColorMapType colorMapType;
-            blockIndex = (ushort)BlockType.Grass;
             colorMapType = ColorMapType.Plains;
 
-            uvs[0] = new Vector3(0, 0, blockIndex);
-            uvs[1] = new Vector3(1, 0, blockIndex);
-            uvs[2] = new Vector3(1, 1, blockIndex);
-            uvs[3] = new Vector3(0, 1, blockIndex);
+
+            if (blockType == BlockType.Grass)
+            {
+                blockIndex = (ushort)BlockType.Grass;
+                uvs[0] = new Vector3(0, 0, blockIndex);
+                uvs[1] = new Vector3(1, 0, blockIndex);
+                uvs[2] = new Vector3(1, 1, blockIndex);
+                uvs[3] = new Vector3(0, 1, blockIndex);
+            }
+            else if (blockType == BlockType.TallGrass)
+            {
+                switch (heightFromOrigin)
+                {
+                    default:
+                    case 0:
+                        blockIndex = (ushort)TextureType.BelowTallGrass;
+                        break;
+                    case 1:
+                        blockIndex = (ushort)TextureType.AboveTallGrass;
+                        break;
+                }
+   
+                uvs[0] = new Vector3(0, 0, blockIndex);
+                uvs[1] = new Vector3(1, 0, blockIndex);
+                uvs[2] = new Vector3(1, 1, blockIndex);
+                uvs[3] = new Vector3(0, 1, blockIndex);
+            }
 
             GetColorMapkUVs(colorMapType, ref uv2s);
         }

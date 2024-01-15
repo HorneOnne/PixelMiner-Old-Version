@@ -9,6 +9,7 @@ using System.Linq;
 using System.Collections.Concurrent;
 using System.Collections;
 using UnityEngine.Rendering;
+using Codice.CM.Common.Merge;
 
 namespace PixelMiner.UI.WorldGen
 {
@@ -360,8 +361,8 @@ namespace PixelMiner.UI.WorldGen
         }
         private async Task<Texture2D> GetBiomesMapTextureAsync()
         {
-            int textureWidth = 1920 * 2;
-            int textureHeight = 1080 * 2;
+            int textureWidth = 1920;
+            int textureHeight = 1080;
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
 
@@ -490,78 +491,89 @@ namespace PixelMiner.UI.WorldGen
             return texture;
         }
 
+
+
+        // Density generation algorithm by https://www.redblobgames.com/maps/terrain-from-noise/
+        public float Frequency = 0.01f;
+        public float Lacunarity = 2.0f;
+        public float Persistence = 0.5f;
+        public int R = 3;
         private async Task<Texture2D> GetMyNoiseTexture()
         {
-            int textureWidth = 1920;
-            int textureHeight = 1080;
+            int textureWidth = 1920 / 5;
+            int textureHeight = 1080 / 5;
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
 
-            float[] riverValues = await WorldGeneration.Instance.GetRiverDataAsync(0, 0, textureWidth, textureHeight);
-            BiomeType[] riverBiomes = new BiomeType[riverValues.Length];
-            for(int i = 0; i < riverValues.Length; i++)
-            {
-                if (riverValues[i] > 0.6f)
-                {
-                    riverBiomes[i] = BiomeType.River;
-                }
-                else
-                {
-                    riverBiomes[i] = BiomeType.Other;
-                }
-            }
+            FastNoiseLite noise = new FastNoiseLite();
+            noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            noise.SetFractalType(FastNoiseLite.FractalType.FBm);
+            noise.SetFrequency(Frequency);
+            noise.SetFractalLacunarity(Lacunarity);
+            noise.SetFractalGain(Persistence);
 
-
-          
-            Queue<RiverNode> riverNodes = GetRiverNodes(riverBiomes, textureWidth, textureHeight);
-            Debug.Log($"{riverNodes.Count}");
-            int[] riversIndices = DigRiver(riverNodes, textureWidth, textureHeight);
-          
 
             await Task.Run(() =>
             {
-                Parallel.For(0, riversIndices.Length, i =>
+                Parallel.For(0, pixels.Length, (i) =>
                 {
-                    float riverValue = riverValues[i];
-
-                    //pixels[i] = new Color(riverValue, riverValue, riverValue, 1.0f);
-
-                    //if(riverValue > 0.6f)
-                    //{
-                    //    pixels[i] = Color.black;
-                    //}
-                    //else
-                    //{
-                    //    pixels[i] = Color.white;
-                    //}
-
-                    if (riversIndices[i] == 1)
-                    {
-                        pixels[i] = new Color32(64, 94, 195, 255);
-                    }
-                    else if (riversIndices[i] == 2)
-                    {
-                        pixels[i] = new Color32(45, 65, 134, 255);
-                    }
-                    else if (riversIndices[i] == 3)
-                    {
-                        pixels[i] = new Color32(24, 42, 100, 255);
-                    }
-                    else if (riversIndices[i] == 4)
-                    {
-                        pixels[i] = new Color32(15, 29, 74, 255);
-                    }
-                    else if (riversIndices[i] == 5)
-                    {
-                        pixels[i] = Color.black;
-                    }
-                    else
-                    {
-                        pixels[i] = Color.white;
-                    }
+                    pixels[i] = Color.white;
                 });
+
+                float[][] bluenoise = new float[textureHeight][];
+                for (int i = 0; i < textureHeight; i++)
+                {
+                    bluenoise[i] = new float[textureWidth];
+                }
+
+
+
+                for (int y = 0; y < textureHeight; y++)
+                {
+                    for (int x = 0; x < textureWidth; x++)
+                    {
+                        float nx = x / (float)textureWidth - 0.5f;
+                        float ny = y / (float)textureHeight - 0.5f;
+
+                        // Blue noise is high frequency; adjust this value based on your needs
+                        bluenoise[y][x] = noise.GetNoise(50 * nx, 50 * ny);
+                    }
+                }
+
+
+                for (int yc = 0; yc < textureHeight; yc++)
+                {
+                    for (int xc = 0; xc < textureWidth; xc++)
+                    {
+                        float max = 0;
+
+                        for (int dy = -R; dy <= R; dy++)
+                        {
+                            for (int dx = -R; dx <= R; dx++)
+                            {
+                                int xn = dx + xc;
+                                int yn = dy + yc;
+
+                                if (0 <= yn && yn < textureHeight && 0 <= xn && xn < textureWidth)
+                                {
+                                    float e = bluenoise[yn][xn];
+                                    if (e > max) { max = e; }
+                                }
+                            }
+                        }
+
+                        if (bluenoise[yc][xc] == max)
+                        {
+                            // Place tree at xc, yc
+                            Debug.Log("Trrree");
+                            pixels[xc + yc * textureWidth] = Color.black;
+                        }
+                    }
+                }
             });
 
+
+           
             texture.SetPixels(pixels);
             texture.wrapMode = TextureWrapMode.Clamp;
             texture.filterMode = FilterMode.Bilinear;

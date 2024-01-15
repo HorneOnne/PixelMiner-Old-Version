@@ -166,6 +166,15 @@ namespace PixelMiner.WorldBuilding
 
 
 
+        // Density noise
+        private FastNoiseLite _grassNoiseDistribute;
+        private float _grassNoiseFrequency = 5;
+        private int _grassNoiseR = 1;
+        private FastNoiseLite _treeNoiseDistribute;
+        private float _treeNoiseFrequency = 1;
+        private int _treeNoiseR = 3;
+
+
         // Cached
         [HideInInspector] private int _groundLevel = 7;
         [HideInInspector] private int _underGroundLevel = 0;
@@ -269,6 +278,18 @@ namespace PixelMiner.WorldBuilding
             _riverVoronoi.SetFrequency(RiverFrequency);
             _riverVoronoi.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
             _riverVoronoi.SetCellularReturnType(FastNoiseLite.CellularReturnType.CellValue);
+
+
+
+
+            // DISTRIBUTION
+            _grassNoiseDistribute = new FastNoiseLite(Seed);
+            _grassNoiseDistribute.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            _grassNoiseDistribute.SetFrequency(_grassNoiseFrequency);
+
+            _treeNoiseDistribute = new FastNoiseLite(Seed);
+            _treeNoiseDistribute.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            _treeNoiseDistribute.SetFrequency(_treeNoiseFrequency);
         }
 
         private void Start()
@@ -607,7 +628,7 @@ namespace PixelMiner.WorldBuilding
                 // ----
 
                 MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(chunk, LightAnimCurve);
-                MeshData grassMeshData = await MeshUtils.GetChunkGrassMeshData(chunk, Seed, LightAnimCurve);
+                MeshData grassMeshData = await MeshUtils.GetChunkGrassMeshData(chunk, LightAnimCurve, _grassNoiseDistribute);
                 //MeshData waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(this);
                 MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(chunk);
 
@@ -1551,27 +1572,107 @@ namespace PixelMiner.WorldBuilding
         #region DECORs
         public async Task PlaceGrassAsync(Chunk chunk)
         {
+            List<Vector2Int> distributedGrassPositions = await GenerateDistributedPositions(_grassNoiseDistribute, chunk._width, chunk._depth, _grassNoiseR);
             await Task.Run(() =>
             {
-                Parallel.For(0, chunk.BiomesData.Length, (i) =>
+                for (int i = 0; i < distributedGrassPositions.Count; i++)
                 {
-                    int x = i % chunk._width;
-                    int y = (i / chunk._width) % chunk._height;
-                    int z = i / (chunk._width * chunk._height);
-
-                    if (chunk.ChunkData[i] == BlockType.DirtGrass)
+                    Vector3Int currRelativePos = new Vector3Int(distributedGrassPositions[i].x, _groundLevel, distributedGrassPositions[i].y);
+                    if (chunk.GetBlock(currRelativePos) == BlockType.DirtGrass)
                     {
-                        Vector3Int upperRelativePos = new Vector3Int(x, y + 1, z);
+                        Vector3Int upperRelativePos = new Vector3Int(currRelativePos.x, currRelativePos.y + 1, currRelativePos.z);
                         if (chunk.OnGroundLevel(upperRelativePos))
                         {
-                            chunk.SetBlock(upperRelativePos, BlockType.Grass);
+                            if (i % 2 == 0)
+                            {
+                                chunk.SetBlock(upperRelativePos, BlockType.Grass);
+                            }
+                            else
+                            {
+                                chunk.SetBlock(upperRelativePos, BlockType.TallGrass);
+                                chunk.SetBlock(upperRelativePos + new Vector3Int(0,1,0), BlockType.TallGrass);
+                            }
+
                         }
                     }
-                });
+                }
+
+
+                //Parallel.For(0, chunk.BiomesData.Length, (i) =>
+                //{
+                //    int x = i % chunk._width;
+                //    int y = (i / chunk._width) % chunk._height;
+                //    int z = i / (chunk._width * chunk._height);
+
+                //    if (chunk.ChunkData[i] == BlockType.DirtGrass)
+                //    {
+                //        Vector3Int upperRelativePos = new Vector3Int(x, y + 1, z);
+                //        if (chunk.OnGroundLevel(upperRelativePos))
+                //        {
+                //            chunk.SetBlock(upperRelativePos, BlockType.Grass);
+                //        }
+                //    }
+                //});
             });      
         }
-
         #endregion
+
+
+
+
+        #region DISTRIBUTE
+        // Density generation algorithm by https://www.redblobgames.com/maps/terrain-from-noise/
+        private async Task<List<Vector2Int>> GenerateDistributedPositions(FastNoiseLite noise, int width, int depth, int R)        // R: random density (smaller -> dense)
+        {
+            float[] blueNoise = new float[width * depth];
+            List<Vector2Int> distributeList = new List<Vector2Int>();
+            await Task.Run(() =>
+            {
+                for (int z = 0; z < depth; z++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        float nx = x / (float)width - 0.5f;
+                        float ny = z / (float)depth - 0.5f;
+
+                        // Blue noise is high frequency; adjust this value based on your needs
+                        blueNoise[x + z * width] = noise.GetNoise(50 * nx, 50 * ny);
+                    }
+                }
+
+                for (int zc = 0; zc < depth; zc++)
+                {
+                    for (int xc = 0; xc < width; xc++)
+                    {
+                        float max = 0;
+
+                        for (int dy = -R; dy <= R; dy++)
+                        {
+                            for (int dx = -R; dx <= R; dx++)
+                            {
+                                int xn = dx + xc;
+                                int zn = dy + zc;
+
+                                if (0 <= zn && zn < depth && 0 <= xn && xn < width)
+                                {
+                                    float e = blueNoise[xn + zn * width];
+                                    if (e > max) { max = e; }
+                                }
+                            }
+                        }
+
+                        if (blueNoise[xc + zc * width] == max)
+                        {
+                            // Place tree at xc, yc
+                            distributeList.Add(new Vector2Int(xc, zc));
+                        }
+                    }
+                }
+            });
+            return distributeList;
+        }
+        #endregion
+
 
 
 
@@ -1703,6 +1804,8 @@ namespace PixelMiner.WorldBuilding
 
 
 
+
+
         #region NOISE
         public float DomainWarping(float x, float y, FastNoiseLite simplex)
         {
@@ -1748,6 +1851,41 @@ namespace PixelMiner.WorldBuilding
         {
             return (noiseValue - oldMin) * (newMax - newMin) / (oldMax - oldMin) + newMin;
         }
+        #endregion
+
+
+
+        #region ALGORITHM
+        // Use to detect block that has height > 1. like(door, tall grass, cactus,...)
+        // This method only check downward
+        public int GetBlockHeightFromOrigin(Chunk chunk, Vector3Int relativePosition)
+        {
+            int heightFromOrigin = 0;   // At origin
+            int attempt = 0;
+            BlockType blockNeedCheck = chunk.GetBlock(relativePosition);
+            Vector3Int currBlockPos = relativePosition;
+            while(true)
+            {
+                Vector3Int nextRelativePosition = new Vector3Int(currBlockPos.x, currBlockPos.y - 1, currBlockPos.z);
+                if(blockNeedCheck == chunk.GetBlock(nextRelativePosition))
+                {
+                    currBlockPos = nextRelativePosition;
+                    heightFromOrigin++;
+                }
+                else
+                {
+                    break;
+                }
+
+                if (attempt++ > 100)
+                {
+                    Debug.Log("Infinite loop");
+                    break;
+                }
+            }
+            return heightFromOrigin;
+        }
+
         #endregion
     }
 

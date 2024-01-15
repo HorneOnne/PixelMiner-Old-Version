@@ -17,6 +17,7 @@
         Wood = 4,
 
         Grass = 39,
+        TallGrass = 169
     }
 
     public static class BlockTypeExtensions
@@ -27,7 +28,8 @@
 
             return blockType != BlockType.Air &&
                    blockType != BlockType.Water &&
-                    blockType != BlockType.Grass;
+                   blockType != BlockType.Grass &&
+                   blockType != BlockType.TallGrass;
         }
     }
 }
