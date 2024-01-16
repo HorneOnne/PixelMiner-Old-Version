@@ -499,8 +499,8 @@ namespace PixelMiner.UI.WorldGen
         private async Task<Texture2D> GetPoissonDiscTexture()
         {
             Debug.Log("GetPoissonDiscTexture");
-            int textureWidth = 1920;
-            int textureHeight = 1080;
+            int textureWidth = 192 * 5;
+            int textureHeight = 108 * 5;
 
             //int textureWidth = 160;
             //int textureHeight = 90;
@@ -522,9 +522,19 @@ namespace PixelMiner.UI.WorldGen
                 //Debug.Log($"Sample count: {samplePoints.Count}");
                 Parallel.For(0, samplePoints.Count, (i) =>
                 {
-                    int index = (int)samplePoints[i].x + (int)samplePoints[i].y * textureWidth;
+                    int index = Mathf.FloorToInt(samplePoints[i].x) + Mathf.FloorToInt(samplePoints[i].y) * textureWidth;
                     pixels[index] = Color.white;
 
+                    //try
+                    //{
+                    //    int index = Mathf.FloorToInt(samplePoints[i].x) + Mathf.FloorToInt(samplePoints[i].y) * textureWidth;
+                    //    pixels[index] = Color.white;
+                    //}
+                    //catch
+                    //{
+                    //    int index = Mathf.FloorToInt(samplePoints[i].x) + Mathf.FloorToInt(samplePoints[i].y) * textureWidth;
+                    //    Debug.Log($"{index}     {samplePoints[i]}    {pixels.Length}");
+                    //}
                 });
             });
 
@@ -541,70 +551,73 @@ namespace PixelMiner.UI.WorldGen
             FastNoiseLite noise = new FastNoiseLite(0);
             noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
             noise.SetFractalType(FastNoiseLite.FractalType.FBm);
-            noise.SetFrequency(0.02f);
-            noise.SetFractalOctaves(3);
+            noise.SetFrequency(0.0045f);
+            noise.SetFractalOctaves(1);
 
-            float minR = 5;  // minimum distance R
-            float maxR = 50;  // minimum distance R
-            int k = 15; // limit of samples           
-            float cellSize = minR / Mathf.Sqrt(2);
+            float minR = 3;  // minimum distance R
+            float maxR = 10;  // minimum distance R
+            int k = 2; // limit of samples
+                     
+            float minCellSize = minR / Mathf.Sqrt(2);
+            float maxCellSize = maxR / Mathf.Sqrt(2);
 
 
             //Vector2 a = default;
             //Debug.Log($"Check: {Vector2.zero == default}   {a == default}    {a == Vector2.zero}");
 
             // Create a grid
-            int gridWidth = Mathf.CeilToInt(width / cellSize);
-            int gridHeight = Mathf.CeilToInt(height / cellSize);
+           
+            int maxGridWidth = Mathf.CeilToInt(width / maxCellSize);
+            int maxGridHeight = Mathf.CeilToInt(height / maxCellSize);
+            int minGridWidth = Mathf.CeilToInt(maxGridWidth / minCellSize);
+            int minGridHeight = Mathf.CeilToInt(maxGridHeight / minCellSize);
 
-            Vector2[] grid = new Vector2[gridWidth * gridHeight];
+
+            Debug.Log($"{minGridWidth} {minGridHeight}    {maxGridWidth} {maxGridHeight}");
+
+            Vector2[,][,] grid = new Vector2[maxGridWidth, maxGridHeight][,];
+            Debug.Log($"Grid length: {grid.Length}  {(int)width/minR * (int)height/minR}");
+
 
             //List<Vector2> processList = new List<Vector2>();
             Queue<Vector2> processList = new Queue<Vector2>();
             List<Vector2> samplePoints = new List<Vector2>();
+            Vector2 currPoint;
+            bool found;
 
-
-            for (int y = 0; y < gridHeight; y++)
+            for (int y = 0; y < maxGridHeight; y++)
             {
-                for (int x = 0; x < gridWidth; x++)
+                for (int x = 0; x < maxGridWidth; x++)
                 {
-                    grid[x + y] = new Vector2(-1, -1);
+                    grid[x, y] = new Vector2[minGridWidth, minGridHeight];
                 }
             }
 
 
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
 
-            Vector2 firstPoint = new Vector2(width / 2f, height / 2.0f);
+            //Vector2 firstPoint = new Vector2(width / 2f, height / 2.0f);
+            Vector2 firstPoint = new Vector2(Random.Range(0,width), Random.Range(0,height));
             Insert(firstPoint);
             processList.Enqueue(firstPoint);
             samplePoints.Add(firstPoint);
-
-
 
             int attempt = 0;
             // Generate other points from points in processList
             while (processList.Count > 0)
             {
-                Vector2 currPoint = processList.Peek();
-                bool found = false;
+                currPoint = processList.Peek();
+                found = false;
                 for (int i = 0; i < k; i++)
                 {
                     //float noiseValue = (noise.GetNoise(currPoint.x , currPoint.y) + 1.0f) / 2.0f;
                     //float minDist = Mathf.Lerp(minR, maxR, noiseValue);
 
-
-                    float minDist;
-                    if ((int)(currPoint.x / cellSize) < gridWidth / 2f)
-                    {
-                        minDist = minR;
-                    }
-                    else
-                    {
-                        minDist = maxR;
-                    }
-
-
+                    float minDist = maxR;
                     Vector2 newPoint = GenerateRandomPointAround(currPoint, i, minDist);
+
+
                     if (IsValid(newPoint, minDist))
                     {
                         processList.Enqueue(newPoint);
@@ -620,116 +633,116 @@ namespace PixelMiner.UI.WorldGen
                     processList.Dequeue();
                 }
 
-                if (attempt++ > 100000)
+                if (attempt++ > 50000)
                 {
                     Debug.Log("Infinite loop");
                     break;
                 }
+
+           
             }
 
 
+            sw.Stop();
+            Debug.Log($"Elapsed time: {sw.ElapsedMilliseconds / 1000f} s");
 
             void Insert(Vector2 point)
             {
-                int cellX = Mathf.FloorToInt(point.x / cellSize);
-                int cellY = Mathf.FloorToInt(point.y / cellSize);
-                //Debug.Log($"at: {cellX} {cellY}  {point}");
-                grid[cellX + cellY * gridWidth] = point;
+                int maxCellX = Mathf.FloorToInt(point.x / maxCellSize);
+                int maxCellY = Mathf.FloorToInt(point.y / maxCellSize);
+                int minCellX = Mathf.FloorToInt(maxCellX / minCellSize);
+                int minCellY = Mathf.FloorToInt(maxCellY / minCellSize);
+                grid[maxCellX, maxCellY][minCellX, minCellY] = point;
             }
 
             Vector2 GenerateRandomPointAround(Vector2 point, int attempt, float minDistance)
             {
-                //float theta = Random.Range(0f, 1f) * 2f * Mathf.PI;
-                //float newRadius = Random.Range(minDistance, 2f * minDistance);
-                //float newX = point.x + newRadius * Mathf.Cos(theta);
-                //float newY = point.y + newRadius * Mathf.Sin(theta);
-                //Vector2 newPoint = new Vector2(newX, newY);
-                //return newPoint;
-
-
-
-                float noiseValue = (noise.GetNoise(point.x * attempt, point.y * attempt) + 1) / 2.0f;
-                float theta = noiseValue * Mathf.PI * 2f;
-                // Generate random radius
-                float newRadius = minDistance + noiseValue * minDistance;
-
-                // Calculate new point
+                float theta = Random.Range(0f, 1f) * 2f * Mathf.PI;
+                float newRadius = Random.Range(minDistance, 2f * minDistance);
                 float newX = point.x + newRadius * Mathf.Cos(theta);
                 float newY = point.y + newRadius * Mathf.Sin(theta);
-
-                Vector2 newPoint = new Vector2(newX, newY);
+                Vector2 newPoint = new Vector2(Mathf.Clamp(newX,0, width - 1), Mathf.Clamp(newY,0, height - 1));
                 return newPoint;
+
+
+
+                //float noiseValue = (noise.GetNoise(point.x * attempt, point.y * attempt) + 1) / 2.0f;
+                //float theta = noiseValue * Mathf.PI * 2f;
+                //// Generate random radius
+                //float newRadius = minDistance + noiseValue * minDistance;
+
+                //// Calculate new point
+                //float newX = point.x + newRadius * Mathf.Cos(theta);
+                //float newY = point.y + newRadius * Mathf.Sin(theta);
+
+                //Vector2 newPoint = new Vector2(newX, newY);
+                //return newPoint;
             }
 
 
-            //bool IsValid(Vector2 point)
-            //{
-            //    if (point.x < 0 || point.x > width || point.y < 0 || point.y > height) return false;
-
-            //    int cellX = Mathf.FloorToInt(point.x / cellSize);
-            //    int cellY = Mathf.FloorToInt(point.y / cellSize);
-
-            //    int startX = Mathf.Max(0, cellX - 2);
-            //    int endX = Mathf.Min(cellX + 2, grid.GetLength(0) - 1);
-            //    int startY = Mathf.Max(0, cellY - 2);
-            //    int endY = Mathf.Min(cellY + 2, grid.GetLength(1) - 1);
-
-            //    //Debug.Log($"STET: {startX} {endX}      {startY} {endY}    {cellX}  {cellY}");
-
-            //    int count = 0;
-            //    for (int y = startY; y <= endY; y++)
-            //    {
-            //        for (int x = startX; x <= endX; x++)
-            //        {
-            //            Vector2 gridPoint = grid[x, y];
-            //            if (gridPoint != new Vector2(-1, -1))
-            //            {
-            //                float dist = (point - gridPoint).magnitude;
-            //                if (dist < r)
-            //                {
-            //                    return false;
-            //                }
-
-            //            }
-            //        }
-
-            //        count++;
-            //    }
-
-
-            //    return true;
-            //}
+           
 
             bool IsValid(Vector2 point, float minDist)
             {
                 if (point.x < 0 || point.x > width || point.y < 0 || point.y > height) return false;
-                int cellX = Mathf.FloorToInt(point.x / cellSize);
-                int cellY = Mathf.FloorToInt(point.y / cellSize);
+                int maxCellX = Mathf.FloorToInt(point.x / maxCellSize);
+                int maxCellY = Mathf.FloorToInt(point.y / maxCellSize);
+                int minCellX = Mathf.FloorToInt(maxCellX / minCellSize);
+                int minCellY = Mathf.FloorToInt(maxCellY / minCellSize);
 
-                int startX = Mathf.Max(0, cellX - 2);
-                int endX = Mathf.Min(cellX + 2, gridWidth - 1);
-                int startY = Mathf.Max(0, cellY - 2);
-                int endY = Mathf.Min(cellY + 2, gridHeight - 1);
 
+                int maxStartX = Mathf.Max(0, maxCellX - 1);
+                int maxEndX = Mathf.Min(maxCellX + 1, maxGridWidth - 1);
+                int maxStartY = Mathf.Max(0, maxCellY - 1);
+                int maxEndY = Mathf.Min(maxCellY + 1, maxGridHeight - 1);
+                Vector2 gridPoint;
                 //Debug.Log($"STET: {startX} {endX}      {startY} {endY}    {cellX}  {cellY}");
 
-                for (int y = startY; y <= endY; y++)
+                Vector2 targetCell = grid[maxCellX, maxCellY][minCellX, minCellY];
+                if (targetCell != default)
                 {
-                    for (int x = startX; x <= endX; x++)
+                    return false;
+                }
+
+
+
+                int count = 0;
+                for (int y = maxStartY; y <= maxEndY; y++)
+                {
+                    for (int x = maxStartX; x <= maxEndX; x++)
                     {
-                        Vector2 gridPoint = grid[x + y * gridWidth];
-                        //if (gridPoint != new Vector2(-1, -1))
+                        for (int j = 0; j < grid[x, y].GetLength(1); j++)
                         {
-                            float dist = (point - gridPoint).magnitude;
-
-                            if (dist < minDist)
+                            for(int i = 0; i < grid[x, y].GetLength(0); i++)
                             {
-                                return false;
-                            }
 
+
+                                //Debug.Log($"$Size  inside: {grid[x, y].GetLength(1) * grid[x, y].GetLength(0)}");
+                                //if (x == maxCellX && y == maxCellY && i == minCellX && j == maxCellY)
+                                //{
+                                //    continue;
+                                //}
+
+                                gridPoint = grid[x, y][i, j];
+                                if (gridPoint != default)
+                                {
+                                    float dist = (point - gridPoint).sqrMagnitude;
+                                    if (dist < minDist * minDist)
+                                    {
+                                        //Debug.Log($"Count: {count}  {grid[x, y].GetLength(0)}  {grid[x, y].GetLength(1)}");
+                                        return false;
+                                    }
+                                }
+
+                                count++;
+
+                            }
                         }
+                       
                     }
                 }
+
+                Debug.Log($"Count: {count}");
 
 
                 return true;
@@ -749,16 +762,16 @@ namespace PixelMiner.UI.WorldGen
         public int R = 3;
         private async Task<Texture2D> GetMyNoiseTexture()
         {
-            int textureWidth = 1920 / 5;
-            int textureHeight = 1080 / 5;
+            int textureWidth = 192 * 5;
+            int textureHeight = 108 * 5;
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
 
             FastNoiseLite noise = new FastNoiseLite(0);
             noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
             noise.SetFractalType(FastNoiseLite.FractalType.FBm);
-            noise.SetFrequency(0.02f);
-            noise.SetFractalOctaves(3);
+            noise.SetFrequency(0.0045f);
+            noise.SetFractalOctaves(1);
 
             await Task.Run(() =>
             {
@@ -1128,6 +1141,217 @@ namespace PixelMiner.UI.WorldGen
             _neighborsPosition[3] = position + new Vector3Int(0, 0, -1);
 
             return _neighborsPosition;
+        }
+
+
+
+
+
+        private List<Vector2> PoissonDisc2(int width, int height)
+        {
+            FastNoiseLite noise = new FastNoiseLite(0);
+            noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            noise.SetFractalType(FastNoiseLite.FractalType.FBm);
+            noise.SetFrequency(0.02f);
+            noise.SetFractalOctaves(3);
+
+            float minR = 3;  // minimum distance R
+            float maxR = 50;  // minimum distance R
+            int k = 15; // limit of samples           
+            float cellSize = minR / Mathf.Sqrt(2);
+
+
+            //Vector2 a = default;
+            //Debug.Log($"Check: {Vector2.zero == default}   {a == default}    {a == Vector2.zero}");
+
+            // Create a grid
+            int gridWidth = Mathf.CeilToInt(width / cellSize);
+            int gridHeight = Mathf.CeilToInt(height / cellSize);
+
+            Vector2[] grid = new Vector2[gridWidth * gridHeight];
+
+            //List<Vector2> processList = new List<Vector2>();
+            Queue<Vector2> processList = new Queue<Vector2>();
+            List<Vector2> samplePoints = new List<Vector2>();
+
+
+            for (int y = 0; y < gridHeight; y++)
+            {
+                for (int x = 0; x < gridWidth; x++)
+                {
+                    grid[x + y * gridWidth] = new Vector2(-1, -1);
+                }
+            }
+
+            Debug.Log($"Grid size: {grid.Length}");
+            
+
+            Vector2 firstPoint = new Vector2(width / 2f, height / 2.0f);
+            Insert(firstPoint);
+            processList.Enqueue(firstPoint);
+            samplePoints.Add(firstPoint);
+
+
+
+            int attempt = 0;
+            // Generate other points from points in processList
+            while (processList.Count > 0)
+            {
+                Vector2 currPoint = processList.Peek();
+                bool found = false;
+                for (int i = 0; i < k; i++)
+                {
+                    //float noiseValue = (noise.GetNoise(currPoint.x , currPoint.y) + 1.0f) / 2.0f;
+                    //float minDist = Mathf.Lerp(minR, maxR, noiseValue);
+
+                    float minDist = minR;   
+
+
+                    //float minDist;
+                    //if ((int)(currPoint.x / cellSize) < gridWidth / 2f)
+                    //{
+                    //    minDist = minR;
+                    //}
+                    //else
+                    //{
+                    //    minDist = maxR;
+                    //}
+
+
+                    Vector2 newPoint = GenerateRandomPointAround(currPoint, i, minDist);
+                    if (IsValid(newPoint, minDist))
+                    {
+                        processList.Enqueue(newPoint);
+                        samplePoints.Add(newPoint);
+                        Insert(newPoint);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found == false)
+                {
+                    processList.Dequeue();
+                }
+
+                if (attempt++ > 100000)
+                {
+                    Debug.Log("Infinite loop");
+                    break;
+                }
+            }
+
+
+
+            void Insert(Vector2 point)
+            {
+                int cellX = Mathf.FloorToInt(point.x / cellSize);
+                int cellY = Mathf.FloorToInt(point.y / cellSize);
+                //Debug.Log($"at: {cellX} {cellY}  {point}");
+                grid[cellX + cellY * gridWidth] = point;
+            }
+
+            Vector2 GenerateRandomPointAround(Vector2 point, int attempt, float minDistance)
+            {
+                //float theta = Random.Range(0f, 1f) * 2f * Mathf.PI;
+                //float newRadius = Random.Range(minDistance, 2f * minDistance);
+                //float newX = point.x + newRadius * Mathf.Cos(theta);
+                //float newY = point.y + newRadius * Mathf.Sin(theta);
+                //Vector2 newPoint = new Vector2(newX, newY);
+                //return newPoint;
+
+
+
+                float noiseValue = (noise.GetNoise(point.x * attempt, point.y * attempt) + 1) / 2.0f;
+                float theta = noiseValue * Mathf.PI * 2f;
+                // Generate random radius
+                float newRadius = minDistance + noiseValue * minDistance;
+
+                // Calculate new point
+                float newX = point.x + newRadius * Mathf.Cos(theta);
+                float newY = point.y + newRadius * Mathf.Sin(theta);
+
+                Vector2 newPoint = new Vector2(newX, newY);
+                return newPoint;
+            }
+
+
+            //bool IsValid(Vector2 point)
+            //{
+            //    if (point.x < 0 || point.x > width || point.y < 0 || point.y > height) return false;
+
+            //    int cellX = Mathf.FloorToInt(point.x / cellSize);
+            //    int cellY = Mathf.FloorToInt(point.y / cellSize);
+
+            //    int startX = Mathf.Max(0, cellX - 2);
+            //    int endX = Mathf.Min(cellX + 2, grid.GetLength(0) - 1);
+            //    int startY = Mathf.Max(0, cellY - 2);
+            //    int endY = Mathf.Min(cellY + 2, grid.GetLength(1) - 1);
+
+            //    //Debug.Log($"STET: {startX} {endX}      {startY} {endY}    {cellX}  {cellY}");
+
+            //    int count = 0;
+            //    for (int y = startY; y <= endY; y++)
+            //    {
+            //        for (int x = startX; x <= endX; x++)
+            //        {
+            //            Vector2 gridPoint = grid[x, y];
+            //            if (gridPoint != new Vector2(-1, -1))
+            //            {
+            //                float dist = (point - gridPoint).magnitude;
+            //                if (dist < r)
+            //                {
+            //                    return false;
+            //                }
+
+            //            }
+            //        }
+
+            //        count++;
+            //    }
+
+
+            //    return true;
+            //}
+
+            bool IsValid(Vector2 point, float minDist)
+            {
+                if (point.x < 0 || point.x > width || point.y < 0 || point.y > height) return false;
+                int cellX = Mathf.FloorToInt(point.x / cellSize);
+                int cellY = Mathf.FloorToInt(point.y / cellSize);
+
+                int startX = Mathf.Max(0, cellX - 2);
+                int endX = Mathf.Min(cellX + 2, gridWidth - 1);
+                int startY = Mathf.Max(0, cellY - 2);
+                int endY = Mathf.Min(cellY + 2, gridHeight - 1);
+
+                //Debug.Log($"STET: {startX} {endX}      {startY} {endY}    {cellX}  {cellY}");
+
+                for (int y = startY; y <= endY; y++)
+                {
+                    for (int x = startX; x <= endX; x++)
+                    {
+                        Vector2 gridPoint = grid[x + y * gridWidth];
+                        //if (gridPoint != new Vector2(-1, -1))
+                        {
+                            float dist = (point - gridPoint).magnitude;
+
+                            if (dist < minDist)
+                            {
+                                return false;
+                            }
+
+                        }
+                    }
+                }
+
+
+                return true;
+            }
+
+
+
+            return samplePoints;
         }
     }
 }
