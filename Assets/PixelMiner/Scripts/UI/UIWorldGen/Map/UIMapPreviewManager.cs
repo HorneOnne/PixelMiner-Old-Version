@@ -556,7 +556,7 @@ namespace PixelMiner.UI.WorldGen
 
             float minR = 3;  // minimum distance R
             float maxR = 10;  // minimum distance R
-            int k = 2; // limit of samples
+            int k = 15; // limit of samples
                      
             float minCellSize = minR / Mathf.Sqrt(2);
             float maxCellSize = maxR / Mathf.Sqrt(2);
@@ -569,13 +569,10 @@ namespace PixelMiner.UI.WorldGen
            
             int maxGridWidth = Mathf.CeilToInt(width / maxCellSize);
             int maxGridHeight = Mathf.CeilToInt(height / maxCellSize);
-            int minGridWidth = Mathf.CeilToInt(maxGridWidth / minCellSize);
-            int minGridHeight = Mathf.CeilToInt(maxGridHeight / minCellSize);
 
+            //Vector2[,][,] grid = new Vector2[maxGridWidth, maxGridHeight][,];
+            List<Vector2>[,] grid = new List<Vector2>[maxGridWidth, maxGridHeight];
 
-            Debug.Log($"{minGridWidth} {minGridHeight}    {maxGridWidth} {maxGridHeight}");
-
-            Vector2[,][,] grid = new Vector2[maxGridWidth, maxGridHeight][,];
             Debug.Log($"Grid length: {grid.Length}  {(int)width/minR * (int)height/minR}");
 
 
@@ -589,7 +586,7 @@ namespace PixelMiner.UI.WorldGen
             {
                 for (int x = 0; x < maxGridWidth; x++)
                 {
-                    grid[x, y] = new Vector2[minGridWidth, minGridHeight];
+                    grid[x, y] = new List<Vector2>();
                 }
             }
 
@@ -611,10 +608,10 @@ namespace PixelMiner.UI.WorldGen
                 found = false;
                 for (int i = 0; i < k; i++)
                 {
-                    //float noiseValue = (noise.GetNoise(currPoint.x , currPoint.y) + 1.0f) / 2.0f;
-                    //float minDist = Mathf.Lerp(minR, maxR, noiseValue);
+                    float noiseValue = (noise.GetNoise(currPoint.x , currPoint.y) + 1.0f) / 2.0f;
+                    float minDist = Mathf.Lerp(minR, maxR, noiseValue);
 
-                    float minDist = maxR;
+                    //float minDist = maxR;
                     Vector2 newPoint = GenerateRandomPointAround(currPoint, i, minDist);
 
 
@@ -650,9 +647,7 @@ namespace PixelMiner.UI.WorldGen
             {
                 int maxCellX = Mathf.FloorToInt(point.x / maxCellSize);
                 int maxCellY = Mathf.FloorToInt(point.y / maxCellSize);
-                int minCellX = Mathf.FloorToInt(maxCellX / minCellSize);
-                int minCellY = Mathf.FloorToInt(maxCellY / minCellSize);
-                grid[maxCellX, maxCellY][minCellX, minCellY] = point;
+                grid[maxCellX, maxCellY].Add(point);
             }
 
             Vector2 GenerateRandomPointAround(Vector2 point, int attempt, float minDistance)
@@ -687,8 +682,6 @@ namespace PixelMiner.UI.WorldGen
                 if (point.x < 0 || point.x > width || point.y < 0 || point.y > height) return false;
                 int maxCellX = Mathf.FloorToInt(point.x / maxCellSize);
                 int maxCellY = Mathf.FloorToInt(point.y / maxCellSize);
-                int minCellX = Mathf.FloorToInt(maxCellX / minCellSize);
-                int minCellY = Mathf.FloorToInt(maxCellY / minCellSize);
 
 
                 int maxStartX = Mathf.Max(0, maxCellX - 1);
@@ -698,51 +691,70 @@ namespace PixelMiner.UI.WorldGen
                 Vector2 gridPoint;
                 //Debug.Log($"STET: {startX} {endX}      {startY} {endY}    {cellX}  {cellY}");
 
-                Vector2 targetCell = grid[maxCellX, maxCellY][minCellX, minCellY];
-                if (targetCell != default)
-                {
-                    return false;
-                }
-
-
 
                 int count = 0;
                 for (int y = maxStartY; y <= maxEndY; y++)
                 {
                     for (int x = maxStartX; x <= maxEndX; x++)
                     {
-                        for (int j = 0; j < grid[x, y].GetLength(1); j++)
+                        //if (grid[x,y].Count == 0)
+                        //{
+                        //    //Debug.Log("First node");
+                        //    return true;
+                        //}
+
+                        for(int i = 0; i < grid[x,y].Count; i++)
                         {
-                            for(int i = 0; i < grid[x, y].GetLength(0); i++)
+                            gridPoint = grid[x, y][i];
+                            float dist = (point - gridPoint).sqrMagnitude;
+                            if (dist < minDist * minDist)
                             {
-
-
-                                //Debug.Log($"$Size  inside: {grid[x, y].GetLength(1) * grid[x, y].GetLength(0)}");
-                                //if (x == maxCellX && y == maxCellY && i == minCellX && j == maxCellY)
-                                //{
-                                //    continue;
-                                //}
-
-                                gridPoint = grid[x, y][i, j];
-                                if (gridPoint != default)
-                                {
-                                    float dist = (point - gridPoint).sqrMagnitude;
-                                    if (dist < minDist * minDist)
-                                    {
-                                        //Debug.Log($"Count: {count}  {grid[x, y].GetLength(0)}  {grid[x, y].GetLength(1)}");
-                                        return false;
-                                    }
-                                }
-
-                                count++;
-
+                                return false;
                             }
+
+                            count++;
                         }
-                       
                     }
                 }
+  
 
-                Debug.Log($"Count: {count}");
+                //int count = 0;
+                //for (int y = maxStartY; y <= maxEndY; y++)
+                //{
+                //    for (int x = maxStartX; x <= maxEndX; x++)
+                //    {
+
+                //        for (int j = 0; j < grid[x, y].GetLength(1); j++)
+                //        {
+                //            for(int i = 0; i < grid[x, y].GetLength(0); i++)
+                //            {
+
+
+                //                //Debug.Log($"$Size  inside: {grid[x, y].GetLength(1) * grid[x, y].GetLength(0)}");
+                //                //if (x == maxCellX && y == maxCellY && i == minCellX && j == maxCellY)
+                //                //{
+                //                //    continue;
+                //                //}
+
+                //                gridPoint = grid[x, y][i, j];
+                //                if (gridPoint != default)
+                //                {
+                //                    float dist = (point - gridPoint).sqrMagnitude;
+                //                    if (dist < minDist * minDist)
+                //                    {
+                //                        //Debug.Log($"Count: {count}  {grid[x, y].GetLength(0)}  {grid[x, y].GetLength(1)}");
+                //                        return false;
+                //                    }
+                //                }
+
+                //                count++;
+
+                //            }
+                //        }
+
+                //    }
+                //}
+                //Debug.Log($"Count: {count}");
 
 
                 return true;
