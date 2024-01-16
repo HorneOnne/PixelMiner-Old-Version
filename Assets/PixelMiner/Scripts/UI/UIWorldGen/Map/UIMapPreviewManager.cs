@@ -7,9 +7,7 @@ using PixelMiner.World;
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections.Concurrent;
-using System.Collections;
-using JetBrains.Annotations;
-using System.Security.Cryptography;
+
 
 namespace PixelMiner.UI.WorldGen
 {
@@ -501,11 +499,11 @@ namespace PixelMiner.UI.WorldGen
         private async Task<Texture2D> GetPoissonDiscTexture()
         {
             Debug.Log("GetPoissonDiscTexture");
-            int textureWidth = 1920;
-            int textureHeight = 1080;
+            //int textureWidth = 1920;
+            //int textureHeight = 1080;
 
-            //int textureWidth = 160;
-            //int textureHeight = 90;
+            int textureWidth = 1920;
+            int textureHeight = 1060;
 
 
 
@@ -540,61 +538,64 @@ namespace PixelMiner.UI.WorldGen
         // Poisson Disc Reference: https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf
         private List<Vector2> PoissonDisc(int width, int height)
         {
-            int r = 10;  // minimum distance R
-            int k = 60; // limit of samples           
+            int r = 5;  // minimum distance R
+            int k = 10; // limit of samples           
             float cellSize = r / Mathf.Sqrt(2);
 
+
+            //Vector2 a = default;
+            //Debug.Log($"Check: {Vector2.zero == default}   {a == default}    {a == Vector2.zero}");
+
             // Create a grid
-            int[,] grid = new int[Mathf.CeilToInt(width / cellSize), Mathf.CeilToInt(height / cellSize)];
+            Vector2[,] grid = new Vector2[Mathf.CeilToInt(width / cellSize) + 1, Mathf.CeilToInt(height / cellSize) + 1];
             List<Vector2> processList = new List<Vector2>();
             List<Vector2> samplePoints = new List<Vector2>();
 
-            //for(int y  = 0; y < grid.GetLength(1); y++)
-            //{
-            //    for(int x = 0; x < grid.GetLength(0); x++)
-            //    {
-            //        grid[x, y] = -1;
-            //    }
-            //}
+            Debug.Log($"Cellsize: {cellSize}   GridSize: {grid.GetLength(0)} {grid.GetLength(1)}");
 
-            // Generate the first point randomly and update
+
+            for (int y = 0; y < grid.GetLength(1); y++)
+            {
+                for (int x = 0; x < grid.GetLength(0); x++)
+                {
+                    grid[x, y] = new Vector2(-1, -1);
+                }
+            }
+
+
+
             Vector2 firstPoint = new Vector2(Random.Range(0, width), Random.Range(0, height));
-
-            // Update containers
+            Insert(firstPoint);
             processList.Add(firstPoint);
             samplePoints.Add(firstPoint);
 
-            grid[(int)(firstPoint.x / cellSize), (int)(firstPoint.y / cellSize)] = samplePoints.Count;
 
 
             int attempt = 0;
             // Generate other points from points in processList
             while (processList.Count > 0)
             {
-                //Debug.Log(processList.Count);
-
                 int randomIndex = Random.Range(0, processList.Count);
-                Vector2 currPoint = samplePoints[randomIndex];
-                bool aceepted = false;
+                Vector2 currPoint = processList[randomIndex];
+                bool found = false;
                 for (int i = 0; i < k; i++)
                 {
                     Vector2 newPoint = GenerateRandomPointAround(currPoint, r);
-
-                    // Check that the oin is in the image region
-                    // and no point exists in the point's neighbors
-
                     if (IsValid(newPoint))
                     {
                         processList.Add(newPoint);
                         samplePoints.Add(newPoint);
-                        //Debug.Log($"{currPoint}   {newPoint}  {(int)(newPoint.x / cellSize)}  {(int)(newPoint.y / cellSize)}");
-                        grid[(int)(newPoint.x / cellSize), (int)(newPoint.y / cellSize)] = samplePoints.Count;
-                        aceepted = true;
+                        Insert(newPoint);
+                        found = true;
                         break;
+                    }
+                    else
+                    {
+                     
                     }
                 }
 
-                if(aceepted == false)
+                if (found == false)
                 {
                     processList.RemoveAt(randomIndex);
                 }
@@ -609,60 +610,64 @@ namespace PixelMiner.UI.WorldGen
 
 
 
+            void Insert(Vector2 point)
+            {
+                int cellX = Mathf.FloorToInt(point.x / cellSize);
+                int cellY = Mathf.FloorToInt(point.y / cellSize);
+                //Debug.Log($"at: {cellX} {cellY}  {point}");
+                grid[cellX, cellY] = point;
+            }
+
             Vector2 GenerateRandomPointAround(Vector2 point, float minDistance)
             {
-                float r1 = Random.value;
-                float r2 = Random.value;
+                float theta = Random.Range(0f, 2f * Mathf.PI);
 
-                // Random radius between min distance and 2 * min distance
-                float radius = minDistance * (r1 + 1);
+                float newRadius = Random.Range(minDistance, 2f * minDistance);
+
+                float newX = point.x + newRadius * Mathf.Cos(theta);
+                float newY = point.y + newRadius * Mathf.Sin(theta);
+                Vector2 newPoint = new Vector2(newX, newY);
 
 
-                // random angle
-                float angle = Mathf.PI * 2 * r2;
-                //Debug.Log($"angle: {angle}  raidus: {radius}");
-
-                float newX = point.x + radius * Mathf.Cos(angle);
-                float newY = point.y + radius * Mathf.Sin(angle);
-                return new Vector2(newX, newY);
-
-                //Vector2 randomPoint = Random.insideUnitCircle.normalized * Random.Range(minDistance, 2 * minDistance);
-                //return point + randomPoint;
+                //Debug.Log($"{point}    {newPoint}    {(point - newPoint).magnitude}     mindist: {minDistance}");
+                return newPoint;  
             }
 
 
             bool IsValid(Vector2 point)
             {
-                if (point.x >= 0 && point.x < width && point.y >= 0 && point.y < height)
+                //Debug.Log("A");
+                if (point.x < 0 || point.x > width || point.y < 0 || point.y > height) return false;
+                //Debug.Log("B");
+
+                int cellX = Mathf.FloorToInt(point.x / cellSize);
+                int cellY = Mathf.FloorToInt(point.y / cellSize);
+
+                int startX = Mathf.Max(0, cellX - 2);
+                int endX = Mathf.Min(cellX + 2, grid.GetLength(0) - 1);
+                int startY = Mathf.Max(0, cellY - 2);
+                int endY = Mathf.Min(cellY + 2, grid.GetLength(1) - 1);
+
+                //Debug.Log($"STET: {startX} {endX}      {startY} {endY}    {cellX}  {cellY}");
+
+
+                for (int y = startY; y <= endY; y++)
                 {
-                    int cellX = (int)(point.x / cellSize);
-                    int cellY = (int)(point.y / cellSize);
-
-
-                    int startX = Mathf.Max(0, cellX - 2);
-                    int endX = Mathf.Min(cellX + 2, grid.GetLength(0) - 1);
-                    int startY = Mathf.Max(0, cellY - 2);
-                    int endY = Mathf.Min(cellY + 2, grid.GetLength(1) - 1);
-
-                    //Debug.Log($"STET: {startX} {endX}      {startY} {endY}    {cellX}  {cellY}");
-
-                    for (int y = startY; y <= endY; y++)
+                    for (int x = startX; x <= endX; x++)
                     {
-                        for (int x = startX; x <= endX; x++)
+                        Vector2 gridPoint = grid[x, y];
+                        if (gridPoint != new Vector2(-1, -1))
                         {
-                            //Debug.Log($"{x}  {y}   {grid.GetLength(0)}    {grid.GetLength(1)}");
-                            int pointIndex = grid[x, y] - 1;
-                            if (pointIndex != -1)
+                            float dist = (point - gridPoint).magnitude;
+                            if (dist < r)
                             {
-                                float sqrtDst = (point - samplePoints[pointIndex]).sqrMagnitude;
-                                if (sqrtDst < r * r)
-                                {
-                                    return false;
-                                }
+                                //Debug.Log($"{dist}  {r}");
+                                return false;
                             }
                         }
                     }
                 }
+
 
 
                 return true;
