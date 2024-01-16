@@ -538,9 +538,16 @@ namespace PixelMiner.UI.WorldGen
         // Poisson Disc Reference: https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf
         private List<Vector2> PoissonDisc(int width, int height)
         {
-            int r = 10;  // minimum distance R
-            int k = 10; // limit of samples           
-            float cellSize = r / Mathf.Sqrt(2);
+            FastNoiseLite noise = new FastNoiseLite(0);
+            noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            noise.SetFractalType(FastNoiseLite.FractalType.FBm);
+            noise.SetFrequency(0.02f);
+            noise.SetFractalOctaves(3);
+
+            float minR = 5;  // minimum distance R
+            float maxR = 50;  // minimum distance R
+            int k = 15; // limit of samples           
+            float cellSize = minR / Mathf.Sqrt(2);
 
 
             //Vector2 a = default;
@@ -567,7 +574,7 @@ namespace PixelMiner.UI.WorldGen
 
 
 
-            Vector2 firstPoint = new Vector2(Random.Range(0, width), Random.Range(0, height));
+            Vector2 firstPoint = new Vector2(width / 2f, height / 2.0f);
             Insert(firstPoint);
             processList.Enqueue(firstPoint);
             samplePoints.Add(firstPoint);
@@ -582,29 +589,29 @@ namespace PixelMiner.UI.WorldGen
                 bool found = false;
                 for (int i = 0; i < k; i++)
                 {
+                    //float noiseValue = (noise.GetNoise(currPoint.x , currPoint.y) + 1.0f) / 2.0f;
+                    //float minDist = Mathf.Lerp(minR, maxR, noiseValue);
+
+
                     float minDist;
                     if ((int)(currPoint.x / cellSize) < gridWidth / 2f)
                     {
-                        minDist = r;
+                        minDist = minR;
                     }
                     else
                     {
-                        minDist = r * 2f;
+                        minDist = maxR;
                     }
 
 
-                    Vector2 newPoint = GenerateRandomPointAround(currPoint, minDist);
-                    if (IsValid(newPoint))
+                    Vector2 newPoint = GenerateRandomPointAround(currPoint, i, minDist);
+                    if (IsValid(newPoint, minDist))
                     {
                         processList.Enqueue(newPoint);
                         samplePoints.Add(newPoint);
                         Insert(newPoint);
                         found = true;
                         break;
-                    }
-                    else
-                    {
-
                     }
                 }
 
@@ -630,18 +637,27 @@ namespace PixelMiner.UI.WorldGen
                 grid[cellX + cellY * gridWidth] = point;
             }
 
-            Vector2 GenerateRandomPointAround(Vector2 point, float minDistance)
+            Vector2 GenerateRandomPointAround(Vector2 point, int attempt, float minDistance)
             {
-                float theta = Random.Range(0f, 2f * Mathf.PI);
+                //float theta = Random.Range(0f, 1f) * 2f * Mathf.PI;
+                //float newRadius = Random.Range(minDistance, 2f * minDistance);
+                //float newX = point.x + newRadius * Mathf.Cos(theta);
+                //float newY = point.y + newRadius * Mathf.Sin(theta);
+                //Vector2 newPoint = new Vector2(newX, newY);
+                //return newPoint;
 
-                float newRadius = Random.Range(minDistance, 2f * minDistance);
 
+
+                float noiseValue = (noise.GetNoise(point.x * attempt, point.y * attempt) + 1) / 2.0f;
+                float theta = noiseValue * Mathf.PI * 2f;
+                // Generate random radius
+                float newRadius = minDistance + noiseValue * minDistance;
+
+                // Calculate new point
                 float newX = point.x + newRadius * Mathf.Cos(theta);
                 float newY = point.y + newRadius * Mathf.Sin(theta);
+
                 Vector2 newPoint = new Vector2(newX, newY);
-
-
-                //Debug.Log($"{point}    {newPoint}    {(point - newPoint).magnitude}     mindist: {minDistance}");
                 return newPoint;
             }
 
@@ -684,7 +700,7 @@ namespace PixelMiner.UI.WorldGen
             //    return true;
             //}
 
-            bool IsValid(Vector2 point)
+            bool IsValid(Vector2 point, float minDist)
             {
                 if (point.x < 0 || point.x > width || point.y < 0 || point.y > height) return false;
                 int cellX = Mathf.FloorToInt(point.x / cellSize);
@@ -702,23 +718,13 @@ namespace PixelMiner.UI.WorldGen
                     for (int x = startX; x <= endX; x++)
                     {
                         Vector2 gridPoint = grid[x + y * gridWidth];
-                        if (gridPoint != new Vector2(-1, -1))
+                        //if (gridPoint != new Vector2(-1, -1))
                         {
                             float dist = (point - gridPoint).magnitude;
 
-                            if (x < gridWidth / 2f)
+                            if (dist < minDist)
                             {
-                                if (dist < r)
-                                {
-                                    return false;
-                                }
-                            }
-                            else
-                            {
-                                if (dist < r * 2f)
-                                {
-                                    return false;
-                                }
+                                return false;
                             }
 
                         }
@@ -748,71 +754,72 @@ namespace PixelMiner.UI.WorldGen
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
 
-            FastNoiseLite noise = new FastNoiseLite();
+            FastNoiseLite noise = new FastNoiseLite(0);
             noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
             noise.SetFractalType(FastNoiseLite.FractalType.FBm);
-            noise.SetFrequency(Frequency);
-            noise.SetFractalLacunarity(Lacunarity);
-            noise.SetFractalGain(Persistence);
-
+            noise.SetFrequency(0.02f);
+            noise.SetFractalOctaves(3);
 
             await Task.Run(() =>
             {
                 Parallel.For(0, pixels.Length, (i) =>
                 {
-                    pixels[i] = Color.white;
+                    int x = i % textureWidth;
+                    int y = i / textureWidth;
+                    float noiseValue = (noise.GetNoise(x, y) + 1.0f) / 2.0f;
+                    pixels[i] = new Color(noiseValue, noiseValue, noiseValue, 1.0f);
                 });
 
-                float[][] bluenoise = new float[textureHeight][];
-                for (int i = 0; i < textureHeight; i++)
-                {
-                    bluenoise[i] = new float[textureWidth];
-                }
 
 
+                //float[][] bluenoise = new float[textureHeight][];
+                //for (int i = 0; i < textureHeight; i++)
+                //{
+                //    bluenoise[i] = new float[textureWidth];
+                //}
 
-                for (int y = 0; y < textureHeight; y++)
-                {
-                    for (int x = 0; x < textureWidth; x++)
-                    {
-                        float nx = x / (float)textureWidth - 0.5f;
-                        float ny = y / (float)textureHeight - 0.5f;
+                //for (int y = 0; y < textureHeight; y++)
+                //{
+                //    for (int x = 0; x < textureWidth; x++)
+                //    {
+                //        float nx = x / (float)textureWidth - 0.5f;
+                //        float ny = y / (float)textureHeight - 0.5f;
 
-                        // Blue noise is high frequency; adjust this value based on your needs
-                        bluenoise[y][x] = noise.GetNoise(50 * nx, 50 * ny);
-                    }
-                }
+                //        // Blue noise is high frequency; adjust this value based on your needs
+                //        bluenoise[y][x] = noise.GetNoise(50 * nx, 50 * ny);
+                //    }
+                //}
 
 
-                for (int yc = 0; yc < textureHeight; yc++)
-                {
-                    for (int xc = 0; xc < textureWidth; xc++)
-                    {
-                        float max = 0;
+                //for (int yc = 0; yc < textureHeight; yc++)
+                //{
+                //    for (int xc = 0; xc < textureWidth; xc++)
+                //    {
+                //        float max = 0;
 
-                        for (int dy = -R; dy <= R; dy++)
-                        {
-                            for (int dx = -R; dx <= R; dx++)
-                            {
-                                int xn = dx + xc;
-                                int yn = dy + yc;
+                //        for (int dy = -R; dy <= R; dy++)
+                //        {
+                //            for (int dx = -R; dx <= R; dx++)
+                //            {
+                //                int xn = dx + xc;
+                //                int yn = dy + yc;
 
-                                if (0 <= yn && yn < textureHeight && 0 <= xn && xn < textureWidth)
-                                {
-                                    float e = bluenoise[yn][xn];
-                                    if (e > max) { max = e; }
-                                }
-                            }
-                        }
+                //                if (0 <= yn && yn < textureHeight && 0 <= xn && xn < textureWidth)
+                //                {
+                //                    float e = bluenoise[yn][xn];
+                //                    if (e > max) { max = e; }
+                //                }
+                //            }
+                //        }
 
-                        if (bluenoise[yc][xc] == max)
-                        {
-                            // Place tree at xc, yc
-                            Debug.Log("Trrree");
-                            pixels[xc + yc * textureWidth] = Color.black;
-                        }
-                    }
-                }
+                //        if (bluenoise[yc][xc] == max)
+                //        {
+                //            // Place tree at xc, yc
+                //            Debug.Log("Trrree");
+                //            pixels[xc + yc * textureWidth] = Color.white;
+                //        }
+                //    }
+                //}
             });
 
 
