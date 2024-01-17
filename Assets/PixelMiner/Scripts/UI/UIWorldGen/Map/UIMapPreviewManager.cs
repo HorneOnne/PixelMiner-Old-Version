@@ -11,6 +11,8 @@ using System.Collections.Concurrent;
 
 namespace PixelMiner.UI.WorldGen
 {
+
+
     public class UIMapPreviewManager : MonoBehaviour
     {
         public static UIMapPreviewManager Instance { get; private set; }

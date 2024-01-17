@@ -168,7 +168,7 @@ namespace PixelMiner.WorldBuilding
 
         // Density noise
         private FastNoiseLite _grassNoiseDistribute;
-        private float _grassNoiseFrequency = 0.0085f;
+        private float _grassNoiseFrequency = 0.0045f;
         private int _grassNoiseR = 1;
         private FastNoiseLite _treeNoiseDistribute;
         private float _treeNoiseFrequency = 1;
@@ -287,6 +287,7 @@ namespace PixelMiner.WorldBuilding
             _grassNoiseDistribute.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
             _grassNoiseDistribute.SetFractalType(FastNoiseLite.FractalType.FBm);
             _grassNoiseDistribute.SetFrequency(_grassNoiseFrequency);
+            _grassNoiseDistribute.SetFractalOctaves(1);
 
 
             _treeNoiseDistribute = new FastNoiseLite(Seed);
@@ -1518,13 +1519,19 @@ namespace PixelMiner.WorldBuilding
         public async Task PlaceGrassAsync(Chunk chunk)
         {
             //List<Vector2Int> distributedGrassPositions = await GenerateDistributedPositions(_grassNoiseDistribute, chunk._width, chunk._depth, _grassNoiseR);
-            List<Vector2Int> distributedGrassPositions = PoissonDisc(chunk, _grassNoiseDistribute, 1,5);
+            
+            //List<Vector2Int> distributedGrassPositions = PoissonDisc(chunk, _grassNoiseDistribute, 1,5);
+            List<Vector2Int> distributedGrassPositions = await PoissonDiscAsync(chunk.FrameX, chunk.FrameZ, chunk._width, chunk._depth, _grassNoiseDistribute, 2,4);
+
+
+
             //Debug.Log(distributedGrassPositions.Count);
             await Task.Run(() =>
             {
                 for (int i = 0; i < distributedGrassPositions.Count; i++)
                 {
                     Vector3Int currRelativePos = new Vector3Int(distributedGrassPositions[i].x, _groundLevel, distributedGrassPositions[i].y);
+
                     if (chunk.GetBlock(currRelativePos) == BlockType.DirtGrass)
                     {
                         Vector3Int upperRelativePos = new Vector3Int(currRelativePos.x, currRelativePos.y + 1, currRelativePos.z);
@@ -1537,7 +1544,7 @@ namespace PixelMiner.WorldBuilding
                             else
                             {
                                 chunk.SetBlock(upperRelativePos, BlockType.TallGrass);
-                                chunk.SetBlock(upperRelativePos + new Vector3Int(0,1,0), BlockType.TallGrass);
+                                chunk.SetBlock(upperRelativePos + new Vector3Int(0, 1, 0), BlockType.TallGrass);
                             }
 
                         }
@@ -1620,82 +1627,80 @@ namespace PixelMiner.WorldBuilding
         }
 
 
-        // Poisson Disc Reference: https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf
-        private List<Vector2Int> PoissonDisc(Chunk chunk, FastNoiseLite noise, float minDistance = 2, float maxDistance = 4)
+        // Poisson Disc Reference: https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf      
+        private async Task<List<Vector2Int>> PoissonDiscAsync(int frameX, int frameZ, int width, int height, FastNoiseLite noise, float minDistance = 5, float maxDistance = 20)
         {
-
             int k = 30; // limit of samples
             float cellSize = maxDistance / Mathf.Sqrt(2);
 
-            int gridWidth = Mathf.CeilToInt(chunk._width / cellSize);
-            int gridHeight = Mathf.CeilToInt(chunk._depth / cellSize);
+            int gridWidth = Mathf.CeilToInt(width / cellSize);
+            int gridHeight = Mathf.CeilToInt(height / cellSize);
             List<Vector2Int>[,] grid = new List<Vector2Int>[gridWidth, gridHeight];
 
-            Debug.Log($"{grid.GetLength(0)} {grid.GetLength(1)}");
+            //Debug.Log($"grid cell size:  {this.gameObject.name}   {grid.GetLength(0)} {grid.GetLength(1)}");
 
             Queue<Vector2Int> processList = new Queue<Vector2Int>();
             List<Vector2Int> samplePoints = new List<Vector2Int>();
             Vector2Int currPoint;
             bool found;
 
-            for (int y = 0; y < gridHeight; y++)
+
+            await Task.Run(() =>
             {
-                for (int x = 0; x < gridWidth; x++)
+                Parallel.For(0, gridHeight, (y) =>
                 {
-                    grid[x, y] = new List<Vector2Int>();
-                }
-            }
-
-
-            //Vector2Int firstPoint = new Vector2Int((int)(chunk._width / 2f), (int)(chunk._depth / 2.0f));
-            //Vector2Int firstPoint = new Vector2Int(UnityEngine.Random.Range(0, chunk._width), (UnityEngine.Random.Range(0, chunk._depth)));
-            float noiseX = (noise.GetNoise(chunk.GlobalPosition.x, chunk.GlobalPosition.y) + 1.0f) / 2.0f;
-            float noiseY = (noise.GetNoise(chunk.GlobalPosition.x, chunk.GlobalPosition.z) + 1.0f) / 2.0f;
-
-            Vector2Int firstPoint = new Vector2Int(Mathf.FloorToInt(noiseX * (chunk._width - 1)), Mathf.FloorToInt(noiseY * (chunk._depth - 1)));                   
-            InsertGrid(firstPoint);
-            processList.Enqueue(firstPoint);
-            samplePoints.Add(firstPoint);
-
-            int attempt = 0;
-            // Generate other points from points in processList
-            while (processList.Count > 0)
-            {
-                currPoint = processList.Peek();
-                found = false;
-                for (int i = 0; i < k; i++)
-                {                 
-                    //float noiseValue = (noise.GetNoise(currPoint.x , currPoint.y) + 1.0f) / 2.0f
-                    float noiseValue = (noise.GetNoise(chunk.GlobalPosition.x + currPoint.x, chunk.GlobalPosition.z + currPoint.y) + 1.0f) / 2.0f;
-
-
-                    float distance = Mathf.Lerp(minDistance, maxDistance, noiseValue);
-                    //float distance = minDistance;
-
-                    //float minDist = maxR;
-                    Vector2Int newPoint = GenerateRandomPointAround(currPoint, (i + 1), distance);
-
-                    if (IsValid(newPoint, distance))
+                    for (int x = 0; x < gridWidth; x++)
                     {
-                        processList.Enqueue(newPoint);
-                        samplePoints.Add(newPoint);
-                        InsertGrid(newPoint);
-                        found = true;                    
+                        grid[x, y] = new List<Vector2Int>();
+                    }
+                });
+      
+                float noiseX = (noise.GetNoise(frameX * width, frameZ * height) + 1.0f) / 2.0f;
+                float noiseY = (noise.GetNoise(frameX * width, frameZ * height) + 1.0f) / 2.0f;
+                Vector2Int firstPoint = new Vector2Int(Mathf.FloorToInt(noiseX * (width - 1)), Mathf.FloorToInt(noiseY * (height - 1)));
+
+                InsertGrid(firstPoint);
+                processList.Enqueue(firstPoint);
+                samplePoints.Add(firstPoint);
+
+                int attempt = 0;
+                // Generate other points from points in processList
+                while (processList.Count > 0)
+                {
+                    currPoint = processList.Peek();
+                    found = false;
+
+                    for (int i = 0; i < k; i++)
+                    {
+                        //float noiseValue = (noise.GetNoise(currPoint.x, currPoint.y) + 1.0f) / 2.0f;
+                        float noiseValue = (noise.GetNoise((frameX * width) + currPoint.x, (frameZ * height) + currPoint.y) + 1.0f) / 2.0f;
+                        float distance = Mathf.Lerp(minDistance, maxDistance, noiseValue);
+
+                        Vector2Int newPoint = GenerateRandomPointAround(currPoint, (i + 1), distance);
+
+                        if (IsValid(newPoint, distance))
+                        {
+                            processList.Enqueue(newPoint);
+                            samplePoints.Add(newPoint);
+                            InsertGrid(newPoint);
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (found == false)
+                    {
+                        processList.Dequeue();
+                    }
+
+                    if (attempt++ > 10000)
+                    {
+                        Debug.Log("Infinite loop");
                         break;
                     }
-                }
+                }              
+            });
 
-                if (found == false)
-                {
-                    processList.Dequeue();
-                }
-
-                if (attempt++ > 100000)
-                {
-                    Debug.Log("Infinite loop");
-                    break;
-                }
-            }
 
 
             void InsertGrid(Vector2Int point)
@@ -1708,9 +1713,8 @@ namespace PixelMiner.WorldBuilding
 
             Vector2Int GenerateRandomPointAround(Vector2Int point, int attempt, float minDistance)
             {
-                //float noiseValue = (noise.GetNoise(point.x * attempt + chunk.GlobalPosition.x, point.y * attempt + chunk.GlobalPosition.z) + 1) / 2.0f;
-                float noiseValue = (noise.GetNoise((point.x + chunk.GlobalPosition.x) * attempt, (point.y + chunk.GlobalPosition.z) * attempt) + 1) / 2.0f;
-                
+                float noiseValue = (noise.GetNoise((point.x + frameX * width) * attempt, (point.y + frameZ * height) * attempt) + 1) / 2.0f;
+
                 float theta = noiseValue * Mathf.PI * 2f;
                 // Generate random radius
                 float newRadius = minDistance + noiseValue * minDistance;
@@ -1723,13 +1727,10 @@ namespace PixelMiner.WorldBuilding
                 return newPoint;
             }
 
-
-
-
             bool IsValid(Vector2 point, float minDist)
             {
-                if (point.x < 0 || point.x > chunk._width - 1 || point.y < 0 || point.y > chunk._depth - 1) return false;
-                
+                if (point.x < 0 || point.x > width - 1 || point.y < 0 || point.y > height - 1) return false;
+
                 int maxCellX = Mathf.FloorToInt(point.x / cellSize);
                 int maxCellY = Mathf.FloorToInt(point.y / cellSize);
 
