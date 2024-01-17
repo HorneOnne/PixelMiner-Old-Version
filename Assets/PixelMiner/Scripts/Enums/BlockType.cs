@@ -14,7 +14,9 @@
         Ice = 67,
 
         Light = 105,
-        Wood = 4,
+
+        Wood = 20,
+        Leaves = 52,
 
         Grass = 39,
         TallGrass = 169,
@@ -32,7 +34,20 @@
             return blockType != BlockType.Air &&
                    blockType != BlockType.Water &&
                    blockType != BlockType.Grass &&
+                   blockType != BlockType.Leaves &&
                    blockType != BlockType.TallGrass;
+        }
+
+        public static bool IsDirt(this BlockType blockType)
+        {
+            return blockType == BlockType.Dirt ||
+                   blockType == BlockType.DirtGrass;
+        }
+
+        public static bool IsTransparentSolidBlock(this BlockType blockType)
+        {
+            return blockType == BlockType.Glass ||
+                   blockType == BlockType.Leaves;
         }
     }
 }

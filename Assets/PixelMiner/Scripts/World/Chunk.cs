@@ -11,6 +11,7 @@ namespace PixelMiner.World
         public static System.Action<Chunk> OnChunkHasNeighbors;
 
         [SerializeField] public MeshFilter SolidMeshFilter;
+        [SerializeField] public MeshFilter SolidTransparentMeshFilter;
         [SerializeField] public MeshFilter GrassMeshFilter;
         [SerializeField] public MeshFilter WaterMeshFilter;
         public MeshCollider MeshCollider;
@@ -72,6 +73,8 @@ namespace PixelMiner.World
         public Queue<RiverNode> RiverBfsQueue = new Queue<RiverNode>();
         public BiomeType[] RiverBiomes;
         public bool HasOceanBiome;
+
+        private Vector3Int[] _faceNeighbors = new Vector3Int[6];
 
         private void Awake()
         {
@@ -169,6 +172,38 @@ namespace PixelMiner.World
             BlockType block = GetBlock(relativePosition);
             return block == BlockType.Water;
         }
+        public bool CanSee(Vector3Int relativePosition)
+        {
+            GetFaceNeighbors(relativePosition);
+
+            for(int i = 0; i < _faceNeighbors.Length; i++)
+            {
+                if (IsValidRelativePosition(relativePosition))
+                {
+                    if(ChunkData[IndexOf(relativePosition.x, relativePosition.y, relativePosition.z)].IsTransparentSolidBlock())
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (FindNeighbor(relativePosition, out Chunk neighborChunk, out Vector3Int nbRelativePosition))
+                    {
+                        if(neighborChunk.ChunkData[IndexOf(nbRelativePosition.x, nbRelativePosition.y, nbRelativePosition.z)].IsTransparentSolidBlock())
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
 
 
         public BlockType GetBlock(Vector3Int relativePosition)
@@ -223,8 +258,15 @@ namespace PixelMiner.World
         public bool IsBlockFaceVisible(Vector3Int position, int dimension, bool isBackFace)
         {
             position[dimension] += isBackFace ? -1 : 1;
-            return IsSolid(position) == false;
+            //return GetBlock(position).IsSolid() == false;
+            return GetBlock(position).IsSolid() == false || GetBlock(position).IsTransparentSolidBlock();
         }
+        public bool IsTransparentBlockFaceVisible(Vector3Int position, int dimension, bool isBackFace)
+        {
+            position[dimension] += isBackFace ? -1 : 1;
+            return GetBlock(position).IsSolid() == false || GetBlock(position).IsTransparentSolidBlock();
+        }
+
         public bool IsWaterFaceVisible(Vector3Int position, int dimension, bool isBackFace)
         {
             position[dimension] += isBackFace ? -1 : 1;
@@ -418,6 +460,16 @@ namespace PixelMiner.World
 
 
             return null;
+        }
+
+        private void GetFaceNeighbors(Vector3Int relativePosition)
+        {
+            _faceNeighbors[0] = relativePosition + Vector3Int.left;
+            _faceNeighbors[1] = relativePosition + Vector3Int.right;
+            _faceNeighbors[2] = relativePosition + Vector3Int.forward;
+            _faceNeighbors[3] = relativePosition + Vector3Int.back;
+            _faceNeighbors[4] = relativePosition + Vector3Int.up;
+            _faceNeighbors[5] = relativePosition + Vector3Int.down;
         }
 
         #endregion

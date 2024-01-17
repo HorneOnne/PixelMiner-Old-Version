@@ -16,7 +16,9 @@
 
         Light = 105,
 
-        Wood = 4,
+        BarkWood = 20,
+        HeartWood = 21,
+        Leaves = 52,
 
         Grass = 39,
         BelowTallGrass = 185,

@@ -72,7 +72,8 @@ namespace PixelMiner.WorldInteraction
 
                     if (Main.Instance.GetChunk((Vector3)hitGlobalPosition).ChunkHasDrawn == false) return;
 
-                    if (!Main.Instance.GetBlock(hitGlobalPosition).IsSolid())
+                    if (Main.Instance.GetBlock(hitGlobalPosition).IsSolid() == false &&
+                        Main.Instance.GetBlock(hitGlobalPosition).IsTransparentSolidBlock() == false)
                     {
                         Main.Instance.SetBlock(hitGlobalPosition, BlockType.Light);
                         _lightBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = LightUtils.MaxLightIntensity });
@@ -117,7 +118,8 @@ namespace PixelMiner.WorldInteraction
 
                     Vector3Int hitGlobalPosition = preHit.point;
 
-                    if (Main.Instance.GetBlock(hitGlobalPosition).IsSolid() == false)
+                    if (Main.Instance.GetBlock(hitGlobalPosition).IsSolid() == false &&
+                        Main.Instance.GetBlock(hitGlobalPosition).IsTransparentSolidBlock() == false)
                     {
                         Main.Instance.SetBlock(hitGlobalPosition, BlockType.Stone);
                         _lightRemovalBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = Main.Instance.GetBlockLight(hitGlobalPosition) });

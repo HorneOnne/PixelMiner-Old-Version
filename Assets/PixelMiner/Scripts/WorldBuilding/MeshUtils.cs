@@ -18,7 +18,7 @@ namespace PixelMiner.WorldBuilding
         */
 
     public static class MeshUtils
-    {      
+    {
         public static Vector2[,] ColorMapUVs =
         {
             /*
@@ -200,7 +200,7 @@ namespace PixelMiner.WorldBuilding
             return chunk.GetAmbientLight(blockOffsetPosition);
         }
 
-        public static async Task<MeshData> SolidGreedyMeshingAsync(Chunk chunk, AnimationCurve lightAnimCurve)
+        public static async Task<MeshData> RenderSolidMesh(Chunk chunk, AnimationCurve lightAnimCurve, bool isTransparentMesh = false)
         {
             bool GreedyCompareLogic(Vector3Int a, Vector3Int b, int dimension, bool isBackFace, int voxelFace)
             {
@@ -218,22 +218,6 @@ namespace PixelMiner.WorldBuilding
                        GetBlockLightPropagationForAdjacentFace(chunk, a, voxelFace) == GetBlockLightPropagationForAdjacentFace(chunk, d, voxelFace) &&
                        GetBlockLightPropagationForAdjacentFace(chunk, a, voxelFace) == GetBlockLightPropagationForAdjacentFace(chunk, e, voxelFace) &&
                        chunk.IsBlockFaceVisible(b, dimension, isBackFace);
-            }
-
-
-            byte FindMaxDifference(byte[] vertexColors)
-            {
-                byte maxDistance = 0;
-
-                for (int i = 0; i < vertexColors.Length; i++)
-                {
-                    for (int j = i + 1; j < vertexColors.Length; j++)
-                    {
-                        byte distance = (byte)Mathf.Abs(vertexColors[i] - vertexColors[j]);
-                        maxDistance = (byte)Mathf.Max(maxDistance, distance);
-                    }
-                }
-                return maxDistance;
             }
 
 
@@ -294,7 +278,6 @@ namespace PixelMiner.WorldBuilding
                     }
 
 
-
                     startPos = new Vector3Int();
                     currPos = new Vector3Int();
 
@@ -314,19 +297,54 @@ namespace PixelMiner.WorldBuilding
                                 byte lightValue = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
                                 lightColor = GetLightColor(lightValue, lightAnimCurve);
 
+
                                 // If this block has already been merged, is air, or not visible -> skip it.
-                                if (chunk.IsSolid(startPos) == false ||
-                                    chunk.IsBlockFaceVisible(startPos, d, isBackFace) == false ||
-                                    builder.Merged[d][startPos[u], startPos[v]])
+                                //if (chunk.IsSolid(startPos) == false ||
+                                //    chunk.IsBlockFaceVisible(startPos, d, isBackFace) == false ||
+                                //    builder.Merged[d][startPos[u], startPos[v]])
+                                //{
+                                //    continue;
+                                //}
+
+                                if (builder.Merged[d][startPos[u], startPos[v]])
                                 {
                                     continue;
                                 }
 
 
+                                if (isTransparentMesh)
+                                {
+                                    // TRANSPARENT SOLID
+                                    if (chunk.GetBlock(startPos).IsTransparentSolidBlock() == false)
+                                    {
+                                        continue;
+                                    }
+
+                                    if (chunk.IsBlockFaceVisible(startPos, d, isBackFace) == false)
+                                    {
+                                        continue;
+                                    }
+                                }
+                                else
+                                {
+                                    // OPAQUE SOLID
+                                    if (chunk.GetBlock(startPos).IsSolid() == false ||
+                                        chunk.IsBlockFaceVisible(startPos, d, isBackFace) == false)
+                                    {
+                                        continue;
+                                    }
+
+                                    if (chunk.GetBlock(startPos).IsTransparentSolidBlock() == true)
+                                    {
+                                        continue;
+                                    }
+                                }
+
 
 
                                 if (greedyMeshing)
                                 {
+                                    Debug.Log("Greedy");
                                     quadSize = new Vector3Int();
                                     // Next step is loop to figure out width and height of the new merged quad.
                                     for (currPos = startPos, currPos[u]++;
@@ -735,7 +753,7 @@ namespace PixelMiner.WorldBuilding
 
             await Task.Run(() =>
             {
-                
+
                 for (int i = 0; i < chunk.ChunkData.Length; i++)
                 {
                     int x = i % chunk._width;
@@ -749,11 +767,11 @@ namespace PixelMiner.WorldBuilding
                         float randomFloatZ = MapValue(randomNoise.GetNoise(x + 1, z), -1f, 1f, -0.3f, 0.3f);
                         Vector3 randomOffset = new Vector3(randomFloatX, 0, randomFloatZ);
                         Vector3 offsetPos = curBlockPos + randomOffset;
-                       
+
 
                         if (applyRotation)
                         {
-                            float rotationAngle = ((float)(randomNoise.GetNoise(x,y+1) + 1.0f) / 2.0f * (maxRotationAngle - minRotationAngle) + minRotationAngle);
+                            float rotationAngle = ((float)(randomNoise.GetNoise(x, y + 1) + 1.0f) / 2.0f * (maxRotationAngle - minRotationAngle) + minRotationAngle);
                             float rotationAngleRad = rotationAngle * Mathf.Deg2Rad;
                             Quaternion rotation = Quaternion.Euler(0f, rotationAngle, 0f);
                             vertices[0] = RotatePointAroundPivot(offsetPos, _centerOffset + offsetPos, rotation);
@@ -838,9 +856,9 @@ namespace PixelMiner.WorldBuilding
                             builder.AddQuadFace(vertices, uvs, uv2s);
                         }
 
-                        
 
-                     
+
+
                     }
                 }
             });
@@ -879,7 +897,7 @@ namespace PixelMiner.WorldBuilding
                         blockIndex = (ushort)TextureType.AboveTallGrass;
                         break;
                 }
-   
+
                 uvs[0] = new Vector3(0, 0, blockIndex);
                 uvs[1] = new Vector3(1, 0, blockIndex);
                 uvs[2] = new Vector3(1, 1, blockIndex);
@@ -891,7 +909,7 @@ namespace PixelMiner.WorldBuilding
         private static void GetBlockUVs(BlockType blockType, int face, int width, int height, ref Vector3[] uvs, ref Vector2[] uv2s, ref Vector4[] uv3s)
         {
             int blockIndex;
-            ColorMapType colorMapType;
+            ColorMapType colorMapType = ColorMapType.None;
             if (blockType == BlockType.DirtGrass)
             {
                 if (face == 1)
@@ -908,19 +926,41 @@ namespace PixelMiner.WorldBuilding
                     blockIndex = (ushort)blockType;
                 }
             }
+            else if (blockType == BlockType.Leaves)
+            {
+                blockIndex = (ushort)blockType;
+                colorMapType = ColorMapType.Plains;           
+            }
+            else if(blockType == BlockType.Wood)
+            {
+                if (face == 1)
+                {
+                    blockIndex = (ushort)TextureType.HeartWood;
+                }
+                else if (face == 4)
+                {
+                    blockIndex = (ushort)TextureType.HeartWood;
+                }
+                else
+                {
+                    blockIndex = (ushort)TextureType.BarkWood;
+                }
+            }
             else
             {
                 blockIndex = (ushort)blockType;
             }
 
-            if (blockType == BlockType.DirtGrass && face == 1)
-            {
-                colorMapType = ColorMapType.Plains;
-            }
-            else
-            {
-                colorMapType = ColorMapType.None;
-            }
+
+
+            //if (blockType == BlockType.DirtGrass && face == 1)
+            //{
+            //    colorMapType = ColorMapType.Plains;
+            //}
+            //else
+            //{
+            //    colorMapType = ColorMapType.None;
+            //}
 
             uvs[0] = new Vector3(0, 0, blockIndex);
             uvs[1] = new Vector3(width, 0, blockIndex);

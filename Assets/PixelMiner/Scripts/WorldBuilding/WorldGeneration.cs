@@ -169,10 +169,10 @@ namespace PixelMiner.WorldBuilding
         // Density noise
         private FastNoiseLite _grassNoiseDistribute;
         private float _grassNoiseFrequency = 0.0045f;
-        private int _grassNoiseR = 1;
+
         private FastNoiseLite _treeNoiseDistribute;
-        private float _treeNoiseFrequency = 1;
-        private int _treeNoiseR = 3;
+        private float _treeNoiseFrequency = 0.0045f;
+
 
 
         // Cached
@@ -292,7 +292,9 @@ namespace PixelMiner.WorldBuilding
 
             _treeNoiseDistribute = new FastNoiseLite(Seed);
             _treeNoiseDistribute.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
-            _treeNoiseDistribute.SetFrequency(_treeNoiseFrequency);
+            _treeNoiseDistribute.SetFractalType(FastNoiseLite.FractalType.FBm);
+            _treeNoiseDistribute.SetFrequency(_grassNoiseFrequency);
+            _treeNoiseDistribute.SetFractalOctaves(1);
         }
 
         private void Start()
@@ -592,7 +594,6 @@ namespace PixelMiner.WorldBuilding
         {
             DrawChunkAsync(chunk);
         }
-
         private async void DrawChunkAsync(Chunk chunk)
         {
             if (!chunk.ChunkHasDrawn)
@@ -608,14 +609,18 @@ namespace PixelMiner.WorldBuilding
 
 
                 await LoadChunkMapDataAsync(chunk, heightValues);
+
                 await PlaceGrassAsync(chunk);
+                await PlaceTreeAsync(chunk);
 
 
 
                 // Mesh
                 // ----
 
-                MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(chunk, LightAnimCurve);
+                MeshData solidMeshData = await MeshUtils.RenderSolidMesh(chunk, LightAnimCurve, isTransparentMesh: false);
+                MeshData transparentSolidMeshData = await MeshUtils.RenderSolidMesh(chunk, LightAnimCurve, isTransparentMesh: true);
+
                 MeshData grassMeshData = await MeshUtils.GetChunkGrassMeshData(chunk, LightAnimCurve, _grassNoiseDistribute);
                 //MeshData waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(this);
                 MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(chunk);
@@ -623,6 +628,7 @@ namespace PixelMiner.WorldBuilding
 
 
                 chunk.SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
+                chunk.SolidTransparentMeshFilter.sharedMesh = CreateMesh(transparentSolidMeshData);
                 //WaterMeshFilter.sharedMesh =  CreateMesh(waterMeshData);
 
 
@@ -640,6 +646,7 @@ namespace PixelMiner.WorldBuilding
 
                 // Release mesh data
                 MeshDataPool.Release(solidMeshData);
+                MeshDataPool.Release(transparentSolidMeshData);
                 MeshDataPool.Release(grassMeshData);
                 //MeshDataPool.Release(waterMeshData);
                 MeshDataPool.Release(colliderMeshData);
@@ -650,10 +657,13 @@ namespace PixelMiner.WorldBuilding
         }
         public async Task ReDrawChunkTask(Chunk chunk)
         {
-            MeshData solidMeshData = await MeshUtils.SolidGreedyMeshingAsync(chunk, LightAnimCurve);
+            MeshData solidMeshData = await MeshUtils.RenderSolidMesh(chunk, LightAnimCurve);
+            MeshData transparentSolidMeshData = await MeshUtils.RenderSolidMesh(chunk, LightAnimCurve, isTransparentMesh: true);
+
             MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(chunk);
 
             chunk.SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
+            chunk.SolidTransparentMeshFilter.sharedMesh = CreateMesh(transparentSolidMeshData);
 
             chunk.MeshCollider.sharedMesh = null;
             chunk.MeshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
@@ -661,7 +671,9 @@ namespace PixelMiner.WorldBuilding
 
             // Release mesh data
             MeshDataPool.Release(solidMeshData);
+            MeshDataPool.Release(transparentSolidMeshData);
             MeshDataPool.Release(colliderMeshData);
+           
         }
         public Mesh CreateMesh(MeshData meshData)
         {
@@ -686,9 +698,6 @@ namespace PixelMiner.WorldBuilding
             colliderMesh.SetTriangles(meshData.Triangles, 0);
             return colliderMesh;
         }
-
-
-  
         #endregion
 
 
@@ -1518,14 +1527,8 @@ namespace PixelMiner.WorldBuilding
         #region DECORs
         public async Task PlaceGrassAsync(Chunk chunk)
         {
-            //List<Vector2Int> distributedGrassPositions = await GenerateDistributedPositions(_grassNoiseDistribute, chunk._width, chunk._depth, _grassNoiseR);
-            
-            //List<Vector2Int> distributedGrassPositions = PoissonDisc(chunk, _grassNoiseDistribute, 1,5);
             List<Vector2Int> distributedGrassPositions = await PoissonDiscAsync(chunk.FrameX, chunk.FrameZ, chunk._width, chunk._depth, _grassNoiseDistribute, 2,4);
 
-
-
-            //Debug.Log(distributedGrassPositions.Count);
             await Task.Run(() =>
             {
                 for (int i = 0; i < distributedGrassPositions.Count; i++)
@@ -1550,24 +1553,27 @@ namespace PixelMiner.WorldBuilding
                         }
                     }
                 }
-
-
-                //Parallel.For(0, chunk.BiomesData.Length, (i) =>
-                //{
-                //    int x = i % chunk._width;
-                //    int y = (i / chunk._width) % chunk._height;
-                //    int z = i / (chunk._width * chunk._height);
-
-                //    if (chunk.ChunkData[i] == BlockType.DirtGrass)
-                //    {
-                //        Vector3Int upperRelativePos = new Vector3Int(x, y + 1, z);
-                //        if (chunk.OnGroundLevel(upperRelativePos))
-                //        {
-                //            chunk.SetBlock(upperRelativePos, BlockType.Grass);
-                //        }
-                //    }
-                //});
             });      
+        }
+
+
+        public async Task PlaceTreeAsync(Chunk chunk)
+        {
+            List<Vector2Int> distributedPositions = await PoissonDiscAsync(chunk.FrameX, chunk.FrameZ, chunk._width, chunk._depth, _grassNoiseDistribute, 7, 10);
+
+            await Task.Run(() =>
+            {
+                for (int i = 0; i < distributedPositions.Count; i++)
+                {
+                    Vector3Int currRelativePos = new Vector3Int(distributedPositions[i].x, _groundLevel, distributedPositions[i].y);
+
+                    if (chunk.GetBlock(currRelativePos).IsDirt())
+                    {
+                        Vector3Int upperRelativePos = new Vector3Int(currRelativePos.x, currRelativePos.y + 1, currRelativePos.z);
+                        CreateTree(chunk.GetGlobalPosition(upperRelativePos), 5);
+                    }
+                }
+            });
         }
         #endregion
 
@@ -1575,58 +1581,6 @@ namespace PixelMiner.WorldBuilding
 
 
         #region DISTRIBUTE
-        // Density generation algorithm by https://www.redblobgames.com/maps/terrain-from-noise/
-        private async Task<List<Vector2Int>> GenerateDistributedPositions(FastNoiseLite noise, int width, int depth, int R)        // R: random density (smaller -> dense)
-        {
-            float[] blueNoise = new float[width * depth];
-            List<Vector2Int> distributeList = new List<Vector2Int>();
-            await Task.Run(() =>
-            {
-                for (int z = 0; z < depth; z++)
-                {
-                    for (int x = 0; x < width; x++)
-                    {
-                        float nx = x / (float)width - 0.5f;
-                        float ny = z / (float)depth - 0.5f;
-
-                        // Blue noise is high frequency; adjust this value based on your needs
-                        blueNoise[x + z * width] = noise.GetNoise(50 * nx, 50 * ny);
-                    }
-                }
-
-                for (int zc = 0; zc < depth; zc++)
-                {
-                    for (int xc = 0; xc < width; xc++)
-                    {
-                        float max = 0;
-
-                        for (int dy = -R; dy <= R; dy++)
-                        {
-                            for (int dx = -R; dx <= R; dx++)
-                            {
-                                int xn = dx + xc;
-                                int zn = dy + zc;
-
-                                if (0 <= zn && zn < depth && 0 <= xn && xn < width)
-                                {
-                                    float e = blueNoise[xn + zn * width];
-                                    if (e > max) { max = e; }
-                                }
-                            }
-                        }
-
-                        if (blueNoise[xc + zc * width] == max)
-                        {
-                            // Place tree at xc, yc
-                            distributeList.Add(new Vector2Int(xc, zc));
-                        }
-                    }
-                }
-            });
-            return distributeList;
-        }
-
-
         // Poisson Disc Reference: https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf      
         private async Task<List<Vector2Int>> PoissonDiscAsync(int frameX, int frameZ, int width, int height, FastNoiseLite noise, float minDistance = 5, float maxDistance = 20)
         {
@@ -1897,6 +1851,46 @@ namespace PixelMiner.WorldBuilding
 
 
 
+        #region MODELS
+        public void CreateTree(Vector3Int rootPosition, int treeHeight)
+        {
+            // Wood
+            for (int i = 0; i < treeHeight; i++)
+            {
+                Vector3Int woodPos = new Vector3Int(rootPosition.x, rootPosition.y + i, rootPosition.z);
+                Main.Instance.SetBlock(woodPos, BlockType.Wood);
+                //GameObject woord = Instantiate(WoodPrefab, woodPos, Quaternion.identity);
+            }
+
+
+            // Leaves
+            float radius = treeHeight / 3f * 2f;
+            Vector3 center = new Vector3(rootPosition.x, rootPosition.y + treeHeight - 1, rootPosition.z);
+            for (int i = -(int)radius; i < radius; i++)
+            {
+                for (int j = 0; j < radius; j++)
+                {
+                    for (int k = -(int)radius; k < radius; k++)
+                    {
+                        Vector3 leavePos = center + new Vector3(i, j, k);
+
+                        float distance = Vector3.Distance(center, leavePos);
+
+                        if (distance < radius)
+                        {
+                            //Instantiate(LeavePrefab, leavePos + Vector3.down, Quaternion.identity);
+                            Main.Instance.SetBlock(leavePos + Vector3.down, BlockType.Leaves);
+                        }
+                    }
+                }
+            }
+        }
+        #endregion
+
+
+
+
+
         #region NOISE
         public float DomainWarping(float x, float y, FastNoiseLite simplex)
         {
@@ -1943,6 +1937,11 @@ namespace PixelMiner.WorldBuilding
             return (noiseValue - oldMin) * (newMax - newMin) / (oldMax - oldMin) + newMin;
         }
         #endregion
+
+
+
+
+
 
 
 

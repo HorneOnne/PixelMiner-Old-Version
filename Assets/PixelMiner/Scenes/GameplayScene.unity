@@ -216,6 +216,38 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 22809401}
   m_CullTransparentMesh: 1
+--- !u!1 &40427127
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 40427128}
+  m_Layer: 0
+  m_Name: === Debug ===
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &40427128
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 40427127}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 202.58228, y: 1.4002331, z: 30.839552}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 51878818}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &41479163
 GameObject:
   m_ObjectHideFlags: 0
@@ -338,6 +370,52 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   WorldGenSlider: {fileID: 813266250}
+--- !u!1 &51878816
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 51878818}
+  - component: {fileID: 51878817}
+  m_Layer: 0
+  m_Name: CreateTree
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &51878817
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 51878816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f5796b306ada6c4cb0cb13e468bcca6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  WoodPrefab: {fileID: 4403770283696706047, guid: 3228c64a0b9dd4148b48e42dcdba41f9, type: 3}
+  LeavePrefab: {fileID: 4403770283696706047, guid: 88d1a4ee28d000840b5c886fc13455a4, type: 3}
+--- !u!4 &51878818
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 51878816}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 40427128}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &172394999
 GameObject:
   m_ObjectHideFlags: 0
@@ -1366,8 +1444,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SeedInput: 7
   ChunkDimension: {x: 32, y: 32, z: 32}
-  AutoLoadChunk: 0
-  AutoUnloadChunk: 0
+  AutoLoadChunk: 1
+  AutoUnloadChunk: 1
   ShowLog: 0
 --- !u!4 &587489646
 Transform:
@@ -2084,12 +2162,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22ae457847da8e43877aef4220ef471, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  InitWorldWidth: 5
+  InitWorldWidth: 2
   InitWorldHeight: 1
-  InitWorldDepth: 5
-  LoadChunkOffsetWidth: 5
+  InitWorldDepth: 2
+  LoadChunkOffsetWidth: 2
   LoadChunkOffsetHeight: 1
-  LoadChunkOffsetDepth: 5
+  LoadChunkOffsetDepth: 2
   InitFastDrawChunk: 0
   _playerTrans: {fileID: 314038816}
 --- !u!1 &1252983687
@@ -4122,3 +4200,4 @@ SceneRoots:
   - {fileID: 677337752}
   - {fileID: 314038816}
   - {fileID: 1590955043}
+  - {fileID: 40427128}

@@ -20,7 +20,10 @@ namespace PixelMiner.Lighting
             { BlockType.Glass, 10 },   
             { BlockType.Snow, 150 },
 
-            { BlockType.Light, 10 },     
+            { BlockType.Light, 10 },  
+            
+            { BlockType.Wood, 150 },     
+            { BlockType.Leaves, 50 },     
         };
         public static byte GetOpacity(BlockType blockType)
         {

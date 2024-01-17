@@ -7,6 +7,7 @@ using System.Collections.Generic;
 
 namespace PixelMiner.UI.WorldGen
 {
+
     public class TestPoissonDisc : MonoBehaviour
     {
         public Image Image;
@@ -76,7 +77,7 @@ namespace PixelMiner.UI.WorldGen
             return texture;
         }
 
-        private List<Vector2Int> PoissonDisc(int frameX, int frameZ, int width, int height, FastNoiseLite noise, float minDistance = 50, float maxDistance = 200)
+        private List<Vector2Int> PoissonDisc(int frameX, int frameZ, int width, int height, FastNoiseLite noise, float minDistance = 2, float maxDistance = 5)
         {
 
             int k = 30; // limit of samples
@@ -180,6 +181,7 @@ namespace PixelMiner.UI.WorldGen
             bool IsValid(Vector2 point, float minDist)
             {
                 if (point.x < 0 || point.x > width - 1 || point.y < 0 || point.y > height - 1) return false;
+                if (point.x < cellSize / 2f  || point.y < cellSize / 2f) return false;
 
                 int maxCellX = Mathf.FloorToInt(point.x / cellSize);
                 int maxCellY = Mathf.FloorToInt(point.y / cellSize);
