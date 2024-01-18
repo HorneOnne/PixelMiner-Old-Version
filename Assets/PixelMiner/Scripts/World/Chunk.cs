@@ -178,16 +178,16 @@ namespace PixelMiner.World
 
             for(int i = 0; i < _faceNeighbors.Length; i++)
             {
-                if (IsValidRelativePosition(relativePosition))
+                if (IsValidRelativePosition(_faceNeighbors[i]))
                 {
-                    if(ChunkData[IndexOf(relativePosition.x, relativePosition.y, relativePosition.z)].IsTransparentSolidBlock())
+                    if(ChunkData[IndexOf(_faceNeighbors[i].x, _faceNeighbors[i].y, _faceNeighbors[i].z)].IsTransparentSolidBlock())
                     {
                         return false;
                     }
                 }
                 else
                 {
-                    if (FindNeighbor(relativePosition, out Chunk neighborChunk, out Vector3Int nbRelativePosition))
+                    if (FindNeighbor(_faceNeighbors[i], out Chunk neighborChunk, out Vector3Int nbRelativePosition))
                     {
                         if(neighborChunk.ChunkData[IndexOf(nbRelativePosition.x, nbRelativePosition.y, nbRelativePosition.z)].IsTransparentSolidBlock())
                         {
@@ -202,6 +202,58 @@ namespace PixelMiner.World
             }
 
             return true;
+        }
+        public bool IsNeighborFaceHasSameBlock(Vector3Int relativePosition, BlockType blockType)
+        {
+            GetFaceNeighbors(relativePosition);
+
+            for (int i = 0; i < _faceNeighbors.Length; i++)
+            {
+                if (IsValidRelativePosition(_faceNeighbors[i]))
+                {
+                    if (ChunkData[IndexOf(_faceNeighbors[i].x, _faceNeighbors[i].y, _faceNeighbors[i].z)] != blockType)
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (FindNeighbor(_faceNeighbors[i], out Chunk neighborChunk, out Vector3Int nbRelativePosition))
+                    {
+                        if (neighborChunk.ChunkData[IndexOf(nbRelativePosition.x, nbRelativePosition.y, nbRelativePosition.z)] != blockType)
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+        public bool IsNeighborHasAirBlock(Vector3Int relativePosition)
+        {
+            GetFaceNeighbors(relativePosition);
+
+            for (int i = 0; i < _faceNeighbors.Length; i++)
+            {
+                if (IsValidRelativePosition(_faceNeighbors[i]))
+                {
+                    if (ChunkData[IndexOf(_faceNeighbors[i].x, _faceNeighbors[i].y, _faceNeighbors[i].z)] == BlockType.Air)
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (FindNeighbor(_faceNeighbors[i], out Chunk neighborChunk, out Vector3Int nbRelativePosition))
+                    {
+                        if (neighborChunk.ChunkData[IndexOf(nbRelativePosition.x, nbRelativePosition.y, nbRelativePosition.z)] == BlockType.Air)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
         }
 
 
@@ -259,7 +311,7 @@ namespace PixelMiner.World
         {
             position[dimension] += isBackFace ? -1 : 1;
             //return GetBlock(position).IsSolid() == false;
-            return GetBlock(position).IsSolid() == false || GetBlock(position).IsTransparentSolidBlock();
+            return GetBlock(position).IsSolid() == false ;
         }
         public bool IsTransparentBlockFaceVisible(Vector3Int position, int dimension, bool isBackFace)
         {

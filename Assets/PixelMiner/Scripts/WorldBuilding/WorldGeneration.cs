@@ -156,11 +156,11 @@ namespace PixelMiner.WorldBuilding
         public BiomeType[,] BiomeTable = new BiomeType[6, 6]
         {
               //COLDEST         //COLDER            //COLD                  //HOT                          //HOTTER                       //HOTTEST
-		    { BiomeType.Ice,    BiomeType.Ice,   BiomeType.Grassland,   BiomeType.Grassland,             BiomeType.Grassland,              BiomeType.Desert },              //DRYEST
-		    { BiomeType.Ice,    BiomeType.Ice,   BiomeType.Grassland,   BiomeType.Grassland,             BiomeType.Grassland,              BiomeType.Desert },              //DRYER
-		    { BiomeType.Ice,    BiomeType.Ice,   BiomeType.Grassland,   BiomeType.Woodland,              BiomeType.Woodland,              BiomeType.Desert },               //DRY
-		    { BiomeType.Ice,    BiomeType.Ice,   BiomeType.Woodland,    BiomeType.Woodland,              BiomeType.Woodland,              BiomeType.Desert },               //WET
-		    { BiomeType.Ice,    BiomeType.Ice,   BiomeType.Forest,      BiomeType.Forest,                BiomeType.Forest,              BiomeType.Forest },                 //WETTER
+		    { BiomeType.Ice,    BiomeType.Ice,   BiomeType.Grassland,   BiomeType.Grassland,             BiomeType.Desert,              BiomeType.Desert },              //DRYEST
+		    { BiomeType.Ice,    BiomeType.Ice,   BiomeType.Grassland,   BiomeType.Grassland,             BiomeType.Desert,              BiomeType.Desert },              //DRYER
+		    { BiomeType.Ice,    BiomeType.Ice,   BiomeType.Grassland,   BiomeType.Woodland,              BiomeType.Desert,              BiomeType.Desert },               //DRY
+		    { BiomeType.Ice,    BiomeType.Ice,   BiomeType.Woodland,    BiomeType.Woodland,              BiomeType.Desert,              BiomeType.Desert },               //WET
+		    { BiomeType.Ice,    BiomeType.Ice,   BiomeType.Forest,      BiomeType.Forest,                BiomeType.Forest,              BiomeType.Desert },                 //WETTER
 		    { BiomeType.Ice,    BiomeType.Ice,   BiomeType.Forest,      BiomeType.Forest,                BiomeType.Forest,              BiomeType.Forest }                  //WETTEST
         };
 
@@ -171,8 +171,14 @@ namespace PixelMiner.WorldBuilding
         private float _grassNoiseFrequency = 0.0045f;
 
         private FastNoiseLite _treeNoiseDistribute;
-        private float _treeNoiseFrequency = 0.0045f;
+        private float _treeNoiseFrequency = 0.0085f;
 
+        private FastNoiseLite _shrubNoiseDistribute;
+        private float _shrubNoiseFrequency = 0.0085f;
+
+
+        private FastNoiseLite _cactusNoiseDistribute;
+        private float _cactusNoiseFrequency = 0.0295f;
 
 
         // Cached
@@ -293,8 +299,23 @@ namespace PixelMiner.WorldBuilding
             _treeNoiseDistribute = new FastNoiseLite(Seed);
             _treeNoiseDistribute.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
             _treeNoiseDistribute.SetFractalType(FastNoiseLite.FractalType.FBm);
-            _treeNoiseDistribute.SetFrequency(_grassNoiseFrequency);
+            _treeNoiseDistribute.SetFrequency(_treeNoiseFrequency);
             _treeNoiseDistribute.SetFractalOctaves(1);
+
+
+
+            _shrubNoiseDistribute = new FastNoiseLite(Seed);
+            _shrubNoiseDistribute.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            _shrubNoiseDistribute.SetFractalType(FastNoiseLite.FractalType.FBm);
+            _shrubNoiseDistribute.SetFrequency(_shrubNoiseFrequency);
+            _shrubNoiseDistribute.SetFractalOctaves(1);
+
+
+            _cactusNoiseDistribute = new FastNoiseLite(Seed + 1);
+            _cactusNoiseDistribute.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            _cactusNoiseDistribute.SetFractalType(FastNoiseLite.FractalType.FBm);
+            _cactusNoiseDistribute.SetFrequency(_cactusNoiseFrequency);
+            _cactusNoiseDistribute.SetFractalOctaves(1);
         }
 
         private void Start()
@@ -494,7 +515,7 @@ namespace PixelMiner.WorldBuilding
 
             await Task.WhenAll(loadChunkTask);
 
-            for(int i = 0; i < loadChunkTask.Count; i++)
+            for (int i = 0; i < loadChunkTask.Count; i++)
             {
                 _worldLoading.LoadChunk(loadChunkTask[i].Result);
             }
@@ -612,6 +633,8 @@ namespace PixelMiner.WorldBuilding
 
                 await PlaceGrassAsync(chunk);
                 await PlaceTreeAsync(chunk);
+                await PlaceShrubAsync(chunk);
+                await PlaceCactusAsync(chunk, 2, 5);
 
 
 
@@ -673,7 +696,7 @@ namespace PixelMiner.WorldBuilding
             MeshDataPool.Release(solidMeshData);
             MeshDataPool.Release(transparentSolidMeshData);
             MeshDataPool.Release(colliderMeshData);
-           
+
         }
         public Mesh CreateMesh(MeshData meshData)
         {
@@ -712,7 +735,7 @@ namespace PixelMiner.WorldBuilding
         public async Task<float[]> GetHeightMapDataAsync(int frameX, int frameZ, int width, int height)
         {
             float[] heightValues = new float[width * height];
-     
+
 
             await Task.Run(() =>
             {
@@ -901,7 +924,7 @@ namespace PixelMiner.WorldBuilding
 
                             int terrainHeight = Mathf.FloorToInt(heightValue * _groundLevel);
                             int globalHeight = (chunk.FrameY * chunk._height) + y;
-   
+
                             if (flatWorld)
                             {
                                 if (globalHeight <= _underGroundLevel)
@@ -913,10 +936,18 @@ namespace PixelMiner.WorldBuilding
                                     switch (chunk.BiomesData[index3D])
                                     {
                                         case BiomeType.Desert:
+                                            //Debug.Log("Desrt");
                                             chunk.ChunkData[index3D] = BlockType.Sand;
                                             break;
                                         case BiomeType.Grassland:
-                                            chunk.ChunkData[index3D] = BlockType.Sand;
+                                            if (globalHeight < _groundLevel)
+                                            {
+                                                chunk.ChunkData[index3D] = BlockType.Dirt;
+                                            }
+                                            else if (globalHeight == _groundLevel)
+                                            {
+                                                chunk.ChunkData[index3D] = BlockType.DirtGrass;
+                                            }
                                             break;
                                         case BiomeType.Woodland:
                                             if (globalHeight < _groundLevel)
@@ -966,30 +997,30 @@ namespace PixelMiner.WorldBuilding
                             }
                             else
                             {
-                                if (y < terrainHeight)
-                                {
-                                    if (heightValue < Water)
-                                        chunk.ChunkData[index3D] = BlockType.Water;
-                                    if (heightValue < Sand)
-                                        chunk.ChunkData[index3D] = BlockType.Sand;
-                                    else if (heightValue < Grass)
-                                        chunk.ChunkData[index3D] = BlockType.Dirt;
-                                    else if (heightValue < Forest)
-                                        chunk.ChunkData[index3D] = BlockType.DirtGrass;
-                                    else if (heightValue < Rock)
-                                        chunk.ChunkData[index3D] = BlockType.Stone;
-                                    else
-                                        chunk.ChunkData[index3D] = BlockType.Ice;
-                                }
-                                else if (y < height * Water)
-                                {
-                                    chunk.ChunkData[index3D] = BlockType.Water;
-                                }
-                                else
-                                {
+                                //if (y < terrainHeight)
+                                //{
+                                //    if (heightValue < Water)
+                                //        chunk.ChunkData[index3D] = BlockType.Water;
+                                //    if (heightValue < Sand)
+                                //        chunk.ChunkData[index3D] = BlockType.Sand;
+                                //    else if (heightValue < Grass)
+                                //        chunk.ChunkData[index3D] = BlockType.Dirt;
+                                //    else if (heightValue < Forest)
+                                //        chunk.ChunkData[index3D] = BlockType.DirtGrass;
+                                //    else if (heightValue < Rock)
+                                //        chunk.ChunkData[index3D] = BlockType.Stone;
+                                //    else
+                                //        chunk.ChunkData[index3D] = BlockType.Ice;
+                                //}
+                                //else if (y < height * Water)
+                                //{
+                                //    chunk.ChunkData[index3D] = BlockType.Water;
+                                //}
+                                //else
+                                //{
 
-                                    chunk.ChunkData[index3D] = BlockType.Air;
-                                }
+                                //    chunk.ChunkData[index3D] = BlockType.Air;
+                                //}
                             }
                         }
                     }
@@ -1527,7 +1558,7 @@ namespace PixelMiner.WorldBuilding
         #region DECORs
         public async Task PlaceGrassAsync(Chunk chunk)
         {
-            List<Vector2Int> distributedGrassPositions = await PoissonDiscAsync(chunk.FrameX, chunk.FrameZ, chunk._width, chunk._depth, _grassNoiseDistribute, 2,4);
+            List<Vector2Int> distributedGrassPositions = await PoissonDiscAsync(chunk.FrameX, chunk.FrameZ, chunk._width, chunk._depth, _grassNoiseDistribute, 2, 4);
 
             await Task.Run(() =>
             {
@@ -1553,13 +1584,13 @@ namespace PixelMiner.WorldBuilding
                         }
                     }
                 }
-            });      
+            });
         }
 
 
         public async Task PlaceTreeAsync(Chunk chunk)
         {
-            List<Vector2Int> distributedPositions = await PoissonDiscAsync(chunk.FrameX, chunk.FrameZ, chunk._width, chunk._depth, _grassNoiseDistribute, 7, 10);
+            List<Vector2Int> distributedPositions = await PoissonDiscAsync(chunk.FrameX, chunk.FrameZ, chunk._width, chunk._depth, _grassNoiseDistribute, 10, 20);
 
             await Task.Run(() =>
             {
@@ -1570,7 +1601,51 @@ namespace PixelMiner.WorldBuilding
                     if (chunk.GetBlock(currRelativePos).IsDirt())
                     {
                         Vector3Int upperRelativePos = new Vector3Int(currRelativePos.x, currRelativePos.y + 1, currRelativePos.z);
-                        CreateTree(chunk.GetGlobalPosition(upperRelativePos), 5);
+                        int randHeight = (int)Mathf.Lerp(5f, 7.5f, (_treeNoiseDistribute.GetNoise(currRelativePos.x, currRelativePos.z)));
+                        CreateTree(chunk.GetGlobalPosition(upperRelativePos), randHeight);
+                    }
+                }
+            });
+        }
+
+
+        public async Task PlaceShrubAsync(Chunk chunk)
+        {
+            List<Vector2Int> distributedPositions = await PoissonDiscAsync(chunk.FrameX, chunk.FrameZ, chunk._width, chunk._depth, _shrubNoiseDistribute, 12, 20);
+
+            await Task.Run(() =>
+            {
+                for (int i = 0; i < distributedPositions.Count; i++)
+                {
+                    Vector3Int currRelativePos = new Vector3Int(distributedPositions[i].x, _groundLevel, distributedPositions[i].y);
+
+                    if (chunk.GetBiome(currRelativePos) == BiomeType.Desert && chunk.GetBlock(currRelativePos) == BlockType.Sand)
+                    {
+                        Vector3Int upperRelativePos = new Vector3Int(currRelativePos.x, currRelativePos.y + 1, currRelativePos.z);
+                        if (chunk.OnGroundLevel(upperRelativePos))
+                        {
+                            chunk.SetBlock(upperRelativePos, BlockType.Shrub);
+                        }
+                    }
+                }
+            });
+        }
+
+        public async Task PlaceCactusAsync(Chunk chunk, int minCactusHeight, int maxCactusHeight)
+        {
+            List<Vector2Int> distributedPositions = await PoissonDiscAsync(chunk.FrameX, chunk.FrameZ, chunk._width, chunk._depth, _cactusNoiseDistribute, 12, 20);
+
+            await Task.Run(() =>
+            {
+                for (int i = 0; i < distributedPositions.Count; i++)
+                {
+                    Vector3Int currRelativePos = new Vector3Int(distributedPositions[i].x, _groundLevel, distributedPositions[i].y);
+                    float noiseValue = (_cactusNoiseDistribute.GetNoise(distributedPositions[i].x, distributedPositions[i].y) + 1.0f) / 2.0f;
+                    int randomHeight = Mathf.RoundToInt(Mathf.Lerp(minCactusHeight, maxCactusHeight, noiseValue));
+                    if (chunk.GetBiome(currRelativePos) == BiomeType.Desert && chunk.GetBlock(currRelativePos) == BlockType.Sand)
+                    {
+                        Vector3Int startPos = new Vector3Int(currRelativePos.x, currRelativePos.y + randomHeight, currRelativePos.z);
+                        PlaceBlockDownward(chunk.GetGlobalPosition(startPos), BlockType.Cactus);
                     }
                 }
             });
@@ -1608,7 +1683,7 @@ namespace PixelMiner.WorldBuilding
                         grid[x, y] = new List<Vector2Int>();
                     }
                 });
-      
+
                 float noiseX = (noise.GetNoise(frameX * width, frameZ * height) + 1.0f) / 2.0f;
                 float noiseY = (noise.GetNoise(frameX * width, frameZ * height) + 1.0f) / 2.0f;
                 Vector2Int firstPoint = new Vector2Int(Mathf.FloorToInt(noiseX * (width - 1)), Mathf.FloorToInt(noiseY * (height - 1)));
@@ -1652,7 +1727,7 @@ namespace PixelMiner.WorldBuilding
                         Debug.Log("Infinite loop");
                         break;
                     }
-                }              
+                }
             });
 
 
@@ -1885,6 +1960,31 @@ namespace PixelMiner.WorldBuilding
                 }
             }
         }
+
+        public void PlaceBlockDownward(Vector3Int startGPosition, BlockType blockType)
+        {
+            int attempt = 0;
+            Vector3 currGPos = new Vector3(startGPosition.x, startGPosition.y, startGPosition.z);
+            while (true)
+            {
+                if (Main.Instance.GetBlock(currGPos) == BlockType.Air)
+                {
+                    Main.Instance.SetBlock(currGPos, blockType);
+                    currGPos = new Vector3(currGPos.x, currGPos.y - 1, currGPos.z);
+                }
+                else
+                {
+                    break;
+                }
+
+
+                if (attempt++ > 10)
+                {
+                    Debug.Log("Infinite loop");
+                    break;
+                }
+            }
+        }
         #endregion
 
 
@@ -1954,10 +2054,10 @@ namespace PixelMiner.WorldBuilding
             int attempt = 0;
             BlockType blockNeedCheck = chunk.GetBlock(relativePosition);
             Vector3Int currBlockPos = relativePosition;
-            while(true)
+            while (true)
             {
                 Vector3Int nextRelativePosition = new Vector3Int(currBlockPos.x, currBlockPos.y - 1, currBlockPos.z);
-                if(blockNeedCheck == chunk.GetBlock(nextRelativePosition))
+                if (blockNeedCheck == chunk.GetBlock(nextRelativePosition))
                 {
                     currBlockPos = nextRelativePosition;
                     heightFromOrigin++;

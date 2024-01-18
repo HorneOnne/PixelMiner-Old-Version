@@ -23,6 +23,9 @@
 
         Bedrock = 17,
         Gravel = 0,
+
+        Shrub = 55,
+        Cactus = 70,
     }
 
     public static class BlockTypeExtensions
@@ -35,6 +38,7 @@
                    blockType != BlockType.Water &&
                    blockType != BlockType.Grass &&
                    blockType != BlockType.Leaves &&
+                   blockType != BlockType.Shrub &&
                    blockType != BlockType.TallGrass;
         }
 
@@ -48,6 +52,12 @@
         {
             return blockType == BlockType.Glass ||
                    blockType == BlockType.Leaves;
+        }
+
+        public static bool IsGrassType(this BlockType blockType)
+        {
+            return blockType == BlockType.Grass ||
+                   blockType == BlockType.Shrub;
         }
     }
 }

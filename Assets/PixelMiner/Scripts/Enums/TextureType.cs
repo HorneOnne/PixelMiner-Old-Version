@@ -27,6 +27,11 @@
         Bedrock = 17,
         Gravel = 0,
 
+
+        Shrub = 55,
+        Cactus_Upper = 69,
+        Cactus_Middle = 70,
+     
     }
 
     

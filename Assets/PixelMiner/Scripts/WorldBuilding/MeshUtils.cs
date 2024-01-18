@@ -212,13 +212,47 @@ namespace PixelMiner.WorldBuilding
                 Vector3Int e = b + new Vector3Int(1, 0, -1);
 
                 return blockA == blockB &&
-                       !chunk.IsSolid(b) &&
+                       chunk.GetBlock(b).IsSolid() == false &&
+                       //chunk.GetBlock(b).IsTransparentSolidBlock() == true &&
                        GetBlockLightPropagationForAdjacentFace(chunk, a, voxelFace) == GetBlockLightPropagationForAdjacentFace(chunk, b, voxelFace) &&
                        GetBlockLightPropagationForAdjacentFace(chunk, a, voxelFace) == GetBlockLightPropagationForAdjacentFace(chunk, c, voxelFace) &&
                        GetBlockLightPropagationForAdjacentFace(chunk, a, voxelFace) == GetBlockLightPropagationForAdjacentFace(chunk, d, voxelFace) &&
                        GetBlockLightPropagationForAdjacentFace(chunk, a, voxelFace) == GetBlockLightPropagationForAdjacentFace(chunk, e, voxelFace) &&
                        chunk.IsBlockFaceVisible(b, dimension, isBackFace);
+                       //chunk.IsTransparentBlockFaceVisible(b, dimension, isBackFace);
             }
+
+            bool GreeyAO(Chunk chunkA, Vector3Int relativePosA, int voxelFaceA, Chunk chunkB, Vector3Int relativePosB, int voxelFaceB)
+            {
+                byte a0 = (byte)VoxelAO.ProcessAO(chunkA, relativePosB, 0, voxelFaceA);
+                byte a1 = (byte)VoxelAO.ProcessAO(chunkA, relativePosB, 1, voxelFaceA);
+                byte a2 = (byte)VoxelAO.ProcessAO(chunkA, relativePosB, 2, voxelFaceA);
+                byte a3 = (byte)VoxelAO.ProcessAO(chunkA, relativePosB, 3, voxelFaceA);
+
+                byte b0 = (byte)VoxelAO.ProcessAO(chunkB, relativePosB, 0, voxelFaceB);
+                byte b1 = (byte)VoxelAO.ProcessAO(chunkB, relativePosB, 1, voxelFaceB);
+                byte b2 = (byte)VoxelAO.ProcessAO(chunkB, relativePosB, 2, voxelFaceB);
+                byte b3 = (byte)VoxelAO.ProcessAO(chunkB, relativePosB, 3, voxelFaceB);
+
+                bool allEqual = (a0 == b0) && (a1 == b1) && (a2 == b2) && (a3 == b3);
+
+                if (allEqual)
+                {
+                    Console.WriteLine("All values are equal.");
+                    return true;
+                }
+                else
+                {
+                
+                    Console.WriteLine("Values are not equal.");
+                    return false;
+                }
+
+
+                return (a0 == b0 && a1 == b1 && a2 == b2 && a3 == b3
+                    );//&& a0 == 3 && a1 == 3 && a2 == 3 && a3 == 3);
+            }
+
 
 
             ChunkMeshBuilder builder = ChunkMeshBuilderPool.Get();
@@ -319,7 +353,7 @@ namespace PixelMiner.WorldBuilding
                                     {
                                         continue;
                                     }
-
+                       
                                     if (chunk.IsBlockFaceVisible(startPos, d, isBackFace) == false)
                                     {
                                         continue;
@@ -342,14 +376,73 @@ namespace PixelMiner.WorldBuilding
 
 
 
+                                // Ambient occlusion
+                                // =================
+                                bool anisotropy = false;
+
+                                verticesAO[0] = (byte)VoxelAO.ProcessAO(chunk, startPos, 0, voxelFace);
+                                verticesAO[1] = (byte)VoxelAO.ProcessAO(chunk, startPos, 1, voxelFace);
+                                verticesAO[2] = (byte)VoxelAO.ProcessAO(chunk, startPos, 2, voxelFace);
+                                verticesAO[3] = (byte)VoxelAO.ProcessAO(chunk, startPos, 3, voxelFace);
+
+                                //if (currBlock.IsTransparentSolidBlock())
+                                //{
+                                //    if (chunk.IsNeighborHasAirBlock(startPos))
+                                //    {
+                                //        verticesAO[0] = (byte)VoxelAO.ProcessAO(chunk, startPos, 0, voxelFace);
+                                //        verticesAO[1] = (byte)VoxelAO.ProcessAO(chunk, startPos, 1, voxelFace);
+                                //        verticesAO[2] = (byte)VoxelAO.ProcessAO(chunk, startPos, 2, voxelFace);
+                                //        verticesAO[3] = (byte)VoxelAO.ProcessAO(chunk, startPos, 3, voxelFace);
+                                //    }
+                                //    else
+                                //    {
+                                //        verticesAO[0] = 0;
+                                //        verticesAO[1] = 0;
+                                //        verticesAO[2] = 0;
+                                //        verticesAO[3] = 0;
+                                //    }
+                                //}
+                                //else
+                                //{
+                                //    verticesAO[0] = (byte)VoxelAO.ProcessAO(chunk, startPos, 0, voxelFace);
+                                //    verticesAO[1] = (byte)VoxelAO.ProcessAO(chunk, startPos, 1, voxelFace);
+                                //    verticesAO[2] = (byte)VoxelAO.ProcessAO(chunk, startPos, 2, voxelFace);
+                                //    verticesAO[3] = (byte)VoxelAO.ProcessAO(chunk, startPos, 3, voxelFace);
+                                //}
+
+                                //if (voxelFace == 1)
+                                //{
+                                //    if (verticesAO[1] + verticesAO[3] > verticesAO[2] + verticesAO[0])
+                                //    {
+                                //        vertices[3] = offsetPos;
+                                //        vertices[0] = offsetPos + m;
+                                //        vertices[1] = offsetPos + m + n;
+                                //        vertices[2] = offsetPos + n;
+
+                                //        var temp0 = verticesAO[0];
+                                //        var temp1 = verticesAO[1];
+                                //        var temp2 = verticesAO[2];
+                                //        var temp3 = verticesAO[3];
+
+                                //        verticesAO[0] = temp1;
+                                //        verticesAO[1] = temp2;
+                                //        verticesAO[2] = temp3;
+                                //        verticesAO[3] = temp0;
+
+                                //        anisotropy = true;
+                                //    }
+                                //}
+
+
+
                                 if (greedyMeshing)
                                 {
-                                    Debug.Log("Greedy");
                                     quadSize = new Vector3Int();
                                     // Next step is loop to figure out width and height of the new merged quad.
                                     for (currPos = startPos, currPos[u]++;
                                         currPos[u] < dimensions[u] &&
                                         GreedyCompareLogic(startPos, currPos, d, isBackFace, voxelFace) &&
+                                        GreeyAO(chunk, startPos, voxelFace, chunk, currPos, voxelFace) &&
                                         !builder.Merged[d][currPos[u], currPos[v]];
                                         currPos[u]++)
                                     { }
@@ -358,6 +451,7 @@ namespace PixelMiner.WorldBuilding
                                     for (currPos = startPos, currPos[v]++;
                                         currPos[v] < dimensions[v] &&
                                         GreedyCompareLogic(startPos, currPos, d, isBackFace, voxelFace) &&
+                                         GreeyAO(chunk, startPos, voxelFace, chunk, currPos, voxelFace) &&
                                         !builder.Merged[d][currPos[u], currPos[v]];
                                         currPos[v]++)
                                     {
@@ -366,6 +460,7 @@ namespace PixelMiner.WorldBuilding
                                         for (currPos[u] = startPos[u];
                                             currPos[u] < dimensions[u] &&
                                             GreedyCompareLogic(startPos, currPos, d, isBackFace, voxelFace) &&
+                                             GreeyAO(chunk, startPos, voxelFace, chunk, currPos, voxelFace) &&
                                             !builder.Merged[d][currPos[u], currPos[v]];
                                             currPos[u]++)
                                         { }
@@ -407,36 +502,7 @@ namespace PixelMiner.WorldBuilding
                                 vertices[3] = offsetPos + n;
 
 
-                                // Ambient occlusion
-                                // =================
-                                bool anisotropy = false;
-                                verticesAO[0] = (byte)VoxelAO.ProcessAO(chunk, startPos, 0, voxelFace);
-                                verticesAO[1] = (byte)VoxelAO.ProcessAO(chunk, startPos, 1, voxelFace);
-                                verticesAO[2] = (byte)VoxelAO.ProcessAO(chunk, startPos, 2, voxelFace);
-                                verticesAO[3] = (byte)VoxelAO.ProcessAO(chunk, startPos, 3, voxelFace);
-
-                                //if (voxelFace == 1)
-                                //{
-                                //    if (verticesAO[1] + verticesAO[3] > verticesAO[2] + verticesAO[0])
-                                //    {
-                                //        vertices[3] = offsetPos;
-                                //        vertices[0] = offsetPos + m;
-                                //        vertices[1] = offsetPos + m + n;
-                                //        vertices[2] = offsetPos + n;
-
-                                //        var temp0 = verticesAO[0];
-                                //        var temp1 = verticesAO[1];
-                                //        var temp2 = verticesAO[2];
-                                //        var temp3 = verticesAO[3];
-
-                                //        verticesAO[0] = temp1;
-                                //        verticesAO[1] = temp2;
-                                //        verticesAO[2] = temp3;
-                                //        verticesAO[3] = temp0;
-
-                                //        anisotropy = true;
-                                //    }
-                                //}
+                              
 
 
 
@@ -759,7 +825,9 @@ namespace PixelMiner.WorldBuilding
                     int x = i % chunk._width;
                     int y = (i / chunk._width) % chunk._height;
                     int z = i / (chunk._width * chunk._height);
-                    if (chunk.ChunkData[i] == BlockType.Grass)
+
+                    BlockType currBlock = chunk.ChunkData[i];
+                    if (currBlock == BlockType.Grass || currBlock == BlockType.Shrub)
                     {
                         Vector3Int curBlockPos = new Vector3Int(x, y, z);
                         // Generate a random float in the range -0.3 to 0.3
@@ -768,6 +836,7 @@ namespace PixelMiner.WorldBuilding
                         Vector3 randomOffset = new Vector3(randomFloatX, 0, randomFloatZ);
                         Vector3 offsetPos = curBlockPos + randomOffset;
 
+                       
 
                         if (applyRotation)
                         {
@@ -778,7 +847,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[1] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 0, 1), _centerOffset + offsetPos, rotation);
                             vertices[2] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 1, 1), _centerOffset + offsetPos, rotation);
                             vertices[3] = RotatePointAroundPivot(offsetPos + new Vector3Int(0, 1, 0), _centerOffset + offsetPos, rotation);
-                            GetGrassUVs(BlockType.Grass, ref uvs, ref uv2s);
+                            GetGrassUVs(currBlock, ref uvs, ref uv2s);
                             builder.AddQuadFace(vertices, uvs, uv2s);
 
 
@@ -786,7 +855,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[1] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 0, 0), _centerOffset + offsetPos, rotation);
                             vertices[2] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 1, 0), _centerOffset + offsetPos, rotation);
                             vertices[3] = RotatePointAroundPivot(offsetPos + new Vector3Int(0, 1, 1), _centerOffset + offsetPos, rotation);
-                            GetGrassUVs(BlockType.Grass, ref uvs, ref uv2s);
+                            GetGrassUVs(currBlock, ref uvs, ref uv2s);
                             builder.AddQuadFace(vertices, uvs, uv2s);
                         }
                         else
@@ -795,7 +864,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[1] = offsetPos + new Vector3Int(1, 0, 1);
                             vertices[2] = offsetPos + new Vector3Int(1, 1, 1);
                             vertices[3] = offsetPos + new Vector3Int(0, 1, 0);
-                            GetGrassUVs(BlockType.Grass, ref uvs, ref uv2s);
+                            GetGrassUVs(currBlock, ref uvs, ref uv2s);
                             builder.AddQuadFace(vertices, uvs, uv2s);
 
 
@@ -803,7 +872,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[1] = offsetPos + new Vector3Int(1, 0, 0);
                             vertices[2] = offsetPos + new Vector3Int(1, 1, 0);
                             vertices[3] = offsetPos + new Vector3Int(0, 1, 1);
-                            GetGrassUVs(BlockType.Grass, ref uvs, ref uv2s);
+                            GetGrassUVs(currBlock, ref uvs, ref uv2s);
                             builder.AddQuadFace(vertices, uvs, uv2s);
                         }
 
@@ -879,6 +948,7 @@ namespace PixelMiner.WorldBuilding
 
             if (blockType == BlockType.Grass)
             {
+                colorMapType = ColorMapType.Plains;
                 blockIndex = (ushort)BlockType.Grass;
                 uvs[0] = new Vector3(0, 0, blockIndex);
                 uvs[1] = new Vector3(1, 0, blockIndex);
@@ -903,6 +973,15 @@ namespace PixelMiner.WorldBuilding
                 uvs[2] = new Vector3(1, 1, blockIndex);
                 uvs[3] = new Vector3(0, 1, blockIndex);
             }
+            else if(blockType == BlockType.Shrub)
+            {
+                colorMapType = ColorMapType.None;
+                blockIndex = (ushort)TextureType.Shrub;
+                uvs[0] = new Vector3(0, 0, blockIndex);
+                uvs[1] = new Vector3(1, 0, blockIndex);
+                uvs[2] = new Vector3(1, 1, blockIndex);
+                uvs[3] = new Vector3(0, 1, blockIndex);
+            }
 
             GetColorMapkUVs(colorMapType, ref uv2s);
         }
@@ -910,57 +989,96 @@ namespace PixelMiner.WorldBuilding
         {
             int blockIndex;
             ColorMapType colorMapType = ColorMapType.None;
-            if (blockType == BlockType.DirtGrass)
+
+            switch(blockType)
             {
-                if (face == 1)
-                {
-                    blockIndex = (ushort)TextureType.GrassTop;
-                    colorMapType = ColorMapType.Plains;
-                }
-                else if (face == 4)
-                {
-                    blockIndex = (ushort)TextureType.Dirt;
-                }
-                else
-                {
+                default:
                     blockIndex = (ushort)blockType;
-                }
+                    break;
+                case BlockType.DirtGrass:
+                    if (face == 1)
+                    {
+                        blockIndex = (ushort)TextureType.GrassTop;
+                        colorMapType = ColorMapType.Plains;
+                    }
+                    else if (face == 4)
+                    {
+                        blockIndex = (ushort)TextureType.Dirt;
+                    }
+                    else
+                    {
+                        blockIndex = (ushort)blockType;
+                    }
+                    break;
+                case BlockType.Leaves:
+                    blockIndex = (ushort)blockType;
+                    colorMapType = ColorMapType.Plains;
+                    break;
+                case BlockType.Wood:
+                    if (face == 1 || face == 4)
+                    {
+                        blockIndex = (ushort)TextureType.HeartWood;
+                    }
+                    else
+                    {
+                        blockIndex = (ushort)TextureType.BarkWood;
+                    }
+                    break;
+                case BlockType.Cactus:
+                    if (face == 1)
+                    {
+                        blockIndex = (ushort)TextureType.Cactus_Upper;
+                    }
+                    else
+                    {
+                        blockIndex = (ushort)TextureType.Cactus_Middle;
+                    }
+                    break;
             }
-            else if (blockType == BlockType.Leaves)
-            {
-                blockIndex = (ushort)blockType;
-                colorMapType = ColorMapType.Plains;           
-            }
-            else if(blockType == BlockType.Wood)
-            {
-                if (face == 1)
-                {
-                    blockIndex = (ushort)TextureType.HeartWood;
-                }
-                else if (face == 4)
-                {
-                    blockIndex = (ushort)TextureType.HeartWood;
-                }
-                else
-                {
-                    blockIndex = (ushort)TextureType.BarkWood;
-                }
-            }
-            else
-            {
-                blockIndex = (ushort)blockType;
-            }
-
-
-
-            //if (blockType == BlockType.DirtGrass && face == 1)
+            
+            
+            //if (blockType == BlockType.DirtGrass)
             //{
-            //    colorMapType = ColorMapType.Plains;
+            //    if (face == 1)
+            //    {
+            //        blockIndex = (ushort)TextureType.GrassTop;
+            //        colorMapType = ColorMapType.Plains;
+            //    }
+            //    else if (face == 4)
+            //    {
+            //        blockIndex = (ushort)TextureType.Dirt;
+            //    }
+            //    else
+            //    {
+            //        blockIndex = (ushort)blockType;
+            //    }
+            //}
+            //else if (blockType == BlockType.Leaves)
+            //{
+            //    blockIndex = (ushort)blockType;
+            //    colorMapType = ColorMapType.Plains;           
+            //}
+            //else if(blockType == BlockType.Wood)
+            //{
+            //    if (face == 1)
+            //    {
+            //        blockIndex = (ushort)TextureType.HeartWood;
+            //    }
+            //    else if (face == 4)
+            //    {
+            //        blockIndex = (ushort)TextureType.HeartWood;
+            //    }
+            //    else
+            //    {
+            //        blockIndex = (ushort)TextureType.BarkWood;
+            //    }
             //}
             //else
             //{
-            //    colorMapType = ColorMapType.None;
+            //    blockIndex = (ushort)blockType;
             //}
+
+
 
             uvs[0] = new Vector3(0, 0, blockIndex);
             uvs[1] = new Vector3(width, 0, blockIndex);
