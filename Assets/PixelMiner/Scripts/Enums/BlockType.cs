@@ -26,6 +26,9 @@
 
         Shrub = 55,
         Cactus = 70,
+
+
+        SnowDritGrass = 66,
     }
 
     public static class BlockTypeExtensions
@@ -39,6 +42,7 @@
                    blockType != BlockType.Grass &&
                    blockType != BlockType.Leaves &&
                    blockType != BlockType.Shrub &&
+                   //blockType != BlockType.Cactus &&
                    blockType != BlockType.TallGrass;
         }
 
@@ -51,6 +55,7 @@
         public static bool IsTransparentSolidBlock(this BlockType blockType)
         {
             return blockType == BlockType.Glass ||
+                   //blockType == BlockType.Cactus ||
                    blockType == BlockType.Leaves;
         }
 
@@ -59,6 +64,15 @@
             return blockType == BlockType.Grass ||
                    blockType == BlockType.Shrub;
         }
+
+        public static bool AffectedByColorMap(this BlockType blockType)
+        {
+            return blockType == BlockType.Grass ||
+                   blockType == BlockType.DirtGrass ||
+                   blockType == BlockType.TallGrass ||
+                   blockType == BlockType.Leaves;
+        }
     }
 }
+
 

@@ -156,12 +156,12 @@ namespace PixelMiner.WorldBuilding
         public BiomeType[,] BiomeTable = new BiomeType[6, 6]
         {
               //COLDEST         //COLDER            //COLD                  //HOT                          //HOTTER                       //HOTTEST
-		    { BiomeType.Ice,    BiomeType.Ice,   BiomeType.Grassland,   BiomeType.Grassland,             BiomeType.Desert,              BiomeType.Desert },              //DRYEST
-		    { BiomeType.Ice,    BiomeType.Ice,   BiomeType.Grassland,   BiomeType.Grassland,             BiomeType.Desert,              BiomeType.Desert },              //DRYER
-		    { BiomeType.Ice,    BiomeType.Ice,   BiomeType.Grassland,   BiomeType.Woodland,              BiomeType.Desert,              BiomeType.Desert },               //DRY
-		    { BiomeType.Ice,    BiomeType.Ice,   BiomeType.Woodland,    BiomeType.Woodland,              BiomeType.Desert,              BiomeType.Desert },               //WET
-		    { BiomeType.Ice,    BiomeType.Ice,   BiomeType.Forest,      BiomeType.Forest,                BiomeType.Forest,              BiomeType.Desert },                 //WETTER
-		    { BiomeType.Ice,    BiomeType.Ice,   BiomeType.Forest,      BiomeType.Forest,                BiomeType.Forest,              BiomeType.Forest }                  //WETTEST
+		    { BiomeType.Snow,    BiomeType.Snow,   BiomeType.Plains,      BiomeType.Plains,             BiomeType.Desert,              BiomeType.Desert },              //DRYEST
+		    { BiomeType.Snow,    BiomeType.Snow,   BiomeType.Plains,      BiomeType.Plains,             BiomeType.Desert,              BiomeType.Desert },              //DRYER
+		    { BiomeType.Snow,    BiomeType.Snow,   BiomeType.Plains,      BiomeType.Plains,             BiomeType.Desert,              BiomeType.Desert },              //DRY
+		    { BiomeType.Snow,    BiomeType.Snow,   BiomeType.Forest,      BiomeType.Forest,             BiomeType.Desert,              BiomeType.Desert },              //WET
+		    { BiomeType.Snow,    BiomeType.Snow,   BiomeType.Forest,      BiomeType.Forest,             BiomeType.Forest,              BiomeType.Desert },              //WETTER
+		    { BiomeType.Snow,    BiomeType.Snow,   BiomeType.Forest,      BiomeType.Forest,             BiomeType.Forest,              BiomeType.Forest }               //WETTEST
         };
 
 
@@ -244,6 +244,14 @@ namespace PixelMiner.WorldBuilding
             _heatSimplex.SetFrequency(HeatFrequency);
             _heatSimplex.SetFractalLacunarity(HeatLacunarity);
             _heatSimplex.SetFractalGain(HeatPersistence);
+
+            //_heatSimplex = new FastNoiseLite(Seed);
+            //_heatSimplex.SetNoiseType(FastNoiseLite.NoiseType.Perlin);
+            //_heatSimplex.SetFractalType(FastNoiseLite.FractalType.FBm);
+            //_heatSimplex.SetFrequency(0.002f);
+            //_heatSimplex.SetFractalOctaves(6);
+            //_heatSimplex.SetFractalLacunarity(2f);
+            //_heatSimplex.SetFractalGain(0.5f);
 
             _heatVoronoi = new FastNoiseLite(Seed);
             _heatVoronoi.SetFrequency(_voronoiFrequency);
@@ -548,12 +556,13 @@ namespace PixelMiner.WorldBuilding
                 await Task.WhenAll(heightTask, heatTask, moistureTask, riverTask).ConfigureAwait(false);
                 //await Task.WhenAll(heatTask, moistureTask, riverTask);
                 float[] heightValues = heightTask.Result;
-                float[] heatValues = heatTask.Result;
+                //float[] heatValues = heatTask.Result;
+                newChunk.HeatValues = heatTask.Result;
                 float[] moistureValues = moistureTask.Result;
                 float[] riverValues = riverTask.Result;
 
 
-                Task loadHeatTask = LoadHeatMapDataAsync(newChunk, heatValues);
+                Task loadHeatTask = LoadHeatMapDataAsync(newChunk, newChunk.HeatValues);
                 Task loadMoistureTask = LoadMoistureMapDataAsync(newChunk, moistureValues);
                 await Task.WhenAll(loadHeatTask, loadMoistureTask);
                 await GenerateBiomeMapDataAsync(newChunk, heightValues);
@@ -820,8 +829,8 @@ namespace PixelMiner.WorldBuilding
                         float offsetZ = frameZ * height + z;
 
                         //float heatValue = (float)_heatSimplex.GetNoise(offsetX, offsetZ);
-                        //float heatValue = (float)_heatVoronoi.GetNoise(offsetX, offsetZ);
                         float heatValue = DomainWarping(offsetX, offsetZ, _heatSimplex, _heatVoronoi);
+
                         float normalizeHeatValue = (heatValue - _minWorldNoiseValue) / (_maxWorldNoiseValue - _minWorldNoiseValue);
                         fractalNoiseData[WorldGenUtilities.IndexOf(x, z, width)] = normalizeHeatValue;
                     }
@@ -939,17 +948,7 @@ namespace PixelMiner.WorldBuilding
                                             //Debug.Log("Desrt");
                                             chunk.ChunkData[index3D] = BlockType.Sand;
                                             break;
-                                        case BiomeType.Grassland:
-                                            if (globalHeight < _groundLevel)
-                                            {
-                                                chunk.ChunkData[index3D] = BlockType.Dirt;
-                                            }
-                                            else if (globalHeight == _groundLevel)
-                                            {
-                                                chunk.ChunkData[index3D] = BlockType.DirtGrass;
-                                            }
-                                            break;
-                                        case BiomeType.Woodland:
+                                        case BiomeType.Plains:
                                             if (globalHeight < _groundLevel)
                                             {
                                                 chunk.ChunkData[index3D] = BlockType.Dirt;
@@ -969,8 +968,8 @@ namespace PixelMiner.WorldBuilding
                                                 chunk.ChunkData[index3D] = BlockType.DirtGrass;
                                             }
                                             break;
-                                        case BiomeType.Ice:
-                                            chunk.ChunkData[index3D] = BlockType.Ice;
+                                        case BiomeType.Snow:
+                                            chunk.ChunkData[index3D] = BlockType.SnowDritGrass;
                                             break;
                                         case BiomeType.Ocean:
                                             if (heightValues[x + y * width] > (y / (float)height) && heightValues[x + y * width] < Water && y < _groundLevel)
@@ -979,11 +978,19 @@ namespace PixelMiner.WorldBuilding
                                             }
                                             else
                                             {
-                                                chunk.ChunkData[index3D] = BlockType.Water;
+                                                chunk.ChunkData[index3D] = BlockType.Water;                                                                                      
                                             }
                                             break;
                                         case BiomeType.River:
-                                            chunk.ChunkData[index3D] = BlockType.Water;
+                                            if (chunk.HeatData[index3D] == HeatType.Coldest || chunk.HeatData[index3D] == HeatType.Colder)
+                                            {
+                                               chunk.ChunkData[index3D] = BlockType.Ice;
+                                            }
+                                            else
+                                            {
+                                                chunk.ChunkData[index3D] = BlockType.Water;
+                                            }
+                                            
                                             break;
                                         default:
                                             Debug.LogError($"Not found {chunk.BiomesData[index3D]} biome.");
@@ -1094,6 +1101,31 @@ namespace PixelMiner.WorldBuilding
                             }
 
 
+
+                            //if (heatValue < WorldGeneration.Instance.ColdestValue)
+                            //{
+                            //    chunk.HeatData[index3D] = HeatType.Coldest;
+                            //}
+                            //else if (heatValue < WorldGeneration.Instance.ColderValue)
+                            //{
+                            //    chunk.HeatData[index3D] = HeatType.Colder;
+                            //}
+                            //else if (heatValue < WorldGeneration.Instance.ColdValue)
+                            //{
+                            //    chunk.HeatData[index3D] = HeatType.Cold;
+                            //}
+                            //else if (heatValue < WorldGeneration.Instance.WarmValue)
+                            //{
+                            //    chunk.HeatData[index3D] = HeatType.Warm;
+                            //}
+                            //else if (heatValue < WorldGeneration.Instance.WarmerValue)
+                            //{
+                            //    chunk.HeatData[index3D] = HeatType.Warmer;
+                            //}
+                            //else
+                            //{
+                            //    chunk.HeatData[index3D] = HeatType.Warmest;
+                            //}
                         }
                     }
                 }
@@ -1401,7 +1433,12 @@ namespace PixelMiner.WorldBuilding
             {
                 RiverNode currentNode = riverSpreadQueue.Dequeue();
                 riversDensity[WorldGenUtilities.IndexOf(currentNode.RelativePosition.x, currentNode.RelativePosition.y, currentNode.RelativePosition.z, chunk._width, chunk._height)] = currentNode.Density;
-                chunk.SetBiome(currentNode.RelativePosition, BiomeType.River);
+               
+                if(chunk.GetBiome(currentNode.RelativePosition) != BiomeType.Ocean)
+                {
+                    chunk.SetBiome(currentNode.RelativePosition, BiomeType.River);
+                }
+           
 
 
                 var neighbors = GetNeighborsForBfsRiver(currentNode.RelativePosition);
@@ -1598,7 +1635,7 @@ namespace PixelMiner.WorldBuilding
                 {
                     Vector3Int currRelativePos = new Vector3Int(distributedPositions[i].x, _groundLevel, distributedPositions[i].y);
 
-                    if (chunk.GetBlock(currRelativePos).IsDirt())
+                    if (chunk.GetBiome(currRelativePos) == BiomeType.Forest && chunk.GetBlock(currRelativePos).IsDirt())
                     {
                         Vector3Int upperRelativePos = new Vector3Int(currRelativePos.x, currRelativePos.y + 1, currRelativePos.z);
                         int randHeight = (int)Mathf.Lerp(5f, 7.5f, (_treeNoiseDistribute.GetNoise(currRelativePos.x, currRelativePos.z)));
@@ -1934,7 +1971,6 @@ namespace PixelMiner.WorldBuilding
             {
                 Vector3Int woodPos = new Vector3Int(rootPosition.x, rootPosition.y + i, rootPosition.z);
                 Main.Instance.SetBlock(woodPos, BlockType.Wood);
-                //GameObject woord = Instantiate(WoodPrefab, woodPos, Quaternion.identity);
             }
 
 
@@ -1953,7 +1989,6 @@ namespace PixelMiner.WorldBuilding
 
                         if (distance < radius)
                         {
-                            //Instantiate(LeavePrefab, leavePos + Vector3.down, Quaternion.identity);
                             Main.Instance.SetBlock(leavePos + Vector3.down, BlockType.Leaves);
                         }
                     }

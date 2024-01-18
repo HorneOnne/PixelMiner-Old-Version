@@ -3,10 +3,9 @@
     public enum BiomeType : byte
     {
         Desert = 0,
-        Grassland = 1,
-        Woodland = 2,
+        Plains = 1,
         Forest = 3,      
-        Ice = 4,
+        Snow = 4,
         Ocean = 5,
         River = 6,
         Other = 7,

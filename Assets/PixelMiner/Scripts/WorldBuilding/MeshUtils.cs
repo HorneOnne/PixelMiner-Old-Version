@@ -99,6 +99,36 @@ namespace PixelMiner.WorldBuilding
         };
 
 
+        public static void GetColorMap( ref Vector2[] colorUVs, float heatValue, bool clear = false)
+        {
+            float tileSize = 1 / 256f;
+            float u = 0f;
+            //float v = (heatValue) * 256;
+            float v = (0.76f) * 256;
+
+
+            if (clear)
+            {
+                colorUVs[0] = new Vector2(0.8125f, 0.8125f);
+                colorUVs[1] = new Vector2(0.828125f, 0.8125f);
+                colorUVs[2] = new Vector2(0.8125f, 0.828125f);
+                colorUVs[3] = new Vector2(0.828125f, 0.828125f);
+            }
+            else
+            {
+                //colorUVs[0] = new Vector2(tileSize * u, tileSize * v);
+                //colorUVs[1] = new Vector2(tileSize * u + tileSize, tileSize * v);
+                //colorUVs[2] = new Vector2(tileSize * u, tileSize * v + tileSize);
+                //colorUVs[3] = new Vector2(tileSize * u + tileSize, tileSize * v + tileSize);
+
+
+                colorUVs[0] = new Vector2(0.15625f, 0.796875f);
+                colorUVs[1] = new Vector2(0.171875f, 0.796875f);
+                colorUVs[2] = new Vector2(0.15625f, 0.8125f);
+                colorUVs[3] = new Vector2(0.171875f, 0.8125f);
+            }
+        }
+
         public static Vector2[] GetDepthUVs(float depth)
         {
             float depthValue = MathHelper.Map(depth, 0.2f, 0.45f, 0.0f, 0.75f);
@@ -326,11 +356,9 @@ namespace PixelMiner.WorldBuilding
                             for (startPos[v] = 0; startPos[v] < dimensions[v]; startPos[v]++)
                             {
                                 currBlock = chunk.GetBlock(startPos);
+                                if (currBlock == BlockType.Air) continue;
 
-                                // Because at solid block light not exist. We can only get light by the adjacent block and use it as the light as solid voxel face.
-                                byte lightValue = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                                lightColor = GetLightColor(lightValue, lightAnimCurve);
-
+                          
 
                                 // If this block has already been merged, is air, or not visible -> skip it.
                                 //if (chunk.IsSolid(startPos) == false ||
@@ -502,12 +530,16 @@ namespace PixelMiner.WorldBuilding
                                 vertices[3] = offsetPos + n;
 
 
-                              
+
 
 
 
                                 // BLock light
                                 // ===========
+                                // Because at solid block light not exist. We can only get light by the adjacent block and use it as the light as solid voxel face.
+                                byte lightValue = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                lightColor = GetLightColor(lightValue, lightAnimCurve);
+
                                 vertexColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
                                 vertexColorIntensity[1] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
                                 vertexColorIntensity[2] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace);
@@ -606,7 +638,7 @@ namespace PixelMiner.WorldBuilding
                                 byte ambientLight = chunk.GetAmbientLight(startPos);
 
 
-                                GetBlockUVs(currBlock, voxelFace, quadSize[u], quadSize[v], ref uvs, ref uv2s, ref uv3s);
+                                GetBlockUVs(currBlock, voxelFace, quadSize[u], quadSize[v], chunk.GetHeat(currPos), ref uvs, ref uv2s, ref uv3s);
                                 builder.AddQuadFace(vertices, uvs, uv2s, uv3s, colors, voxelFace, verticesAO, anisotropy, ambientLight);
 
 
@@ -847,7 +879,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[1] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 0, 1), _centerOffset + offsetPos, rotation);
                             vertices[2] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 1, 1), _centerOffset + offsetPos, rotation);
                             vertices[3] = RotatePointAroundPivot(offsetPos + new Vector3Int(0, 1, 0), _centerOffset + offsetPos, rotation);
-                            GetGrassUVs(currBlock, ref uvs, ref uv2s);
+                            GetGrassUVs(currBlock, chunk.GetHeat(curBlockPos), ref uvs, ref uv2s);
                             builder.AddQuadFace(vertices, uvs, uv2s);
 
 
@@ -855,7 +887,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[1] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 0, 0), _centerOffset + offsetPos, rotation);
                             vertices[2] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 1, 0), _centerOffset + offsetPos, rotation);
                             vertices[3] = RotatePointAroundPivot(offsetPos + new Vector3Int(0, 1, 1), _centerOffset + offsetPos, rotation);
-                            GetGrassUVs(currBlock, ref uvs, ref uv2s);
+                            GetGrassUVs(currBlock, chunk.GetHeat(curBlockPos), ref uvs, ref uv2s);
                             builder.AddQuadFace(vertices, uvs, uv2s);
                         }
                         else
@@ -864,7 +896,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[1] = offsetPos + new Vector3Int(1, 0, 1);
                             vertices[2] = offsetPos + new Vector3Int(1, 1, 1);
                             vertices[3] = offsetPos + new Vector3Int(0, 1, 0);
-                            GetGrassUVs(currBlock, ref uvs, ref uv2s);
+                            GetGrassUVs(currBlock, chunk.GetHeat(curBlockPos), ref uvs, ref uv2s);
                             builder.AddQuadFace(vertices, uvs, uv2s);
 
 
@@ -872,7 +904,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[1] = offsetPos + new Vector3Int(1, 0, 0);
                             vertices[2] = offsetPos + new Vector3Int(1, 1, 0);
                             vertices[3] = offsetPos + new Vector3Int(0, 1, 1);
-                            GetGrassUVs(currBlock, ref uvs, ref uv2s);
+                            GetGrassUVs(currBlock, chunk.GetHeat(curBlockPos), ref uvs, ref uv2s);
                             builder.AddQuadFace(vertices, uvs, uv2s);
                         }
 
@@ -895,7 +927,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[1] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 0, 1), _centerOffset + offsetPos, rotation);
                             vertices[2] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 1, 1), _centerOffset + offsetPos, rotation);
                             vertices[3] = RotatePointAroundPivot(offsetPos + new Vector3Int(0, 1, 0), _centerOffset + offsetPos, rotation);
-                            GetGrassUVs(BlockType.TallGrass, ref uvs, ref uv2s, heightFromOrigin);
+                            GetGrassUVs(BlockType.TallGrass, chunk.GetHeat(curBlockPos), ref uvs, ref uv2s, heightFromOrigin);
                             builder.AddQuadFace(vertices, uvs, uv2s);
 
 
@@ -903,7 +935,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[1] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 0, 0), _centerOffset + offsetPos, rotation);
                             vertices[2] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 1, 0), _centerOffset + offsetPos, rotation);
                             vertices[3] = RotatePointAroundPivot(offsetPos + new Vector3Int(0, 1, 1), _centerOffset + offsetPos, rotation);
-                            GetGrassUVs(BlockType.TallGrass, ref uvs, ref uv2s, heightFromOrigin);
+                            GetGrassUVs(BlockType.TallGrass, chunk.GetHeat(curBlockPos), ref uvs, ref uv2s, heightFromOrigin);
                             builder.AddQuadFace(vertices, uvs, uv2s);
                         }
                         else
@@ -913,7 +945,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[1] = offsetPos + new Vector3Int(1, 0, 1);
                             vertices[2] = offsetPos + new Vector3Int(1, 1, 1);
                             vertices[3] = offsetPos + new Vector3Int(0, 1, 0);
-                            GetGrassUVs(BlockType.TallGrass, ref uvs, ref uv2s, heightFromOrigin);
+                            GetGrassUVs(BlockType.TallGrass, chunk.GetHeat(curBlockPos), ref uvs, ref uv2s, heightFromOrigin);
                             builder.AddQuadFace(vertices, uvs, uv2s);
 
 
@@ -921,7 +953,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[1] = offsetPos + new Vector3Int(1, 0, 0);
                             vertices[2] = offsetPos + new Vector3Int(1, 1, 0);
                             vertices[3] = offsetPos + new Vector3Int(0, 1, 1);
-                            GetGrassUVs(BlockType.TallGrass, ref uvs, ref uv2s, heightFromOrigin);
+                            GetGrassUVs(BlockType.TallGrass, chunk.GetHeat(curBlockPos), ref uvs, ref uv2s, heightFromOrigin);
                             builder.AddQuadFace(vertices, uvs, uv2s);
                         }
 
@@ -939,16 +971,15 @@ namespace PixelMiner.WorldBuilding
             return meshData;
         }
 
-        private static void GetGrassUVs(BlockType blockType, ref Vector3[] uvs, ref Vector2[] uv2s, int heightFromOrigin = 0)
+        private static void GetGrassUVs(BlockType blockType, float heatValue, ref Vector3[] uvs, ref Vector2[] uv2s, int heightFromOrigin = 0)
         {
+            //Debug.Log(heatValue);
             int blockIndex;
-            ColorMapType colorMapType;
-            colorMapType = ColorMapType.Plains;
-
+            GetColorMap(ref uv2s, heatValue, clear: true);
 
             if (blockType == BlockType.Grass)
             {
-                colorMapType = ColorMapType.Plains;
+                GetColorMap(ref uv2s, heatValue);
                 blockIndex = (ushort)BlockType.Grass;
                 uvs[0] = new Vector3(0, 0, blockIndex);
                 uvs[1] = new Vector3(1, 0, blockIndex);
@@ -957,6 +988,7 @@ namespace PixelMiner.WorldBuilding
             }
             else if (blockType == BlockType.TallGrass)
             {
+                GetColorMap(ref uv2s, heatValue);
                 switch (heightFromOrigin)
                 {
                     default:
@@ -975,22 +1007,18 @@ namespace PixelMiner.WorldBuilding
             }
             else if(blockType == BlockType.Shrub)
             {
-                colorMapType = ColorMapType.None;
                 blockIndex = (ushort)TextureType.Shrub;
                 uvs[0] = new Vector3(0, 0, blockIndex);
                 uvs[1] = new Vector3(1, 0, blockIndex);
                 uvs[2] = new Vector3(1, 1, blockIndex);
                 uvs[3] = new Vector3(0, 1, blockIndex);
             }
-
-            GetColorMapkUVs(colorMapType, ref uv2s);
         }
-        private static void GetBlockUVs(BlockType blockType, int face, int width, int height, ref Vector3[] uvs, ref Vector2[] uv2s, ref Vector4[] uv3s)
+        private static void GetBlockUVs(BlockType blockType, int face, int width, int height, float heatValue, ref Vector3[] uvs, ref Vector2[] uv2s, ref Vector4[] uv3s)
         {
             int blockIndex;
-            ColorMapType colorMapType = ColorMapType.None;
-
-            switch(blockType)
+            GetColorMap(ref uv2s, heatValue, clear: true);
+            switch (blockType)
             {
                 default:
                     blockIndex = (ushort)blockType;
@@ -999,7 +1027,7 @@ namespace PixelMiner.WorldBuilding
                     if (face == 1)
                     {
                         blockIndex = (ushort)TextureType.GrassTop;
-                        colorMapType = ColorMapType.Plains;
+                       GetColorMap(ref uv2s, heatValue);
                     }
                     else if (face == 4)
                     {
@@ -1010,9 +1038,23 @@ namespace PixelMiner.WorldBuilding
                         blockIndex = (ushort)blockType;
                     }
                     break;
+                case BlockType.SnowDritGrass:
+                    if (face == 1)
+                    {
+                        blockIndex = (ushort)TextureType.SnowGrassTop;
+                    }
+                    else if (face == 4)
+                    {
+                        blockIndex = (ushort)TextureType.Dirt;
+                    }
+                    else
+                    {
+                        blockIndex = (ushort)TextureType.SnowGrassSide;
+                    }
+                    break;
                 case BlockType.Leaves:
                     blockIndex = (ushort)blockType;
-                    colorMapType = ColorMapType.Plains;
+                    GetColorMap(ref uv2s, heatValue);
                     break;
                 case BlockType.Wood:
                     if (face == 1 || face == 4)
@@ -1036,63 +1078,12 @@ namespace PixelMiner.WorldBuilding
                     break;
             }
             
-            
-            //if (blockType == BlockType.DirtGrass)
-            //{
-            //    if (face == 1)
-            //    {
-            //        blockIndex = (ushort)TextureType.GrassTop;
-            //        colorMapType = ColorMapType.Plains;
-            //    }
-            //    else if (face == 4)
-            //    {
-            //        blockIndex = (ushort)TextureType.Dirt;
-            //    }
-            //    else
-            //    {
-            //        blockIndex = (ushort)blockType;
-            //    }
-            //}
-            //else if (blockType == BlockType.Leaves)
-            //{
-            //    blockIndex = (ushort)blockType;
-            //    colorMapType = ColorMapType.Plains;           
-            //}
-            //else if(blockType == BlockType.Wood)
-            //{
-            //    if (face == 1)
-            //    {
-            //        blockIndex = (ushort)TextureType.HeartWood;
-            //    }
-            //    else if (face == 4)
-            //    {
-            //        blockIndex = (ushort)TextureType.HeartWood;
-            //    }
-            //    else
-            //    {
-            //        blockIndex = (ushort)TextureType.BarkWood;
-            //    }
-            //}
-            //else
-            //{
-            //    blockIndex = (ushort)blockType;
-            //}
-
-
+       
 
             uvs[0] = new Vector3(0, 0, blockIndex);
             uvs[1] = new Vector3(width, 0, blockIndex);
             uvs[2] = new Vector3(width, height, blockIndex);
             uvs[3] = new Vector3(0, height, blockIndex);
-
-            GetColorMapkUVs(colorMapType, ref uv2s);
-        }
-        private static void GetColorMapkUVs(ColorMapType colormapType, ref Vector2[] colormapUVs)
-        {
-            colormapUVs[0] = ColorMapUVs[(ushort)colormapType, 0];
-            colormapUVs[1] = ColorMapUVs[(ushort)colormapType, 1];
-            colormapUVs[2] = ColorMapUVs[(ushort)colormapType, 2];
-            colormapUVs[3] = ColorMapUVs[(ushort)colormapType, 3];
         }
 
 

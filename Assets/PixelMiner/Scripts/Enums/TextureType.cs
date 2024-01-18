@@ -32,6 +32,8 @@
         Cactus_Upper = 69,
         Cactus_Middle = 70,
      
+        SnowGrassSide = 68,
+        SnowGrassTop = 66,
     }
 
     

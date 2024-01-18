@@ -240,7 +240,7 @@ namespace PixelMiner.UI.WorldGen
             int textureWidth = 1920;
             int textureHeight = 1080;
             //float[] heatValues = await WorldGeneration.Instance.GetHeatMapDataAysnc(0, 0, textureWidth, textureHeight);
-            float[] heatValues = await WorldGeneration.Instance.GetFractalHeatMapDataAsync(0, 0, textureWidth, textureHeight);
+            float[] heatValues = await WorldGeneration.Instance.GetHeatMapDataAysnc(0, 0, textureWidth, textureHeight);
             Texture2D texture = new Texture2D(textureWidth, textureHeight);
             Color[] pixels = new Color[textureWidth * textureHeight];
 
@@ -250,51 +250,23 @@ namespace PixelMiner.UI.WorldGen
                 {
                     float heatValue = heatValues[i];
 
-                    //if (heatValue < WorldGeneration.Instance.ColdestValue)
-                    //{
-                    //    pixels[i] = WorldGeneration.ColdestColor;
-                    //}
-                    //else if (heatValue < WorldGeneration.Instance.ColderValue)
-                    //{
-                    //    pixels[i] = WorldGeneration.ColderColor;
-                    //}
-                    //else if (heatValue < WorldGeneration.Instance.ColdValue)
-                    //{
-                    //    pixels[i] = WorldGeneration.ColdColor;
-                    //}
-                    //else if (heatValue < WorldGeneration.Instance.WarmValue)
-                    //{
-                    //    pixels[i] = WorldGeneration.WarmColor;
-                    //}
-                    //else if (heatValue < WorldGeneration.Instance.WarmerValue)
-                    //{
-                    //    pixels[i] = WorldGeneration.WarmerColor;
-                    //}
-                    //else
-                    //{
-                    //    pixels[i] = WorldGeneration.WarmestColor;
-                    //}
-
-
-                    float modN = heatValue % 0.1f;
-
-                    if (modN < 0.015f)
+                    if (heatValue < WorldGeneration.Instance.ColdestValue)
                     {
                         pixels[i] = WorldGeneration.ColdestColor;
                     }
-                    else if (modN < 0.03f)
+                    else if (heatValue < WorldGeneration.Instance.ColderValue)
                     {
                         pixels[i] = WorldGeneration.ColderColor;
                     }
-                    else if (modN < 0.045f)
+                    else if (heatValue < WorldGeneration.Instance.ColdValue)
                     {
                         pixels[i] = WorldGeneration.ColdColor;
                     }
-                    else if (modN < 0.06f)
+                    else if (heatValue < WorldGeneration.Instance.WarmValue)
                     {
                         pixels[i] = WorldGeneration.WarmColor;
                     }
-                    else if (modN < 0.08f)
+                    else if (heatValue < WorldGeneration.Instance.WarmerValue)
                     {
                         pixels[i] = WorldGeneration.WarmerColor;
                     }
@@ -302,6 +274,33 @@ namespace PixelMiner.UI.WorldGen
                     {
                         pixels[i] = WorldGeneration.WarmestColor;
                     }
+
+
+                    //float modN = heatValue % 0.1f;
+                    //if (modN < 0.015f)
+                    //{
+                    //    pixels[i] = WorldGeneration.ColdestColor;
+                    //}
+                    //else if (modN < 0.03f)
+                    //{
+                    //    pixels[i] = WorldGeneration.ColderColor;
+                    //}
+                    //else if (modN < 0.045f)
+                    //{
+                    //    pixels[i] = WorldGeneration.ColdColor;
+                    //}
+                    //else if (modN < 0.06f)
+                    //{
+                    //    pixels[i] = WorldGeneration.WarmColor;
+                    //}
+                    //else if (modN < 0.08f)
+                    //{
+                    //    pixels[i] = WorldGeneration.WarmerColor;
+                    //}
+                    //else
+                    //{
+                    //    pixels[i] = WorldGeneration.WarmestColor;
+                    //}
 
                 });
             });
@@ -378,7 +377,7 @@ namespace PixelMiner.UI.WorldGen
             Vector3Int dimension = new Vector3Int(textureWidth, 1, textureHeight);
 
             Task<float[]> heightTask = WorldGeneration.Instance.GetHeightMapDataAsync(0, 0, textureWidth, textureHeight);
-            Task<float[]> heatTask = WorldGeneration.Instance.GetFractalHeatMapDataAsync(0, 0, textureWidth, textureHeight);
+            Task<float[]> heatTask = WorldGeneration.Instance.GetHeatMapDataAysnc(0, 0, textureWidth, textureHeight);
             Task<float[]> moistureTask = WorldGeneration.Instance.GetMoistureMapDataAsync(0, 0, textureWidth, textureHeight);
             Task<float[]> riverTask = WorldGeneration.Instance.GetRiverDataAsync(0, 0, textureWidth, textureHeight);
             await Task.WhenAll(heightTask, heatTask, moistureTask, riverTask);
@@ -441,13 +440,10 @@ namespace PixelMiner.UI.WorldGen
                             case BiomeType.Desert:
                                 pixels[i] = WorldGeneration.Desert;
                                 break;
-                            case BiomeType.Grassland:
+                            case BiomeType.Plains:
                                 pixels[i] = WorldGeneration.Grassland;
                                 break;
-                            case BiomeType.Woodland:
-                                pixels[i] = WorldGeneration.Woodland;
-                                break;
-                            case BiomeType.Ice:
+                            case BiomeType.Snow:
                                 pixels[i] = WorldGeneration.Ice;
                                 break;
                             case BiomeType.Forest:

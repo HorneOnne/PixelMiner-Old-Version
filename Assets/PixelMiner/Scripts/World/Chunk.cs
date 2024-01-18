@@ -68,7 +68,7 @@ namespace PixelMiner.World
         [HideInInspector] public BiomeType[] BiomesData;
         [HideInInspector] public byte[] VoxelLightData;
         [HideInInspector] public byte[] AmbientLightData;
-
+        public float[] HeatValues;
 
         public Queue<RiverNode> RiverBfsQueue = new Queue<RiverNode>();
         public BiomeType[] RiverBiomes;
@@ -143,7 +143,6 @@ namespace PixelMiner.World
             AmbientLightData = new byte[size3D];
 
             RiverBiomes = new BiomeType[_width * _depth];
-
 
             // Set all light dark by default
             for (int i = 0; i < VoxelLightData.Length; i++)
@@ -256,6 +255,25 @@ namespace PixelMiner.World
             return false;
         }
 
+
+        public float GetHeat(Vector3Int relativePosition)
+        {
+            if (IsValidRelativePosition(relativePosition))
+            {
+                return HeatValues[IndexOf(relativePosition.x, relativePosition.z)];
+            }
+            else
+            {
+                if (FindNeighbor(relativePosition, out Chunk neighborChunk, out Vector3Int nbRelativePosition))
+                {
+                    return neighborChunk.HeatValues[IndexOf(nbRelativePosition.x, nbRelativePosition.z)];
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
 
 
         public BlockType GetBlock(Vector3Int relativePosition)
