@@ -27,6 +27,8 @@
         Shrub = 55,
         Cactus = 70,
 
+        PineWood = 231,
+        PineLeaves = 53,
 
         SnowDritGrass = 66,
     }
@@ -41,6 +43,7 @@
                    blockType != BlockType.Water &&
                    blockType != BlockType.Grass &&
                    blockType != BlockType.Leaves &&
+                   blockType != BlockType.PineLeaves &&
                    blockType != BlockType.Shrub &&
                    //blockType != BlockType.Cactus &&
                    blockType != BlockType.TallGrass;
@@ -49,13 +52,15 @@
         public static bool IsDirt(this BlockType blockType)
         {
             return blockType == BlockType.Dirt ||
-                   blockType == BlockType.DirtGrass;
+                   blockType == BlockType.DirtGrass ||
+                   blockType == BlockType.SnowDritGrass;
         }
 
         public static bool IsTransparentSolidBlock(this BlockType blockType)
         {
             return blockType == BlockType.Glass ||
                    //blockType == BlockType.Cactus ||
+                   blockType == BlockType.PineLeaves ||
                    blockType == BlockType.Leaves;
         }
 

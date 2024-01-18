@@ -1056,6 +1056,10 @@ namespace PixelMiner.WorldBuilding
                     blockIndex = (ushort)blockType;
                     GetColorMap(ref uv2s, heatValue);
                     break;
+                case BlockType.PineLeaves:
+                    blockIndex = (ushort)blockType;
+                    GetColorMap(ref uv2s, heatValue);
+                    break;
                 case BlockType.Wood:
                     if (face == 1 || face == 4)
                     {
@@ -1064,6 +1068,16 @@ namespace PixelMiner.WorldBuilding
                     else
                     {
                         blockIndex = (ushort)TextureType.BarkWood;
+                    }
+                    break;
+                case BlockType.PineWood:
+                    if (face == 1 || face == 4)
+                    {
+                        blockIndex = (ushort)TextureType.HeartPineWood;
+                    }
+                    else
+                    {
+                        blockIndex = (ushort)TextureType.BarkPineWood;
                     }
                     break;
                 case BlockType.Cactus:

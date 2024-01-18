@@ -159,8 +159,8 @@ namespace PixelMiner.WorldBuilding
 		    { BiomeType.Snow,    BiomeType.Snow,   BiomeType.Plains,      BiomeType.Plains,             BiomeType.Desert,              BiomeType.Desert },              //DRYEST
 		    { BiomeType.Snow,    BiomeType.Snow,   BiomeType.Plains,      BiomeType.Plains,             BiomeType.Desert,              BiomeType.Desert },              //DRYER
 		    { BiomeType.Snow,    BiomeType.Snow,   BiomeType.Plains,      BiomeType.Plains,             BiomeType.Desert,              BiomeType.Desert },              //DRY
-		    { BiomeType.Snow,    BiomeType.Snow,   BiomeType.Forest,      BiomeType.Forest,             BiomeType.Desert,              BiomeType.Desert },              //WET
-		    { BiomeType.Snow,    BiomeType.Snow,   BiomeType.Forest,      BiomeType.Forest,             BiomeType.Forest,              BiomeType.Desert },              //WETTER
+		    { BiomeType.Snow,    BiomeType.Snow,   BiomeType.Plains,      BiomeType.Plains,             BiomeType.Desert,              BiomeType.Desert },              //WET
+		    { BiomeType.Snow,    BiomeType.Snow,   BiomeType.Plains,      BiomeType.Forest,             BiomeType.Forest,              BiomeType.Desert },              //WETTER
 		    { BiomeType.Snow,    BiomeType.Snow,   BiomeType.Forest,      BiomeType.Forest,             BiomeType.Forest,              BiomeType.Forest }               //WETTEST
         };
 
@@ -969,7 +969,14 @@ namespace PixelMiner.WorldBuilding
                                             }
                                             break;
                                         case BiomeType.Snow:
-                                            chunk.ChunkData[index3D] = BlockType.SnowDritGrass;
+                                            if (globalHeight < _groundLevel)
+                                            {
+                                                chunk.ChunkData[index3D] = BlockType.Dirt;
+                                            }
+                                            else if (globalHeight == _groundLevel)
+                                            {
+                                                chunk.ChunkData[index3D] = BlockType.SnowDritGrass;
+                                            }                        
                                             break;
                                         case BiomeType.Ocean:
                                             if (heightValues[x + y * width] > (y / (float)height) && heightValues[x + y * width] < Water && y < _groundLevel)
@@ -1408,8 +1415,6 @@ namespace PixelMiner.WorldBuilding
 
         private async Task DigRiverAsync(Chunk chunk, Queue<RiverNode> riverSpreadQueue)
         {
-            Debug.Log("DigRiver");
-
             int attempts = 0;
             int[] riversDensity = new int[chunk._width * chunk._height * chunk._depth];
 
@@ -1627,7 +1632,7 @@ namespace PixelMiner.WorldBuilding
 
         public async Task PlaceTreeAsync(Chunk chunk)
         {
-            List<Vector2Int> distributedPositions = await PoissonDiscAsync(chunk.FrameX, chunk.FrameZ, chunk._width, chunk._depth, _grassNoiseDistribute, 10, 20);
+            List<Vector2Int> distributedPositions = await PoissonDiscAsync(chunk.FrameX, chunk.FrameZ, chunk._width, chunk._depth, _grassNoiseDistribute, 13, 20);
 
             await Task.Run(() =>
             {
@@ -1635,12 +1640,22 @@ namespace PixelMiner.WorldBuilding
                 {
                     Vector3Int currRelativePos = new Vector3Int(distributedPositions[i].x, _groundLevel, distributedPositions[i].y);
 
-                    if (chunk.GetBiome(currRelativePos) == BiomeType.Forest && chunk.GetBlock(currRelativePos).IsDirt())
+                    if(chunk.GetBlock(currRelativePos).IsDirt())
                     {
-                        Vector3Int upperRelativePos = new Vector3Int(currRelativePos.x, currRelativePos.y + 1, currRelativePos.z);
-                        int randHeight = (int)Mathf.Lerp(5f, 7.5f, (_treeNoiseDistribute.GetNoise(currRelativePos.x, currRelativePos.z)));
-                        CreateTree(chunk.GetGlobalPosition(upperRelativePos), randHeight);
+                        if (chunk.GetBiome(currRelativePos) == BiomeType.Forest)
+                        {
+                            Vector3Int upperRelativePos = new Vector3Int(currRelativePos.x, currRelativePos.y + 1, currRelativePos.z);
+                            int randHeight = (int)Mathf.Lerp(5f, 7.5f, (_treeNoiseDistribute.GetNoise(currRelativePos.x, currRelativePos.z)));
+                            CreateTree(chunk.GetGlobalPosition(upperRelativePos), randHeight);
+                        }
+                        else if(chunk.GetBiome(currRelativePos) == BiomeType.Snow)
+                        {
+                            Vector3Int upperRelativePos = new Vector3Int(currRelativePos.x, currRelativePos.y + 1, currRelativePos.z);
+                            //int randHeight = (int)Mathf.Lerp(5f, 7.5f, (_treeNoiseDistribute.GetNoise(currRelativePos.x, currRelativePos.z)));
+                            CreatePineTree(chunk.GetGlobalPosition(upperRelativePos), 11);
+                        }
                     }
+                    
                 }
             });
         }
@@ -1992,6 +2007,49 @@ namespace PixelMiner.WorldBuilding
                             Main.Instance.SetBlock(leavePos + Vector3.down, BlockType.Leaves);
                         }
                     }
+                }
+            }
+        }
+
+        public void CreatePineTree(Vector3Int rootPosition, int treeHeight)
+        {
+            treeHeight = 11;
+            // Wood
+            for (int i = 0; i < treeHeight; i++)
+            {
+                Vector3Int woodPos = new Vector3Int(rootPosition.x, rootPosition.y + i, rootPosition.z);
+                Main.Instance.SetBlock(woodPos, BlockType.PineWood);
+            }
+
+
+            // Leaves
+            Vector3Int highestLeafPos = new Vector3Int(rootPosition.x, rootPosition.y + treeHeight, rootPosition.z);
+            Main.Instance.SetBlock(highestLeafPos, BlockType.PineLeaves);
+            Main.Instance.SetBlock(highestLeafPos + new Vector3Int(1,-1,0), BlockType.PineLeaves);
+            Main.Instance.SetBlock(highestLeafPos + new Vector3Int(-1,-1,0), BlockType.PineLeaves);
+            Main.Instance.SetBlock(highestLeafPos + new Vector3Int(0,-1,1), BlockType.PineLeaves);
+            Main.Instance.SetBlock(highestLeafPos + new Vector3Int(0,-1,-1), BlockType.PineLeaves);
+
+
+            int offsetIndex = 1;
+            for (int y = highestLeafPos.y - 3; y > highestLeafPos.y - 6; y--)
+            {
+                for (int x = highestLeafPos.x - offsetIndex; x <= highestLeafPos.x + offsetIndex; x++)
+                {
+                    for (int z = highestLeafPos.z - offsetIndex; z <= highestLeafPos.z + offsetIndex; z++)
+                    {
+                        if (y % 2 == 0)
+                        {
+                            Vector3 blockPos = new Vector3(x, y, z);
+                            Main.Instance.SetBlock(blockPos, BlockType.PineLeaves);
+                        }
+
+                    }
+                }
+
+                if (y % 2 == 0)
+                {
+                    offsetIndex++;
                 }
             }
         }

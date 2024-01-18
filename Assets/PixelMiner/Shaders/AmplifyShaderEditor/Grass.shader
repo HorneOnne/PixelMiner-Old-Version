@@ -8,6 +8,9 @@ Shader "PixelMiner/Grass"
 		[HideInInspector] _EmissionColor("Emission Color", Color) = (1,1,1,1)
 		_VoxelTex("VoxelTex", 2DArray) = "white" {}
 		_ColorTex("ColorTex", 2D) = "white" {}
+		_LightMap("LightMap", 2DArray) = "white" {}
+		[Toggle]_AmbientOcclusion("Ambient Occlusion", Float) = 0
+		_LightIntensity("LightIntensity", Range( 0 , 24)) = 0
 		_WindSpeed("Wind Speed", Float) = 0
 		_WindScale("Wind Scale", Float) = 0
 		[HideInInspector] _texcoord( "", 2D ) = "white" {}
@@ -221,6 +224,8 @@ Shader "PixelMiner/Grass"
 				float3 normalOS : NORMAL;
 				float4 ase_texcoord : TEXCOORD0;
 				float4 ase_texcoord1 : TEXCOORD1;
+				float4 ase_texcoord2 : TEXCOORD2;
+				float4 ase_color : COLOR;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
@@ -238,14 +243,19 @@ Shader "PixelMiner/Grass"
 				#endif
 				float4 ase_texcoord3 : TEXCOORD3;
 				float4 ase_texcoord4 : TEXCOORD4;
+				float4 ase_texcoord5 : TEXCOORD5;
+				float4 ase_color : COLOR;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _VoxelTex_ST;
-			float _WindScale;
+			float4 _LightMap_ST;
 			float _WindSpeed;
+			float _WindScale;
+			float _AmbientOcclusion;
+			float _LightIntensity;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -259,6 +269,8 @@ Shader "PixelMiner/Grass"
 			TEXTURE2D_ARRAY(_VoxelTex);
 			SAMPLER(sampler_VoxelTex);
 			sampler2D _ColorTex;
+			TEXTURE2D_ARRAY(_LightMap);
+			SAMPLER(sampler_LightMap);
 
 
 			
@@ -276,6 +288,8 @@ Shader "PixelMiner/Grass"
 				
 				o.ase_texcoord3 = v.ase_texcoord;
 				o.ase_texcoord4.xy = v.ase_texcoord1.xy;
+				o.ase_texcoord5 = v.ase_texcoord2;
+				o.ase_color = v.ase_color;
 				
 				//setting value to unused interpolator channels and avoid initialization warnings
 				o.ase_texcoord4.zw = 0;
@@ -326,6 +340,8 @@ Shader "PixelMiner/Grass"
 				float3 normalOS : NORMAL;
 				float4 ase_texcoord : TEXCOORD0;
 				float4 ase_texcoord1 : TEXCOORD1;
+				float4 ase_texcoord2 : TEXCOORD2;
+				float4 ase_color : COLOR;
 
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
@@ -345,6 +361,8 @@ Shader "PixelMiner/Grass"
 				o.normalOS = v.normalOS;
 				o.ase_texcoord = v.ase_texcoord;
 				o.ase_texcoord1 = v.ase_texcoord1;
+				o.ase_texcoord2 = v.ase_texcoord2;
+				o.ase_color = v.ase_color;
 				return o;
 			}
 
@@ -385,6 +403,8 @@ Shader "PixelMiner/Grass"
 				o.normalOS = patch[0].normalOS * bary.x + patch[1].normalOS * bary.y + patch[2].normalOS * bary.z;
 				o.ase_texcoord = patch[0].ase_texcoord * bary.x + patch[1].ase_texcoord * bary.y + patch[2].ase_texcoord * bary.z;
 				o.ase_texcoord1 = patch[0].ase_texcoord1 * bary.x + patch[1].ase_texcoord1 * bary.y + patch[2].ase_texcoord1 * bary.z;
+				o.ase_texcoord2 = patch[0].ase_texcoord2 * bary.x + patch[1].ase_texcoord2 * bary.y + patch[2].ase_texcoord2 * bary.z;
+				o.ase_color = patch[0].ase_color * bary.x + patch[1].ase_color * bary.y + patch[2].ase_color * bary.z;
 				#if defined(ASE_PHONG_TESSELLATION)
 				float3 pp[3];
 				for (int i = 0; i < 3; ++i)
@@ -430,11 +450,21 @@ Shader "PixelMiner/Grass"
 				texCoord21.xy = IN.ase_texcoord3.xy * float2( 1,1 ) + float2( 0,0 );
 				float4 tex2DArrayNode34 = SAMPLE_TEXTURE2D_ARRAY( _VoxelTex, sampler_VoxelTex, uv_VoxelTex,texCoord21.z );
 				float2 texCoord24 = IN.ase_texcoord4.xy * float2( 1,1 ) + float2( 0,0 );
-				float4 temp_output_23_0 = ( tex2DArrayNode34 * tex2D( _ColorTex, texCoord24 ) );
+				float4 temp_cast_0 = (1.0).xxxx;
+				float2 uv_LightMap = IN.ase_texcoord3.xy;
+				float4 texCoord36 = IN.ase_texcoord5;
+				texCoord36.xy = IN.ase_texcoord5.xy * float2( 1,1 ) + float2( 0,0 );
+				float2 texCoord43 = IN.ase_texcoord3.xy * float2( 1,1 ) + float2( 0,0 );
+				float4 lerpResult41 = lerp( SAMPLE_TEXTURE2D_ARRAY( _LightMap, sampler_LightMap, uv_LightMap,texCoord36.x ) , SAMPLE_TEXTURE2D_ARRAY( _LightMap, sampler_LightMap, uv_LightMap,texCoord36.y ) , texCoord43.x);
+				float4 lerpResult42 = lerp( SAMPLE_TEXTURE2D_ARRAY( _LightMap, sampler_LightMap, uv_LightMap,texCoord36.w ) , SAMPLE_TEXTURE2D_ARRAY( _LightMap, sampler_LightMap, uv_LightMap,texCoord36.z ) , texCoord43.x);
+				float4 lerpResult44 = lerp( lerpResult41 , lerpResult42 , texCoord43.y);
+				float4 color121 = IsGammaSpace() ? float4(0,0,0,1) : float4(0,0,0,1);
+				float4 color122 = IsGammaSpace() ? float4(1,1,1,1) : float4(1,1,1,1);
+				float4 lerpResult124 = lerp( color121 , color122 , _LightIntensity);
 				
 				float3 BakedAlbedo = 0;
 				float3 BakedEmission = 0;
-				float3 Color = temp_output_23_0.rgb;
+				float3 Color = ( ( tex2DArrayNode34 * tex2D( _ColorTex, texCoord24 ) ) * ( (( _AmbientOcclusion )?( lerpResult44 ):( temp_cast_0 )) * ( IN.ase_color + lerpResult124 ) ) ).rgb;
 				float Alpha = tex2DArrayNode34.a;
 				float AlphaClipThreshold = 0.5;
 				float AlphaClipThresholdShadow = 0.5;
@@ -527,8 +557,11 @@ Shader "PixelMiner/Grass"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _VoxelTex_ST;
-			float _WindScale;
+			float4 _LightMap_ST;
 			float _WindSpeed;
+			float _WindScale;
+			float _AmbientOcclusion;
+			float _LightIntensity;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -763,8 +796,11 @@ Shader "PixelMiner/Grass"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _VoxelTex_ST;
-			float _WindScale;
+			float4 _LightMap_ST;
 			float _WindSpeed;
+			float _WindScale;
+			float _AmbientOcclusion;
+			float _LightIntensity;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -991,8 +1027,11 @@ Shader "PixelMiner/Grass"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _VoxelTex_ST;
-			float _WindScale;
+			float4 _LightMap_ST;
 			float _WindSpeed;
+			float _WindScale;
+			float _AmbientOcclusion;
+			float _LightIntensity;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -1227,8 +1266,11 @@ Shader "PixelMiner/Grass"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _VoxelTex_ST;
-			float _WindScale;
+			float4 _LightMap_ST;
 			float _WindSpeed;
+			float _WindScale;
+			float _AmbientOcclusion;
+			float _LightIntensity;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -1443,15 +1485,6 @@ Node;AmplifyShaderEditor.TextureCoordinatesNode;43;-1737.048,911.0789;Inherit;Fa
 Node;AmplifyShaderEditor.SamplerNode;39;-2061.969,719.369;Inherit;True;Property;_VoxelTex3;VoxelTex;3;0;Create;True;0;0;0;False;0;False;-1;cfc5b1e3a000d7040be624b6d28009e7;542221eae4d961346b813dc2ff6a37df;True;0;False;white;Auto;False;Object;-1;Auto;Texture2DArray;8;0;SAMPLER2DARRAY;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;4;False;7;SAMPLERSTATE;;False;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
 Node;AmplifyShaderEditor.TextureCoordinatesNode;21;-1673.445,-185.2062;Inherit;False;0;-1;4;3;2;SAMPLER2D;;False;0;FLOAT2;1,1;False;1;FLOAT2;0,0;False;5;FLOAT4;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
 Node;AmplifyShaderEditor.TextureCoordinatesNode;36;-2484.299,714.1041;Inherit;False;2;-1;4;3;2;SAMPLER2D;;False;0;FLOAT2;1,1;False;1;FLOAT2;0,0;False;5;FLOAT4;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.CommentaryNode;131;222.3687,-700.786;Inherit;False;1049.637;643.9609;Comment;8;139;138;136;140;137;135;134;133;VERTEX_FACE_TO_CAMERA;1,1,1,1;0;0
-Node;AmplifyShaderEditor.ViewMatrixNode;134;419.0496,-187.3992;Inherit;False;0;1;FLOAT4x4;0
-Node;AmplifyShaderEditor.SimpleMultiplyOpNode;137;750.0494,-261.3991;Inherit;False;2;2;0;FLOAT3;0,0,0;False;1;FLOAT4x4;0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1;False;1;FLOAT3;0
-Node;AmplifyShaderEditor.ObjectToWorldMatrixNode;136;629.0561,-157.3906;Inherit;False;0;1;FLOAT4x4;0
-Node;AmplifyShaderEditor.SimpleMultiplyOpNode;138;906.714,-217.0643;Inherit;False;2;2;0;FLOAT3;0,0,0;False;1;FLOAT4x4;0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1;False;1;FLOAT3;0
-Node;AmplifyShaderEditor.DynamicAppendNode;135;580.0495,-397.3986;Inherit;False;FLOAT3;4;0;FLOAT2;0,0;False;1;FLOAT;0;False;2;FLOAT;0;False;3;FLOAT;0;False;1;FLOAT3;0
-Node;AmplifyShaderEditor.TexCoordVertexDataNode;140;290.4108,-610.3602;Inherit;False;0;2;0;5;FLOAT2;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.NormalizeNode;139;1052.791,-367.5839;Inherit;False;False;1;0;FLOAT3;0,0,0;False;1;FLOAT3;0
-Node;AmplifyShaderEditor.TFHCRemapNode;133;390.0497,-411.3986;Inherit;False;5;0;FLOAT2;0,0;False;1;FLOAT2;0,0;False;2;FLOAT2;1,1;False;3;FLOAT2;0,0;False;4;FLOAT2;1,1;False;1;FLOAT2;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;151;341.8859,143.5364;Float;False;False;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;13;New Amplify Shader;2992e84f91cbeb14eab234972e07ea9d;True;ExtraPrePass;0;0;ExtraPrePass;5;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;5;True;12;all;0;False;True;1;1;False;;0;False;;0;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;0;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;153;341.8859,143.5364;Float;False;False;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;13;New Amplify Shader;2992e84f91cbeb14eab234972e07ea9d;True;ShadowCaster;0;2;ShadowCaster;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;False;False;True;False;False;False;False;0;False;;False;False;False;False;False;False;False;False;False;True;1;False;;True;3;False;;False;True;1;LightMode=ShadowCaster;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;154;341.8859,143.5364;Float;False;False;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;13;New Amplify Shader;2992e84f91cbeb14eab234972e07ea9d;True;DepthOnly;0;3;DepthOnly;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;False;False;True;False;False;False;False;0;False;;False;False;False;False;False;False;False;False;False;True;1;False;;False;False;True;1;LightMode=DepthOnly;False;False;0;;0;0;Standard;0;False;0
@@ -1510,13 +1543,6 @@ WireConnection;35;0;86;0
 WireConnection;35;6;36;1
 WireConnection;39;0;86;0
 WireConnection;39;6;36;2
-WireConnection;137;0;135;0
-WireConnection;137;1;134;0
-WireConnection;138;0;137;0
-WireConnection;138;1;136;0
-WireConnection;135;0;133;0
-WireConnection;139;0;138;0
-WireConnection;133;0;140;0
 WireConnection;22;1;24;0
 WireConnection;44;0;41;0
 WireConnection;44;1;42;0
@@ -1552,7 +1578,7 @@ WireConnection;198;0;202;0
 WireConnection;198;2;205;0
 WireConnection;205;0;192;3
 WireConnection;205;1;204;3
-WireConnection;152;2;23;0
+WireConnection;152;2;45;0
 WireConnection;152;3;34;4
 WireConnection;152;5;213;0
 WireConnection;211;0;222;0
@@ -1569,4 +1595,4 @@ WireConnection;222;1;221;0
 WireConnection;213;0;218;0
 WireConnection;213;2;218;0
 ASEEND*/
-//CHKSM=0547A1806B9BA3E8E6A9808B1A979D451D39CB9C
+//CHKSM=7FC8AD9A147D41A6FAA3B40249B8082E2625CC58

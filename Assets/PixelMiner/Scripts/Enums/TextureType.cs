@@ -20,6 +20,10 @@
         HeartWood = 21,
         Leaves = 52,
 
+        BarkPineWood = 231,
+        HeartPineWood = 232,
+        PineLeaves = 53,
+
         Grass = 39,
         BelowTallGrass = 185,
         AboveTallGrass = 169,
