@@ -23,17 +23,18 @@ namespace PixelMiner.Lighting
             return 3 - (System.Convert.ToInt32(side1) + System.Convert.ToInt32(side2) + System.Convert.ToInt32(corner));
         }
 
-        public static int ProcessAO(Chunk chunk, Vector3Int relativePosition, int vertex, int voxelFace)
+        public static int ProcessAO(Chunk chunk, Vector3Int relativePosition, int vertex, int voxelFace, ref Vector3Int[] faceNeighbors)
         {
             int vertexAO = 3;
 
             // For transparent block like LEAVES i only calculate AO for voxel that face with AIR block.
             if(chunk.GetBlock(relativePosition).IsTransparentSolidBlock())
             {
-                if (chunk.IsNeighborHasAirBlock(relativePosition) == false)
+                if (chunk.IsNeighborHasAirBlock(relativePosition, ref faceNeighbors) == false)
                 {
                     return 0;
                 }
+
             }
 
 

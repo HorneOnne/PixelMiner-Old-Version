@@ -13,7 +13,8 @@ namespace PixelMiner.WorldBuilding
         private List<Vector4> _uv3s;
         private List<Color32> _colors;
         private List<byte> _vertexAO;
-        public bool[][][,] Merged;
+        //public bool[][][,] Merged;
+        public bool[][,] Merged;
         private bool _isInit = false;
 
         Color32[] _vertexAOColor;
@@ -49,16 +50,26 @@ namespace PixelMiner.WorldBuilding
             _vertexAO = new List<byte>(10);
             _vertexAOColor = new Color32[4];
 
-            Merged = new bool[6][][,];
-            for(int i = 0; i < 6; i++)
+            Merged = new bool[][,]
             {
-                Merged[i] = new bool[][,]
-                {
-                     new bool[dimensions[2], dimensions[1]],
-                     new bool[dimensions[0], dimensions[2]],
-                     new bool[dimensions[0], dimensions[1]]
-                };
-            }
+                new bool[dimensions[2], dimensions[1]],
+                new bool[dimensions[0], dimensions[2]],
+                new bool[dimensions[0], dimensions[1]]
+            };
+
+
+            //Merged = new bool[6][][,];
+            //for(int i = 0; i < 6; i++)
+            //{
+            //    Merged[i] = new bool[][,]
+            //    {
+            //         new bool[dimensions[2], dimensions[1]],
+            //         new bool[dimensions[0], dimensions[2]],
+            //         new bool[dimensions[0], dimensions[1]]
+            //    };
+            //}
+
+
 
 
             _isInit = true;
@@ -254,7 +265,7 @@ namespace PixelMiner.WorldBuilding
             this._vertices.AddRange(otherBuilder._vertices);
 
 
-            for(int i = 0; i < otherBuilder._triangles.Count; i++)
+            for (int i = 0; i < otherBuilder._triangles.Count; i++)
             {
                 _triangles.Add(otherBuilder._triangles[i] + currentVertexCount);
             }

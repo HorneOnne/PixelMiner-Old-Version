@@ -517,19 +517,20 @@ namespace PixelMiner.WorldBuilding
                         loadChunkTask.Add(GenerateNewChunk(x, y, z, _main.ChunkDimension));
                         totalChunkLoad++;
 
-                
-                        //if (totalChunkLoad > 10)
-                        //{
-                        //    totalChunkLoad = 0;
-                        //    await Task.WhenAll(loadChunkTask);
 
-                        //    for (int i = 0; i < loadChunkTask.Count; i++)
-                        //    {
-                        //        Debug.Log("Load chunk AA A A A A A");
-                        //        _worldLoading.LoadChunk(loadChunkTask[i].Result);
-                        //    }
-                        //    loadChunkTask.Clear();
-                        //}
+                        if (totalChunkLoad > 10)
+                        {
+                            totalChunkLoad = 0;
+                            await Task.WhenAll(loadChunkTask);
+
+                            //for (int i = 0; i < loadChunkTask.Count; i++)
+                            //{
+                            //    Debug.Log("Load chunk AA A A A A A");
+                            //    _worldLoading.LoadChunk(loadChunkTask[i].Result);
+                            //    _worldLoading.UnloadChunk(loadChunkTask[i].Result);
+                            //}
+                            //loadChunkTask.Clear();
+                        }
                     }
                 }
             }
@@ -542,7 +543,6 @@ namespace PixelMiner.WorldBuilding
                 _worldLoading.UnloadChunk(loadChunkTask[i].Result);
             }
 
-            Debug.Log($"Total chunk loaded: {totalChunkLoad}");
             onFinished?.Invoke();
         }
 
@@ -601,9 +601,6 @@ namespace PixelMiner.WorldBuilding
                         newChunk.RiverBiomes[i] = BiomeType.Other;
                     }
                 }
-
-
-             
             }
             else
             {

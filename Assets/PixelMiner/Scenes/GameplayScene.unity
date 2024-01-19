@@ -2162,12 +2162,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22ae457847da8e43877aef4220ef471, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  InitWorldWidth: 10
+  InitWorldWidth: 20
   InitWorldHeight: 1
-  InitWorldDepth: 10
-  LoadChunkOffsetWidth: 10
+  InitWorldDepth: 20
+  LoadChunkOffsetWidth: 20
   LoadChunkOffsetHeight: 1
-  LoadChunkOffsetDepth: 10
+  LoadChunkOffsetDepth: 20
   _playerTrans: {fileID: 314038816}
 --- !u!1 &1252983687
 GameObject:

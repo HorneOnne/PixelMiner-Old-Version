@@ -166,9 +166,9 @@ namespace PixelMiner.World
             BlockType block = GetBlock(relativePosition);
             return block == BlockType.Water;
         }
-        public bool CanSee(Vector3Int relativePosition)
+        public bool CanSee(Vector3Int relativePosition, ref Vector3Int[] faceNeighbors)
         {
-            GetFaceNeighbors(relativePosition);
+            GetFaceNeighbors(relativePosition, ref faceNeighbors);
 
             for(int i = 0; i < _faceNeighbors.Length; i++)
             {
@@ -197,9 +197,9 @@ namespace PixelMiner.World
 
             return true;
         }
-        public bool IsNeighborFaceHasSameBlock(Vector3Int relativePosition, BlockType blockType)
+        public bool IsNeighborFaceHasSameBlock(Vector3Int relativePosition, BlockType blockType, ref Vector3Int[] faceNeighbors)
         {
-            GetFaceNeighbors(relativePosition);
+            GetFaceNeighbors(relativePosition, ref faceNeighbors);
 
             for (int i = 0; i < _faceNeighbors.Length; i++)
             {
@@ -223,18 +223,31 @@ namespace PixelMiner.World
             }
             return true;
         }
-        public bool IsNeighborHasAirBlock(Vector3Int relativePosition)
+        public bool IsNeighborHasAirBlock(Vector3Int relativePosition, ref Vector3Int[] faceNeighbors)
         {
-            GetFaceNeighbors(relativePosition);
+            GetFaceNeighbors(relativePosition, ref faceNeighbors);
 
             for (int i = 0; i < _faceNeighbors.Length; i++)
             {
                 if (IsValidRelativePosition(_faceNeighbors[i]))
                 {
+
                     if (ChunkData[IndexOf(_faceNeighbors[i].x, _faceNeighbors[i].y, _faceNeighbors[i].z)] == BlockType.Air)
                     {
                         return true;
                     }
+
+                    //try
+                    //{
+                    //    if (ChunkData[IndexOf(_faceNeighbors[i].x, _faceNeighbors[i].y, _faceNeighbors[i].z)] == BlockType.Air)
+                    //    {
+                    //        return true;
+                    //    }
+                    //}
+                    //catch
+                    //{
+                    //    Debug.Log($"{_faceNeighbors[i]}  {IsValidRelativePosition(_faceNeighbors[i])}" );
+                    //}
                 }
                 else
                 {
@@ -527,14 +540,22 @@ namespace PixelMiner.World
             return null;
         }
 
-        private void GetFaceNeighbors(Vector3Int relativePosition)
+        private void GetFaceNeighbors(Vector3Int relativePosition, ref Vector3Int[] faceNeighbors)
         {
-            _faceNeighbors[0] = relativePosition + Vector3Int.left;
-            _faceNeighbors[1] = relativePosition + Vector3Int.right;
-            _faceNeighbors[2] = relativePosition + Vector3Int.forward;
-            _faceNeighbors[3] = relativePosition + Vector3Int.back;
-            _faceNeighbors[4] = relativePosition + Vector3Int.up;
-            _faceNeighbors[5] = relativePosition + Vector3Int.down;
+            //_faceNeighbors[0] = relativePosition + Vector3Int.left;
+            //_faceNeighbors[1] = relativePosition + Vector3Int.right;
+            //_faceNeighbors[2] = relativePosition + Vector3Int.forward;
+            //_faceNeighbors[3] = relativePosition + Vector3Int.back;
+            //_faceNeighbors[4] = relativePosition + Vector3Int.up;
+            //_faceNeighbors[5] = relativePosition + Vector3Int.down;
+
+            faceNeighbors[0] = relativePosition + Vector3Int.left;
+            faceNeighbors[1] = relativePosition + Vector3Int.right;
+            faceNeighbors[2] = relativePosition + Vector3Int.forward;
+            faceNeighbors[3] = relativePosition + Vector3Int.back;
+            faceNeighbors[4] = relativePosition + Vector3Int.up;
+            faceNeighbors[5] = relativePosition + Vector3Int.down;
+
         }
 
         #endregion
