@@ -348,16 +348,16 @@ namespace PixelMiner.WorldBuilding
                 OnWorldGenWhenStartFinished?.Invoke();
             });
 
-            Chunk.OnChunkHasNeighbors += PropagateAmbientLight;
-            Chunk.OnChunkHasNeighbors += DrawChunk;
+            //Chunk.OnChunkHasNeighbors += PropagateAmbientLight;
+            //Chunk.OnChunkHasNeighbors += DrawChunk;
 
 
         }
 
         private void OnDestroy()
         {
-            Chunk.OnChunkHasNeighbors += PropagateAmbientLight;
-            Chunk.OnChunkHasNeighbors -= DrawChunk;
+            //Chunk.OnChunkHasNeighbors += PropagateAmbientLight;
+            //Chunk.OnChunkHasNeighbors -= DrawChunk;
         }
         #endregion
 
@@ -503,6 +503,8 @@ namespace PixelMiner.WorldBuilding
             int totalChunkLoad = 0;
             List<Task<Chunk>> loadChunkTask = new List<Task<Chunk>>();
 
+
+
             for (int x = initFrameX - widthInit; x <= initFrameX + widthInit; x++)
             {
                 for (int y = initFrameY - heightInit; y <= initFrameY + heightInit; y++)
@@ -510,22 +512,34 @@ namespace PixelMiner.WorldBuilding
                     for (int z = initFrameZ - depthInit; z <= initFrameZ + depthInit; z++)
                     {
                         if (y < 0) continue;
-                        totalChunkLoad++;
-
-                        //Chunk newChunk = await GenerateNewChunk(x, y, z, _main.ChunkDimension);
-                        //_worldLoading.LoadChunk(newChunk);.
+                      
 
                         loadChunkTask.Add(GenerateNewChunk(x, y, z, _main.ChunkDimension));
+                        totalChunkLoad++;
+
+                
+                        //if (totalChunkLoad > 10)
+                        //{
+                        //    totalChunkLoad = 0;
+                        //    await Task.WhenAll(loadChunkTask);
+
+                        //    for (int i = 0; i < loadChunkTask.Count; i++)
+                        //    {
+                        //        Debug.Log("Load chunk AA A A A A A");
+                        //        _worldLoading.LoadChunk(loadChunkTask[i].Result);
+                        //    }
+                        //    loadChunkTask.Clear();
+                        //}
                     }
                 }
             }
 
 
             await Task.WhenAll(loadChunkTask);
-
             for (int i = 0; i < loadChunkTask.Count; i++)
             {
                 _worldLoading.LoadChunk(loadChunkTask[i].Result);
+                _worldLoading.UnloadChunk(loadChunkTask[i].Result);
             }
 
             Debug.Log($"Total chunk loaded: {totalChunkLoad}");
@@ -545,13 +559,13 @@ namespace PixelMiner.WorldBuilding
             if (frameY <= 0)
             {
                 System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-                sw.Start();
-                float[] heightValuesTest = await GetHeightMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
-                float[] heatValuesTest = await GetFractalHeatMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
-                float[] moistureValuesTest = await GetMoistureMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
-                float[] riverValuesTest = await GetRiverDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
-                sw.Stop();
-                Debug.Log($"Load chunk data time: {sw.ElapsedMilliseconds / 1000f} s");
+                //sw.Start();
+                //float[] heightValuesTest = await GetHeightMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                //float[] heatValuesTest = await GetFractalHeatMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                //float[] moistureValuesTest = await GetMoistureMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                //float[] riverValuesTest = await GetRiverDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                //sw.Stop();
+                //Debug.Log($"Load chunk data time: {sw.ElapsedMilliseconds / 1000f} s");
 
 
 
@@ -628,30 +642,31 @@ namespace PixelMiner.WorldBuilding
 
 
         #region DRAW CHUNK
-        private void DrawChunk(Chunk chunk)
+        public async void DrawChunk(Chunk chunk)
         {
-            DrawChunkAsync(chunk);
+            Debug.Log(chunk.gameObject.activeInHierarchy); 
+            await DrawChunkTask(chunk);
         }
-        private async void DrawChunkAsync(Chunk chunk)
+        public async Task DrawChunkTask(Chunk chunk)
         {
             if (!chunk.ChunkHasDrawn)
             {
-                // Dig river
-                // ---------
-                float[] heightValues = await GetHeightMapDataAsync(chunk.FrameX, chunk.FrameZ, chunk._width, chunk._depth);
-                GetRiverBfsNodes(chunk, chunk._width, chunk._height);
-                if (chunk.RiverBfsQueue.Count > 0)
-                {
-                    await DigRiverAsync(chunk, chunk.RiverBfsQueue);
-                }
+                //// Dig river
+                //// ---------
+                //float[] heightValues = await GetHeightMapDataAsync(chunk.FrameX, chunk.FrameZ, chunk._width, chunk._depth);
+                //GetRiverBfsNodes(chunk, chunk._width, chunk._height);
+                //if (chunk.RiverBfsQueue.Count > 0)
+                //{
+                //    await DigRiverAsync(chunk, chunk.RiverBfsQueue);
+                //}
 
 
-                await LoadChunkMapDataAsync(chunk, heightValues);
+                //await LoadChunkMapDataAsync(chunk, heightValues);
 
-                await PlaceGrassAsync(chunk);
-                await PlaceTreeAsync(chunk);
-                await PlaceShrubAsync(chunk);
-                await PlaceCactusAsync(chunk, 2, 5);
+                //await PlaceGrassAsync(chunk);
+                //await PlaceTreeAsync(chunk);
+                //await PlaceShrubAsync(chunk);
+                //await PlaceCactusAsync(chunk, 2, 5);
 
 
 
@@ -737,6 +752,27 @@ namespace PixelMiner.WorldBuilding
             colliderMesh.SetVertices(meshData.Vertices);
             colliderMesh.SetTriangles(meshData.Triangles, 0);
             return colliderMesh;
+        }
+
+        public async Task UpdateChunkWhenHasAllNeighborsTask(Chunk chunk)
+        {
+            // Dig river
+            // ---------
+            float[] heightValues = await GetHeightMapDataAsync(chunk.FrameX, chunk.FrameZ, chunk._width, chunk._depth);
+            GetRiverBfsNodes(chunk, chunk._width, chunk._height);
+            if (chunk.RiverBfsQueue.Count > 0)
+            {
+                await DigRiverAsync(chunk, chunk.RiverBfsQueue);
+            }
+
+
+            await LoadChunkMapDataAsync(chunk, heightValues);
+
+            await PlaceGrassAsync(chunk);
+            await PlaceTreeAsync(chunk);
+            await PlaceShrubAsync(chunk);
+            await PlaceCactusAsync(chunk, 2, 5);
+
         }
         #endregion
 
@@ -1857,9 +1893,14 @@ namespace PixelMiner.WorldBuilding
 
 
         #region NEIGHBORS
-        public void UpdateChunkNeighbors(Chunk chunk)
+        /// <summary>
+        /// Return: First time all neighbors has filled.
+        /// </summary>
+        /// <param name="chunk"></param>
+        /// <returns></returns>
+        public bool UpdateChunkNeighbors(Chunk chunk)
         {
-            if (chunk.HasNeighbors()) return;
+            if (chunk.HasNeighbors()) return false;
 
 
             // Face neighbors
@@ -1948,8 +1989,12 @@ namespace PixelMiner.WorldBuilding
 
             if (chunk.HasNeighbors())
             {
-                Chunk.OnChunkHasNeighbors?.Invoke(chunk);
+                //Chunk.OnChunkHasNeighbors?.Invoke(chunk);
+                //DrawChunk(chunk);
+                return true;
             }
+
+            return false;
         }
         #endregion
 
@@ -1959,23 +2004,28 @@ namespace PixelMiner.WorldBuilding
 
 
         #region LIGHTING
-        public void PropagateAmbientLight(Chunk chunk)
+        public async Task PropagateAmbientLightAsync(Chunk chunk)
         {
             // Apply ambient light
             // I use list instead of queue because this type of light only fall down when start, 
             // use list can help this method can process in parallel. When this light hit block (not air)
             // we'll use normal bfs to spread light like with torch.
             List<LightNode> ambientLightList = new List<LightNode>();
-            for (int z = 0; z < _chunkDimension[2]; z++)
+
+            await Task.Run(() =>
             {
-                for (int x = 0; x < _chunkDimension[0]; x++)
+                for (int z = 0; z < _chunkDimension[2]; z++)
                 {
-                    Vector3Int lightNodeGlobalPosition = chunk.GlobalPosition + new Vector3Int(x, _chunkDimension[1] - 1, z);
-                    Vector3Int lightNodeRelativePosition = WorldCoordHelper.GlobalToRelativeBlockPosition(lightNodeGlobalPosition);
-                    ambientLightList.Add(new LightNode(lightNodeRelativePosition, LightUtils.MaxLightIntensity));
+                    for (int x = 0; x < _chunkDimension[0]; x++)
+                    {
+                        Vector3Int lightNodeGlobalPosition = chunk.GlobalPosition + new Vector3Int(x, _chunkDimension[1] - 1, z);
+                        Vector3Int lightNodeRelativePosition = WorldCoordHelper.GlobalToRelativeBlockPosition(lightNodeGlobalPosition);
+                        ambientLightList.Add(new LightNode(lightNodeRelativePosition, LightUtils.MaxLightIntensity));
+                    }
                 }
-            }
-            LightCalculator.PropagateAmbientLight(chunk, ambientLightList);
+                LightCalculator.PropagateAmbientLight(chunk, ambientLightList);
+            });
+           
         }
         #endregion
 

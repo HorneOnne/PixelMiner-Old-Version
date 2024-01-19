@@ -21,9 +21,9 @@ namespace PixelMiner.World
 
         public enum ChunkState
         {
-            Init, Processing, Stable
+            Processing, Idle
         }
-        public ChunkState State;
+        public ChunkState State = ChunkState.Idle;
 
 
         public int FrameX;
@@ -112,8 +112,7 @@ namespace PixelMiner.World
             {
                 _updateTimer = Time.time;
 
-                if (Vector3.Distance(_playerTrans.position, transform.position) > _unloadChunkDistance
-                    && State == ChunkState.Stable)
+                if (Vector3.Distance(_playerTrans.position, transform.position) > _unloadChunkDistance)
                 {
                     OnChunkFarAway?.Invoke(this);
                 }
@@ -122,7 +121,6 @@ namespace PixelMiner.World
 
         public void Init(int frameX, int frameY, int frameZ, int width, int height, int depth)
         {
-            State = ChunkState.Init;
 
             // Set properties
             this.FrameX = frameX;
@@ -154,9 +152,6 @@ namespace PixelMiner.World
             {
                 AmbientLightData[i] = 0;
             }
-
-
-            State = ChunkState.Stable;
         }
 
 
