@@ -13,10 +13,18 @@ namespace PixelMiner.WorldBuilding
         private List<Vector4> _uv3s;
         private List<Color32> _colors;
         private List<byte> _vertexAO;
-        public bool[][,] Merged;
+        public bool[][][,] Merged;
         private bool _isInit = false;
 
         Color32[] _vertexAOColor;
+
+        public Vector3[] VerticesCached = new Vector3[4];
+        public Vector3[] UvsCached = new Vector3[4];
+        public Vector2[] Uv2sCached = new Vector2[4];
+        public Vector4[] Uv3sCached = new Vector4[4];
+        public Color32[] ColorsCached = new Color32[4];
+        public byte[] VerticesAOCached = new byte[4];
+        public byte[] VertexColorIntensityCached = new byte[4];
 
 
         public int VerticesCount { get => _vertices.Count; }
@@ -41,12 +49,17 @@ namespace PixelMiner.WorldBuilding
             _vertexAO = new List<byte>(10);
             _vertexAOColor = new Color32[4];
 
-            Merged = new bool[][,]
+            Merged = new bool[6][][,];
+            for(int i = 0; i < 6; i++)
             {
-                 new bool[dimensions[2], dimensions[1]],
-                 new bool[dimensions[0], dimensions[2]],
-                 new bool[dimensions[0], dimensions[1]]
-            };
+                Merged[i] = new bool[][,]
+                {
+                     new bool[dimensions[2], dimensions[1]],
+                     new bool[dimensions[0], dimensions[2]],
+                     new bool[dimensions[0], dimensions[1]]
+                };
+            }
+
 
             _isInit = true;
         }

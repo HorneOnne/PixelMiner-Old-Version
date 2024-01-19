@@ -252,26 +252,6 @@ namespace PixelMiner.WorldBuilding
         }
 
 
-        //private async Task DrawChunkLoaded()
-        //{
-        //    int count = 0;
-        //    int maxChunkDrawInStage = 3;
-        //    foreach (var activeChunk in _main.ActiveChunks)
-        //    {
-        //        if (_worldGen.UpdateChunkNeighbors(activeChunk))
-        //        {
-        //            count++;
-        //            _drawChunkTask.Enqueue(_worldGen.DrawChunkTask(activeChunk));
-        //            if (count > maxChunkDrawInStage)
-        //            {
-        //                count = 0;
-        //                await Task.WhenAll(_drawChunkTask);
-        //                _drawChunkTask.Clear();
-        //            }
-        //        }
-        //    }
-        //}
-
 
         public void LoadChunk(Chunk chunk)
         {
