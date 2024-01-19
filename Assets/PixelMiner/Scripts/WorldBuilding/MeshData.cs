@@ -36,6 +36,16 @@ namespace PixelMiner.WorldBuilding
         }
 
 
+        public void AddMeshData(MeshData meshData)
+        {
+            Vertices.AddRange(meshData.Vertices);
+            Triangles.AddRange(meshData.Triangles);
+            UVs.AddRange(meshData.UVs);
+            UV2s.AddRange(meshData.UV2s);
+            UV3s.AddRange(meshData.UV3s);
+            Colors.AddRange(meshData.Colors);
+        }
+
         public void Reset()
         {
             Vertices.Clear();

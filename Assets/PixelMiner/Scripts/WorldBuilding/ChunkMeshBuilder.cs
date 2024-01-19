@@ -18,6 +18,9 @@ namespace PixelMiner.WorldBuilding
 
         Color32[] _vertexAOColor;
 
+
+        public int VerticesCount { get => _vertices.Count; }
+
         public ChunkMeshBuilder()
         {
             //Debug.Log("Create ChunkMeshBuilder");
@@ -162,7 +165,7 @@ namespace PixelMiner.WorldBuilding
                     throw new System.ArgumentException("A quad requires 4 vertex color.");
                 }
 
-                byte[] indices = new byte[4]; 
+                byte[] indices = new byte[4];
 
                 for (int i = 0; i < vertexAO.Length; i++)
                 {
@@ -223,6 +226,32 @@ namespace PixelMiner.WorldBuilding
             }
         }
 
+
+        public void Add(ChunkMeshBuilder otherBuilder)
+        {
+            //    private List<Vector3> _vertices;
+            //private List<int> _triangles;
+            //private List<Vector3> _uvs;
+            //private List<Vector2> _uv2s;
+            //private List<Vector4> _uv3s;
+            //private List<Color32> _colors;
+            //private List<byte> _vertexAO;
+
+            int currentVertexCount = this.VerticesCount;
+            this._vertices.AddRange(otherBuilder._vertices);
+
+
+            for(int i = 0; i < otherBuilder._triangles.Count; i++)
+            {
+                _triangles.Add(otherBuilder._triangles[i] + currentVertexCount);
+            }
+
+            this._uvs.AddRange(otherBuilder._uvs);
+            this._uv2s.AddRange(otherBuilder._uv2s);
+            this._uv3s.AddRange(otherBuilder._uv3s);
+            this._colors.AddRange(otherBuilder._colors);
+            this._vertexAO.AddRange(otherBuilder._vertexAO);
+        }
 
         public MeshData ToMeshData()
         {
