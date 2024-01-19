@@ -544,10 +544,16 @@ namespace PixelMiner.WorldBuilding
 
             if (frameY <= 0)
             {
-                //float[] heightValues = await GetHeightMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
-                //float[] heatValues = await GetFractalHeatMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
-                //float[] moistureValues = await GetMoistureMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
-                //float[] riverValues = await GetRiverDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+                sw.Start();
+                float[] heightValuesTest = await GetHeightMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                float[] heatValuesTest = await GetFractalHeatMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                float[] moistureValuesTest = await GetMoistureMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                float[] riverValuesTest = await GetRiverDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
+                sw.Stop();
+                Debug.Log($"Load chunk data time: {sw.ElapsedMilliseconds / 1000f} s");
+
+
 
                 Task<float[]> heightTask = GetHeightMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
                 Task<float[]> heatTask = GetFractalHeatMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
@@ -561,13 +567,12 @@ namespace PixelMiner.WorldBuilding
                 float[] moistureValues = moistureTask.Result;
                 float[] riverValues = riverTask.Result;
 
-
                 Task loadHeatTask = LoadHeatMapDataAsync(newChunk, newChunk.HeatValues);
                 Task loadMoistureTask = LoadMoistureMapDataAsync(newChunk, moistureValues);
                 await Task.WhenAll(loadHeatTask, loadMoistureTask);
                 await GenerateBiomeMapDataAsync(newChunk, heightValues);
 
-
+                
                 // River
                 // ----
                 //BiomeType[] riverBiomes = new BiomeType[riverValues.Length];
@@ -582,6 +587,9 @@ namespace PixelMiner.WorldBuilding
                         newChunk.RiverBiomes[i] = BiomeType.Other;
                     }
                 }
+
+
+             
             }
             else
             {
