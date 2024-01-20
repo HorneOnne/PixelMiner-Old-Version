@@ -568,7 +568,6 @@ namespace PixelMiner.WorldBuilding
                 //Debug.Log($"Load chunk data time: {sw.ElapsedMilliseconds / 1000f} s");
 
 
-
                 Task<float[]> heightTask = GetHeightMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
                 Task<float[]> heatTask = GetFractalHeatMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
                 Task<float[]> moistureTask = GetMoistureMapDataAsync(newChunk.FrameX, newChunk.FrameZ, chunkDimension[0], chunkDimension[2]);
@@ -628,7 +627,7 @@ namespace PixelMiner.WorldBuilding
             //        ambientLightList.Add(new LightNode(new Vector3Int(x, _chunkDimension[1] - 1, z), 15));
             //    }
             //}
-            //LightCalculator.PropagateAmbientLight(ambientLightList);
+            //LightCalculator.PropagateAmbientLightAsync(newChunk, ambientLightList);
 
             return newChunk;
         }
@@ -711,11 +710,16 @@ namespace PixelMiner.WorldBuilding
         {
             MeshData solidMeshData = await MeshUtils.RenderSolidMesh(chunk, LightAnimCurve);
             MeshData transparentSolidMeshData = await MeshUtils.RenderSolidMesh(chunk, LightAnimCurve, isTransparentMesh: true);
-
+            MeshData grassMeshData = await MeshUtils.GetChunkGrassMeshData(chunk, LightAnimCurve, _grassNoiseDistribute);
             MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(chunk);
 
             chunk.SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
             chunk.SolidTransparentMeshFilter.sharedMesh = CreateMesh(transparentSolidMeshData);
+
+            // Grass
+            // -----
+            chunk.GrassMeshFilter.sharedMesh = CreateMesh(grassMeshData);
+
 
             chunk.MeshCollider.sharedMesh = null;
             chunk.MeshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
@@ -725,6 +729,7 @@ namespace PixelMiner.WorldBuilding
             MeshDataPool.Release(solidMeshData);
             MeshDataPool.Release(transparentSolidMeshData);
             MeshDataPool.Release(colliderMeshData);
+            MeshDataPool.Release(grassMeshData);
 
         }
         public Mesh CreateMesh(MeshData meshData)
@@ -769,6 +774,9 @@ namespace PixelMiner.WorldBuilding
             await PlaceTreeAsync(chunk);
             await PlaceShrubAsync(chunk);
             await PlaceCactusAsync(chunk, 2, 5);
+
+
+            await PropagateAmbientLightAsync(chunk);
 
         }
         #endregion
@@ -2016,11 +2024,11 @@ namespace PixelMiner.WorldBuilding
                     for (int x = 0; x < _chunkDimension[0]; x++)
                     {
                         Vector3Int lightNodeGlobalPosition = chunk.GlobalPosition + new Vector3Int(x, _chunkDimension[1] - 1, z);
-                        Vector3Int lightNodeRelativePosition = WorldCoordHelper.GlobalToRelativeBlockPosition(lightNodeGlobalPosition);
-                        ambientLightList.Add(new LightNode(lightNodeRelativePosition, LightUtils.MaxLightIntensity));
+                        //Vector3Int lightNodeRelativePosition = WorldCoordHelper.GlobalToRelativeBlockPosition(lightNodeGlobalPosition);
+                        ambientLightList.Add(new LightNode(lightNodeGlobalPosition, LightUtils.MaxLightIntensity));
                     }
                 }
-                LightCalculator.PropagateAmbientLight(chunk, ambientLightList);
+                LightCalculator.PropagateAmbientLightAsync(ambientLightList);
             });
            
         }

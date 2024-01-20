@@ -184,15 +184,20 @@ namespace PixelMiner.Core
 
         public byte GetAmbientLight(Vector3 globalPosition)
         {
-            Vector3Int chunkFrame = new Vector3Int(Mathf.FloorToInt(globalPosition.x / ChunkDimension[0]),
-               Mathf.FloorToInt(globalPosition.y / ChunkDimension[1]), Mathf.FloorToInt(globalPosition.z / ChunkDimension[2]));
             Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
-
             if (TryGetChunk(globalPosition, out Chunk chunk))
             {
                 return chunk.GetAmbientLight(relativePosition);
             }
             return byte.MinValue;
+        }
+        public void SetAmbientLight(Vector3 globalPosition, byte insensity)
+        {
+            Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
+            if (TryGetChunk(globalPosition, out Chunk chunk))
+            {
+                chunk.SetAmbientLight(relativePosition, insensity);
+            }
         }
         #endregion
 

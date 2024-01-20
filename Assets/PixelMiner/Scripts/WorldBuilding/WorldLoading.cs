@@ -34,7 +34,7 @@ namespace PixelMiner.WorldBuilding
         private List<Chunk> _preDrawChunkList = new List<Chunk>();
         private List<Task> _preDrawChunkTaskList = new List<Task>();
         private List<Task> _drawChunkList = new List<Task>();
-        private List<Task> _propageAmbientLightTaskList = new List<Task>();
+        //private List<Task> _propageAmbientLightTaskList = new List<Task>();
         private List<Chunk> _loadChunkList = new List<Chunk>();
         private List<Chunk> _unloadChunkList = new List<Chunk>();
         private bool _finishLoadChunk = true;
@@ -191,13 +191,13 @@ namespace PixelMiner.WorldBuilding
                     //_worldGen.PropagateAmbientLight(activeChunk);
                     //await _worldGen.UpdateChunkWhenHasAllNeighborsTask(activeChunk);
 
-                    _propageAmbientLightTaskList.Add(_worldGen.PropagateAmbientLightAsync(activeChunk));    
+                   
                     _preDrawChunkTaskList.Add(_worldGen.UpdateChunkWhenHasAllNeighborsTask(activeChunk));
                     _preDrawChunkList.Add(activeChunk);
                 }
             }
 
-            await Task.WhenAll(_propageAmbientLightTaskList);
+            //await Task.WhenAll(_propageAmbientLightTaskList);
             await Task.WhenAll(_preDrawChunkTaskList);
  
 
@@ -243,7 +243,7 @@ namespace PixelMiner.WorldBuilding
                 }
             }
 
-            _propageAmbientLightTaskList.Clear();
+            //_propageAmbientLightTaskList.Clear();
             _preDrawChunkTaskList.Clear();
             _preDrawChunkList.Clear();
             _unloadChunkList.Clear();

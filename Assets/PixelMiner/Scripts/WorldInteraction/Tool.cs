@@ -58,7 +58,8 @@ namespace PixelMiner.WorldInteraction
                     Vector3Int hitGlobalPosition = hit.point;
                     Vector3Int relativePosition = GlobalToRelativeBlockPosition(hitGlobalPosition);
 
-                    OnTarget?.Invoke(hitGlobalPosition, Main.Instance.GetBlock(hitGlobalPosition), Main.Instance.GetBlockLight(hitGlobalPosition), Main.Instance.GetAmbientLight(hitGlobalPosition));
+            
+                    OnTarget?.Invoke(hitGlobalPosition, Main.Instance.GetBlock(hitGlobalPosition), Main.Instance.GetBlockLight(preHit.point), Main.Instance.GetAmbientLight(preHit.point));
                 }
             }
 

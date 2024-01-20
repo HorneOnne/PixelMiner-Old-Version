@@ -206,34 +206,36 @@ namespace PixelMiner.Lighting
 
 
         #region Ambient Light
-        public static async void PropagateAmbientLight(Chunk chunk, List<LightNode> ambientLightList)
+        public static async void PropagateAmbientLightAsync(List<LightNode> ambientLightList)
         {
-            //Debug.Log("PropagateAmbientLight");
+            Debug.Log($"PropagateAmbientLight: {ambientLightList.Count}");
             ConcurrentQueue<LightNode> lightSpreadQueue = new ConcurrentQueue<LightNode>();
-
 
             await Task.Run(() =>
             {
-                Parallel.For(0, ambientLightList.Count, (i) =>
+                for(int i = 0; i < ambientLightList.Count; i++)
                 {
                     int attempts = 0;
-                    chunk.SetAmbientLight(ambientLightList[i].GlobalPosition, ambientLightList[i].Intensity);
+                    //chunk.SetAmbientLight(ambientLightList[i].GlobalPosition, ambientLightList[i].Intensity);
+                    Main.Instance.SetAmbientLight(ambientLightList[i].GlobalPosition, ambientLightList[i].Intensity);
                     LightNode currentNode = ambientLightList[i];
-
+                    //Debug.Log("AAAAA");
                     while (true)
                     {
                         Vector3Int dLPos = new Vector3Int(currentNode.GlobalPosition.x, currentNode.GlobalPosition.y - 1, currentNode.GlobalPosition.z);
 
-                        if (chunk.IsValidRelativePosition(dLPos) == false)
-                        {
-                            break;
-                        }
+                        //if (chunk.IsValidRelativePosition(dLPos) == false)
+                        //{
+                        //    break;
+                        //}
 
-                        if (chunk.GetBlock(dLPos) == BlockType.Air || chunk.GetBlock(dLPos) == BlockType.Water)
+                        if (Main.Instance.GetBlock(dLPos) == BlockType.Air || Main.Instance.GetBlock(dLPos) == BlockType.Water || Main.Instance.GetBlock(dLPos) == BlockType.Grass || Main.Instance.GetBlock(dLPos) == BlockType.TallGrass)
                         {
-                            if (chunk.GetAmbientLight(dLPos) + 1 < currentNode.Intensity && currentNode.Intensity > 0)
+                            if (Main.Instance.GetAmbientLight(dLPos) + 1 < currentNode.Intensity && currentNode.Intensity > 0)
                             {
-                                chunk.SetAmbientLight(dLPos, currentNode.Intensity);
+                                //Debug.Log("BBBBB");
+                                //chunk.SetAmbientLight(dLPos, currentNode.Intensity);
+                                Main.Instance.SetAmbientLight(dLPos, currentNode.Intensity);
                                 currentNode = new LightNode(dLPos, currentNode.Intensity);
                             }
                             else
@@ -257,7 +259,13 @@ namespace PixelMiner.Lighting
                             break;
                         }
                     }
+                }
+
+                Parallel.For(0, ambientLightList.Count, (i) =>
+                {
+                   
                 });
+
             });
         }
 

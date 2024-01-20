@@ -1631,7 +1631,12 @@ namespace PixelMiner.WorldBuilding
                         Vector3 randomOffset = new Vector3(randomFloatX, 0, randomFloatZ);
                         Vector3 offsetPos = curBlockPos + randomOffset;
 
-
+                        Color32 lightColor = GetLightColor(chunk.GetBlockLight(curBlockPos), lightAnimCurve);
+                        //lightColor = new Color32(255,0,0,255);
+                        colors[0] = lightColor;
+                        colors[1] = lightColor;
+                        colors[2] = lightColor;
+                        colors[3] = lightColor;
 
                         if (applyRotation)
                         {
@@ -1643,7 +1648,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[2] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 1, 1), _centerOffset + offsetPos, rotation);
                             vertices[3] = RotatePointAroundPivot(offsetPos + new Vector3Int(0, 1, 0), _centerOffset + offsetPos, rotation);
                             GetGrassUVs(currBlock, chunk.GetHeat(curBlockPos), ref uvs, ref uv2s);
-                            builder.AddQuadFace(vertices, uvs, uv2s);
+                            builder.AddQuadFace(vertices, uvs, uv2s, colors);
 
 
                             vertices[0] = RotatePointAroundPivot(offsetPos + new Vector3Int(0, 0, 1), _centerOffset + offsetPos, rotation);
@@ -1651,7 +1656,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[2] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 1, 0), _centerOffset + offsetPos, rotation);
                             vertices[3] = RotatePointAroundPivot(offsetPos + new Vector3Int(0, 1, 1), _centerOffset + offsetPos, rotation);
                             GetGrassUVs(currBlock, chunk.GetHeat(curBlockPos), ref uvs, ref uv2s);
-                            builder.AddQuadFace(vertices, uvs, uv2s);
+                            builder.AddQuadFace(vertices, uvs, uv2s, colors);
                         }
                         else
                         {
@@ -1660,7 +1665,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[2] = offsetPos + new Vector3Int(1, 1, 1);
                             vertices[3] = offsetPos + new Vector3Int(0, 1, 0);
                             GetGrassUVs(currBlock, chunk.GetHeat(curBlockPos), ref uvs, ref uv2s);
-                            builder.AddQuadFace(vertices, uvs, uv2s);
+                            builder.AddQuadFace(vertices, uvs, uv2s, colors);
 
 
                             vertices[0] = offsetPos + new Vector3Int(0, 0, 1);
@@ -1668,7 +1673,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[2] = offsetPos + new Vector3Int(1, 1, 0);
                             vertices[3] = offsetPos + new Vector3Int(0, 1, 1);
                             GetGrassUVs(currBlock, chunk.GetHeat(curBlockPos), ref uvs, ref uv2s);
-                            builder.AddQuadFace(vertices, uvs, uv2s);
+                            builder.AddQuadFace(vertices, uvs, uv2s, colors);
                         }
 
                     }
@@ -1680,6 +1685,14 @@ namespace PixelMiner.WorldBuilding
                         float randomFloatZ = MapValue(randomNoise.GetNoise(x + 1, z), -1f, 1f, -0.3f, 0.3f);
                         Vector3 randomOffset = new Vector3(randomFloatX, 0, randomFloatZ);
                         Vector3 offsetPos = curBlockPos + randomOffset;
+
+                        Color32 lightColor = GetLightColor(chunk.GetBlockLight(curBlockPos), lightAnimCurve);
+                        //lightColor = new Color32(255,0,0,255);
+                        colors[0] = lightColor;
+                        colors[1] = lightColor;
+                        colors[2] = lightColor;
+                        colors[3] = lightColor;
+
                         if (applyRotation)
                         {
                             float rotationAngle = ((float)(randomNoise.GetNoise(x + 1, y + 1) + 1.0f) / 2.0f * (maxRotationAngle - minRotationAngle) + minRotationAngle);
@@ -1691,7 +1704,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[2] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 1, 1), _centerOffset + offsetPos, rotation);
                             vertices[3] = RotatePointAroundPivot(offsetPos + new Vector3Int(0, 1, 0), _centerOffset + offsetPos, rotation);
                             GetGrassUVs(BlockType.TallGrass, chunk.GetHeat(curBlockPos), ref uvs, ref uv2s, heightFromOrigin);
-                            builder.AddQuadFace(vertices, uvs, uv2s);
+                            builder.AddQuadFace(vertices, uvs, uv2s, colors);
 
 
                             vertices[0] = RotatePointAroundPivot(offsetPos + new Vector3Int(0, 0, 1), _centerOffset + offsetPos, rotation);
@@ -1699,7 +1712,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[2] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 1, 0), _centerOffset + offsetPos, rotation);
                             vertices[3] = RotatePointAroundPivot(offsetPos + new Vector3Int(0, 1, 1), _centerOffset + offsetPos, rotation);
                             GetGrassUVs(BlockType.TallGrass, chunk.GetHeat(curBlockPos), ref uvs, ref uv2s, heightFromOrigin);
-                            builder.AddQuadFace(vertices, uvs, uv2s);
+                            builder.AddQuadFace(vertices, uvs, uv2s, colors);
                         }
                         else
                         {
@@ -1709,7 +1722,7 @@ namespace PixelMiner.WorldBuilding
                             vertices[2] = offsetPos + new Vector3Int(1, 1, 1);
                             vertices[3] = offsetPos + new Vector3Int(0, 1, 0);
                             GetGrassUVs(BlockType.TallGrass, chunk.GetHeat(curBlockPos), ref uvs, ref uv2s, heightFromOrigin);
-                            builder.AddQuadFace(vertices, uvs, uv2s);
+                            builder.AddQuadFace(vertices, uvs, uv2s, colors);
 
 
                             vertices[0] = offsetPos + new Vector3Int(0, 0, 1);
@@ -1717,12 +1730,12 @@ namespace PixelMiner.WorldBuilding
                             vertices[2] = offsetPos + new Vector3Int(1, 1, 0);
                             vertices[3] = offsetPos + new Vector3Int(0, 1, 1);
                             GetGrassUVs(BlockType.TallGrass, chunk.GetHeat(curBlockPos), ref uvs, ref uv2s, heightFromOrigin);
-                            builder.AddQuadFace(vertices, uvs, uv2s);
+                            builder.AddQuadFace(vertices, uvs, uv2s, colors);
                         }
 
 
 
-
+                       
                     }
                 }
             });

@@ -17,8 +17,7 @@ namespace PixelMiner.WorldBuilding
         public bool[][,] Merged;
         private bool _isInit = false;
 
-        Color32[] _vertexAOColor;
-
+   
         public Vector3[] VerticesCached = new Vector3[4];
         public Vector3[] UvsCached = new Vector3[4];
         public Vector2[] Uv2sCached = new Vector2[4];
@@ -48,7 +47,7 @@ namespace PixelMiner.WorldBuilding
             _uv3s = new List<Vector4>(100);
             _colors = new List<Color32>(100);
             _vertexAO = new List<byte>(10);
-            _vertexAOColor = new Color32[4];
+          
 
             Merged = new bool[][,]
             {
@@ -76,7 +75,7 @@ namespace PixelMiner.WorldBuilding
         }
 
 
-        public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, Vector2[] uv2s)
+        public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, Vector2[] uv2s, Color32[] colors)
         {
             if (vertices.Length != 4)
             {
@@ -107,6 +106,16 @@ namespace PixelMiner.WorldBuilding
             this._uv2s.Add(uv2s[1]);
             this._uv2s.Add(uv2s[2]);
             this._uv2s.Add(uv2s[3]);
+
+
+            // Vertex Light
+            if (colors != null)
+            {
+                for (int i = 0; i < colors.Length; i++)
+                {
+                    this._colors.Add(colors[i]);
+                }
+            }
         }
 
 
@@ -193,7 +202,6 @@ namespace PixelMiner.WorldBuilding
 
                 for (int i = 0; i < vertexAO.Length; i++)
                 {
-                    //this._colors.Add(VertexColorAO(vertexAO[i])); 
                     if (vertexAO[i] == 0)
                     {
                         indices[i] = 208;

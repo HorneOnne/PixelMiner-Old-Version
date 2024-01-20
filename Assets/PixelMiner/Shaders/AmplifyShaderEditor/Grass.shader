@@ -8,8 +8,6 @@ Shader "PixelMiner/Grass"
 		[HideInInspector] _EmissionColor("Emission Color", Color) = (1,1,1,1)
 		_VoxelTex("VoxelTex", 2DArray) = "white" {}
 		_ColorTex("ColorTex", 2D) = "white" {}
-		_LightMap("LightMap", 2DArray) = "white" {}
-		[Toggle]_AmbientOcclusion("Ambient Occlusion", Float) = 0
 		_LightIntensity("LightIntensity", Range( 0 , 24)) = 0
 		_WindSpeed("Wind Speed", Float) = 0
 		_WindScale("Wind Scale", Float) = 0
@@ -224,7 +222,6 @@ Shader "PixelMiner/Grass"
 				float3 normalOS : NORMAL;
 				float4 ase_texcoord : TEXCOORD0;
 				float4 ase_texcoord1 : TEXCOORD1;
-				float4 ase_texcoord2 : TEXCOORD2;
 				float4 ase_color : COLOR;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
@@ -243,7 +240,6 @@ Shader "PixelMiner/Grass"
 				#endif
 				float4 ase_texcoord3 : TEXCOORD3;
 				float4 ase_texcoord4 : TEXCOORD4;
-				float4 ase_texcoord5 : TEXCOORD5;
 				float4 ase_color : COLOR;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 				UNITY_VERTEX_OUTPUT_STEREO
@@ -251,10 +247,8 @@ Shader "PixelMiner/Grass"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _VoxelTex_ST;
-			float4 _LightMap_ST;
 			float _WindSpeed;
 			float _WindScale;
-			float _AmbientOcclusion;
 			float _LightIntensity;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
@@ -269,8 +263,6 @@ Shader "PixelMiner/Grass"
 			TEXTURE2D_ARRAY(_VoxelTex);
 			SAMPLER(sampler_VoxelTex);
 			sampler2D _ColorTex;
-			TEXTURE2D_ARRAY(_LightMap);
-			SAMPLER(sampler_LightMap);
 
 
 			
@@ -288,7 +280,6 @@ Shader "PixelMiner/Grass"
 				
 				o.ase_texcoord3 = v.ase_texcoord;
 				o.ase_texcoord4.xy = v.ase_texcoord1.xy;
-				o.ase_texcoord5 = v.ase_texcoord2;
 				o.ase_color = v.ase_color;
 				
 				//setting value to unused interpolator channels and avoid initialization warnings
@@ -340,7 +331,6 @@ Shader "PixelMiner/Grass"
 				float3 normalOS : NORMAL;
 				float4 ase_texcoord : TEXCOORD0;
 				float4 ase_texcoord1 : TEXCOORD1;
-				float4 ase_texcoord2 : TEXCOORD2;
 				float4 ase_color : COLOR;
 
 				UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -361,7 +351,6 @@ Shader "PixelMiner/Grass"
 				o.normalOS = v.normalOS;
 				o.ase_texcoord = v.ase_texcoord;
 				o.ase_texcoord1 = v.ase_texcoord1;
-				o.ase_texcoord2 = v.ase_texcoord2;
 				o.ase_color = v.ase_color;
 				return o;
 			}
@@ -403,7 +392,6 @@ Shader "PixelMiner/Grass"
 				o.normalOS = patch[0].normalOS * bary.x + patch[1].normalOS * bary.y + patch[2].normalOS * bary.z;
 				o.ase_texcoord = patch[0].ase_texcoord * bary.x + patch[1].ase_texcoord * bary.y + patch[2].ase_texcoord * bary.z;
 				o.ase_texcoord1 = patch[0].ase_texcoord1 * bary.x + patch[1].ase_texcoord1 * bary.y + patch[2].ase_texcoord1 * bary.z;
-				o.ase_texcoord2 = patch[0].ase_texcoord2 * bary.x + patch[1].ase_texcoord2 * bary.y + patch[2].ase_texcoord2 * bary.z;
 				o.ase_color = patch[0].ase_color * bary.x + patch[1].ase_color * bary.y + patch[2].ase_color * bary.z;
 				#if defined(ASE_PHONG_TESSELLATION)
 				float3 pp[3];
@@ -450,21 +438,13 @@ Shader "PixelMiner/Grass"
 				texCoord21.xy = IN.ase_texcoord3.xy * float2( 1,1 ) + float2( 0,0 );
 				float4 tex2DArrayNode34 = SAMPLE_TEXTURE2D_ARRAY( _VoxelTex, sampler_VoxelTex, uv_VoxelTex,texCoord21.z );
 				float2 texCoord24 = IN.ase_texcoord4.xy * float2( 1,1 ) + float2( 0,0 );
-				float4 temp_cast_0 = (1.0).xxxx;
-				float2 uv_LightMap = IN.ase_texcoord3.xy;
-				float4 texCoord36 = IN.ase_texcoord5;
-				texCoord36.xy = IN.ase_texcoord5.xy * float2( 1,1 ) + float2( 0,0 );
-				float2 texCoord43 = IN.ase_texcoord3.xy * float2( 1,1 ) + float2( 0,0 );
-				float4 lerpResult41 = lerp( SAMPLE_TEXTURE2D_ARRAY( _LightMap, sampler_LightMap, uv_LightMap,texCoord36.x ) , SAMPLE_TEXTURE2D_ARRAY( _LightMap, sampler_LightMap, uv_LightMap,texCoord36.y ) , texCoord43.x);
-				float4 lerpResult42 = lerp( SAMPLE_TEXTURE2D_ARRAY( _LightMap, sampler_LightMap, uv_LightMap,texCoord36.w ) , SAMPLE_TEXTURE2D_ARRAY( _LightMap, sampler_LightMap, uv_LightMap,texCoord36.z ) , texCoord43.x);
-				float4 lerpResult44 = lerp( lerpResult41 , lerpResult42 , texCoord43.y);
 				float4 color121 = IsGammaSpace() ? float4(0,0,0,1) : float4(0,0,0,1);
 				float4 color122 = IsGammaSpace() ? float4(1,1,1,1) : float4(1,1,1,1);
 				float4 lerpResult124 = lerp( color121 , color122 , _LightIntensity);
 				
 				float3 BakedAlbedo = 0;
 				float3 BakedEmission = 0;
-				float3 Color = ( ( tex2DArrayNode34 * tex2D( _ColorTex, texCoord24 ) ) * ( (( _AmbientOcclusion )?( lerpResult44 ):( temp_cast_0 )) * ( IN.ase_color + lerpResult124 ) ) ).rgb;
+				float3 Color = ( ( tex2DArrayNode34 * tex2D( _ColorTex, texCoord24 ) ) * ( IN.ase_color + lerpResult124 ) ).rgb;
 				float Alpha = tex2DArrayNode34.a;
 				float AlphaClipThreshold = 0.5;
 				float AlphaClipThresholdShadow = 0.5;
@@ -557,10 +537,8 @@ Shader "PixelMiner/Grass"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _VoxelTex_ST;
-			float4 _LightMap_ST;
 			float _WindSpeed;
 			float _WindScale;
-			float _AmbientOcclusion;
 			float _LightIntensity;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
@@ -796,10 +774,8 @@ Shader "PixelMiner/Grass"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _VoxelTex_ST;
-			float4 _LightMap_ST;
 			float _WindSpeed;
 			float _WindScale;
-			float _AmbientOcclusion;
 			float _LightIntensity;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
@@ -1027,10 +1003,8 @@ Shader "PixelMiner/Grass"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _VoxelTex_ST;
-			float4 _LightMap_ST;
 			float _WindSpeed;
 			float _WindScale;
-			float _AmbientOcclusion;
 			float _LightIntensity;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
@@ -1266,10 +1240,8 @@ Shader "PixelMiner/Grass"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _VoxelTex_ST;
-			float4 _LightMap_ST;
 			float _WindSpeed;
 			float _WindScale;
-			float _AmbientOcclusion;
 			float _LightIntensity;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
@@ -1471,8 +1443,8 @@ Shader "PixelMiner/Grass"
 Version=19202
 Node;AmplifyShaderEditor.CommentaryNode;223;-170.4497,237.4402;Inherit;False;1199.587;601.9612;Comment;12;211;210;213;214;217;208;215;218;221;220;222;209;WIND;1,1,1,1;0;0
 Node;AmplifyShaderEditor.CommentaryNode;207;967.1308,1194.206;Inherit;False;1369.782;708.2811;;11;182;202;194;195;192;189;191;198;204;205;164;Wind;1,1,1,1;0;0
-Node;AmplifyShaderEditor.CommentaryNode;130;-765.3696,1002.422;Inherit;False;260;259;Comment;1;127;VOXEL COLOR;1,1,1,1;0;0
-Node;AmplifyShaderEditor.CommentaryNode;129;-419.5012,1410.112;Inherit;False;627.8077;477.1703;Comment;4;121;122;124;125;DAY/NIGHT CYCLE;1,1,1,1;0;0
+Node;AmplifyShaderEditor.CommentaryNode;130;-814.3735,964.8525;Inherit;False;260;259;Comment;1;127;VOXEL COLOR;1,1,1,1;0;0
+Node;AmplifyShaderEditor.CommentaryNode;129;-415.17,1262.839;Inherit;False;627.8077;477.1703;Comment;4;121;122;125;124;DAY/NIGHT CYCLE;1,1,1,1;0;0
 Node;AmplifyShaderEditor.CommentaryNode;108;-2559.733,453.5067;Inherit;False;1602.013;874.8497;AMBIENT OCCLUSION;12;42;41;44;43;40;39;38;35;86;36;116;120;AMBIENT OCCLUSION;1,1,1,1;0;0
 Node;AmplifyShaderEditor.CommentaryNode;33;-1733.563,-299.333;Inherit;False;937.037;588.8319;VOXEL;5;23;24;21;22;34;VOXEL;1,1,1,1;0;0
 Node;AmplifyShaderEditor.TextureCoordinatesNode;24;-1657.661,29.70628;Inherit;False;1;-1;2;3;2;SAMPLER2D;;False;0;FLOAT2;1,1;False;1;FLOAT2;0,0;False;5;FLOAT2;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
@@ -1501,14 +1473,8 @@ Node;AmplifyShaderEditor.SamplerNode;34;-1382.493,-197.572;Inherit;True;Property
 Node;AmplifyShaderEditor.LerpOp;41;-1502.586,802.4576;Inherit;False;3;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;2;FLOAT;0;False;1;COLOR;0
 Node;AmplifyShaderEditor.LerpOp;42;-1485.385,1022.721;Inherit;False;3;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;2;FLOAT;0;False;1;COLOR;0
 Node;AmplifyShaderEditor.RangedFloatNode;116;-1513.89,683.8135;Half;False;Constant;_DefaultAO;DefaultAO;4;0;Create;True;0;0;0;False;0;False;1;0;1;1;0;1;FLOAT;0
-Node;AmplifyShaderEditor.SimpleMultiplyOpNode;45;-425.3937,233.4064;Inherit;False;2;2;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;1;COLOR;0
-Node;AmplifyShaderEditor.SimpleMultiplyOpNode;128;-520.5846,475.0599;Inherit;False;2;2;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;1;COLOR;0
-Node;AmplifyShaderEditor.VertexColorNode;127;-715.3696,1052.422;Inherit;False;0;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.SimpleAddOpNode;126;-253.3674,906.8765;Inherit;False;2;2;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;1;COLOR;0
-Node;AmplifyShaderEditor.ColorNode;122;-355.5012,1674.282;Inherit;False;Constant;_Color1;Color 0;4;0;Create;True;0;0;0;False;0;False;1,1,1,1;0,0,0,0;True;0;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.ColorNode;121;-356.3603,1502.209;Inherit;False;Constant;_Color0;Color 0;4;0;Create;True;0;0;0;False;0;False;0,0,0,1;0,0,0,0;True;0;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.RangedFloatNode;125;-153.3606,1726.446;Inherit;False;Property;_LightIntensity;LightIntensity;4;0;Create;True;0;0;0;False;0;False;0;0;0;24;0;1;FLOAT;0
-Node;AmplifyShaderEditor.LerpOp;124;-33.02769,1539.447;Inherit;False;3;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;2;FLOAT;0;False;1;COLOR;0
+Node;AmplifyShaderEditor.VertexColorNode;127;-764.3735,1014.852;Inherit;False;0;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
+Node;AmplifyShaderEditor.RangedFloatNode;125;-149.0294,1579.173;Inherit;False;Property;_LightIntensity;LightIntensity;4;0;Create;True;0;0;0;False;0;False;0;0;0;24;0;1;FLOAT;0
 Node;AmplifyShaderEditor.DynamicAppendNode;182;2147.511,1244.206;Inherit;False;FLOAT3;4;0;FLOAT2;0,0;False;1;FLOAT;0;False;2;FLOAT;0;False;3;FLOAT;0;False;1;FLOAT3;0
 Node;AmplifyShaderEditor.SimpleAddOpNode;202;1869.679,1271.227;Inherit;False;2;2;0;FLOAT;0;False;1;FLOAT;1;False;1;FLOAT;0
 Node;AmplifyShaderEditor.RangedFloatNode;194;1088.1,1745.797;Inherit;False;Property;_WindForce;WindForce;6;0;Create;True;0;0;0;False;0;False;0;0;0;0;0;1;FLOAT;0
@@ -1533,6 +1499,11 @@ Node;AmplifyShaderEditor.SimpleAddOpNode;222;216.4122,380.768;Inherit;False;2;2;
 Node;AmplifyShaderEditor.SimpleTimeNode;209;14.1973,333.4455;Inherit;False;1;0;FLOAT;1;False;1;FLOAT;0
 Node;AmplifyShaderEditor.WorldPosInputsNode;220;-115.1542,472.1963;Inherit;False;0;4;FLOAT3;0;FLOAT;1;FLOAT;2;FLOAT;3
 Node;AmplifyShaderEditor.DynamicAppendNode;213;747.289,284.0167;Inherit;False;FLOAT4;4;0;FLOAT;0;False;1;FLOAT;0;False;2;FLOAT;0;False;3;FLOAT;0;False;1;FLOAT4;0
+Node;AmplifyShaderEditor.SimpleMultiplyOpNode;45;-427.7755,157.1887;Inherit;False;2;2;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;1;COLOR;0
+Node;AmplifyShaderEditor.ColorNode;122;-383.9699,1527.009;Inherit;False;Constant;_Color1;Color 0;4;0;Create;True;0;0;0;False;0;False;1,1,1,1;0,0,0,0;True;0;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
+Node;AmplifyShaderEditor.ColorNode;121;-398.429,1352.536;Inherit;False;Constant;_Color0;Color 0;4;0;Create;True;0;0;0;False;0;False;0,0,0,1;0,0,0,0;True;0;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
+Node;AmplifyShaderEditor.SimpleAddOpNode;126;-607.2506,665.7626;Inherit;False;2;2;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;1;COLOR;0
+Node;AmplifyShaderEditor.LerpOp;124;-85.09507,1372.842;Inherit;False;3;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;2;FLOAT;0;False;1;COLOR;0
 WireConnection;23;0;34;0
 WireConnection;23;1;22;0
 WireConnection;40;0;86;0
@@ -1556,15 +1527,6 @@ WireConnection;41;2;43;1
 WireConnection;42;0;40;0
 WireConnection;42;1;38;0
 WireConnection;42;2;43;1
-WireConnection;45;0;23;0
-WireConnection;45;1;128;0
-WireConnection;128;0;120;0
-WireConnection;128;1;126;0
-WireConnection;126;0;127;0
-WireConnection;126;1;124;0
-WireConnection;124;0;121;0
-WireConnection;124;1;122;0
-WireConnection;124;2;125;0
 WireConnection;182;0;191;0
 WireConnection;182;2;191;0
 WireConnection;202;0;192;1
@@ -1594,5 +1556,12 @@ WireConnection;222;0;209;0
 WireConnection;222;1;221;0
 WireConnection;213;0;218;0
 WireConnection;213;2;218;0
+WireConnection;45;0;23;0
+WireConnection;45;1;126;0
+WireConnection;126;0;127;0
+WireConnection;126;1;124;0
+WireConnection;124;0;121;0
+WireConnection;124;1;122;0
+WireConnection;124;2;125;0
 ASEEND*/
-//CHKSM=7FC8AD9A147D41A6FAA3B40249B8082E2625CC58
+//CHKSM=6023EAB3CBB501C82F22661871593F7A60BEBBE8

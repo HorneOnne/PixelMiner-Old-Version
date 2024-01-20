@@ -16,6 +16,7 @@ namespace PixelMiner.UI
         float msec;
         float fps;
         private Vector3Int _targetPosition;
+        private Vector3Int _preTargetPosition;
         private BlockType _targetBlock;
         private byte _blockLight;
         private byte _ambientLight;
@@ -26,6 +27,7 @@ namespace PixelMiner.UI
         //
         private string _fpsString;
         private string _targetString;
+        private string _preTargetString;
         private string _blockString;
         private string _blockLightString;
         private string _ambientLightString;
@@ -52,6 +54,7 @@ namespace PixelMiner.UI
         {
             _fpsString = string.Format("FPS: {0:F2}  ({1:F2} m/s)", fps, msec);
             _targetString = $"Target: {_targetPosition}";
+            _preTargetString = $"Target: {_preTargetString}";
             _blockString = $"Block: {_targetBlock}";
             _blockLightString = $"Block Light: {_blockLight}";
             _ambientLightString = $"Ambient Light: {_ambientLight}";
