@@ -90,6 +90,8 @@ namespace PixelMiner.WorldInteraction
 
             if (Input.GetMouseButtonDown(1))
             {
+                System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+                sw.Start();
                 _ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 Vector3 rayDirection = _ray.direction;
                 if (_rayCasting.DDAVoxelRayCast(_mainCam.transform.position, rayDirection, out RaycastVoxelHit hit, out RaycastVoxelHit preHit))
@@ -107,6 +109,8 @@ namespace PixelMiner.WorldInteraction
                         DrawChunksAtOnce(chunksNeedUpdate);
                     }
                 }
+                sw.Stop();
+                Debug.Log($"Elapsed: {sw.ElapsedMilliseconds / 1000f} s");
             }
 
 
@@ -158,7 +162,7 @@ namespace PixelMiner.WorldInteraction
         private async void DrawChunksAtOnce(HashSet<Chunk> chunks)
         {
             List<Task> drawChunkTasks = new List<Task>();
-
+            Debug.Log($"Draw at once: {chunks.Count}");
             foreach (var chunk in chunks)
             {
                 drawChunkTasks.Add(WorldGeneration.Instance.ReDrawChunkTask(chunk));

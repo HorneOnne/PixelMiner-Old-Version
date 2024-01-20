@@ -226,6 +226,22 @@ namespace PixelMiner.Core
 
             return new Vector3Int(relativeX, relativeY, relativeZ);
         }
+
+        public bool InSideChunkBound(Chunk chunk, Vector3 globalPosition)
+        {
+            int minX = chunk.GlobalPosition.x;
+            int maxX = chunk.GlobalPosition.x + chunk._width;
+            int minY = chunk.GlobalPosition.y;
+            int maxY = chunk.GlobalPosition.y + chunk._height;
+            int minZ = chunk.GlobalPosition.z;
+            int maxZ = chunk.GlobalPosition.z + chunk._depth;
+
+            return (globalPosition.x >= minX && globalPosition.x < maxX &&
+                    globalPosition.y >= minY && globalPosition.y < maxY &&
+                    globalPosition.z >= minZ && globalPosition.z < maxZ);
+        }
+
+
     }
 
 

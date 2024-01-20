@@ -54,7 +54,10 @@ namespace PixelMiner.Lighting
             LightNode startNode = lightBfsQueue.Peek();
             main.SetBlockLight(startNode.GlobalPosition, startNode.Intensity);
 
-
+     
+            Chunk chunk = null;
+            main.TryGetChunk(lightBfsQueue.Peek().GlobalPosition, out chunk);
+            Debug.Log(chunk == null);
             await Task.Run(() =>
             {
                 while (lightBfsQueue.Count > 0)
@@ -62,8 +65,18 @@ namespace PixelMiner.Lighting
                     LightNode currentNode = lightBfsQueue.Dequeue();
 
 
-                    if (main.TryGetChunk(currentNode.GlobalPosition, out Chunk chunk))
+                    //if (main.TryGetChunk(currentNode.GlobalPosition, out Chunk chunk))
+                    //{
+                    //    tryCount++;
+                    //    if (!chunkNeedUpdate.Contains(chunk))
+                    //    {
+                    //        chunkNeedUpdate.Add(chunk);
+                    //    }
+                    //}
+
+                    if (main.InSideChunkBound(chunk, currentNode.GlobalPosition) == false)
                     {
+                        main.TryGetChunk(currentNode.GlobalPosition, out chunk);
                         if (!chunkNeedUpdate.Contains(chunk))
                         {
                             chunkNeedUpdate.Add(chunk);
@@ -71,12 +84,11 @@ namespace PixelMiner.Lighting
                     }
 
 
+
                     var neighbors = GetVoxelNeighborPosition(currentNode.GlobalPosition);
+
                     for (int i = 0; i < neighbors.Length; i++)
                     {
-                        //if (neighbors[i].y > CHUNK_VOLUME[1] - 1) continue;
-
-
                         BlockType currentBlock = main.GetBlock(neighbors[i]);
                         byte blockOpacity;
                         if (i < 6)
@@ -105,9 +117,7 @@ namespace PixelMiner.Lighting
                         break;
                     }
                 }
-            });
-
-            
+            });            
         }
 
         public static async Task RemoveBlockLightAsync(Queue<LightNode> removeLightBfsQueue, HashSet<Chunk> chunkNeedUpdate)
@@ -120,14 +130,13 @@ namespace PixelMiner.Lighting
             int attempts = 0;
 
 
-
             await Task.Run(() =>
             {
                 while (removeLightBfsQueue.Count > 0)
                 {
                     LightNode currentNode = removeLightBfsQueue.Dequeue();
                     if (main.TryGetChunk(currentNode.GlobalPosition, out Chunk chunk))
-                    {
+                    {;
                         if (!chunkNeedUpdate.Contains(chunk))
                         {
                             chunkNeedUpdate.Add(chunk);
@@ -190,7 +199,8 @@ namespace PixelMiner.Lighting
                     }
                 }
             });
-           
+
+
 
             //Debug.Log($"Remove block Attempts: {attempts}");
 
