@@ -68,11 +68,12 @@ namespace PixelMiner.World
         [HideInInspector] public BiomeType[] BiomesData;
         [HideInInspector] public byte[] VoxelLightData;
         [HideInInspector] public byte[] AmbientLightData;
-        public float[] HeatValues;
+        [HideInInspector] public float[] HeatValues;
 
-        public Queue<RiverNode> RiverBfsQueue = new Queue<RiverNode>();
-        public BiomeType[] RiverBiomes;
-        public bool HasOceanBiome;
+        [HideInInspector] public Queue<RiverNode> RiverBfsQueue = new Queue<RiverNode>();
+        [HideInInspector] public Queue<LightNode> AmbientLightBfsQueue = new Queue<LightNode>();
+        [HideInInspector] public BiomeType[] RiverBiomes;
+        [HideInInspector] public bool HasOceanBiome;
 
         private Vector3Int[] _faceNeighbors = new Vector3Int[6];
 

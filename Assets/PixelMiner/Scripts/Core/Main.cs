@@ -56,12 +56,13 @@ namespace PixelMiner.Core
             Vector3Int relativePosition = new Vector3Int(Mathf.FloorToInt(globalPosition.x / ChunkDimension[0]),
                                                          Mathf.FloorToInt(globalPosition.y / ChunkDimension[1]),
                                                          Mathf.FloorToInt(globalPosition.z / ChunkDimension[2]));
-            chunk = null;
+
             if (Chunks.ContainsKey(relativePosition))
             {
                 chunk = Chunks[relativePosition];
                 return true;
             }
+            chunk = null;
             return false;
         }
         public Chunk GetChunk(Vector3Int relativePosition)

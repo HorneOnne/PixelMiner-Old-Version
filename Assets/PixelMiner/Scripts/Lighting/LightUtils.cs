@@ -4,11 +4,12 @@ using System.Collections.Generic;
 
 namespace PixelMiner.Lighting
 {
-    public static class LightUtils
+    public class LightUtils : MonoBehaviour
     {
+        public static LightUtils Instance { get; private set; }
         public const int MaxLightIntensity = 150;
 
-        private static Dictionary<BlockType, byte> _opacityMap = new Dictionary<BlockType, byte>
+        private Dictionary<BlockType, byte> _opacityMap = new Dictionary<BlockType, byte>
         {
             { BlockType.Air, 10 },     
             { BlockType.DirtGrass, 150 },
@@ -25,18 +26,27 @@ namespace PixelMiner.Lighting
             { BlockType.Wood, 150 },     
             { BlockType.Leaves, 50 },     
         };
-        public static byte GetOpacity(BlockType blockType)
+
+        public static byte[] BlocksOpaque = new byte[256];
+
+
+        private void Awake()
         {
-            if (_opacityMap.TryGetValue(blockType, out byte opacity))
+            Instance = this;
+
+
+            for (int i = 0; i < BlocksOpaque.GetLength(0); i++)
             {
-                return opacity;
+                BlocksOpaque[i] = 10;
             }
-            else
+
+            foreach (var opaqueValue in _opacityMap)
             {
-                // Default opacity if the block type is not in the map
-                return 15;
+                BlocksOpaque[(byte)opaqueValue.Key] = opaqueValue.Value;
             }
         }
+
+
 
         public static Color32 GetLightColor(byte light)
         {

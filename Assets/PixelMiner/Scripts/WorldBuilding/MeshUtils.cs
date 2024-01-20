@@ -279,7 +279,7 @@ namespace PixelMiner.WorldBuilding
                 startPos = new Vector3Int();
                 currPos = new Vector3Int();
 
-
+       
                 for (startPos[d] = 0; startPos[d] < dimensions[d]; startPos[d]++)
                 {
                     Array.Clear(builder.Merged[d], 0, builder.Merged[d].Length);
@@ -551,6 +551,7 @@ namespace PixelMiner.WorldBuilding
 
         public static async Task<MeshData> RenderSolidMesh(Chunk chunk, AnimationCurve lightAnimCurve, bool isTransparentMesh = false)
         {
+          
             bool GreedyCompareLogic(Vector3Int a, Vector3Int b, int dimension, bool isBackFace, int voxelFace)
             {
                 BlockType blockA = chunk.GetBlock(a);
@@ -605,20 +606,6 @@ namespace PixelMiner.WorldBuilding
             //ChunkMeshBuilder builder = ChunkMeshBuilderPool.Get();
             //builder.InitOrLoad(chunk.Dimensions);
 
-            ChunkMeshBuilder[] builders = new ChunkMeshBuilder[]
-            {
-                ChunkMeshBuilderPool.Get(),
-                ChunkMeshBuilderPool.Get(),
-                ChunkMeshBuilderPool.Get(),
-                ChunkMeshBuilderPool.Get(),
-                ChunkMeshBuilderPool.Get(),
-                ChunkMeshBuilderPool.Get(),
-            };
-
-            for (int i = 0; i < builders.Length; i++)
-            {
-                builders[i].InitOrLoad(chunk.Dimensions);
-            }
 
 
 
@@ -644,12 +631,7 @@ namespace PixelMiner.WorldBuilding
             await Task.Run(async () =>
             {
 
-                //builders[0] = await RenderChunkFace(chunk, 0, lightAnimCurve, isTransparentMesh);
-                //builders[1] = await RenderChunkFace(chunk, 1, lightAnimCurve, isTransparentMesh);
-                //builders[2] = await RenderChunkFace(chunk, 2, lightAnimCurve, isTransparentMesh);
-                //builders[3] = await RenderChunkFace(chunk, 3, lightAnimCurve, isTransparentMesh);
-                //builders[4] = await RenderChunkFace(chunk, 4, lightAnimCurve, isTransparentMesh);
-                //builders[5] = await RenderChunkFace(chunk, 5, lightAnimCurve, isTransparentMesh);
+
 
 
                 // Iterate over each aface of the blocks.
@@ -666,25 +648,27 @@ namespace PixelMiner.WorldBuilding
                     * BackFace -> Face that drawn in clockwise direction. (Need detect which face is clockwise in order to draw it on 
                     * Unity scene).
                     */
-              
+
                     buildMeshTaskList.Add(RenderChunkFace(chunk, voxelFace, lightAnimCurve, isTransparentMesh));
 
                 }
             });
 
             await Task.WhenAll(buildMeshTaskList);
-            for(int i = 0; i < buildMeshTaskList.Count; i++)
+            for (int i = 0; i < buildMeshTaskList.Count; i++)
             {
                 finalBuilder.Add(buildMeshTaskList[i].Result);
             }
 
+
             MeshData meshData = finalBuilder.ToMeshData();
             ChunkMeshBuilderPool.Release(finalBuilder);
-            for (int i = 0; i < builders.Length; i++)
+            for (int i = 0; i < buildMeshTaskList.Count; i++)
             {
-                ChunkMeshBuilderPool.Release(builders[i]);
+                ChunkMeshBuilderPool.Release(buildMeshTaskList[i].Result);
             }
 
+ 
             return meshData;
         }
 
@@ -833,7 +817,7 @@ namespace PixelMiner.WorldBuilding
 
 
 
-                       
+
                     }
                 }
             });
@@ -1130,8 +1114,6 @@ namespace PixelMiner.WorldBuilding
             ChunkMeshBuilderPool.Release(_builder);
             return meshData;
         }
-
-
 
     }
 }

@@ -28,13 +28,13 @@ namespace PixelMiner.Lighting
             int vertexAO = 3;
 
             // For transparent block like LEAVES i only calculate AO for voxel that face with AIR block.
-            if (chunk.GetBlock(relativePosition).IsTransparentSolidBlock())
-            {
-                //if (chunk.IsNeighborHasAirBlock(relativePosition, ref faceNeighbors) == false)
-                //{
-                //    return 0;
-                //}
-            }
+            //if (chunk.GetBlock(relativePosition).IsTransparentSolidBlock())
+            //{
+            //    if (chunk.IsNeighborHasAirBlock(relativePosition, ref faceNeighbors) == false)
+            //    {
+            //        return 0;
+            //    }
+            //}
 
 
             switch (voxelFace)
