@@ -174,9 +174,9 @@ namespace PixelMiner.WorldBuilding
                 }
             }
 
-            int count = 0;
-            int maxChunkDrawInStage = 10;
 
+            int preDrawChunkCount = 0;
+            int maxChunkPreDrawInStage = 3;
 
             for (int i = 0; i < _loadChunkList.Count; i++)
             {
@@ -186,35 +186,48 @@ namespace PixelMiner.WorldBuilding
             // Pre-draw chunk
             foreach (var activeChunk in _main.ActiveChunks)
             {
+                if (preDrawChunkCount > maxChunkPreDrawInStage)
+                {                 
+                    await Task.WhenAll(_preDrawChunkTaskList);
+                    preDrawChunkCount = 0;
+                    _preDrawChunkTaskList.Clear();
+                }
+
                 if (_worldGen.UpdateChunkNeighbors(activeChunk))
                 {
-                    //_worldGen.PropagateAmbientLight(activeChunk);
-                    //await _worldGen.UpdateChunkWhenHasAllNeighborsTask(activeChunk);
-
-                   
                     _preDrawChunkTaskList.Add(_worldGen.UpdateChunkWhenHasAllNeighborsTask(activeChunk));
+                    //await _worldGen.UpdateChunkWhenHasAllNeighborsTask(activeChunk);
                     _preDrawChunkList.Add(activeChunk);
-                }
+                    preDrawChunkCount++;
+                }            
             }
 
-            //await Task.WhenAll(_propageAmbientLightTaskList);
-            await Task.WhenAll(_preDrawChunkTaskList);
- 
+
+            if(_preDrawChunkTaskList.Count > 0)
+            {
+                Debug.Log($"Pre-Draw last: {_preDrawChunkTaskList.Count}");
+                await Task.WhenAll(_preDrawChunkTaskList);
+                _preDrawChunkTaskList.Clear();
+            }
+           
 
 
+
+            int drawChunkCount = 0;
+            int maxChunkDrawInStage = 5;
 
             // Draw chunk
             for (int i = 0; i < _preDrawChunkList.Count; i++)
             {
                 _drawChunkList.Add(_worldGen.DrawChunkTask(_preDrawChunkList[i]));
 
-                if (count > maxChunkDrawInStage)
+                if (drawChunkCount > maxChunkDrawInStage)
                 {
-                    count = 0;
+                    drawChunkCount = 0;
                     await Task.WhenAll(_drawChunkList);
                     _drawChunkList.Clear();
                 }
-                count++;
+                drawChunkCount++;
             }
             
             if (_drawChunkList.Count > 0)

@@ -512,7 +512,7 @@ namespace PixelMiner.WorldBuilding
                     for (int z = initFrameZ - depthInit; z <= initFrameZ + depthInit; z++)
                     {
                         if (y < 0) continue;
-                      
+
 
                         loadChunkTask.Add(GenerateNewChunk(x, y, z, _main.ChunkDimension));
                         totalChunkLoad++;
@@ -585,7 +585,7 @@ namespace PixelMiner.WorldBuilding
                 await Task.WhenAll(loadHeatTask, loadMoistureTask);
                 await GenerateBiomeMapDataAsync(newChunk, heightValues);
 
-                
+
                 // River
                 // ----
                 //BiomeType[] riverBiomes = new BiomeType[riverValues.Length];
@@ -640,32 +640,13 @@ namespace PixelMiner.WorldBuilding
         #region DRAW CHUNK
         public async void DrawChunk(Chunk chunk)
         {
-            Debug.Log(chunk.gameObject.activeInHierarchy); 
+            Debug.Log(chunk.gameObject.activeInHierarchy);
             await DrawChunkTask(chunk);
         }
         public async Task DrawChunkTask(Chunk chunk)
         {
             if (!chunk.ChunkHasDrawn)
             {
-                //// Dig river
-                //// ---------
-                //float[] heightValues = await GetHeightMapDataAsync(chunk.FrameX, chunk.FrameZ, chunk._width, chunk._depth);
-                //GetRiverBfsNodes(chunk, chunk._width, chunk._height);
-                //if (chunk.RiverBfsQueue.Count > 0)
-                //{
-                //    await DigRiverAsync(chunk, chunk.RiverBfsQueue);
-                //}
-
-
-                //await LoadChunkMapDataAsync(chunk, heightValues);
-
-                //await PlaceGrassAsync(chunk);
-                //await PlaceTreeAsync(chunk);
-                //await PlaceShrubAsync(chunk);
-                //await PlaceCactusAsync(chunk, 2, 5);
-
-
-
                 // Mesh
                 // ----
 
@@ -758,6 +739,9 @@ namespace PixelMiner.WorldBuilding
 
         public async Task UpdateChunkWhenHasAllNeighborsTask(Chunk chunk)
         {
+            //System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            //sw.Start();
+
             // Dig river
             // ---------
             float[] heightValues = await GetHeightMapDataAsync(chunk.FrameX, chunk.FrameZ, chunk._width, chunk._depth);
@@ -766,18 +750,23 @@ namespace PixelMiner.WorldBuilding
             {
                 await DigRiverAsync(chunk, chunk.RiverBfsQueue);
             }
-
-
             await LoadChunkMapDataAsync(chunk, heightValues);
 
-            await PlaceGrassAsync(chunk);
-            await PlaceTreeAsync(chunk);
-            await PlaceShrubAsync(chunk);
-            await PlaceCactusAsync(chunk, 2, 5);
+            //await PlaceGrassAsync(chunk);
+            //await PlaceTreeAsync(chunk);
+            //await PlaceShrubAsync(chunk);
+            //await PlaceCactusAsync(chunk, 2, 5);
 
-
+            await Task.WhenAll(
+                PlaceGrassAsync(chunk),
+                PlaceTreeAsync(chunk),
+                PlaceShrubAsync(chunk),
+                PlaceCactusAsync(chunk, 2, 5)
+            );
             await PropagateAmbientLightAsync(chunk);
 
+            //sw.Stop();
+            //Debug.Log($"Elapsed time: {sw.ElapsedMilliseconds / 1000f} s");
         }
         #endregion
 
@@ -967,7 +956,7 @@ namespace PixelMiner.WorldBuilding
                 int width = chunk.Dimensions[0];
                 int height = chunk.Dimensions[1];
                 int depth = chunk.Dimensions[2];
-
+                chunk.UpdateMaxBlocksHeight(_groundLevel);
                 for (int z = 0; z < depth; z++)
                 {
                     for (int y = 0; y < height; y++)
@@ -1025,7 +1014,7 @@ namespace PixelMiner.WorldBuilding
                                             else if (globalHeight == _groundLevel)
                                             {
                                                 chunk.ChunkData[index3D] = BlockType.SnowDritGrass;
-                                            }                        
+                                            }
                                             break;
                                         case BiomeType.Ocean:
                                             if (heightValues[x + y * width] > (y / (float)height) && heightValues[x + y * width] < Water && y < _groundLevel)
@@ -1034,19 +1023,19 @@ namespace PixelMiner.WorldBuilding
                                             }
                                             else
                                             {
-                                                chunk.ChunkData[index3D] = BlockType.Water;                                                                                      
+                                                chunk.ChunkData[index3D] = BlockType.Water;
                                             }
                                             break;
                                         case BiomeType.River:
                                             if (chunk.HeatData[index3D] == HeatType.Coldest || chunk.HeatData[index3D] == HeatType.Colder)
                                             {
-                                               chunk.ChunkData[index3D] = BlockType.Ice;
+                                                chunk.ChunkData[index3D] = BlockType.Ice;
                                             }
                                             else
                                             {
                                                 chunk.ChunkData[index3D] = BlockType.Water;
                                             }
-                                            
+
                                             break;
                                         default:
                                             Debug.LogError($"Not found {chunk.BiomesData[index3D]} biome.");
@@ -1487,12 +1476,12 @@ namespace PixelMiner.WorldBuilding
             {
                 RiverNode currentNode = riverSpreadQueue.Dequeue();
                 riversDensity[WorldGenUtilities.IndexOf(currentNode.RelativePosition.x, currentNode.RelativePosition.y, currentNode.RelativePosition.z, chunk._width, chunk._height)] = currentNode.Density;
-               
-                if(chunk.GetBiome(currentNode.RelativePosition) != BiomeType.Ocean)
+
+                if (chunk.GetBiome(currentNode.RelativePosition) != BiomeType.Ocean)
                 {
                     chunk.SetBiome(currentNode.RelativePosition, BiomeType.River);
                 }
-           
+
 
 
                 var neighbors = GetNeighborsForBfsRiver(currentNode.RelativePosition);
@@ -1678,7 +1667,6 @@ namespace PixelMiner.WorldBuilding
             });
         }
 
-
         public async Task PlaceTreeAsync(Chunk chunk)
         {
             List<Vector2Int> distributedPositions = await PoissonDiscAsync(chunk.FrameX, chunk.FrameZ, chunk._width, chunk._depth, _grassNoiseDistribute, 13, 20);
@@ -1689,26 +1677,27 @@ namespace PixelMiner.WorldBuilding
                 {
                     Vector3Int currRelativePos = new Vector3Int(distributedPositions[i].x, _groundLevel, distributedPositions[i].y);
 
-                    if(chunk.GetBlock(currRelativePos).IsDirt())
+                    if (chunk.GetBlock(currRelativePos).IsDirt())
                     {
                         if (chunk.GetBiome(currRelativePos) == BiomeType.Forest)
                         {
                             Vector3Int upperRelativePos = new Vector3Int(currRelativePos.x, currRelativePos.y + 1, currRelativePos.z);
-                            int randHeight = (int)Mathf.Lerp(5f, 7.5f, (_treeNoiseDistribute.GetNoise(currRelativePos.x, currRelativePos.z)));
-                            CreateTree(chunk.GetGlobalPosition(upperRelativePos), randHeight);
+                            int randomHeight = (int)Mathf.Lerp(5f, 7.5f, (_treeNoiseDistribute.GetNoise(currRelativePos.x, currRelativePos.z)));
+                            int treeHeight = CreateTree(chunk.GetGlobalPosition(upperRelativePos), randomHeight);
+                            chunk.UpdateMaxBlocksHeight(treeHeight);
                         }
-                        else if(chunk.GetBiome(currRelativePos) == BiomeType.Snow)
+                        else if (chunk.GetBiome(currRelativePos) == BiomeType.Snow)
                         {
                             Vector3Int upperRelativePos = new Vector3Int(currRelativePos.x, currRelativePos.y + 1, currRelativePos.z);
-                            //int randHeight = (int)Mathf.Lerp(5f, 7.5f, (_treeNoiseDistribute.GetNoise(currRelativePos.x, currRelativePos.z)));
-                            CreatePineTree(chunk.GetGlobalPosition(upperRelativePos), 11);
+                            //int randHeight = (int)Mathf.Lerp(5f, 7.5f, (_treeNoiseDistribute.GetNoise(currRelativePos.x, currRelativePos.z)));                        
+                            int treeHeight = CreatePineTree(chunk.GetGlobalPosition(upperRelativePos), 11);
+                            chunk.UpdateMaxBlocksHeight(treeHeight);
                         }
                     }
-                    
+
                 }
             });
         }
-
 
         public async Task PlaceShrubAsync(Chunk chunk)
         {
@@ -1747,6 +1736,7 @@ namespace PixelMiner.WorldBuilding
                     {
                         Vector3Int startPos = new Vector3Int(currRelativePos.x, currRelativePos.y + randomHeight, currRelativePos.z);
                         PlaceBlockDownward(chunk.GetGlobalPosition(startPos), BlockType.Cactus);
+                        chunk.UpdateMaxBlocksHeight(startPos.y);
                     }
                 }
             });
@@ -2007,7 +1997,6 @@ namespace PixelMiner.WorldBuilding
 
 
 
-
         #region LIGHTING
         public async Task PropagateAmbientLightAsync(Chunk chunk)
         {
@@ -2015,22 +2004,38 @@ namespace PixelMiner.WorldBuilding
             // I use list instead of queue because this type of light only fall down when start, 
             // use list can help this method can process in parallel. When this light hit block (not air)
             // we'll use normal bfs to spread light like with torch.
-            List<LightNode> ambientLightList = new List<LightNode>();
-
+            Vector3Int[] faceNeighbors = new Vector3Int[6];
             await Task.Run(() =>
             {
+                Parallel.For(0, _chunkDimension[2], (z) =>
+                {
+                    for (int y = _chunkDimension[1] - 1; y > chunk.MaxBlocksHeightInit; y--)
+                    {
+                        for (int x = 0; x < _chunkDimension[0]; x++)
+                        {
+                            Vector3Int relativePos = new Vector3Int(x, y, z);
+                            chunk.SetAmbientLight(relativePos, LightUtils.MaxLightIntensity);
+                        }
+                    }
+                });
+
+
                 for (int z = 0; z < _chunkDimension[2]; z++)
                 {
                     for (int x = 0; x < _chunkDimension[0]; x++)
                     {
-                        Vector3Int lightNodeGlobalPosition = chunk.GlobalPosition + new Vector3Int(x, _chunkDimension[1] - 1, z);
-                        //Vector3Int lightNodeRelativePosition = WorldCoordHelper.GlobalToRelativeBlockPosition(lightNodeGlobalPosition);
-                        ambientLightList.Add(new LightNode(lightNodeGlobalPosition, LightUtils.MaxLightIntensity));
+                        //Vector3Int lightNodeGlobalPosition = chunk.GlobalPosition + new Vector3Int(x, _chunkDimension[1] - 1, z);
+                        //chunk.AmbientLightBfsQueue.Enqueue(new LightNode(lightNodeGlobalPosition, LightUtils.MaxLightIntensity));
+
+                        Vector3Int lightNodeGlobalPosition = chunk.GlobalPosition + new Vector3Int(x, chunk.MaxBlocksHeightInit + 1, z);
+                        chunk.AmbientLightBfsQueue.Enqueue(new LightNode(lightNodeGlobalPosition, LightUtils.MaxLightIntensity));
                     }
                 }
-                LightCalculator.PropagateAmbientLightAsync(ambientLightList);
             });
-           
+
+
+            await LightCalculator.Instance.SpreadAmbientLightTask(chunk);
+
         }
         #endregion
 
@@ -2042,8 +2047,15 @@ namespace PixelMiner.WorldBuilding
 
 
         #region MODELS
-        public void CreateTree(Vector3Int rootPosition, int treeHeight)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rootPosition"></param>
+        /// <param name="treeHeight"></param>
+        /// <returns>Tree height</returns>
+        public int CreateTree(Vector3Int rootPosition, int treeHeight)
         {
+            int offsetLeavesInY = 0;
             // Wood
             for (int i = 0; i < treeHeight; i++)
             {
@@ -2067,16 +2079,32 @@ namespace PixelMiner.WorldBuilding
 
                         if (distance < radius)
                         {
-                            Main.Instance.SetBlock(leavePos + Vector3.down, BlockType.Leaves);
+                            if (_main.GetBlock(leavePos + Vector3.down) == BlockType.Air)
+                            {
+                                Main.Instance.SetBlock(leavePos + Vector3.down, BlockType.Leaves);
+                            }
+                            else
+                            {
+                                offsetLeavesInY++;
+                            }
+
                         }
                     }
                 }
             }
+
+            //Debug.Log($"Oak: {treeHeight}   {Mathf.CeilToInt(radius)}  {offsetLeaves}");
+            return rootPosition.y + treeHeight + Mathf.CeilToInt(radius) - offsetLeavesInY;
         }
 
-        public void CreatePineTree(Vector3Int rootPosition, int treeHeight)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rootPosition"></param>
+        /// <param name="treeHeight"></param>
+        /// <returns>Tree height</returns>
+        public int CreatePineTree(Vector3Int rootPosition, int treeHeight)
         {
-            treeHeight = 11;
             // Wood
             for (int i = 0; i < treeHeight; i++)
             {
@@ -2088,10 +2116,10 @@ namespace PixelMiner.WorldBuilding
             // Leaves
             Vector3Int highestLeafPos = new Vector3Int(rootPosition.x, rootPosition.y + treeHeight, rootPosition.z);
             Main.Instance.SetBlock(highestLeafPos, BlockType.PineLeaves);
-            Main.Instance.SetBlock(highestLeafPos + new Vector3Int(1,-1,0), BlockType.PineLeaves);
-            Main.Instance.SetBlock(highestLeafPos + new Vector3Int(-1,-1,0), BlockType.PineLeaves);
-            Main.Instance.SetBlock(highestLeafPos + new Vector3Int(0,-1,1), BlockType.PineLeaves);
-            Main.Instance.SetBlock(highestLeafPos + new Vector3Int(0,-1,-1), BlockType.PineLeaves);
+            Main.Instance.SetBlock(highestLeafPos + new Vector3Int(1, -1, 0), BlockType.PineLeaves);
+            Main.Instance.SetBlock(highestLeafPos + new Vector3Int(-1, -1, 0), BlockType.PineLeaves);
+            Main.Instance.SetBlock(highestLeafPos + new Vector3Int(0, -1, 1), BlockType.PineLeaves);
+            Main.Instance.SetBlock(highestLeafPos + new Vector3Int(0, -1, -1), BlockType.PineLeaves);
 
 
             int offsetIndex = 1;
@@ -2115,6 +2143,8 @@ namespace PixelMiner.WorldBuilding
                     offsetIndex++;
                 }
             }
+
+            return highestLeafPos.y;
         }
 
         public void PlaceBlockDownward(Vector3Int startGPosition, BlockType blockType)

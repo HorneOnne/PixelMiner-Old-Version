@@ -1441,12 +1441,12 @@ Shader "PixelMiner/Grass"
 }
 /*ASEBEGIN
 Version=19202
-Node;AmplifyShaderEditor.CommentaryNode;223;-170.4497,237.4402;Inherit;False;1199.587;601.9612;Comment;12;211;210;213;214;217;208;215;218;221;220;222;209;WIND;1,1,1,1;0;0
-Node;AmplifyShaderEditor.CommentaryNode;207;967.1308,1194.206;Inherit;False;1369.782;708.2811;;11;182;202;194;195;192;189;191;198;204;205;164;Wind;1,1,1,1;0;0
-Node;AmplifyShaderEditor.CommentaryNode;130;-814.3735,964.8525;Inherit;False;260;259;Comment;1;127;VOXEL COLOR;1,1,1,1;0;0
-Node;AmplifyShaderEditor.CommentaryNode;129;-415.17,1262.839;Inherit;False;627.8077;477.1703;Comment;4;121;122;125;124;DAY/NIGHT CYCLE;1,1,1,1;0;0
-Node;AmplifyShaderEditor.CommentaryNode;108;-2559.733,453.5067;Inherit;False;1602.013;874.8497;AMBIENT OCCLUSION;12;42;41;44;43;40;39;38;35;86;36;116;120;AMBIENT OCCLUSION;1,1,1,1;0;0
-Node;AmplifyShaderEditor.CommentaryNode;33;-1733.563,-299.333;Inherit;False;937.037;588.8319;VOXEL;5;23;24;21;22;34;VOXEL;1,1,1,1;0;0
+Node;AmplifyShaderEditor.CommentaryNode;223;-170.4497,237.4402;Inherit;False;1199.587;601.9612;Comment;0;WIND;1,1,1,1;0;0
+Node;AmplifyShaderEditor.CommentaryNode;207;967.1308,1194.206;Inherit;False;1369.782;708.2811;;0;Wind;1,1,1,1;0;0
+Node;AmplifyShaderEditor.CommentaryNode;130;-814.3735,964.8525;Inherit;False;260;259;Comment;0;VOXEL COLOR;1,1,1,1;0;0
+Node;AmplifyShaderEditor.CommentaryNode;129;-415.17,1262.839;Inherit;False;627.8077;477.1703;Comment;0;DAY/NIGHT CYCLE;1,1,1,1;0;0
+Node;AmplifyShaderEditor.CommentaryNode;108;-2559.733,453.5067;Inherit;False;1602.013;874.8497;AMBIENT OCCLUSION;0;AMBIENT OCCLUSION;1,1,1,1;0;0
+Node;AmplifyShaderEditor.CommentaryNode;33;-1733.563,-299.333;Inherit;False;937.037;588.8319;VOXEL;0;VOXEL;1,1,1,1;0;0
 Node;AmplifyShaderEditor.TextureCoordinatesNode;24;-1657.661,29.70628;Inherit;False;1;-1;2;3;2;SAMPLER2D;;False;0;FLOAT2;1,1;False;1;FLOAT2;0,0;False;5;FLOAT2;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
 Node;AmplifyShaderEditor.SimpleMultiplyOpNode;23;-981.6951,27.55555;Inherit;False;2;2;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;1;COLOR;0
 Node;AmplifyShaderEditor.SamplerNode;40;-2066.908,1101.357;Inherit;True;Property;_VoxelTex4;VoxelTex;4;0;Create;True;0;0;0;False;0;False;-1;cfc5b1e3a000d7040be624b6d28009e7;542221eae4d961346b813dc2ff6a37df;True;0;False;white;Auto;False;Object;-1;Auto;Texture2DArray;8;0;SAMPLER2DARRAY;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;4;False;7;SAMPLERSTATE;;False;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
@@ -1564,4 +1564,4 @@ WireConnection;124;0;121;0
 WireConnection;124;1;122;0
 WireConnection;124;2;125;0
 ASEEND*/
-//CHKSM=6023EAB3CBB501C82F22661871593F7A60BEBBE8
+//CHKSM=86319B0164F6AB45201D3A4D956BCB7D541C39A9

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using PixelMiner.Enums;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 
 namespace PixelMiner.World
 {
@@ -61,6 +62,17 @@ namespace PixelMiner.World
         [field: SerializeField] public Chunk UpSouthwest { get; set; }
         [field: SerializeField] public Chunk UpSoutheast { get; set; }
 
+
+        // Global chunk bounds
+        public int MinXGPos { get; private set; }
+        public int MaxXGPos { get; private set; }
+        public int MinYGPos { get; private set; }
+        public int MaxYGPos { get; private set; }
+        public int MinZGPos { get; private set; }
+        public int MaxZGPos { get; private set; }
+
+
+
         [Header("Data")]
         [HideInInspector] public BlockType[] ChunkData;
         [HideInInspector] public HeatType[] HeatData;
@@ -71,11 +83,12 @@ namespace PixelMiner.World
         [HideInInspector] public float[] HeatValues;
 
         [HideInInspector] public Queue<RiverNode> RiverBfsQueue = new Queue<RiverNode>();
-        [HideInInspector] public Queue<LightNode> AmbientLightBfsQueue = new Queue<LightNode>();
+        [HideInInspector] public Queue<LightNode> AmbientLightBfsQueue;
         [HideInInspector] public BiomeType[] RiverBiomes;
         [HideInInspector] public bool HasOceanBiome;
 
         private Vector3Int[] _faceNeighbors = new Vector3Int[6];
+        [field: SerializeField] public int MaxBlocksHeightInit { get; private set; } = 0; // Used to optimize ambient light propagate.
 
         private void Awake()
         {
@@ -89,6 +102,8 @@ namespace PixelMiner.World
             _playerTrans = GameObject.FindGameObjectWithTag("Player").transform;
             if (_playerTrans == null)
                 _playerTrans = Camera.main.transform;
+
+
         }
 
         private void OnDestroy()
@@ -113,10 +128,10 @@ namespace PixelMiner.World
             {
                 _updateTimer = Time.time;
 
-                if (Vector3.Distance(_playerTrans.position, transform.position) > _unloadChunkDistance)
-                {
-                    OnChunkFarAway?.Invoke(this);
-                }
+                //if (Vector3.Distance(_playerTrans.position, transform.position) > _unloadChunkDistance)
+                //{
+                //    OnChunkFarAway?.Invoke(this);
+                //}
             }
         }
 
@@ -142,6 +157,16 @@ namespace PixelMiner.World
             AmbientLightData = new byte[size3D];
 
             RiverBiomes = new BiomeType[_width * _depth];
+            AmbientLightBfsQueue = new Queue<LightNode>();
+
+
+            MinXGPos = GlobalPosition.x;
+            MaxXGPos = GlobalPosition.x + _width;
+            MinYGPos = GlobalPosition.y;
+            MaxYGPos = GlobalPosition.y + _height;
+            MinZGPos = GlobalPosition.z;
+            MaxZGPos = GlobalPosition.z + _depth;
+
 
             // Set all light dark by default
             for (int i = 0; i < VoxelLightData.Length; i++)
@@ -155,6 +180,14 @@ namespace PixelMiner.World
             }
         }
 
+
+        public void UpdateMaxBlocksHeight(int newMaxHeight)
+        {
+            if (MaxBlocksHeightInit < newMaxHeight)
+            {
+                MaxBlocksHeightInit = newMaxHeight;
+            }
+        }
 
         public bool IsSolid(Vector3Int relativePosition)
         {
@@ -171,11 +204,11 @@ namespace PixelMiner.World
         {
             GetFaceNeighbors(relativePosition, ref faceNeighbors);
 
-            for(int i = 0; i < _faceNeighbors.Length; i++)
+            for (int i = 0; i < _faceNeighbors.Length; i++)
             {
                 if (IsValidRelativePosition(_faceNeighbors[i]))
                 {
-                    if(ChunkData[IndexOf(_faceNeighbors[i].x, _faceNeighbors[i].y, _faceNeighbors[i].z)].IsTransparentSolidBlock())
+                    if (ChunkData[IndexOf(_faceNeighbors[i].x, _faceNeighbors[i].y, _faceNeighbors[i].z)].IsTransparentSolidBlock())
                     {
                         return false;
                     }
@@ -184,7 +217,7 @@ namespace PixelMiner.World
                 {
                     if (FindNeighbor(_faceNeighbors[i], out Chunk neighborChunk, out Vector3Int nbRelativePosition))
                     {
-                        if(neighborChunk.ChunkData[IndexOf(nbRelativePosition.x, nbRelativePosition.y, nbRelativePosition.z)].IsTransparentSolidBlock())
+                        if (neighborChunk.ChunkData[IndexOf(nbRelativePosition.x, nbRelativePosition.y, nbRelativePosition.z)].IsTransparentSolidBlock())
                         {
                             return false;
                         }
@@ -208,6 +241,7 @@ namespace PixelMiner.World
                 {
                     if (ChunkData[IndexOf(_faceNeighbors[i].x, _faceNeighbors[i].y, _faceNeighbors[i].z)] != blockType)
                     {
+                        Debug.Log($"F {relativePosition}: {ChunkData[IndexOf(_faceNeighbors[i].x, _faceNeighbors[i].y, _faceNeighbors[i].z)]}");
                         return false;
                     }
                 }
@@ -215,8 +249,10 @@ namespace PixelMiner.World
                 {
                     if (FindNeighbor(_faceNeighbors[i], out Chunk neighborChunk, out Vector3Int nbRelativePosition))
                     {
+                        Debug.Log("G");
                         if (neighborChunk.ChunkData[IndexOf(nbRelativePosition.x, nbRelativePosition.y, nbRelativePosition.z)] != blockType)
                         {
+                            Debug.Log("H");
                             return false;
                         }
                     }
@@ -301,7 +337,7 @@ namespace PixelMiner.World
                 {
                     return BlockType.Air;
                 }
-            }   
+            }
         }
 
         public void SetBlock(Vector3Int relativePosition, BlockType blockType)
@@ -338,7 +374,7 @@ namespace PixelMiner.World
         {
             position[dimension] += isBackFace ? -1 : 1;
             //return GetBlock(position).IsSolid() == false;
-            return GetBlock(position).IsSolid() == false ;
+            return GetBlock(position).IsSolid() == false;
         }
         public bool IsTransparentBlockFaceVisible(Vector3Int position, int dimension, bool isBackFace)
         {
@@ -358,8 +394,8 @@ namespace PixelMiner.World
         public bool HasNeighbors()
         {
             return West != null && East != null && North != null && South != null &&
-                   Northeast != null && Northwest != null && Southeast != null && Southwest != null && 
-                   
+                   Northeast != null && Northwest != null && Southeast != null && Southwest != null &&
+
                    Up != null &&
                    //Down != null &&
 
@@ -577,7 +613,7 @@ namespace PixelMiner.World
             else
             {
                 if (FindNeighbor(relativePosition, out Chunk neighborChunk, out Vector3Int nbRelativePosition))
-                {    
+                {
                     return neighborChunk.VoxelLightData[IndexOf(nbRelativePosition.x, nbRelativePosition.y, nbRelativePosition.z)];
                 }
                 else
@@ -724,12 +760,12 @@ namespace PixelMiner.World
 
         public bool OnGroundLevel(Vector3Int relativePosition)
         {
-            if(IsValidRelativePosition(relativePosition))
+            if (IsValidRelativePosition(relativePosition))
             {
                 Vector3Int belowRelativePos = relativePosition + Vector3Int.down;
                 Vector3Int upperRelativePos = relativePosition + Vector3Int.up;
 
-                if(GetBlock(relativePosition) == BlockType.Air)
+                if (GetBlock(relativePosition) == BlockType.Air)
                 {
                     if (GetBlock(belowRelativePos) != BlockType.Air)
                     {
