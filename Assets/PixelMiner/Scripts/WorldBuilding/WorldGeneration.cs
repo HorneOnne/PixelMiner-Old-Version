@@ -723,6 +723,7 @@ namespace PixelMiner.WorldBuilding
             mesh.SetUVs(0, meshData.UVs);
             mesh.SetUVs(1, meshData.UV2s);
             mesh.SetUVs(2, meshData.UV3s);
+            mesh.SetUVs(3, meshData.UV4s);
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
 

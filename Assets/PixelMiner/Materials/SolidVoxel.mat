@@ -26,7 +26,9 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords:
+  - _AMBIENTOCCLUSION1_ON
   - _AMBIENTOCCLUSION_ON
+  - _TOGGLESWITCH0_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -43,6 +45,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _LightMap:
         m_Texture: {fileID: 18700000, guid: cfc5b1e3a000d7040be624b6d28009e7, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _LightMap1:
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _VoxelTex:
@@ -70,11 +76,12 @@ Material:
     - _AO: 1
     - _AlphaCutoff: 0.5
     - _AmbientOcclusion: 1
+    - _AmbientOcclusion1: 1
     - _LightIntensity: 1.0028319
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 1
-    - _ToggleSwitch0: 0
+    - _ToggleSwitch0: 1
     m_Colors:
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

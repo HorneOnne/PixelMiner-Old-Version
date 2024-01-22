@@ -684,8 +684,8 @@ namespace PixelMiner.World
                 }
                 else
                 {
-                    Debug.LogError("Not found this chunk");
-                    return 0;
+                    Debug.LogError($"Not found this chunk {relativePosition}");
+                    return 150;
                 }
             }
 

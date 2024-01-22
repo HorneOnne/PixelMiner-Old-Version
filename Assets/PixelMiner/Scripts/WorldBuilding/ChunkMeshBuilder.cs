@@ -11,28 +11,25 @@ namespace PixelMiner.WorldBuilding
         private List<Vector3> _uvs;
         private List<Vector2> _uv2s;
         private List<Vector4> _uv3s;
+        private List<Vector4> _uv4s;
         private List<Color32> _colors;
         private List<byte> _vertexAO;
         //public bool[][][,] Merged;
         public bool[][,] Merged;
         private bool _isInit = false;
 
-   
-        public Vector3[] VerticesCached = new Vector3[4];
-        public Vector3[] UvsCached = new Vector3[4];
-        public Vector2[] Uv2sCached = new Vector2[4];
-        public Vector4[] Uv3sCached = new Vector4[4];
-        public Color32[] ColorsCached = new Color32[4];
-        public byte[] VerticesAOCached = new byte[4];
-        public byte[] VertexColorIntensityCached = new byte[4];
-
-
+ 
         public int VerticesCount { get => _vertices.Count; }
 
         public ChunkMeshBuilder()
         {
-            //Debug.Log("Create ChunkMeshBuilder");
+            Debug.Log("Create ChunkMeshBuilder");
             _isInit = false;
+        }
+
+        ~ChunkMeshBuilder()
+        {
+        
         }
 
         public void InitOrLoad(Vector3Int dimensions)
@@ -45,6 +42,7 @@ namespace PixelMiner.WorldBuilding
             _uvs = new List<Vector3>(100);
             _uv2s = new List<Vector2>(100);
             _uv3s = new List<Vector4>(100);
+            _uv4s = new List<Vector4>(100);
             _colors = new List<Color32>(100);
             _vertexAO = new List<byte>(10);
           
@@ -55,21 +53,6 @@ namespace PixelMiner.WorldBuilding
                 new bool[dimensions[0], dimensions[2]],
                 new bool[dimensions[0], dimensions[1]]
             };
-
-
-            //Merged = new bool[6][][,];
-            //for(int i = 0; i < 6; i++)
-            //{
-            //    Merged[i] = new bool[][,]
-            //    {
-            //         new bool[dimensions[2], dimensions[1]],
-            //         new bool[dimensions[0], dimensions[2]],
-            //         new bool[dimensions[0], dimensions[1]]
-            //    };
-            //}
-
-
-
 
             _isInit = true;
         }
@@ -119,8 +102,14 @@ namespace PixelMiner.WorldBuilding
         }
 
 
-        public void AddQuadFace(Vector3[] vertices, Vector3[] uvs, Vector2[] uv2s = null, Vector4[] uv3s = null, Color32[] colors = null, int voxelFace = 0, byte[] vertexAO = null, bool anisotropy = false, byte ambientLight = 0)
+        public void AddQuadFace(int voxelFace, Vector3[] vertices, Color32[] colors = null, Vector3[] uvs = null, Vector2[] uv2s = null, Vector4[] uv3s = null, Vector4[] uv4s = null)
         {
+            // uv: Block texture
+            // uv2: Color map
+            // uv3: Ambient occlusion
+            // uv4: Ambient light
+            // Vertex Color: Block light
+
             if (vertices.Length != 4)
             {
                 throw new System.ArgumentException("A quad requires 4 vertices");
@@ -149,25 +138,18 @@ namespace PixelMiner.WorldBuilding
                 this._vertices.Add(vertices[3]);
             }
 
-
+            //this._vertices.Add(vertices[0]);
+            //this._vertices.Add(vertices[1]);
+            //this._vertices.Add(vertices[2]);
+            //this._vertices.Add(vertices[3]);
 
 
             if (uvs != null)
             {
-                if (anisotropy)
-                {
-                    this._uvs.Add(uvs[1]);
-                    this._uvs.Add(uvs[2]);
-                    this._uvs.Add(uvs[3]);
-                    this._uvs.Add(uvs[0]);
-                }
-                else
-                {
-                    this._uvs.Add(uvs[0]);
-                    this._uvs.Add(uvs[1]);
-                    this._uvs.Add(uvs[2]);
-                    this._uvs.Add(uvs[3]);
-                }
+                this._uvs.Add(uvs[0]);
+                this._uvs.Add(uvs[1]);
+                this._uvs.Add(uvs[2]);
+                this._uvs.Add(uvs[3]);
 
             }
 
@@ -190,41 +172,18 @@ namespace PixelMiner.WorldBuilding
                 }
             }
 
-            // Vertex AO
-            if (vertexAO != null)
-            {
-                if (vertexAO.Length != 4)
-                {
-                    throw new System.ArgumentException("A quad requires 4 vertex color.");
-                }
 
-                byte[] indices = new byte[4];
+            this._uv3s.Add(uv3s[0]);
+            this._uv3s.Add(uv3s[1]);
+            this._uv3s.Add(uv3s[2]);
+            this._uv3s.Add(uv3s[3]);
 
-                for (int i = 0; i < vertexAO.Length; i++)
-                {
-                    if (vertexAO[i] == 0)
-                    {
-                        indices[i] = 208;
-                    }
-                    else if (vertexAO[i] == 1)
-                    {
-                        indices[i] = 224;
-                    }
-                    else if (vertexAO[i] == 2)
-                    {
-                        indices[i] = 224;
-                    }
-                    else if (vertexAO[i] == 3)
-                    {
-                        indices[i] = 240;
-                    }
-                }
 
-                this._uv3s.Add(new Vector4(indices[0], indices[1], indices[2], indices[3]));
-                this._uv3s.Add(new Vector4(indices[0], indices[1], indices[2], indices[3]));
-                this._uv3s.Add(new Vector4(indices[0], indices[1], indices[2], indices[3]));
-                this._uv3s.Add(new Vector4(indices[0], indices[1], indices[2], indices[3]));
-            }
+            this._uv4s.Add(uv4s[0]);
+            this._uv4s.Add(uv4s[1]);
+            this._uv4s.Add(uv4s[2]);
+            this._uv4s.Add(uv4s[3]);
+
 
             _triangles.Add(this._vertices.Count - 2);
             _triangles.Add(this._vertices.Count - 3);
@@ -260,15 +219,7 @@ namespace PixelMiner.WorldBuilding
 
 
         public void Add(ChunkMeshBuilder otherBuilder)
-        {
-            //    private List<Vector3> _vertices;
-            //private List<int> _triangles;
-            //private List<Vector3> _uvs;
-            //private List<Vector2> _uv2s;
-            //private List<Vector4> _uv3s;
-            //private List<Color32> _colors;
-            //private List<byte> _vertexAO;
-
+        { 
             int currentVertexCount = this.VerticesCount;
             this._vertices.AddRange(otherBuilder._vertices);
 
@@ -281,6 +232,7 @@ namespace PixelMiner.WorldBuilding
             this._uvs.AddRange(otherBuilder._uvs);
             this._uv2s.AddRange(otherBuilder._uv2s);
             this._uv3s.AddRange(otherBuilder._uv3s);
+            this._uv4s.AddRange(otherBuilder._uv4s);
             this._colors.AddRange(otherBuilder._colors);
             this._vertexAO.AddRange(otherBuilder._vertexAO);
         }
@@ -288,7 +240,7 @@ namespace PixelMiner.WorldBuilding
         public MeshData ToMeshData()
         {
             MeshData data = MeshDataPool.Get();
-            data.Init(_vertices, _triangles, _uvs, _uv2s, _uv3s, _colors);
+            data.Init(_vertices, _triangles, _uvs, _uv2s, _uv3s, _uv4s, _colors);
             return data;
         }
 
@@ -299,6 +251,7 @@ namespace PixelMiner.WorldBuilding
             _uvs.Clear();
             _uv2s.Clear();
             _uv3s.Clear();
+            _uv4s.Clear();
             _colors.Clear();
         }
     }

@@ -10,6 +10,7 @@ namespace PixelMiner.WorldBuilding
         public List<Vector3> UVs { get; private set; }
         public List<Vector2> UV2s { get; private set; }
         public List<Vector4> UV3s { get; private set; }
+        public List<Vector4> UV4s { get; private set; }
         public List<Color32> Colors { get; private set; }
 
 
@@ -21,17 +22,19 @@ namespace PixelMiner.WorldBuilding
             UVs = new List<Vector3>(4);
             UV2s = new List<Vector2>(4);
             UV3s = new List<Vector4>(4);
+            UV4s = new List<Vector4>(4);
             Colors = new List<Color32>(4);
         }
 
         public void Init(List<Vector3> vertices, List<int> triangles, List<Vector3> uvs, List<Vector2> uv2s, 
-            List<Vector4> uv3s, List<Color32> colors)
+            List<Vector4> uv3s, List<Vector4> uv4s, List<Color32> colors)
         {
             Vertices.AddRange(vertices);
             Triangles.AddRange(triangles);
             UVs.AddRange(uvs);
             UV2s.AddRange(uv2s);
             UV3s.AddRange(uv3s);
+            UV4s.AddRange(uv4s);
             Colors.AddRange(colors);
         }
 
@@ -43,6 +46,7 @@ namespace PixelMiner.WorldBuilding
             UVs.AddRange(meshData.UVs);
             UV2s.AddRange(meshData.UV2s);
             UV3s.AddRange(meshData.UV3s);
+            UV4s.AddRange(meshData.UV4s);
             Colors.AddRange(meshData.Colors);
         }
 
@@ -53,6 +57,7 @@ namespace PixelMiner.WorldBuilding
             UVs.Clear();
             UV2s.Clear();
             UV3s.Clear();
+            UV4s.Clear();
             Colors.Clear();
         }
     }
