@@ -171,7 +171,7 @@ namespace PixelMiner.WorldBuilding
             uv4s[0] = new Vector4(i0, i0, i0, i0);
             uv4s[1] = new Vector4(i1, i1, i1, i1);
             uv4s[2] = new Vector4(i2, i2, i2, i2);
-            uv4s[3] = new Vector4(i3, i3, i3, 30);
+            uv4s[3] = new Vector4(i3, i3, i3, i3);
         }
 
 
@@ -349,7 +349,7 @@ namespace PixelMiner.WorldBuilding
 
         public static Color32 GetLightColor(byte light, AnimationCurve lightAnimCurve)
         {
-            float channelValue = lightAnimCurve.Evaluate(light / LightUtils.MaxLightIntensity);
+            float channelValue = lightAnimCurve.Evaluate(light / (float)LightUtils.MaxLightIntensity);
             byte lightValue = (byte)Mathf.Clamp(channelValue * 255, 0, 255);
             return new Color32(lightValue, lightValue, lightValue, 255);
         }
@@ -442,7 +442,7 @@ namespace PixelMiner.WorldBuilding
             Vector3Int blockOffsetPosition = blockPosition + offset;
             return chunk.GetAmbientLight(blockOffsetPosition);
         }
-        private static BlockType GetBlockAmbientLightPositionFace(Chunk chunk, Vector3Int blockPosition, int face)
+        private static BlockType GetBlockTypeLightAdjacentFace(Chunk chunk, Vector3Int blockPosition, int face)
         {
             Vector3Int offset;
 
@@ -672,10 +672,10 @@ namespace PixelMiner.WorldBuilding
                             vertices[3] = offsetPos + n;
 
 
-                            if (voxelFace == 3 || voxelFace == 2)
-                            {
-                                m = -m;
-                            }
+                            //if (voxelFace == 3 || voxelFace == 2)
+                            //{
+                            //    m = -m;
+                            //}
 
 
 
@@ -685,90 +685,69 @@ namespace PixelMiner.WorldBuilding
                             byte lightValue = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
                             lightColor = GetLightColor(lightValue, lightAnimCurve);
 
-                            blockColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                            blockColorIntensity[1] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
-                            blockColorIntensity[2] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace);
-                            blockColorIntensity[3] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
+                            BlockType bl0 = GetBlockTypeLightAdjacentFace(chunk, startPos, voxelFace);
+                            BlockType bl1 = GetBlockTypeLightAdjacentFace(chunk, startPos + m, voxelFace);
+                            BlockType bl2 = GetBlockTypeLightAdjacentFace(chunk, startPos + m + n, voxelFace);
+                            BlockType bl3 = GetBlockTypeLightAdjacentFace(chunk, startPos + n, voxelFace);
 
                             if (smoothLight)
                             {
-                                if (voxelFace == 1 || voxelFace == 5 || voxelFace == 0)
+                                if (!bl0.IsSolid() && !bl1.IsSolid() && !bl2.IsSolid() && !bl3.IsSolid())
                                 {
-                                    if (blockColorIntensity[0] == 0)
-                                    {
-                                        colors[0] = lightColor;
-                                    }
-                                    else
-                                    {
-                                        colors[0] = GetLightColor(blockColorIntensity[0], lightAnimCurve);
-                                    }
-                                    if (blockColorIntensity[1] == 0)
-                                    {
-                                        colors[1] = lightColor;
-                                    }
-                                    else
-                                    {
-                                        colors[1] = GetLightColor(blockColorIntensity[1], lightAnimCurve);
-                                    }
-                                    if (blockColorIntensity[2] == 0)
-                                    {
-                                        colors[2] = lightColor;
-                                    }
-                                    else
-                                    {
-                                        colors[2] = GetLightColor(blockColorIntensity[2], lightAnimCurve);
-                                    }
-                                    if (blockColorIntensity[3] == 0)
-                                    {
-                                        colors[3] = lightColor;
-                                    }
-                                    else
-                                    {
-                                        colors[3] = GetLightColor(blockColorIntensity[3], lightAnimCurve);
-                                    }
+                                    blockColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                    blockColorIntensity[1] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
+                                    blockColorIntensity[2] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace);
+                                    blockColorIntensity[3] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
                                 }
-                                else if (voxelFace == 2 || voxelFace == 3)
+                                else if (!bl0.IsSolid() && !bl1.IsSolid() && bl2.IsSolid() && bl3.IsSolid())
                                 {
-                                    if (blockColorIntensity[1] == 0)
-                                    {
-                                        colors[0] = lightColor;
-                                    }
-                                    else
-                                    {
-                                        colors[0] = GetLightColor(blockColorIntensity[1], lightAnimCurve);
-                                    }
-                                    if (blockColorIntensity[0] == 0)
-                                    {
-                                        colors[1] = lightColor;
-                                    }
-                                    else
-                                    {
-                                        colors[1] = GetLightColor(blockColorIntensity[0], lightAnimCurve);
-                                    }
-                                    if (blockColorIntensity[3] == 0)
-                                    {
-                                        colors[2] = lightColor;
-                                    }
-                                    else
-                                    {
-                                        colors[2] = GetLightColor(blockColorIntensity[3], lightAnimCurve);
-                                    }
-                                    if (blockColorIntensity[2] == 0)
-                                    {
-                                        colors[3] = lightColor;
-                                    }
-                                    else
-                                    {
-                                        colors[3] = GetLightColor(blockColorIntensity[2], lightAnimCurve);
-                                    }
+                                    blockColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                    blockColorIntensity[1] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
+                                    blockColorIntensity[2] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
+                                    blockColorIntensity[3] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                }
+                                else if (!bl0.IsSolid() && bl1.IsSolid() && bl2.IsSolid() && !bl3.IsSolid())
+                                {
+                                    blockColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                    blockColorIntensity[1] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                    blockColorIntensity[2] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
+                                    blockColorIntensity[3] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
+                                }
+                                else if (!bl0.IsSolid() && bl1.IsSolid() && !bl2.IsSolid() && !bl3.IsSolid())
+                                {
+                                    blockColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                    blockColorIntensity[1] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                    blockColorIntensity[2] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace);
+                                    blockColorIntensity[3] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
+                                }
+                                else if (!bl0.IsSolid() && bl1.IsSolid() && bl2.IsSolid() && bl3.IsSolid())
+                                {
+                                    blockColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                    blockColorIntensity[1] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                    blockColorIntensity[2] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                    blockColorIntensity[3] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                }
+                                else if (!bl0.IsSolid() && !bl1.IsSolid() && !bl2.IsSolid() && bl3.IsSolid())
+                                {
+                                    blockColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                    blockColorIntensity[1] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
+                                    blockColorIntensity[2] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace);
+                                    blockColorIntensity[3] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                }
+                                else if (!bl0.IsSolid() && !bl1.IsSolid() && bl2.IsSolid() && !bl3.IsSolid())
+                                {
+                                    blockColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                    blockColorIntensity[1] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
+                                    blockColorIntensity[2] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
+                                    blockColorIntensity[3] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
                                 }
                                 else
                                 {
-                                    colors[0] = GetLightColor(blockColorIntensity[0], lightAnimCurve);
-                                    colors[1] = GetLightColor(blockColorIntensity[0], lightAnimCurve);
-                                    colors[2] = GetLightColor(blockColorIntensity[0], lightAnimCurve);
-                                    colors[3] = GetLightColor(blockColorIntensity[0], lightAnimCurve);
-                                }
+                                    blockColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                    blockColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                    blockColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                    blockColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                }                          
                             }
                             else
                             {
@@ -778,32 +757,32 @@ namespace PixelMiner.WorldBuilding
                                 colors[3] = GetLightColor(blockColorIntensity[0], lightAnimCurve);
                             }
 
-
-
+                            colors[0] = GetLightColor(blockColorIntensity[0], lightAnimCurve);
+                            colors[1] = GetLightColor(blockColorIntensity[1], lightAnimCurve);
+                            colors[2] = GetLightColor(blockColorIntensity[2], lightAnimCurve);
+                            colors[3] = GetLightColor(blockColorIntensity[3], lightAnimCurve);
 
 
                             // Vertex AO Colors
-                            for (int i = 0; i < verticesAO.Length; i++)
-                            {
-                                if (verticesAO[i] == 0)
-                                {
-                                    colors[i] = new Color32(255, 0, 0, 255);
-                                }
-                                else if (verticesAO[i] == 1)
-                                {
-                                    colors[i] = new Color32(0, 255, 0, 255);
-                                }
-                                else if (verticesAO[i] == 2)
-                                {
-                                    colors[i] = new Color32(0, 0, 255, 255);
-                                }
-                                else
-                                {
-                                    colors[i] = new Color32(255, 255, 255, 255);
-                                }
-                            }
-
-
+                            //for (int i = 0; i < verticesAO.Length; i++)
+                            //{
+                            //    if (verticesAO[i] == 0)
+                            //    {
+                            //        colors[i] = new Color32(255, 0, 0, 255);
+                            //    }
+                            //    else if (verticesAO[i] == 1)
+                            //    {
+                            //        colors[i] = new Color32(0, 255, 0, 255);
+                            //    }
+                            //    else if (verticesAO[i] == 2)
+                            //    {
+                            //        colors[i] = new Color32(0, 0, 255, 255);
+                            //    }
+                            //    else
+                            //    {
+                            //        colors[i] = new Color32(255, 255, 255, 255);
+                            //    }
+                            //}
 
 
 
@@ -815,14 +794,10 @@ namespace PixelMiner.WorldBuilding
                             ambientColorIntensity[1] = 0;
                             ambientColorIntensity[2] = 0;
                             ambientColorIntensity[3] = 0;
-
-
-                            BlockType b0 = GetBlockAmbientLightPositionFace(chunk, startPos, voxelFace);
-                            BlockType b1 = GetBlockAmbientLightPositionFace(chunk, startPos + m, voxelFace);
-                            BlockType b2 = GetBlockAmbientLightPositionFace(chunk, startPos + m + n, voxelFace);
-                            BlockType b3 = GetBlockAmbientLightPositionFace(chunk, startPos + n, voxelFace);
-
-
+                            BlockType b0 = GetBlockTypeLightAdjacentFace(chunk, startPos, voxelFace);
+                            BlockType b1 = GetBlockTypeLightAdjacentFace(chunk, startPos + m, voxelFace);
+                            BlockType b2 = GetBlockTypeLightAdjacentFace(chunk, startPos + m + n, voxelFace);
+                            BlockType b3 = GetBlockTypeLightAdjacentFace(chunk, startPos + n, voxelFace);
                             if (!b0.IsSolid() && !b1.IsSolid() && !b2.IsSolid() && !b3.IsSolid())
                             {
                                 ambientColorIntensity[0] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
@@ -849,7 +824,7 @@ namespace PixelMiner.WorldBuilding
                                 ambientColorIntensity[0] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
                                 ambientColorIntensity[1] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
                                 ambientColorIntensity[2] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace);
-                                ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
+                                ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);     
                             }
                             else if (!b0.IsSolid() && b1.IsSolid() && b2.IsSolid() && b3.IsSolid())
                             {
@@ -872,8 +847,22 @@ namespace PixelMiner.WorldBuilding
                                 ambientColorIntensity[2] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
                                 ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
                             }
-
-
+                            //if (b0.IsSolid())
+                            //{
+                            //    ambientColorIntensity[0] = (byte)Mathf.Clamp(ambientColorIntensity[0] - 15, 0, 255);
+                            //}
+                            //if (b1.IsSolid())
+                            //{
+                            //    ambientColorIntensity[1] = (byte)Mathf.Clamp(ambientColorIntensity[1] - 15, 0, 255);
+                            //}
+                            //if (b2.IsSolid())
+                            //{
+                            //    ambientColorIntensity[2] = (byte)Mathf.Clamp(ambientColorIntensity[2] - 15, 0, 255);
+                            //}
+                            //if (b3.IsSolid())
+                            //{
+                            //    ambientColorIntensity[3] = (byte)Mathf.Clamp(ambientColorIntensity[3] - 15, 0, 255);
+                            //}
 
 
                             GetBlockUVs(currBlock, voxelFace, quadSize[u], quadSize[v], ref uvs);
@@ -897,128 +886,7 @@ namespace PixelMiner.WorldBuilding
             });
 
 
-            void AL01Test()
-            {
-                ambientColorIntensity[0] = 0;
-                ambientColorIntensity[1] = 0;
-                ambientColorIntensity[2] = 0;
-                ambientColorIntensity[3] = 0;
-
-
-
-
-                if (verticesAO[0] == 3 && verticesAO[1] == 3 && verticesAO[2] == 3 && verticesAO[3] == 3)
-                {
-                    ambientColorIntensity[0] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                    ambientColorIntensity[1] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
-                    ambientColorIntensity[2] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace);
-                    ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
-                }
-                else
-                {
-                    if (verticesAO[0] != 3 && verticesAO[1] != 3 && verticesAO[2] == 3 && verticesAO[3] == 3)
-                    {
-                        ambientColorIntensity[0] = ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
-                        ambientColorIntensity[1] = ambientColorIntensity[2] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace); ;
-                    }
-                    else if (verticesAO[2] != 3 && verticesAO[3] != 3 && verticesAO[0] == 3 && verticesAO[1] == 3)
-                    {
-                        ambientColorIntensity[0] = ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                        ambientColorIntensity[1] = ambientColorIntensity[2] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace); ;
-                    }
-                    else if (verticesAO[0] != 3 && verticesAO[3] != 3 && verticesAO[1] == 3 && verticesAO[2] == 3)
-                    {
-                        ambientColorIntensity[0] = ambientColorIntensity[1] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
-                        ambientColorIntensity[2] = ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace);
-                    }
-                    else if (verticesAO[1] != 3 && verticesAO[2] != 3 && verticesAO[0] == 3 && verticesAO[3] == 3)
-                    {
-                        ambientColorIntensity[0] = ambientColorIntensity[1] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                        ambientColorIntensity[2] = ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
-
-                        //ambientColorIntensity[0] = ambientColorIntensity[1] = 0;
-                        //ambientColorIntensity[2] = ambientColorIntensity[3] = 0;
-                    }
-
-                    else if (verticesAO[0] == 3 && verticesAO[1] != 3 && verticesAO[2] != 3 && verticesAO[3] != 3)
-                    {
-                        ambientColorIntensity[0] = ambientColorIntensity[1] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                        ambientColorIntensity[2] = ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                    }
-                    else if (verticesAO[3] == 3 && verticesAO[0] != 3 && verticesAO[1] != 3 && verticesAO[2] != 3)
-                    {
-                        ambientColorIntensity[0] = ambientColorIntensity[1] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
-                        ambientColorIntensity[2] = ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
-                    }
-                    //else if (verticesAO[1] == 3 && verticesAO[0] != 3 && verticesAO[2] != 3 && verticesAO[3] != 3)
-                    //{
-                    //    ambientColorIntensity[0] = ambientColorIntensity[1] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
-                    //    ambientColorIntensity[2] = ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
-                    //}
-                    //else if (verticesAO[2] == 3 && verticesAO[0] != 3 && verticesAO[1] != 3 && verticesAO[3] != 3)
-                    //{
-                    //    ambientColorIntensity[0] = ambientColorIntensity[1] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace);
-                    //    ambientColorIntensity[2] = ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace);
-                    //}
-
-
-
-                    else if (verticesAO[1] != 3 && verticesAO[0] == 3 && verticesAO[2] == 3 && verticesAO[3] == 3)
-                    {
-                        ambientColorIntensity[0] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                        ambientColorIntensity[1] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
-                        ambientColorIntensity[2] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace);
-                        ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
-                    }
-                    else if (verticesAO[2] != 3 && verticesAO[0] == 3 && verticesAO[1] == 3 && verticesAO[3] == 3)
-                    {
-                        ambientColorIntensity[0] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                        ambientColorIntensity[1] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
-                        ambientColorIntensity[2] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
-                        ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
-                    }
-                    else if (verticesAO[3] != 3 && verticesAO[0] == 3 && verticesAO[1] == 3 && verticesAO[2] == 3)
-                    {
-                        ambientColorIntensity[0] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                        ambientColorIntensity[1] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
-                        ambientColorIntensity[2] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace);
-                        ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
-                    }
-
-
-
-
-                    else if (verticesAO[2] == 3 && verticesAO[0] != 3 && verticesAO[1] != 3 && verticesAO[3] != 3)
-                    {
-                        ambientColorIntensity[0] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                        ambientColorIntensity[1] = ambientColorIntensity[2] = ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace);
-                    }
-
-
-
-                    else if (verticesAO[0] != 3 && verticesAO[1] != 3 && verticesAO[3] != 3 && verticesAO[2] == 3)
-                    {
-                        ambientColorIntensity[0] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                        ambientColorIntensity[1] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace);
-                        ambientColorIntensity[2] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace);
-                        ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                    }
-                    else if (verticesAO[0] != 3 && verticesAO[1] != 3 && verticesAO[2] != 3 && verticesAO[3] == 3)
-                    {
-                        ambientColorIntensity[0] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
-                        ambientColorIntensity[1] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
-                        ambientColorIntensity[2] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace);
-                        ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
-                    }
-                    else if (verticesAO[0] != 3 && verticesAO[2] != 3 && verticesAO[3] != 3 && verticesAO[1] == 3)
-                    {
-                        ambientColorIntensity[0] = ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                        ambientColorIntensity[1] = ambientColorIntensity[2] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
-                    }
-                }
-
-            }
-
+           
 
             return builder;
 

@@ -24,7 +24,8 @@ namespace PixelMiner.Lighting
             { BlockType.Light, 10 },  
             
             { BlockType.Wood, 150 },     
-            { BlockType.Leaves, 50 },     
+            { BlockType.Leaves, 25 },     
+            { BlockType.PineLeaves, 25 },     
         };
 
         public static byte[] BlocksOpaque = new byte[256];
