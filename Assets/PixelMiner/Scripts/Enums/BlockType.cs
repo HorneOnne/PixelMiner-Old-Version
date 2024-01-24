@@ -43,7 +43,7 @@
                    blockType != BlockType.Water &&
                    blockType != BlockType.Grass &&
                    blockType != BlockType.Leaves &&
-                   blockType != BlockType.PineLeaves &&
+                   //blockType != BlockType.PineLeaves &&
                    blockType != BlockType.Shrub &&
                    //blockType != BlockType.Cactus &&
                    blockType != BlockType.TallGrass;
@@ -60,7 +60,7 @@
         {
             return blockType == BlockType.Glass ||
                    //blockType == BlockType.Cactus ||
-                   blockType == BlockType.PineLeaves ||
+                   //blockType == BlockType.PineLeaves ||
                    blockType == BlockType.Leaves;
         }
 

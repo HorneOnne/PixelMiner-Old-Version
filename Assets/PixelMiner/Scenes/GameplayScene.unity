@@ -630,8 +630,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: -0.0074836644
-      value: -0.001773335
+      time: 0.0013183197
+      value: 0.039741565
       inSlope: 0
       outSlope: 0
       tangentMode: 136
@@ -659,15 +659,15 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 0.7086885
       value: 0.18578482
-      inSlope: -1.4796941
-      outSlope: -1.4796941
+      inSlope: -1.1489066
+      outSlope: -1.1489066
       tangentMode: 136
       weightedMode: 0
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 1.0001152
-      value: -0.00013748184
+      time: 0.99999416
+      value: 0.041460436
       inSlope: 0
       outSlope: 0
       tangentMode: 136
@@ -686,6 +686,7 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 2782a2852f01ba64c906eca602109dc7, type: 2}
   - {fileID: 2100000, guid: 91a6625b9e90e1045ba1f760b7816e8a, type: 2}
   - {fileID: 2100000, guid: 9c7176e778c20044284e903121113ae9, type: 2}
+  - {fileID: 2100000, guid: 3287c3ed884f20a42b09c9b5cc4e75e0, type: 2}
 --- !u!1 &286510686
 GameObject:
   m_ObjectHideFlags: 0
@@ -1480,7 +1481,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4aaa3fe2ac20524196b49e34eb03f49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _timeMultiplier: 1
+  _timeMultiplier: 3
   currentTime: 0
   FreezeTime: 1
   Minutes: 0

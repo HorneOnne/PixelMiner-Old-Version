@@ -379,14 +379,16 @@ namespace PixelMiner.World
         public bool IsTransparentBlockFaceVisible(Vector3Int position, int dimension, bool isBackFace)
         {
             position[dimension] += isBackFace ? -1 : 1;
-            return GetBlock(position).IsSolid() == false || GetBlock(position).IsTransparentSolidBlock();
+            return !GetBlock(position).IsTransparentSolidBlock();
         }
 
         public bool IsWaterFaceVisible(Vector3Int position, int dimension, bool isBackFace)
         {
             position[dimension] += isBackFace ? -1 : 1;
-            return IsWater(position) == false;
+            return GetBlock(position) == BlockType.Air;
         }
+
+
 
 
         #region Neighbors

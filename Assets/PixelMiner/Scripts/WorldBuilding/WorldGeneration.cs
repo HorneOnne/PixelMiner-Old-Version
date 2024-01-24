@@ -654,14 +654,14 @@ namespace PixelMiner.WorldBuilding
                 MeshData transparentSolidMeshData = await MeshUtils.RenderSolidMesh(chunk, LightAnimCurve, isTransparentMesh: true);
 
                 MeshData grassMeshData = await MeshUtils.GetChunkGrassMeshData(chunk, LightAnimCurve, _grassNoiseDistribute);
-                //MeshData waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(this);
+                MeshData waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(chunk, LightAnimCurve);
                 MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(chunk);
 
 
 
                 chunk.SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
                 chunk.SolidTransparentMeshFilter.sharedMesh = CreateMesh(transparentSolidMeshData);
-                //WaterMeshFilter.sharedMesh =  CreateMesh(waterMeshData);
+                chunk.WaterMeshFilter.sharedMesh =  CreateMesh(waterMeshData);
 
 
                 // Grass
@@ -680,7 +680,7 @@ namespace PixelMiner.WorldBuilding
                 MeshDataPool.Release(solidMeshData);
                 MeshDataPool.Release(transparentSolidMeshData);
                 MeshDataPool.Release(grassMeshData);
-                //MeshDataPool.Release(waterMeshData);
+                MeshDataPool.Release(waterMeshData);
                 MeshDataPool.Release(colliderMeshData);
 
                 //LogUtils.WriteMeshToFile(chunk.SolidMeshFilter.sharedMesh, "Meshdata.txt");
