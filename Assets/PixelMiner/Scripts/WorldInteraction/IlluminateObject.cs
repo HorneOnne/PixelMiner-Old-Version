@@ -6,6 +6,7 @@ namespace PixelMiner.WorldInteraction
     public class IlluminateObject : MonoBehaviour
     {
         [SerializeField] private MeshRenderer _meshRenderer;
+        [SerializeField] private SkinnedMeshRenderer _skinMeshRenderer;
         private Material _mat;
 
         private byte _blockLight;
@@ -16,7 +17,8 @@ namespace PixelMiner.WorldInteraction
 
         private void Start()
         {
-            _mat = _meshRenderer.material;       
+            //_mat = _meshRenderer.material;       
+            _mat = _skinMeshRenderer.material;       
         }
 
         private void Update()

@@ -1,5 +1,4 @@
-﻿using PixelMiner.Lighting;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace PixelMiner.WorldBuilding

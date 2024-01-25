@@ -10,7 +10,7 @@ Shader "PixelMiner/Standard"
 		_BlockLightValue("BlockLightValue", Int) = 0
 		_AmbientLightValue("AmbientLightValue", Int) = 0
 		_Texture0("Texture 0", 2DArray) = "white" {}
-		_BaseColor("BaseColor", Color) = (0.2939496,0.8396226,0.1861427,0)
+		_MainTex("MainTex", 2D) = "white" {}
 		[HideInInspector] _texcoord( "", 2D ) = "white" {}
 
 
@@ -241,7 +241,7 @@ Shader "PixelMiner/Standard"
 			};
 
 			CBUFFER_START(UnityPerMaterial)
-			float4 _BaseColor;
+			float4 _MainTex_ST;
 			float4 _Texture0_ST;
 			int _BlockLightValue;
 			int _AmbientLightValue;
@@ -256,6 +256,7 @@ Shader "PixelMiner/Standard"
 			#endif
 			CBUFFER_END
 
+			sampler2D _MainTex;
 			TEXTURE2D_ARRAY(_Texture0);
 			SAMPLER(sampler_Texture0);
 
@@ -415,11 +416,12 @@ Shader "PixelMiner/Standard"
 					#endif
 				#endif
 
+				float2 uv_MainTex = IN.ase_texcoord3.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 				float2 uv_Texture0 = IN.ase_texcoord3.xy;
 				
 				float3 BakedAlbedo = 0;
 				float3 BakedEmission = 0;
-				float3 Color = ( _BaseColor * ( SAMPLE_TEXTURE2D_ARRAY( _Texture0, sampler_Texture0, uv_Texture0,(float)_BlockLightValue ) + ( SAMPLE_TEXTURE2D_ARRAY( _Texture0, sampler_Texture0, uv_Texture0,(float)_AmbientLightValue ) * _AmbientIntensity ) ) ).rgb;
+				float3 Color = ( tex2D( _MainTex, uv_MainTex ) * ( SAMPLE_TEXTURE2D_ARRAY( _Texture0, sampler_Texture0, uv_Texture0,(float)_BlockLightValue ) + ( SAMPLE_TEXTURE2D_ARRAY( _Texture0, sampler_Texture0, uv_Texture0,(float)_AmbientLightValue ) * _AmbientIntensity ) ) ).rgb;
 				float Alpha = 1;
 				float AlphaClipThreshold = 0.5;
 				float AlphaClipThresholdShadow = 0.5;
@@ -515,7 +517,7 @@ Shader "PixelMiner/Standard"
 			};
 
 			CBUFFER_START(UnityPerMaterial)
-			float4 _BaseColor;
+			float4 _MainTex_ST;
 			float4 _Texture0_ST;
 			int _BlockLightValue;
 			int _AmbientLightValue;
@@ -772,7 +774,7 @@ Shader "PixelMiner/Standard"
 			};
 
 			CBUFFER_START(UnityPerMaterial)
-			float4 _BaseColor;
+			float4 _MainTex_ST;
 			float4 _Texture0_ST;
 			int _BlockLightValue;
 			int _AmbientLightValue;
@@ -997,7 +999,7 @@ Shader "PixelMiner/Standard"
 			};
 
 			CBUFFER_START(UnityPerMaterial)
-			float4 _BaseColor;
+			float4 _MainTex_ST;
 			float4 _Texture0_ST;
 			int _BlockLightValue;
 			int _AmbientLightValue;
@@ -1214,7 +1216,7 @@ Shader "PixelMiner/Standard"
 			};
 
 			CBUFFER_START(UnityPerMaterial)
-			float4 _BaseColor;
+			float4 _MainTex_ST;
 			float4 _Texture0_ST;
 			int _BlockLightValue;
 			int _AmbientLightValue;
@@ -1439,7 +1441,7 @@ Shader "PixelMiner/Standard"
 			};
 
 			CBUFFER_START(UnityPerMaterial)
-			float4 _BaseColor;
+			float4 _MainTex_ST;
 			float4 _Texture0_ST;
 			int _BlockLightValue;
 			int _AmbientLightValue;
@@ -1651,8 +1653,9 @@ Node;AmplifyShaderEditor.IntNode;15;-673.7453,91.5835;Inherit;False;Property;_Am
 Node;AmplifyShaderEditor.TexturePropertyNode;16;-729.7371,-245.6577;Inherit;True;Property;_Texture0;Texture 0;3;0;Create;True;0;0;0;False;0;False;cfc5b1e3a000d7040be624b6d28009e7;cfc5b1e3a000d7040be624b6d28009e7;False;white;Auto;Texture2DArray;-1;0;2;SAMPLER2DARRAY;0;SAMPLERSTATE;1
 Node;AmplifyShaderEditor.SimpleAddOpNode;12;81.35821,-171.1803;Inherit;False;2;2;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;1;COLOR;0
 Node;AmplifyShaderEditor.ColorNode;20;18.1482,-546.0195;Inherit;False;Property;_BaseColor;BaseColor;4;0;Create;True;0;0;0;False;0;False;0.2939496,0.8396226,0.1861427,0;0,0,0,0;True;0;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
+Node;AmplifyShaderEditor.SamplerNode;23;6.270905,-759.7706;Inherit;True;Property;_MainTex;MainTex;5;0;Create;True;0;0;0;False;0;False;-1;None;None;True;0;False;white;Auto;False;Object;-1;Auto;Texture2D;8;0;SAMPLER2D;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;0;False;7;SAMPLERSTATE;;False;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
 WireConnection;1;2;21;0
-WireConnection;21;0;20;0
+WireConnection;21;0;23;0
 WireConnection;21;1;12;0
 WireConnection;17;0;16;0
 WireConnection;17;6;14;0
@@ -1663,4 +1666,4 @@ WireConnection;19;1;10;0
 WireConnection;12;0;17;0
 WireConnection;12;1;19;0
 ASEEND*/
-//CHKSM=F4A29561E2CDA0E56BE94244DF3EAC0C7F2C3581
+//CHKSM=899427580EAD5061F0D978684EC26FA6672F1B68
