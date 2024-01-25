@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace PixelMiner
 {
-
     public class PlayerMovement3D : MonoBehaviour
     {
         private CameraLogicHandler _cameraLogicHandler;
@@ -24,6 +23,7 @@ namespace PixelMiner
         // animation IDs
         private int _animIDVelocityX;
         private int _animIDVelocityY;
+        private int _animIDVelocity;
 
 
         private void Awake()
@@ -39,9 +39,9 @@ namespace PixelMiner
         {
             _input = InputHander.Instance;
             _cameraLogicHandler = CameraLogicHandler.Instance;
-            AssignAnimationIDs();          
+            AssignAnimationIDs();
         }
-     
+
 
         private void Update()
         {
@@ -60,16 +60,10 @@ namespace PixelMiner
                 _moveDirection = Vector3.zero;
             }
 
-
+            UpdatePosition();
             //FaceToCamera();
-        }
 
-        private void FixedUpdate()
-        {
-            if (_moveDirection != Vector3.zero)
-                _rb.velocity = _moveDirection.Iso(new Vector3(0, _cameraLogicHandler.CurrentYRotAngle ,0)) * _moveSpeed;
-            else
-                _rb.velocity = new Vector3(0, _rb.velocity.y, 0);
+            UpdateRotation();
 
 
             // Animation
@@ -77,9 +71,16 @@ namespace PixelMiner
             //Flip(_moveDirection);
             if (_hasAnimator)
             {
-                _anim.SetFloat(_animIDVelocityX, _moveDirection.x);
-                _anim.SetFloat(_animIDVelocityY, _moveDirection.z);
+                //_anim.SetFloat(_animIDVelocityX, _moveDirection.x);
+                //_anim.SetFloat(_animIDVelocityY, _moveDirection.z);
+                _anim.SetFloat(_animIDVelocity, _input.Move.magnitude);
             }
+        }
+
+        private void FixedUpdate()
+        {
+        
+
         }
 
 
@@ -87,12 +88,50 @@ namespace PixelMiner
         {
             transform.forward = _cameraLogicHandler.MainCam.transform.forward;
         }
-     
+
+        private void UpdatePosition()
+        {
+            Move(); 
+        }
+
+        private void Move()
+        {
+            Vector3 movement = _moveDirection.Iso(new Vector3(0, _cameraLogicHandler.CurrentYRotAngle, 0)) * _moveSpeed * UnityEngine.Time.deltaTime; ;
+            _rb.MovePosition(_rb.position + movement);
+            //if (_moveDirection != Vector3.zero)
+            //{
+            //    _rb.velocity = _moveDirection.Iso(new Vector3(0, _cameraLogicHandler.CurrentYRotAngle, 0)) * _moveSpeed * UnityEngine.Time.fixedDeltaTime;
+            //}
+            //else
+            //{
+            //    _rb.velocity = new Vector3(0, _rb.velocity.y, 0);
+            //}
+
+        }
+
+        private void UpdateRotation()
+        {
+            RotateTowardMoveDirection(_moveDirection.Iso(new Vector3(0, _cameraLogicHandler.CurrentYRotAngle, 0)));
+        }
+
+        private void RotateTowardMoveDirection(Vector3 direction)
+        {
+            if (direction.sqrMagnitude >= 0.1f)
+            {
+                // Calculate the rotation to look towards the move direction
+                Quaternion lookRotation = Quaternion.LookRotation(direction, Vector3.up);
+
+                // Apply the rotation to the character
+                transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, UnityEngine.Time.deltaTime * 10f);
+            }
+        }
+
 
         private void AssignAnimationIDs()
         {
             _animIDVelocityX = Animator.StringToHash("VelocityX");
             _animIDVelocityY = Animator.StringToHash("VelocityY");
+            _animIDVelocity = Animator.StringToHash("Velocity");
 
         }
 
