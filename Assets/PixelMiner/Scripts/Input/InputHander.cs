@@ -13,7 +13,9 @@ namespace PixelMiner
         public Vector2 Move;
         public float MouseScrollY;
         public bool Cancel;
-        public float Fire;
+        public bool Fire1;
+        public bool Fire2;
+        public bool Fire3;
         public float Rot;
 
 
@@ -31,7 +33,9 @@ namespace PixelMiner
             playerInput.Player.Cancel.canceled += x => { Cancel = x.ReadValue<float>() == 1 ? true : false; };
 
 
-            playerInput.Player.Fire.performed += x => { Fire = x.ReadValue<float>(); };
+            playerInput.Player.Fire1.started += x => { Fire1 = x.ReadValue<float>() == 1 ? true : false; };
+            playerInput.Player.Fire1.performed += x => { Fire1 = x.ReadValue<float>() == 1 ? true : false; };
+            playerInput.Player.Fire1.canceled += x => { Fire1 = x.ReadValue<float>() == 1 ? true : false; };
 
 
             playerInput.Player.Rotate.performed += OnRotatePerformed;

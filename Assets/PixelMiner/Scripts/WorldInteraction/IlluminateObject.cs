@@ -14,6 +14,7 @@ namespace PixelMiner.WorldInteraction
         private float _ambientLightIntensity;
         private float _timer;
         private float _updateFrequency = 0.02f;
+        private Vector3 _offsetY = new Vector3(0, 0.001f, 0f);
 
         private void Start()
         {
@@ -27,8 +28,8 @@ namespace PixelMiner.WorldInteraction
             {
                 _timer = Time.time;
 
-                _blockLight = Main.Instance.GetBlockLight(transform.position);
-                _ambientLight = Main.Instance.GetAmbientLight(transform.position);
+                _blockLight = Main.Instance.GetBlockLight(transform.position + _offsetY);
+                _ambientLight = Main.Instance.GetAmbientLight(transform.position + _offsetY);
                 _ambientLightIntensity = Main.Instance.GetAmbientLightIntensity();
 
                 _mat.SetInt("_BlockLightValue", _blockLight);

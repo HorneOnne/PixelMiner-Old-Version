@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 93252572959bc6c4f82671c6c1f9551e
+guid: 737f669bd607c2542985dbdd3b85c274
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -33,38 +33,9 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: MCharacter|Idle
-      takeName: MCharacter|Idle
-      internalID: -6175798525737860371
-      firstFrame: 0
-      lastFrame: 15
-      wrapMode: 0
-      orientationOffsetY: 0
-      level: 0
-      cycleOffset: 0
-      loop: 0
-      hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 0
-      loopBlendOrientation: 0
-      loopBlendPositionY: 0
-      loopBlendPositionXZ: 0
-      keepOriginalOrientation: 0
-      keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 0
-      heightFromFeet: 0
-      mirror: 0
-      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-      curves: []
-      events: []
-      transformMask: []
-      maskType: 3
-      maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
-    - serializedVersion: 16
-      name: MCharacter|RHandWork
-      takeName: MCharacter|RHandWork
-      internalID: -1423314455005675188
+      name: Andy|Idle
+      takeName: Andy|Idle
+      internalID: -5312146311102227356
       firstFrame: 0
       lastFrame: 15
       wrapMode: 0
@@ -91,9 +62,9 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: MCharacter|Run
-      takeName: MCharacter|Run
-      internalID: 7722755431709814707
+      name: Andy|Run
+      takeName: Andy|Run
+      internalID: -8968335435641626717
       firstFrame: 0
       lastFrame: 15
       wrapMode: 0
@@ -103,93 +74,6 @@ ModelImporter:
       loop: 0
       hasAdditiveReferencePose: 0
       loopTime: 1
-      loopBlend: 0
-      loopBlendOrientation: 0
-      loopBlendPositionY: 0
-      loopBlendPositionXZ: 0
-      keepOriginalOrientation: 0
-      keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 0
-      heightFromFeet: 0
-      mirror: 0
-      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-      curves: []
-      events: []
-      transformMask: []
-      maskType: 3
-      maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
-    - serializedVersion: 16
-      name: MCharacter|SwimIn
-      takeName: MCharacter|SwimIn
-      internalID: 3955858629953058456
-      firstFrame: 0
-      lastFrame: 15
-      wrapMode: 0
-      orientationOffsetY: 0
-      level: 0
-      cycleOffset: 0
-      loop: 0
-      hasAdditiveReferencePose: 0
-      loopTime: 0
-      loopBlend: 0
-      loopBlendOrientation: 0
-      loopBlendPositionY: 0
-      loopBlendPositionXZ: 0
-      keepOriginalOrientation: 0
-      keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 0
-      heightFromFeet: 0
-      mirror: 0
-      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-      curves: []
-      events: []
-      transformMask: []
-      maskType: 3
-      maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
-    - serializedVersion: 16
-      name: MCharacter|Swimming
-      takeName: MCharacter|Swimming
-      internalID: 2981952351275227276
-      firstFrame: 0
-      lastFrame: 31
-      wrapMode: 0
-      orientationOffsetY: 0
-      level: 0
-      cycleOffset: 0
-      loop: 0
-      hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 0
-      loopBlendOrientation: 0
-      loopBlendPositionY: 0
-      loopBlendPositionXZ: 0
-      keepOriginalOrientation: 0
-      keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 0
-      heightFromFeet: 0
-      mirror: 0
-      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-      curves: []
-      events: []
-      transformMask: []
-      maskType: 3
-      maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
-    - serializedVersion: 16
-      name: MCharacter|SwimOut
-      takeName: MCharacter|SwimOut
-      internalID: 8976676219607399519
-      firstFrame: 0
-      lastFrame: 15
-      wrapMode: 0
-      orientationOffsetY: 0
-      level: 0
-      cycleOffset: 0
-      loop: 0
-      hasAdditiveReferencePose: 0
-      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -262,46 +146,46 @@ ModelImporter:
       position: {x: 0, y: 0, z: 0}
       rotation: {x: 0, y: 0, z: 0, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: SkinnedMesh
-      parentName: Character(Clone)
-      position: {x: -0, y: 0.0000009536743, z: -0.000010000001}
-      rotation: {x: 0.000000021855694, y: -0.00000004371139, z: 1.0165751e-15, w: 1}
-      scale: {x: 100, y: 100, z: 100}
-    - name: MCharacter
-      parentName: Character(Clone)
-      position: {x: -0, y: 6.335375, z: 0}
-      rotation: {x: -0.7071067, y: 5.302452e-33, z: 5.302451e-33, w: 0.7071068}
-      scale: {x: 523.7575, y: 523.7575, z: 523.7575}
     - name: Root
-      parentName: MCharacter
-      position: {x: -0, y: -0.0000000013704062, z: 6.773338e-10}
+      parentName: Character(Clone)
+      position: {x: -0, y: 0, z: 0}
+      rotation: {x: 0.000000021855694, y: -0.00000004371139, z: 1.0165751e-15, w: 1}
+      scale: {x: 99.999985, y: 99.999985, z: 99.999985}
+    - name: Andy
+      parentName: Character(Clone)
+      position: {x: -0, y: 6.2481656, z: 0}
+      rotation: {x: -0.7071067, y: 5.302452e-33, z: 5.302451e-33, w: 0.7071068}
+      scale: {x: 548.3803, y: 548.3803, z: 548.3803}
+    - name: Root
+      parentName: Andy
+      position: {x: -0, y: 0, z: 0}
       rotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071067}
       scale: {x: 1, y: 1, z: 1}
     - name: Head
       parentName: Root
       position: {x: -0, y: 0.01, z: 0}
-      rotation: {x: 0.00000006699408, y: -0.000000037319968, z: -0.004901786, w: 0.999988}
-      scale: {x: 1, y: 1, z: 1}
+      rotation: {x: -0.00000006733486, y: -0.000000015395115, z: -0.010867644, w: 0.999941}
+      scale: {x: 1, y: 1.0000001, z: 1}
     - name: Arm R
       parentName: Root
-      position: {x: -0.005930947, y: 0.010624319, z: -0.0000000028221123}
-      rotation: {x: -0.00000004664779, y: -0.00000006750519, z: 0.99997485, w: -0.007091672}
+      position: {x: 0.0054993955, y: 0.010224462, z: -0.0000000035411534}
+      rotation: {x: -0.000000066021364, y: 0.00000006735712, z: 0.99999636, w: 0.0027027058}
       scale: {x: 1, y: 1, z: 1}
     - name: Arm L
       parentName: Root
-      position: {x: 0.0057748696, y: 0.010546272, z: 0.0000000022983713}
-      rotation: {x: -0.00000004664779, y: -0.00000006750519, z: 0.99997485, w: -0.007091672}
+      position: {x: -0.0055555133, y: 0.010168342, z: 0.0000000032601415}
+      rotation: {x: -0.00000018523197, y: 0.000000067679316, z: 0.99999636, w: 0.0027027058}
       scale: {x: 1, y: 1, z: 1}
     - name: Leg R
       parentName: Root
-      position: {x: -0.0021850849, y: -0.0013936599, z: -0.0000000024319984}
-      rotation: {x: -0.00000004664779, y: -0.0000000675052, z: 0.99997485, w: -0.007091672}
-      scale: {x: 1, y: 1, z: 1}
+      position: {x: 0.002020186, y: -0.0011110257, z: 0.0000000023204991}
+      rotation: {x: -0.00000015584165, y: 0.00000006762642, z: 0.9999959, w: 0.002873547}
+      scale: {x: 0.99999994, y: 0.99999994, z: 1}
     - name: Leg L
       parentName: Root
-      position: {x: 0.0019509703, y: -0.0013156208, z: -7.0613065e-10}
-      rotation: {x: -0.00000004664779, y: -0.00000006750519, z: 0.99997485, w: -0.007091672}
-      scale: {x: 1, y: 1, z: 1}
+      position: {x: -0.0019079539, y: -0.0011110257, z: 5.667571e-10}
+      rotation: {x: -0.00000027505232, y: 0.00000006796897, z: 0.9999959, w: 0.002873547}
+      scale: {x: 0.99999994, y: 0.99999994, z: 1}
     armTwist: 0.5
     foreArmTwist: 0.5
     upperLegTwist: 0.5
