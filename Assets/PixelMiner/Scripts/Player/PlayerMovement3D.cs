@@ -1,6 +1,7 @@
 ﻿using PixelMiner.Cam;
 using PixelMiner.Utilities;
 using UnityEngine;
+using PixelMiner.Physics;
 
 namespace PixelMiner.Character
 {
@@ -19,15 +20,14 @@ namespace PixelMiner.Character
 
         // Physics
         [SerializeField] private Vector3 _gravity;
-        private Bounds _aabbBounds;
-        [SerializeField] private Vector3 _aabbBox;
-
+        //[SerializeField] private AABB _entity.AABB;
+        private DynamicEntity _entity;
 
 
 
         // Anim
         private bool _hasAnimator;
-            // animation IDs
+        // animation IDs
         private int _animIDVelocity;
 
 
@@ -44,20 +44,48 @@ namespace PixelMiner.Character
             _input = InputHander.Instance;
             _cameraLogicHandler = CameraLogicHandler.Instance;
             AssignAnimationIDs();
+
+
+            _entity = new DynamicEntity()
+            {
+                Transform = this.transform,
+                AABB = new AABB()
+                {
+                    x = transform.position.x - 0.5f,
+                    y = transform.position.y,
+                    z = transform.position.z - 0.5f,
+                    w = 1,
+                    h = 2,
+                    d = 1,
+                    vx = _gravity.x,
+                    vy = _gravity.y,
+                    vz = _gravity.z
+                }
+            };
+            GamePhysics.AddDynamicEntity(_entity);
         }
 
 
         private void Update()
         {
             UpdatePosition();
+            _entity.AABB = new AABB()
+            {
+                x = transform.position.x - 0.5f,
+                y = transform.position.y,
+                z = transform.position.z - 0.5f,
+                w = 1,
+                h = 2,
+                d = 1,
+                vx = _gravity.x,
+                vy = _gravity.y,
+                vz = _gravity.z
+            };
 
             if (_input.Fire1 == false)
             {
                 UpdateRotation();
             }
-
-
-            //ApplyGravity();
 
 
             // Animation
@@ -70,7 +98,7 @@ namespace PixelMiner.Character
 
         private void FixedUpdate()
         {
-        
+
         }
 
 
@@ -81,7 +109,7 @@ namespace PixelMiner.Character
             {
                 _moveDirection = new Vector3(_input.Move.x, 0, _input.Move.y);
                 Move(_moveDirection.Iso(new Vector3(0, _cameraLogicHandler.CurrentYRotAngle, 0)));
-            }    
+            }
         }
 
         private void Move(Vector3 direction)
@@ -119,6 +147,32 @@ namespace PixelMiner.Character
         {
             _animIDVelocity = Animator.StringToHash("Velocity");
 
+        }
+
+        private void OnDrawGizmos()
+        {
+            if (_entity != null && _entity.AABB.Equals(default) == false)
+            {
+                Gizmos.color = Color.green;
+                // Draw the bottom face
+                Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z));
+                Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d));
+                Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d));
+                Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z));
+
+                // Draw the top face
+                Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z));
+                Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d));
+                Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d));
+                Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z));
+
+                // Connect the corresponding points between the top and bottom faces
+                Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z), new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z));
+                Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z));
+                Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d));
+                Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d));
+
+            }
         }
     }
 
