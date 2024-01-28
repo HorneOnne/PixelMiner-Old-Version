@@ -178,7 +178,7 @@ namespace PixelMiner.WorldBuilding
 
 
             int preDrawChunkCount = 0;
-            int maxChunkPreDrawInStage = 3;
+            int maxChunkPreDrawInStage = 2;
 
             for (int i = 0; i < _loadChunkList.Count; i++)
             {
@@ -216,14 +216,11 @@ namespace PixelMiner.WorldBuilding
 
 
             int drawChunkCount = 0;
-            int maxChunkDrawInStage = 5;
-
+            int maxChunkDrawInStage = 2;
             // Draw chunk
             for (int i = 0; i < _preDrawChunkList.Count; i++)
             {
                 _drawChunkTaskList.Add(_worldGen.DrawChunkTask(_preDrawChunkList[i]));
-
-
 
                 // Redraw fix ao artifact (Only need redraw chunk at ground level)
                 if (_preDrawChunkList[i].FrameY == 0)
@@ -247,7 +244,9 @@ namespace PixelMiner.WorldBuilding
                 }
                 drawChunkCount++;
             }
-            
+
+
+
             if (_drawChunkTaskList.Count > 0)
             {
                 Debug.Log($"Draw last: {_drawChunkTaskList.Count}");
@@ -257,11 +256,25 @@ namespace PixelMiner.WorldBuilding
 
 
             // Redraw chunk fix ao artiface
-            foreach(var c in _redrawChunkSet)
+            int redrawChunkCount = 0;
+            int maxChunkRedrawInStage = 2;
+            foreach (var c in _redrawChunkSet)
             {
                 _redrawChunkTaskList.Add(_worldGen.ReDrawChunkTask(c));
+
+                if(redrawChunkCount > maxChunkRedrawInStage)
+                {
+                    redrawChunkCount = 0;
+                    await Task.WhenAll(_redrawChunkTaskList);
+                    _redrawChunkTaskList.Clear();
+                }
+                redrawChunkCount++;
             }
-            await Task.WhenAll(_redrawChunkTaskList);
+            if(_redrawChunkTaskList.Count > 0)
+            {
+                await Task.WhenAll(_redrawChunkTaskList);
+            }
+           
 
 
             // Unload chunk
