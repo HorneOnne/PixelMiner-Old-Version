@@ -37,7 +37,7 @@ namespace PixelMiner.World
         private float _unloadChunkDistance = 100;
         private float _updateFrequency = 1.0f;
         private float _updateTimer = 0.0f;
-        public bool ChunkHasDrawn = false;
+        public bool HasDrawnFirstTime = false;
 
         // Neighbors
         [field: SerializeField] public Chunk West { get; set; }
@@ -88,6 +88,7 @@ namespace PixelMiner.World
         [HideInInspector] public bool HasOceanBiome;
 
         private Vector3Int[] _faceNeighbors = new Vector3Int[6];
+
         [field: SerializeField] public int MaxBlocksHeightInit { get; private set; } = 0; // Used to optimize ambient light propagate.
 
         private void Awake()

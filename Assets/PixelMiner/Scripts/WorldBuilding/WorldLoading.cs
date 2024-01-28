@@ -27,19 +27,19 @@ namespace PixelMiner.WorldBuilding
         private Vector3Int _currentFrame;
         // Performance
         private float _updateTimer = 0.0f;
-        private float _updateTime = 0.2f;
+        private float _updateTime = 0.1f;
         private float _unloadChunkDistance = 200f;
 
 
         private List<Chunk> _preDrawChunkList = new List<Chunk>();
         private List<Task> _preDrawChunkTaskList = new List<Task>();
-        private List<Task> _drawChunkList = new List<Task>();
-        //private List<Task> _propageAmbientLightTaskList = new List<Task>();
+        private List<Task> _drawChunkTaskList = new List<Task>();
+        private HashSet<Chunk> _redrawChunkSet = new HashSet<Chunk>();
+        private List<Task> _redrawChunkTaskList = new List<Task>();
         private List<Chunk> _loadChunkList = new List<Chunk>();
         private List<Chunk> _unloadChunkList = new List<Chunk>();
         private bool _finishLoadChunk = true;
-
-
+        private bool _worldGenStartFinish = false;
         private void Awake()
         {
             Instance = this;
@@ -54,8 +54,10 @@ namespace PixelMiner.WorldBuilding
             _worldGen = WorldGeneration.Instance;
 
 
-            _worldGen.OnWorldGenWhenStartFinished += LoadChunkAroundAysnc;
-
+            _worldGen.OnWorldGenWhenStartFinished += () =>
+            {
+                LastChunkFrame = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
+            };
             //Chunk.OnChunkFarAway += OnChunkFarAway;
         }
 
@@ -148,7 +150,7 @@ namespace PixelMiner.WorldBuilding
                             Chunk newChunk = await _worldGen.GenerateNewChunk(x, y, z, _main.ChunkDimension);
                             _loadChunkList.Add(newChunk);
                             //LoadChunk(newChunk);
-                            if (newChunk.ChunkHasDrawn == false)
+                            if (newChunk.HasDrawnFirstTime == false)
                             {
 
                             }
@@ -165,7 +167,7 @@ namespace PixelMiner.WorldBuilding
                             //LoadChunk(_main.Chunks[nbFrame]);
                             _loadChunkList.Add(_main.Chunks[nbFrame]);
 
-                            if (_main.Chunks[nbFrame].ChunkHasDrawn == false)
+                            if (_main.Chunks[nbFrame].HasDrawnFirstTime == false)
                             {
 
                             }
@@ -219,24 +221,47 @@ namespace PixelMiner.WorldBuilding
             // Draw chunk
             for (int i = 0; i < _preDrawChunkList.Count; i++)
             {
-                _drawChunkList.Add(_worldGen.DrawChunkTask(_preDrawChunkList[i]));
+                _drawChunkTaskList.Add(_worldGen.DrawChunkTask(_preDrawChunkList[i]));
+
+
+
+                // Redraw fix ao artifact (Only need redraw chunk at ground level)
+                if (_preDrawChunkList[i].FrameY == 0)
+                {
+                    if (!_redrawChunkSet.Contains(_preDrawChunkList[i].West) && _preDrawChunkList[i].West.HasDrawnFirstTime)
+                        _redrawChunkSet.Add(_preDrawChunkList[i].West);
+                    if (!_redrawChunkSet.Contains(_preDrawChunkList[i].East) && _preDrawChunkList[i].East.HasDrawnFirstTime)
+                        _redrawChunkSet.Add(_preDrawChunkList[i].East);
+                    if (!_redrawChunkSet.Contains(_preDrawChunkList[i].South) && _preDrawChunkList[i].South.HasDrawnFirstTime)
+                        _redrawChunkSet.Add(_preDrawChunkList[i].South);
+                    if (!_redrawChunkSet.Contains(_preDrawChunkList[i].North) && _preDrawChunkList[i].North.HasDrawnFirstTime)
+                        _redrawChunkSet.Add(_preDrawChunkList[i].North);
+                }
+                
 
                 if (drawChunkCount > maxChunkDrawInStage)
                 {
                     drawChunkCount = 0;
-                    await Task.WhenAll(_drawChunkList);
-                    _drawChunkList.Clear();
+                    await Task.WhenAll(_drawChunkTaskList);
+                    _drawChunkTaskList.Clear();
                 }
                 drawChunkCount++;
             }
             
-            if (_drawChunkList.Count > 0)
+            if (_drawChunkTaskList.Count > 0)
             {
-                Debug.Log($"Draw last: {_drawChunkList.Count}");
-                await Task.WhenAll(_drawChunkList);
-                _drawChunkList.Clear();
+                Debug.Log($"Draw last: {_drawChunkTaskList.Count}");
+                await Task.WhenAll(_drawChunkTaskList);
+                _drawChunkTaskList.Clear();
             }
 
+
+            // Redraw chunk fix ao artiface
+            foreach(var c in _redrawChunkSet)
+            {
+                _redrawChunkTaskList.Add(_worldGen.ReDrawChunkTask(c));
+            }
+            await Task.WhenAll(_redrawChunkTaskList);
 
 
             // Unload chunk
@@ -256,11 +281,14 @@ namespace PixelMiner.WorldBuilding
                 }
             }
 
-            //_propageAmbientLightTaskList.Clear();
+      
             _preDrawChunkTaskList.Clear();
             _preDrawChunkList.Clear();
+            _redrawChunkSet.Clear();
+            _redrawChunkTaskList.Clear();
             _unloadChunkList.Clear();
             _loadChunkList.Clear();
+      
             _finishLoadChunk = true;
         }
 

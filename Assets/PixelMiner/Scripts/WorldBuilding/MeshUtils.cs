@@ -648,9 +648,7 @@ namespace PixelMiner.WorldBuilding
                             verticesAO[1] = (byte)VoxelAO.ProcessAO(chunk, startPos, 1, voxelFace, ref faceNeighbors);
                             verticesAO[2] = (byte)VoxelAO.ProcessAO(chunk, startPos, 2, voxelFace, ref faceNeighbors);
                             verticesAO[3] = (byte)VoxelAO.ProcessAO(chunk, startPos, 3, voxelFace, ref faceNeighbors);
-
-
-
+  
                             if (greedyMeshing && isTransparentMesh)
                             {
                                 quadSize = new Vector3Int();

@@ -71,7 +71,7 @@ namespace PixelMiner.WorldInteraction
                 {
                     Vector3Int hitGlobalPosition = preHit.point;
 
-                    if (Main.Instance.GetChunk((Vector3)hitGlobalPosition).ChunkHasDrawn == false) return;
+                    if (Main.Instance.GetChunk((Vector3)hitGlobalPosition).HasDrawnFirstTime == false) return;
 
                     if (Main.Instance.GetBlock(hitGlobalPosition).IsSolid() == false &&
                         Main.Instance.GetBlock(hitGlobalPosition).IsTransparentSolidBlock() == false)

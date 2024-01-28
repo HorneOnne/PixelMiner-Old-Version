@@ -16,9 +16,18 @@ namespace PixelMiner.Character
         [SerializeField] private Vector3 _moveDirection;
         private Vector3 _cameraIsometricRot = new Vector3(0, 45, 0);
 
+
+        // Physics
+        [SerializeField] private Vector3 _gravity;
+        private Bounds _aabbBounds;
+        [SerializeField] private Vector3 _aabbBox;
+
+
+
+
+        // Anim
         private bool _hasAnimator;
-        private bool _facingRight;
-        // animation IDs
+            // animation IDs
         private int _animIDVelocity;
 
 
@@ -46,7 +55,9 @@ namespace PixelMiner.Character
             {
                 UpdateRotation();
             }
-           
+
+
+            //ApplyGravity();
 
 
             // Animation
@@ -60,7 +71,6 @@ namespace PixelMiner.Character
         private void FixedUpdate()
         {
         
-
         }
 
 
@@ -77,13 +87,15 @@ namespace PixelMiner.Character
         private void Move(Vector3 direction)
         {
             Vector3 movement = direction * _moveSpeed * UnityEngine.Time.deltaTime;
-            _rb.MovePosition(_rb.position + movement);
+            //_rb.MovePosition(_rb.position + movement);
+            transform.position += movement;
         }
 
         private void UpdateRotation()
         {
             RotateTowardMoveDirection(_moveDirection.Iso(new Vector3(0, _cameraLogicHandler.CurrentYRotAngle, 0)));
         }
+
 
         private void RotateTowardMoveDirection(Vector3 direction)
         {
@@ -97,6 +109,11 @@ namespace PixelMiner.Character
             }
         }
 
+
+        private void ApplyGravity()
+        {
+            transform.position += _gravity * UnityEngine.Time.deltaTime;
+        }
 
         private void AssignAnimationIDs()
         {

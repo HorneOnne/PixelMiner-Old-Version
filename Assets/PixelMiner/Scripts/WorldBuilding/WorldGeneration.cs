@@ -601,6 +601,10 @@ namespace PixelMiner.WorldBuilding
                         newChunk.RiverBiomes[i] = BiomeType.Other;
                     }
                 }
+
+                
+
+              
             }
             else
             {
@@ -630,7 +634,7 @@ namespace PixelMiner.WorldBuilding
         }
         public async Task DrawChunkTask(Chunk chunk)
         {
-            if (!chunk.ChunkHasDrawn)
+            if (!chunk.HasDrawnFirstTime)
             {
                 // Mesh
                 // ----
@@ -669,7 +673,7 @@ namespace PixelMiner.WorldBuilding
                 MeshDataPool.Release(colliderMeshData);
 
                 //LogUtils.WriteMeshToFile(chunk.SolidMeshFilter.sharedMesh, "Meshdata.txt");
-                chunk.ChunkHasDrawn = true;
+                chunk.HasDrawnFirstTime = true;
             }
         }
         public async Task ReDrawChunkTask(Chunk chunk)
