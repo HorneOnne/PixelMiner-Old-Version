@@ -155,6 +155,7 @@ namespace PixelMiner.Miscellaneous
             _bounds.Clear();
             _colors.Clear();
             _lines.Clear();
+            _lineColors.Clear();
         }
 
 

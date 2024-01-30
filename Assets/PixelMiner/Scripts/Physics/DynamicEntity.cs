@@ -11,11 +11,23 @@ namespace PixelMiner.Physics
         public Vector3 Velocity;
         public bool Simulate;
 
+        public DynamicEntity(Transform transform, AABB bound)
+        {
+            this.Transform = transform;
+            this.AABB = bound;
+            Position = default;
+            Velocity = default;
+            Simulate = true;
+        }
+
         public void SetVelocity(Vector3 vel)
         {
-            AABB.vx = vel.x;
-            AABB.vy = vel.y;
-            AABB.vz = vel.z;
+            Velocity = vel; 
+        }
+
+        public void AddVelocity(Vector3 vel)
+        {
+            Velocity += vel;
         }
     }
 }

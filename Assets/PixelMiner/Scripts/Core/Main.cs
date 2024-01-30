@@ -118,7 +118,15 @@ namespace PixelMiner.Core
        
             if (TryGetChunk(globalPosition, out Chunk chunk))
             {
-                return chunk.GetBlock(relativePosition);              
+                if(chunk.HasDrawnFirstTime)
+                {
+                    return chunk.GetBlock(relativePosition);
+                }
+                else
+                {
+                    return BlockType.Air;
+                }
+                         
             }
             return BlockType.Air;
         }
@@ -248,6 +256,13 @@ namespace PixelMiner.Core
         }
 
 
+
+        public Vector3Int GetBlockGPos(Vector3 globalPosition)
+        {
+            return new Vector3Int(Mathf.FloorToInt(globalPosition.x),
+                                  Mathf.FloorToInt(globalPosition.y),
+                                  Mathf.FloorToInt(globalPosition.z));
+        }
     }
 
 

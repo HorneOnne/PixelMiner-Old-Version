@@ -644,7 +644,7 @@ namespace PixelMiner.WorldBuilding
 
                 MeshData grassMeshData = await MeshUtils.GetChunkGrassMeshData(chunk, LightAnimCurve, _grassNoiseDistribute);
                 MeshData waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(chunk, LightAnimCurve);
-                MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(chunk);
+                //MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(chunk);
 
 
 
@@ -661,8 +661,8 @@ namespace PixelMiner.WorldBuilding
 
                 // Collider
                 // -------
-                chunk.MeshCollider.sharedMesh = null;
-                chunk.MeshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
+                //chunk.MeshCollider.sharedMesh = null;
+                //chunk.MeshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
 
 
                 // Release mesh data
@@ -670,7 +670,7 @@ namespace PixelMiner.WorldBuilding
                 MeshDataPool.Release(transparentSolidMeshData);
                 MeshDataPool.Release(grassMeshData);
                 MeshDataPool.Release(waterMeshData);
-                MeshDataPool.Release(colliderMeshData);
+                //MeshDataPool.Release(colliderMeshData);
 
                 //LogUtils.WriteMeshToFile(chunk.SolidMeshFilter.sharedMesh, "Meshdata.txt");
                 chunk.HasDrawnFirstTime = true;
@@ -681,7 +681,7 @@ namespace PixelMiner.WorldBuilding
             MeshData solidMeshData = await MeshUtils.RenderSolidMesh(chunk, LightAnimCurve);
             MeshData transparentSolidMeshData = await MeshUtils.RenderSolidMesh(chunk, LightAnimCurve, isTransparentMesh: true);
             MeshData grassMeshData = await MeshUtils.GetChunkGrassMeshData(chunk, LightAnimCurve, _grassNoiseDistribute);
-            MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(chunk);
+            //MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(chunk);
 
             chunk.SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
             chunk.SolidTransparentMeshFilter.sharedMesh = CreateMesh(transparentSolidMeshData);
@@ -691,14 +691,14 @@ namespace PixelMiner.WorldBuilding
             chunk.GrassMeshFilter.sharedMesh = CreateMesh(grassMeshData);
 
 
-            chunk.MeshCollider.sharedMesh = null;
-            chunk.MeshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
+            //chunk.MeshCollider.sharedMesh = null;
+            //chunk.MeshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
 
 
             // Release mesh data
             MeshDataPool.Release(solidMeshData);
             MeshDataPool.Release(transparentSolidMeshData);
-            MeshDataPool.Release(colliderMeshData);
+            //MeshDataPool.Release(colliderMeshData);
             MeshDataPool.Release(grassMeshData);
 
         }

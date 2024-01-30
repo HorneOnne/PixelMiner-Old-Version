@@ -11,9 +11,9 @@ namespace PixelMiner.DataStructure
         public float w;
         public float h;
         public float d;
-        public float vx;
-        public float vy;
-        public float vz;
+        //public float vx;
+        //public float vy;
+        //public float vz;
 
 
         public override string ToString()

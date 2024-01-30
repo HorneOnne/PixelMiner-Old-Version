@@ -46,25 +46,17 @@ namespace PixelMiner.Character
             _cameraLogicHandler = CameraLogicHandler.Instance;
             AssignAnimationIDs();
 
-
-            _entity = new DynamicEntity()
+            AABB bound = new AABB()
             {
-                Transform = this.transform,
-                AABB = new AABB()
-                {
-                    x = transform.position.x - 0.5f,
-                    y = transform.position.y,
-                    z = transform.position.z - 0.5f,
-                    w = 1,
-                    h = 2,
-                    d = 1,
-                    vx = _gravity.x,
-                    vy = _gravity.y,
-                    vz = _gravity.z
-                },
-                Simulate = true,
-                
+                x = transform.position.x - 0.5f,
+                y = transform.position.y,
+                z = transform.position.z - 0.5f,
+                w = 1,
+                h = 2,
+                d = 1,
             };
+
+            _entity = new DynamicEntity(this.transform, bound);
             GamePhysics.AddDynamicEntity(_entity);
         }
 
@@ -113,7 +105,8 @@ namespace PixelMiner.Character
             if (_input.Move != Vector2.zero && _input.Fire1 == false)
             {
                 _moveDirection = new Vector3(_input.Move.x, 0, _input.Move.y);
-                Move(_moveDirection.Iso(new Vector3(0, _cameraLogicHandler.CurrentYRotAngle, 0)));
+                //Move(_moveDirection.Iso(new Vector3(0, _cameraLogicHandler.CurrentYRotAngle, 0)));
+                _entity.AddVelocity(_moveDirection.Iso(new Vector3(0, _cameraLogicHandler.CurrentYRotAngle, 0)));
             }
         }
 
