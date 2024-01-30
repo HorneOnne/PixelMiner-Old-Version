@@ -4,7 +4,7 @@ namespace PixelMiner.WorldBuilding
 {
     public static class MeshDataPool
     {
-        public static ObjectPool<MeshData> Pool = new ObjectPool<MeshData>(10);
+        public static ObjectPool<MeshData> Pool = new ObjectPool<MeshData>(20);
 
         public static MeshData Get()
         {

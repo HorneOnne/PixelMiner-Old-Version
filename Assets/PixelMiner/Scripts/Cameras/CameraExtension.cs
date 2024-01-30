@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using PixelMiner.World;
 using PixelMiner.Core;
+using PixelMiner.Miscellaneous;
 
 namespace PixelMiner.Cam
 {
@@ -67,8 +68,8 @@ namespace PixelMiner.Cam
         }
         private void LateUpdate()
         {
-            _lastDir = Camera.main.ScreenPointToRay(Input.mousePosition).direction;       
-            DrawChunkBorders();
+            //_lastDir = Camera.main.ScreenPointToRay(Input.mousePosition).direction;       
+            //DrawChunkBorders();
         }
 
 

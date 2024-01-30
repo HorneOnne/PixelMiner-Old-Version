@@ -2,6 +2,7 @@
 using PixelMiner.Utilities;
 using UnityEngine;
 using PixelMiner.Physics;
+using PixelMiner.DataStructure; 
 
 namespace PixelMiner.Character
 {
@@ -60,7 +61,9 @@ namespace PixelMiner.Character
                     vx = _gravity.x,
                     vy = _gravity.y,
                     vz = _gravity.z
-                }
+                },
+                Simulate = true,
+                
             };
             GamePhysics.AddDynamicEntity(_entity);
         }
@@ -69,18 +72,20 @@ namespace PixelMiner.Character
         private void Update()
         {
             UpdatePosition();
-            _entity.AABB = new AABB()
-            {
-                x = transform.position.x - 0.5f,
-                y = transform.position.y,
-                z = transform.position.z - 0.5f,
-                w = 1,
-                h = 2,
-                d = 1,
-                vx = _gravity.x,
-                vy = _gravity.y,
-                vz = _gravity.z
-            };
+            //_entity.AABB = new AABB()
+            //{
+            //    x = transform.position.x - 0.5f,
+            //    y = transform.position.y,
+            //    z = transform.position.z - 0.5f,
+            //    w = 1,
+            //    h = 2,
+            //    d = 1,
+            //    vx = 0,
+            //    vy = 0,
+            //    vz = 0
+            //};
+
+
 
             if (_input.Fire1 == false)
             {
@@ -151,28 +156,28 @@ namespace PixelMiner.Character
 
         private void OnDrawGizmos()
         {
-            if (_entity != null && _entity.AABB.Equals(default) == false)
-            {
-                Gizmos.color = Color.green;
-                // Draw the bottom face
-                Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z));
-                Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d));
-                Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d));
-                Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z));
+            //if (_entity != null && _entity.AABB.Equals(default) == false)
+            //{
+            //    Gizmos.color = Color.green;
+            //    // Draw the bottom face
+            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z));
+            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d));
+            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d));
+            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z));
 
-                // Draw the top face
-                Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z));
-                Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d));
-                Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d));
-                Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z));
+            //    // Draw the top face
+            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z));
+            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d));
+            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d));
+            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z));
 
-                // Connect the corresponding points between the top and bottom faces
-                Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z), new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z));
-                Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z));
-                Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d));
-                Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d));
+            //    // Connect the corresponding points between the top and bottom faces
+            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z), new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z));
+            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z));
+            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d));
+            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d));
 
-            }
+            //}
         }
     }
 

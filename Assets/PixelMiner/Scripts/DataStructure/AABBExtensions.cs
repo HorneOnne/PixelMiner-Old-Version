@@ -1,23 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace PixelMiner.Physics
+namespace PixelMiner.DataStructure
 {
-    public struct AABB
-    {
-        public float x;
-        public float y;
-        public float z;
-        public float w;
-        public float h;
-        public float d;
-        public float vx;
-        public float vy;
-        public float vz;
-    }
-
-    public static class ABBBExtensions
+    public static class AABBExtensions
     {
         public static int SweptAABB(AABB dynamicBox, AABB staticBox, out float normalX, out float normalY, out float normalZ, out float entryTime)
         {
@@ -67,22 +52,26 @@ namespace PixelMiner.Physics
             {
                 xTimeEntry = float.NegativeInfinity;
                 xTimeExit = float.PositiveInfinity;
+                //Debug.Log("A");
             }
             else
             {
                 xTimeEntry = xEntry / Mathf.Abs(dynamicBox.vx);
                 xTimeExit = xExit / Mathf.Abs(dynamicBox.vx);
+               // Debug.Log("B");
             }
 
             if (dynamicBox.vy == 0.0f)
             {
                 yTimeEntry = float.NegativeInfinity;
                 yTimeExit = float.PositiveInfinity;
+                //Debug.Log("C");
             }
             else
             {
                 yTimeEntry = yEntry / Mathf.Abs(dynamicBox.vy);
                 yTimeExit = yExit / Mathf.Abs(dynamicBox.vy);
+                //Debug.Log("D");
             }
 
 
@@ -91,21 +80,23 @@ namespace PixelMiner.Physics
             {
                 zTimeEntry = float.NegativeInfinity;
                 zTimeExit = float.PositiveInfinity;
+                //Debug.Log("E");
             }
             else
             {
                 zTimeEntry = zEntry / Mathf.Abs(dynamicBox.vz);
                 zTimeExit = zExit / Mathf.Abs(dynamicBox.vz);
+                //Debug.Log("F");
             }
 
             // Find the earliest/lastest times of collision
             //float entryTime = Mathf.Max(xEntry, yEntry);
-            entryTime = Mathf.Max(xTimeEntry, yTimeEntry);       // entryTime tell when the collision occured
-            float exitTime = Mathf.Min(xTimeExit, yTimeExit);         // exitTime tell when collision exited the object from other side.
-
-
+            entryTime = Mathf.Max(xTimeEntry, yTimeEntry, zTimeEntry);       // entryTime tell when the collision occured
+            float exitTime = Mathf.Min(xTimeExit, yTimeExit, zTimeExit);         // exitTime tell when collision exited the object from other side.
+            //Debug.Log($"{entryTime} {xTimeEntry} {yTimeEntry} {zTimeEntry}");
+            //Debug.Break();
             // If there was no collision
-            if (entryTime > exitTime || xTimeEntry < 0.0f && yTimeEntry < 0.0f || xTimeEntry > 1.0f && yTimeEntry > 1.0f)
+            if (entryTime > exitTime || xTimeEntry < 0.0f && yTimeEntry < 0.0f && zTimeEntry < 0.0f || xTimeEntry > 1.0f && yTimeEntry > 1.0f && zTimeEntry > 1.0f)
             {
                 Debug.Log($"No collision");
                 normalX = 0.0f;
@@ -197,8 +188,10 @@ namespace PixelMiner.Physics
             {
                 x = b.vx > 0 ? b.x : b.x + b.vx,
                 y = b.vy > 0 ? b.y : b.y + b.vy,
+                z = b.vz > 0 ? b.z : b.z + b.vz,
                 w = b.vx > 0 ? b.vx + b.w : b.w - b.vx,
-                h = b.vy > 0 ? b.vy + b.h : b.h - b.vy
+                h = b.vy > 0 ? b.vy + b.h : b.h - b.vy,
+                d = b.vz > 0 ? b.vz + b.d : b.d - b.vz
             };
 
 
@@ -207,7 +200,9 @@ namespace PixelMiner.Physics
 
         public static bool AABBCheck(AABB b1, AABB b2)
         {
-            return !(b1.x + b1.w < b2.x || b1.x > b2.x + b2.w || b1.y + b1.h < b2.y || b1.y > b2.y + b2.h);
+            return !(b1.x + b1.w < b2.x || b1.x > b2.x + b2.w || 
+                    b1.y + b1.h < b2.y || b1.y > b2.y + b2.h ||
+                    b1.z + b1.d < b2.z || b1.z > b2.z + b2.d);
         }
     }
 }

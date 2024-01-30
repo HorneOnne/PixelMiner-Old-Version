@@ -1,11 +1,8 @@
 {
-    "name": "PixelMiner.Physics",
-    "rootNamespace": "PixelMiner.Physics",
+    "name": "PixelMiner.Miscellaneous",
+    "rootNamespace": "PixelMiner.Miscellaneous",
     "references": [
-        "GUID:6a81283e11ef63341ac2bd3e6f2eff5c",
-        "GUID:83a651e378233fe418e687488e563cf9",
-        "GUID:39448f9fffd102a4aa3c83fa92e21cb8",
-        "GUID:409ee9790c0b61e488739f11d3393c17"
+        "GUID:39448f9fffd102a4aa3c83fa92e21cb8"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

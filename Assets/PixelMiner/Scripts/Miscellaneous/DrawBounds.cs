@@ -2,11 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using PixelMiner.DataStructure;
 
-namespace PixelMiner.Cam
+namespace PixelMiner.Miscellaneous
 {
     public class DrawBounds : MonoBehaviour
     {
+        public static DrawBounds Instance { get; private set; } 
+
         public Material LineMat;
 
         private List<Bounds> _bounds = new List<Bounds>();
@@ -21,6 +24,7 @@ namespace PixelMiner.Cam
 
         private void Awake()
         {
+            Instance = this;
             _matrix = Matrix4x4.identity;
         }
 
@@ -116,6 +120,26 @@ namespace PixelMiner.Cam
         {
             _bounds.Add(b);
             _colors.Add(c);
+        }
+
+        public void AddPhysicBounds(AABB b, Color c)
+        {
+            AddLine(new Vector3(b.x, b.y, b.z), new Vector3(b.x + b.w, b.y, b.z), c);
+            AddLine(new Vector3(b.x + b.w, b.y, b.z), new Vector3(b.x + b.w, b.y, b.z + b.d), c);
+            AddLine(new Vector3(b.x + b.w, b.y, b.z + b.d), new Vector3(b.x, b.y, b.z + b.d), c);
+            AddLine(new Vector3(b.x, b.y, b.z + b.d), new Vector3(b.x, b.y, b.z), c);
+
+            // Draw the top face
+            AddLine(new Vector3(b.x, b.y + b.h, b.z), new Vector3(b.x + b.w, b.y + b.h, b.z),c);
+            AddLine(new Vector3(b.x + b.w, b.y + b.h, b.z), new Vector3(b.x + b.w, b.y + b.h, b.z + b.d),c);
+            AddLine(new Vector3(b.x + b.w, b.y + b.h, b.z + b.d), new Vector3(b.x, b.y + b.h, b.z + b.d),c);
+            AddLine(new Vector3(b.x, b.y + b.h, b.z + b.d), new Vector3(b.x, b.y + b.h, b.z),c);
+
+            // Connect the corresponding points between the top and bottom faces
+            AddLine(new Vector3(b.x, b.y, b.z), new Vector3(b.x, b.y + b.h, b.z),c);
+            AddLine(new Vector3(b.x + b.w, b.y, b.z), new Vector3(b.x + b.w, b.y + b.h, b.z),c);
+            AddLine(new Vector3(b.x + b.w, b.y, b.z + b.d), new Vector3(b.x + b.w, b.y + b.h, b.z + b.d),c);
+            AddLine(new Vector3(b.x, b.y, b.z + b.d), new Vector3(b.x, b.y + b.h, b.z + b.d),c);
         }
 
 
