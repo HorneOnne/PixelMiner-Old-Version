@@ -41,12 +41,6 @@ namespace PixelMiner.WorldInteraction
 
         private async void Update()
         {
-            //if (Input.GetKeyDown(KeyCode.P))
-            //{
-            //    Debug.Break();
-            //}
-
-
             if (Time.time - _timer > _time)
             {
                 _timer = Time.time;
@@ -65,6 +59,7 @@ namespace PixelMiner.WorldInteraction
 
             if (Input.GetMouseButtonDown(0))
             {
+              
                 _ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 Vector3 rayDirection = _ray.direction;
                 if (_rayCasting.DDAVoxelRayCast(_mainCam.transform.position, rayDirection, out RaycastVoxelHit hit, out RaycastVoxelHit preHit))
@@ -84,13 +79,13 @@ namespace PixelMiner.WorldInteraction
                         DrawChunksAtOnce(chunksNeedUpdate);
                     }                
                 }
-
+             
 
             }
 
             if (Input.GetMouseButtonDown(1))
             {
-               
+              
                 _ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 Vector3 rayDirection = _ray.direction;
                 if (_rayCasting.DDAVoxelRayCast(_mainCam.transform.position, rayDirection, out RaycastVoxelHit hit, out RaycastVoxelHit preHit))
@@ -107,7 +102,8 @@ namespace PixelMiner.WorldInteraction
 
                         DrawChunksAtOnce(chunksNeedUpdate);
                     }
-                }   
+                }
+         
             }
 
 
@@ -131,8 +127,6 @@ namespace PixelMiner.WorldInteraction
 
                     }
                 }
-
-
             }
         }
 
