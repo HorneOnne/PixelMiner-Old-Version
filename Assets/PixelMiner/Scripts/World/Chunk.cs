@@ -34,9 +34,6 @@ namespace PixelMiner.World
         public int _height;
         public int _depth;
         public Vector3Int Dimensions;
-        private float _unloadChunkDistance = 100;
-        private float _updateFrequency = 1.0f;
-        private float _updateTimer = 0.0f;
         public bool HasDrawnFirstTime = false;
 
         // Neighbors
@@ -103,8 +100,6 @@ namespace PixelMiner.World
             _playerTrans = GameObject.FindGameObjectWithTag("Player").transform;
             if (_playerTrans == null)
                 _playerTrans = Camera.main.transform;
-
-
         }
 
         private void OnDestroy()
@@ -123,18 +118,6 @@ namespace PixelMiner.World
             //Destroy(WaterMeshFilter);
         }
 
-        private void Update()
-        {
-            if (Time.time - _updateTimer > _updateFrequency)
-            {
-                _updateTimer = Time.time;
-
-                //if (Vector3.Distance(_playerTrans.position, transform.position) > _unloadChunkDistance)
-                //{
-                //    OnChunkFarAway?.Invoke(this);
-                //}
-            }
-        }
 
         public void Init(int frameX, int frameY, int frameZ, int width, int height, int depth)
         {
@@ -582,20 +565,12 @@ namespace PixelMiner.World
 
         private void GetFaceNeighbors(Vector3Int relativePosition, ref Vector3Int[] faceNeighbors)
         {
-            //_faceNeighbors[0] = relativePosition + Vector3Int.left;
-            //_faceNeighbors[1] = relativePosition + Vector3Int.right;
-            //_faceNeighbors[2] = relativePosition + Vector3Int.forward;
-            //_faceNeighbors[3] = relativePosition + Vector3Int.back;
-            //_faceNeighbors[4] = relativePosition + Vector3Int.up;
-            //_faceNeighbors[5] = relativePosition + Vector3Int.down;
-
             faceNeighbors[0] = relativePosition + Vector3Int.left;
             faceNeighbors[1] = relativePosition + Vector3Int.right;
             faceNeighbors[2] = relativePosition + Vector3Int.forward;
             faceNeighbors[3] = relativePosition + Vector3Int.back;
             faceNeighbors[4] = relativePosition + Vector3Int.up;
             faceNeighbors[5] = relativePosition + Vector3Int.down;
-
         }
 
         #endregion

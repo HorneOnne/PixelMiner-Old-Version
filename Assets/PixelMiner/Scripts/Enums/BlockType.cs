@@ -31,52 +31,8 @@
         PineLeaves = 53,
 
         SnowDritGrass = 66,
-    }
 
-    public static class BlockTypeExtensions
-    {
-        public static bool IsSolid(this BlockType blockType)
-        {
-            //return blockType != BlockType.Air;
-
-            return blockType != BlockType.Air &&
-                   blockType != BlockType.Water &&
-                   blockType != BlockType.Grass &&
-                   blockType != BlockType.Leaves &&
-                   //blockType != BlockType.PineLeaves &&
-                   blockType != BlockType.Shrub &&
-                   //blockType != BlockType.Cactus &&
-                   blockType != BlockType.TallGrass;
-        }
-
-        public static bool IsDirt(this BlockType blockType)
-        {
-            return blockType == BlockType.Dirt ||
-                   blockType == BlockType.DirtGrass ||
-                   blockType == BlockType.SnowDritGrass;
-        }
-
-        public static bool IsTransparentSolidBlock(this BlockType blockType)
-        {
-            return blockType == BlockType.Glass ||
-                   //blockType == BlockType.Cactus ||
-                   //blockType == BlockType.PineLeaves ||
-                   blockType == BlockType.Leaves;
-        }
-
-        public static bool IsGrassType(this BlockType blockType)
-        {
-            return blockType == BlockType.Grass ||
-                   blockType == BlockType.Shrub;
-        }
-
-        public static bool AffectedByColorMap(this BlockType blockType)
-        {
-            return blockType == BlockType.Grass ||
-                   blockType == BlockType.DirtGrass ||
-                   blockType == BlockType.TallGrass ||
-                   blockType == BlockType.Leaves;
-        }
+        Count = 500,
     }
 }
 

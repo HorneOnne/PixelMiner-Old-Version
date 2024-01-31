@@ -247,7 +247,6 @@ namespace PixelMiner.Lighting
                 default:
                     break;
             }
-                    
 
             return vertexAO;
         }

@@ -73,52 +73,17 @@ namespace PixelMiner.Core
             }
             return null;
         }
-
-        #endregion
-
-        #region Neighbors
-        public Chunk GetChunkNeighborFront(Chunk chunk)
-        {
-            Vector3Int nbChunkFrame = new Vector3Int(chunk.FrameX, chunk.FrameY, chunk.FrameZ + 1);
-            return Chunks.TryGetValue(nbChunkFrame, out Chunk neighborChunk) ? neighborChunk : null;
-        }
-        public Chunk GetChunkNeighborBack(Chunk chunk)
-        {
-            Vector3Int nbChunkFrame = new Vector3Int(chunk.FrameX, chunk.FrameY, chunk.FrameZ - 1);
-            return Chunks.TryGetValue(nbChunkFrame, out Chunk neighborChunk) ? neighborChunk : null;
-        }
-        public Chunk GetChunkNeighborLeft(Chunk chunk)
-        {
-            Vector3Int nbChunkFrame = new Vector3Int(chunk.FrameX - 1, chunk.FrameY, chunk.FrameZ);
-            return Chunks.TryGetValue(nbChunkFrame, out Chunk neighborChunk) ? neighborChunk : null;
-        }
-        public Chunk GetChunkNeighborRight(Chunk chunk)
-        {
-            Vector3Int nbChunkFrame = new Vector3Int(chunk.FrameX + 1, chunk.FrameY, chunk.FrameZ);
-            return Chunks.TryGetValue(nbChunkFrame, out Chunk neighborChunk) ? neighborChunk : null;
-        }
-        public Chunk GetChunkNeighborTop(Chunk chunk)
-        {
-            Vector3Int nbChunkFrame = new Vector3Int(chunk.FrameX, chunk.FrameY + 1, chunk.FrameZ);
-            return Chunks.TryGetValue(nbChunkFrame, out Chunk neighborChunk) ? neighborChunk : null;
-        }
-        public Chunk GetChunkNeighborBottom(Chunk chunk)
-        {
-            Vector3Int nbChunkFrame = new Vector3Int(chunk.FrameX, chunk.FrameY - 1, chunk.FrameZ);
-            return Chunks.TryGetValue(nbChunkFrame, out Chunk neighborChunk) ? neighborChunk : null;
-        }
         #endregion
 
 
-        public bool ShowLog = false;
         #region Block
         public BlockType GetBlock(Vector3 globalPosition)
         {
             Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
-       
+
             if (TryGetChunk(globalPosition, out Chunk chunk))
             {
-                if(chunk.HasDrawnFirstTime)
+                if (chunk.HasDrawnFirstTime)
                 {
                     return chunk.GetBlock(relativePosition);
                 }
@@ -126,14 +91,14 @@ namespace PixelMiner.Core
                 {
                     return BlockType.Air;
                 }
-                         
+
             }
             return BlockType.Air;
         }
         public BlockType TryGetBlock(ref Chunk chunk, Vector3 globalPosition)
         {
             Vector3Int chunkRelativePosition = GlobalToRelativeChunkPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
-            if(Chunks.ContainsKey(chunkRelativePosition) == false)
+            if (Chunks.ContainsKey(chunkRelativePosition) == false)
             {
                 return BlockType.Air;
             }
@@ -238,18 +203,6 @@ namespace PixelMiner.Core
 
         public bool InSideChunkBound(Chunk chunk, Vector3 globalPosition)
         {
-            //int minX = chunk.GlobalPosition.x;
-            //int maxX = chunk.GlobalPosition.x + chunk._width;
-            //int minY = chunk.GlobalPosition.y;
-            //int maxY = chunk.GlobalPosition.y + chunk._height;
-            //int minZ = chunk.GlobalPosition.z;
-            //int maxZ = chunk.GlobalPosition.z + chunk._depth;
-
-            //return (globalPosition.x >= minX && globalPosition.x < maxX &&
-            //        globalPosition.y >= minY && globalPosition.y < maxY &&
-            //        globalPosition.z >= minZ && globalPosition.z < maxZ);
-
-
             return (globalPosition.x >= chunk.MinXGPos && globalPosition.x < chunk.MaxXGPos &&
                     globalPosition.y >= chunk.MinYGPos && globalPosition.y < chunk.MaxYGPos &&
                     globalPosition.z >= chunk.MinZGPos && globalPosition.z < chunk.MaxZGPos);
@@ -264,7 +217,5 @@ namespace PixelMiner.Core
                                   Mathf.FloorToInt(globalPosition.z));
         }
     }
-
-
 }
 
