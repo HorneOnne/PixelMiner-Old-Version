@@ -38,8 +38,7 @@ namespace PixelMiner.Character
                 _lastFire1Time = UnityEngine.Time.time;
 
                 _anim.SetTrigger(_animIDRightHand);
-            }
-           
+            }          
         }
 
 

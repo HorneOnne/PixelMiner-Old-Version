@@ -480,7 +480,7 @@ namespace PixelMiner.World
 
             return foundNeighborChunk;
         }
-        private Chunk FindNeighbor(Vector3Int neighborOffset)
+        public Chunk FindNeighbor(Vector3Int neighborOffset)
         {
             if (neighborOffset == new Vector3Int(-1, 0, 0))
             {
