@@ -104,9 +104,13 @@ namespace PixelMiner.Character
         {
             if (_input.Move != Vector2.zero && _input.Fire1 == false)
             {
-                _moveDirection = new Vector3(_input.Move.x, 0, _input.Move.y);
+                _moveDirection = new Vector3(_input.Move.x * _moveSpeed, 0, _input.Move.y * _moveSpeed);
                 //Move(_moveDirection.Iso(new Vector3(0, _cameraLogicHandler.CurrentYRotAngle, 0)));
-                _entity.AddVelocity(_moveDirection.Iso(new Vector3(0, _cameraLogicHandler.CurrentYRotAngle, 0)));
+                _entity.SetVelocity(_moveDirection.Iso(new Vector3(0, _cameraLogicHandler.CurrentYRotAngle, 0)));
+            }
+            else
+            {
+                _entity.SetVelocity(Vector3.zero);
             }
         }
 

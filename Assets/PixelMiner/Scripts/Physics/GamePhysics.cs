@@ -23,13 +23,14 @@ namespace PixelMiner.Physics
         {
             _main = Main.Instance;
             _drawer = DrawBounds.Instance;
+            //Time.timeScale = 0.4f;
         }
 
         public static void AddDynamicEntity(DynamicEntity entity)
         {
             _dynamicEntities.Add(entity);
         }
-
+        private int currentAxis = -1;
         private void Update()
         {
             Vector3 gravityForce = _gravity * _gravityForce;
@@ -40,18 +41,10 @@ namespace PixelMiner.Physics
                 DynamicEntity dEntity = _dynamicEntities[entity];
                 if (!dEntity.Simulate) continue;
                 dEntity.Position = dEntity.Transform.position;
-                dEntity.AABB = new AABB()
-                {
-                    x = dEntity.Transform.position.x - 0.5f,
-                    y = dEntity.Transform.position.y,
-                    z = dEntity.Transform.position.z - 0.5f,
-                    w = 1,
-                    h = 2,
-                    d = 1,
-                };
-                dEntity.SetVelocity(new Vector3(0.0f, 0.0f,-1.0f));
-                _drawer.AddPhysicBounds(dEntity.AABB, Color.green);
-
+              
+                //dEntity.SetVelocity(new Vector3(1.0f, 0.0f, -1.0f));         
+                  
+                if (dEntity.Velocity == Vector3.zero) continue;
 
                 AABB broadPhase = AABBExtensions.GetSweptBroadphaseBox(dEntity.AABB, dEntity.Velocity);
                 _drawer.AddPhysicBounds(broadPhase, Color.black);
@@ -70,12 +63,16 @@ namespace PixelMiner.Physics
                             if (_main.GetBlock(new Vector3(x, y, z)) != BlockType.Air)
                             {
                                 AABB b = GetBlockBound(new Vector3(x, y, z));
-                                _drawer.AddPhysicBounds(b, Color.red);
-                                _bounds.Add(b);  
+                                if(AABBExtensions.AABBCheck(broadPhase, b))
+                                {
+                                    _drawer.AddPhysicBounds(b, Color.red);
+                                    _bounds.Add(b);
+                                }
                             }
                         }
                     }
                 }
+
 
 
                 int loopCount = 0;
@@ -88,24 +85,38 @@ namespace PixelMiner.Physics
                 for (int i = 0; i < _bounds.Count; i++)
                 {
                     AABB bound = _bounds[i];
-                    int axis = AABBExtensions.SweepTest(dEntity.AABB, bound, dEntity.Velocity, out float t, 
-                        out normalX, out normalY, out normalZ);
-          
+                    int axis = AABBExtensions.SweepTest(dEntity.AABB, bound, dEntity.Velocity, out float t,
+                      out normalX, out normalY, out normalZ);
+                    //int axis = AABBExtensions.SweepTest2(dEntity.AABB, bound, dEntity.Velocity, out float t);
+ 
+         
                     if (axis == -1)
                     {
                         continue;
                     }
 
-   
-                    if(nearestEntryTime > t)
+
+                    if (nearestEntryTime > t)
                     {
                         nearestEntryTime = t;
                         nearestAxis = axis;
                     }
-                   
+                }
+                Vector3 offset = new Vector3(0, 2, 0);
+                if(nearestAxis == 0)
+                {
+                    _drawer.AddLine(dEntity.Position + offset, (dEntity.Position + offset) + Vector3.right * normalX * nearestEntryTime, Color.red);
+                }
+                else if(nearestAxis == 1)
+                {
+                    _drawer.AddLine(dEntity.Position + offset, (dEntity.Position + offset) + Vector3.up * normalY * nearestEntryTime, Color.green);
+                }
+                else if(nearestAxis == 2)
+                {
+                    _drawer.AddLine(dEntity.Position + offset, (dEntity.Position + offset) + Vector3.forward * normalZ * nearestEntryTime, Color.blue);
                 }
 
-
+                float remainingTime = 1.0f - nearestEntryTime;
 
                 // Zero out velocity on collided axis
                 //if (nearestAxis == 0)
@@ -121,81 +132,48 @@ namespace PixelMiner.Physics
                 //    dEntity.Velocity.z = 0;
                 //}
 
-                //Debug.Log(nearestEntryTime);
-                //Debug.Log($"{normalX} {normalY} {normalZ}");
-    
-                if(nearestEntryTime > Time.deltaTime)
+
+                //if (currentAxis == -1)
+                //{
+                //    currentAxis = nearestAxis;
+                //}
+                //else
+                //{
+                //    if (currentAxis != nearestAxis)
+                //    {
+                //        Debug.Break();
+                //    }
+                //}
+
+          
+
+                if (nearestEntryTime > Time.deltaTime)
                     nearestEntryTime = Time.deltaTime;
+
 
                 dEntity.Position += dEntity.Velocity * nearestEntryTime;
                 dEntity.Transform.position = dEntity.Position;
+
+                dEntity.AABB = new AABB()
+                {
+                    x = dEntity.Transform.position.x - 0.5f,
+                    y = dEntity.Transform.position.y,
+                    z = dEntity.Transform.position.z - 0.5f,
+                    w = 1,
+                    h = 2,
+                    d = 1,
+                };
+                _drawer.AddPhysicBounds(dEntity.AABB, Color.green);
+
+                //if (nearestAxis != -1)
+                //{ 
+                //    Debug.Break();
+                //}
+
                 //Debug.Log($"{dEntity.Velocity} {nearestEntryTime} {remainingDelta}");
 
 
-                //while (remainingDelta > 1e-10f && loopCount++ < maxLoops)
-                //{
-                //    float nearestEntryTime = 1.0f;
-                //    int nearestAxis = -1;
-
-                //    for(int i = 0; i < _bounds.Count; i++)
-                //    {
-                //        AABB bound = _bounds[i];
-
-
-                //        int axis = AABBExtensions.SweepTest(dEntity.AABB, bound, dEntity.Velocity * remainingDelta, out float t);
-
-                //        if(axis == -1 || t >= nearestEntryTime)
-                //        {
-                //            continue;
-                //        }
-                //        nearestEntryTime = t;
-                //        nearestAxis = axis;
-                //    }
-
-                //    // No collision
-                //    if (nearestAxis == -1)
-                //    {
-                //        dEntity.Position += dEntity.Velocity * remainingDelta;
-                //        remainingDelta = 0;
-                //        break;
-                //    }
-                //    else
-                //    {
-                //        // Handle multiple collision
-                //        if(nearestEntryTime < 0)
-                //        {
-                //            // Handle negateive nearest caused by d
-                //            if (nearestEntryTime < 0)
-                //                Debug.Log($"nearestEntryTime < 0");
-
-                //        }
-                //        else
-                //        {
-                //            // Move to the point of collision and reduce time remaining
-                //            dEntity.Position += dEntity.Velocity * nearestEntryTime * remainingDelta;
-                //            remainingDelta -= nearestEntryTime * remainingDelta;
-                //        }
-
-                //        // Zero out velocity on collided axis
-                //        if(nearestAxis == 0)
-                //        {
-                //            dEntity.Velocity.x = 0;
-                //        }
-                //        else if(nearestAxis == 1)
-                //        {
-                //            dEntity.Velocity.y = 0;
-                //        }
-                //        else if(nearestAxis == 2)
-                //        {
-                //            dEntity.Velocity.z = 0;
-                //        }
-                //    }
-                //}
-                //if (loopCount >= maxLoops)
-                //{
-                //    Debug.LogWarning("physics loop count exceeded!");
-                //}
-                //dEntity.Transform.position = dEntity.Position;
+             
             }
         }
 
@@ -231,6 +209,16 @@ namespace PixelMiner.Physics
                 d = 1,
             };
             return bound;
+        }
+
+
+        private void OnApplicationQuit()
+        {
+#if UNITY_EDITOR
+            _collisionTimes.Clear();
+            _bounds.Clear();
+            _dynamicEntities.Clear();
+#endif
         }
     }
 }

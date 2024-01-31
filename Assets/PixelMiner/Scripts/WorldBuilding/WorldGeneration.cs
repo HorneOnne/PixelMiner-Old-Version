@@ -747,7 +747,7 @@ namespace PixelMiner.WorldBuilding
 
 
             await Task.WhenAll(
-                PlaceGrassAsync(chunk),
+                //PlaceGrassAsync(chunk),
                 PlaceTreeAsync(chunk),
                 PlaceShrubAsync(chunk),
                 PlaceCactusAsync(chunk, 2, 5)

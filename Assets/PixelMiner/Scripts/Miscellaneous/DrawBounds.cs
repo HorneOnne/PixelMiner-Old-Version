@@ -159,7 +159,7 @@ namespace PixelMiner.Miscellaneous
         }
 
 
-        void DrawLineSegment(Vector3 start, Vector3 end)
+        private void DrawLineSegment(Vector3 start, Vector3 end)
         {
             GL.PushMatrix();
             LineMat.SetPass(0);
@@ -168,6 +168,13 @@ namespace PixelMiner.Miscellaneous
             GL.Vertex(end);
             GL.End();
             GL.PopMatrix();
+        }
+
+        private void OnApplicationQuit()
+        {
+#if UNITY_EDITOR
+            Clear();
+#endif
         }
     }
 }
