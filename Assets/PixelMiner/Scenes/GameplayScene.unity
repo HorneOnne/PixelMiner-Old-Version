@@ -1388,9 +1388,9 @@ MonoBehaviour:
   currentTime: 0
   FreezeTime: 1
   Minutes: 0
-  Hours: 12
+  Hours: 21
   Days: 0
-  _startHour: 12
+  _startHour: 21
 --- !u!114 &587489648
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -47,8 +47,9 @@ namespace PixelMiner.Core
                 int loopCount = 1000000;
                 for (int i = 0; i < loopCount; i++)
                 {
-                  
-                 
+                    //TryGetChunk(Vector3.zero, out Chunk chunk);
+                    GetChunkPerformance(c, new Vector3(384, 0, 576));
+
                 }
                 UnityEngine.Profiling.Profiler.EndSample();
             }
@@ -119,7 +120,7 @@ namespace PixelMiner.Core
             Chunk chunkFound = GetChunkPerformance(chunk, globalPosition);
             if(chunkFound.HasDrawnFirstTime)
             {
-                return chunk.GetBlock(relativePosition);
+                return chunkFound.GetBlock(relativePosition);
             }
             return BlockType.Air;
         }
@@ -178,6 +179,18 @@ namespace PixelMiner.Core
                 chunk.SetBlockLight(relativePosition, intensity);
             }
         }
+        public void SetBlockLightPerformance(Chunk chunk, Vector3 globalPosition, byte intensity)
+        {
+            Chunk targetChunk = GetChunkPerformance(chunk, globalPosition);
+            Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
+            targetChunk.SetBlockLight(relativePosition, intensity);
+        }
+        public byte GetBlockLightPerformance(Chunk chunk, Vector3 globalPosition)
+        {
+            Chunk targetChunk = GetChunkPerformance(chunk, globalPosition);
+            Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
+            return targetChunk.GetBlockLight(relativePosition);
+        }
 
         public float GetAmbientLightIntensity()
         {
@@ -198,91 +211,6 @@ namespace PixelMiner.Core
         {
             Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
             return GetChunkPerformance(chunk, globalPosition).GetAmbientLight(relativePosition);
-
-
-            if (InSideChunkBound(chunk, globalPosition))
-            {
-                return chunk.GetAmbientLight(relativePosition);
-            }
-            else
-            {
-                if (InSideChunkBound(chunk.West, globalPosition))
-                {
-                    return chunk.West.GetAmbientLight(relativePosition);
-                }
-                else if (InSideChunkBound(chunk.North, globalPosition))
-                {
-                    return chunk.North.GetAmbientLight(relativePosition);
-                }
-                else if (InSideChunkBound(chunk.East, globalPosition))
-                {
-                    return chunk.East.GetAmbientLight(relativePosition);
-                }
-                else if (InSideChunkBound(chunk.South, globalPosition))
-                {
-                    return chunk.South.GetAmbientLight(relativePosition);
-                }
-                else if (InSideChunkBound(chunk.Northwest, globalPosition))
-                {
-                    return chunk.Northwest.GetAmbientLight(relativePosition);
-                }
-                else if (InSideChunkBound(chunk.Northeast, globalPosition))
-                {
-                    return chunk.Northeast.GetAmbientLight(relativePosition);
-                }
-                else if (InSideChunkBound(chunk.Southwest, globalPosition))
-                {
-                    return chunk.Southwest.GetAmbientLight(relativePosition);
-                }
-                else if (InSideChunkBound(chunk.Southeast, globalPosition))
-                {
-                    return chunk.Southeast.GetAmbientLight(relativePosition);
-                }
-                else if (InSideChunkBound(chunk.Up, globalPosition))
-                {
-                    return chunk.Up.GetAmbientLight(relativePosition);
-                }
-                //else if (InSideChunkBound(chunk.Down, globalPosition))
-                //{
-                //    return chunk.Down.GetAmbientLight(relativePosition);
-                //}
-
-                else if (InSideChunkBound(chunk.UpWest, globalPosition))
-                {
-                    return chunk.UpWest.GetAmbientLight(relativePosition);
-                }
-                else if (InSideChunkBound(chunk.UpEast, globalPosition))
-                {
-                    return chunk.UpEast.GetAmbientLight(relativePosition);
-                }
-                else if (InSideChunkBound(chunk.UpNorth, globalPosition))
-                {
-                    return chunk.UpNorth.GetAmbientLight(relativePosition);
-                }
-                else if (InSideChunkBound(chunk.UpSouth, globalPosition))
-                {
-                    return chunk.UpSouth.GetAmbientLight(relativePosition);
-                }
-
-                else if (InSideChunkBound(chunk.UpNorthwest, globalPosition))
-                {
-                    return chunk.UpNorthwest.GetAmbientLight(relativePosition);
-                }
-                else if (InSideChunkBound(chunk.UpNortheast, globalPosition))
-                {
-                    return chunk.UpNortheast.GetAmbientLight(relativePosition);
-                }
-                else if (InSideChunkBound(chunk.UpSouthwest, globalPosition))
-                {
-                    return chunk.UpSouthwest.GetAmbientLight(relativePosition);
-                }
-                else if (InSideChunkBound(chunk.UpSoutheast, globalPosition))
-                {
-                    return chunk.UpSoutheast.GetAmbientLight(relativePosition);
-                }
-            }
-
-            return byte.MinValue;
         }
         public void SetAmbientLight(Vector3 globalPosition, byte insensity)
         {
