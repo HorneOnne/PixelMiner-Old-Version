@@ -23,7 +23,7 @@ namespace PixelMiner.Character
         [SerializeField] private Vector3 _gravity;
         //[SerializeField] private AABB _entity.AABB;
         private DynamicEntity _entity;
-
+        public bool Simulate = false;
 
 
         // Anim
@@ -57,12 +57,18 @@ namespace PixelMiner.Character
             };
 
             _entity = new DynamicEntity(this.transform, bound);
+            _entity.Simulate = Simulate;    
             GamePhysics.AddDynamicEntity(_entity);
         }
 
 
         private void Update()
         {
+            if(Simulate)
+            {
+                _entity.Simulate = Simulate;
+            }
+
             UpdatePosition();
             //_entity.AABB = new AABB()
             //{

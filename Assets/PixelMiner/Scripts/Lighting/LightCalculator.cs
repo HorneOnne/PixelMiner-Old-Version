@@ -372,8 +372,8 @@ namespace PixelMiner.Lighting
                                 //    }
                                 //}
 
-                                //BlockType currentBlock = Main.Instance.GetBlock(neighbors[i]);
-                                BlockType currentBlock = Main.Instance.GetBlockPerformance(chunk, neighbors[i]);
+
+                                BlockType currentBlock = Main.Instance.GetBlock(neighbors[i]);
                                 byte blockOpacity;
                                 if (currentBlock == BlockType.Air && i == 5)
                                 {
@@ -384,9 +384,7 @@ namespace PixelMiner.Lighting
                                     blockOpacity = LightUtils.BlocksOpaque[(byte)currentBlock];
                                 }
 
-
-
-                                if (main.GetAmbientLightPerformance(chunk, neighbors[i]) + blockOpacity < currentNode.Intensity && currentNode.Intensity > 0)
+                                if (main.GetAmbientLight(neighbors[i]) + blockOpacity < currentNode.Intensity && currentNode.Intensity > 0)
                                 {
                                     if (main.TryGetChunk(neighbors[i], out Chunk neighborChunk))
                                     {
@@ -394,16 +392,7 @@ namespace PixelMiner.Lighting
                                         neighborChunk.SetAmbientLight(neighborChunk.GetRelativePosition(neighbors[i]), neighborNode.Intensity);
                                     }
                                 }
-                                //if (main.GetAmbientLight(neighbors[i]) + blockOpacity < currentNode.Intensity && currentNode.Intensity > 0)
-                                //{
-                                //    if (main.TryGetChunk(neighbors[i], out Chunk neighborChunk))
-                                //    {
-                                //        LightNode neighborNode = new LightNode(neighbors[i], (byte)(currentNode.Intensity - blockOpacity));
-                                //        neighborChunk.SetAmbientLight(neighborChunk.GetRelativePosition(neighbors[i]), neighborNode.Intensity);
-                                //    }
-                                //}
                             }
-
                         }
                     }
 

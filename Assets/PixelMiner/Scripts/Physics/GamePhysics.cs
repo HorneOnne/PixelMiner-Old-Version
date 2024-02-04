@@ -42,8 +42,9 @@ namespace PixelMiner.Physics
                 DynamicEntity dEntity = _dynamicEntities[entity];
                 if (!dEntity.Simulate) continue;
                 dEntity.Position = dEntity.Transform.position;
+               
 
-                if(dEntity.Velocity.y > -5f)
+                if (dEntity.Velocity.y > -5f)
                 {
                     dEntity.AddVelocityY(-1f * Time.deltaTime);
                 }
@@ -136,7 +137,7 @@ namespace PixelMiner.Physics
                 remainingTimeX = 1.0f - nearestCollisionTimeX;
                 if (remainingTimeX > 0.0f)
                 {
-                    dEntity.Position.x += dEntity.Velocity.x * (nearestCollisionTimeX - 1e-3f) * Time.deltaTime;
+                    dEntity.Position.x += dEntity.Velocity.x * (nearestCollisionTimeX - 1e-1f) * Time.deltaTime;
                 }
                 else
                 {
@@ -178,7 +179,7 @@ namespace PixelMiner.Physics
                 remainingTimeZ = 1.0f - nearestCollisionTimeZ;
                 if (remainingTimeZ > 0.0f)
                 {
-                    dEntity.Position.z += dEntity.Velocity.z * (nearestCollisionTimeZ - 1e-3f) * Time.deltaTime;
+                    dEntity.Position.z += dEntity.Velocity.z * (nearestCollisionTimeZ - 1e-1f) * Time.deltaTime;
                 }
                 else
                 {
@@ -207,7 +208,6 @@ namespace PixelMiner.Physics
                 //}
 
 
-
                 dEntity.Transform.position = dEntity.Position;
                 dEntity.AABB = new AABB()
                 {
@@ -219,6 +219,7 @@ namespace PixelMiner.Physics
                     d = 0.9f
                 };
                 _drawer.AddPhysicBounds(dEntity.AABB, Color.green);
+
             }
         }
 

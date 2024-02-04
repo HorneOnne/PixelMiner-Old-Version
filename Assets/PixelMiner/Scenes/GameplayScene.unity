@@ -779,7 +779,7 @@ Transform:
   m_GameObject: {fileID: 314038815}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 372.60968, y: 8.01, z: 573.27167}
+  m_LocalPosition: {x: 372.60968, y: 9, z: 573.27167}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -811,9 +811,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dc3042468c9e7d47b2d01e98e0814de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _moveSpeed: 10
+  _moveSpeed: 50
   _moveDirection: {x: 0, y: 0, z: 0}
   _gravity: {x: 0, y: 0, z: 0}
+  Simulate: 0
 --- !u!114 &314038822
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1177,7 +1178,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0.2588191, y: -0, z: -0, w: 0.9659258}
-  m_LocalPosition: {x: 372.60968, y: 58.01, z: 486.66913}
+  m_LocalPosition: {x: 372.60968, y: 59.00002, z: 486.66916}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1978,7 +1979,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   InitWorldWidth: 3
   InitWorldHeight: 1
-  InitWorldDepth: 2
+  InitWorldDepth: 3
   LoadChunkOffsetWidth: 3
   LoadChunkOffsetHeight: 1
   LoadChunkOffsetDepth: 3
@@ -2174,7 +2175,7 @@ Transform:
   m_GameObject: {fileID: 1334762261}
   serializedVersion: 2
   m_LocalRotation: {x: 0.2588191, y: 0, z: 0, w: 0.9659258}
-  m_LocalPosition: {x: 372.60968, y: 58.01, z: 486.66913}
+  m_LocalPosition: {x: 372.60968, y: 59.00002, z: 486.66916}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3178,7 +3179,7 @@ Transform:
   m_GameObject: {fileID: 1694405455}
   serializedVersion: 2
   m_LocalRotation: {x: 0.23911765, y: 0.3696438, z: -0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: 311.37244, y: 58.01002, z: 512.0344}
+  m_LocalPosition: {x: 311.37244, y: 59.000015, z: 512.0344}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

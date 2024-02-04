@@ -58,7 +58,7 @@ namespace PixelMiner.Miscellaneous
 
                 Vector3 c = b.center;
                 Vector3 e = b.extents;
-                float d = 0.01f;
+                float d = 0.00f;
 
                 _v[0] = new Vector3(c.x - e.x - d, c.y - e.y - d, c.z - e.z - d);
                 _v[1] = new Vector3(c.x + e.x + d, c.y - e.y - d, c.z - e.z - d);
