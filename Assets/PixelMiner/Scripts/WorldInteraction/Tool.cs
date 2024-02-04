@@ -59,7 +59,7 @@ namespace PixelMiner.WorldInteraction
 
             if (Input.GetMouseButtonDown(0))
             {
-              
+             
                 _ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 Vector3 rayDirection = _ray.direction;
                 if (_rayCasting.DDAVoxelRayCast(_mainCam.transform.position, rayDirection, out RaycastVoxelHit hit, out RaycastVoxelHit preHit))
@@ -72,10 +72,8 @@ namespace PixelMiner.WorldInteraction
                         Main.Instance.GetBlock(hitGlobalPosition).IsTransparentSolidBlock() == false)
                     {
                         Main.Instance.SetBlock(hitGlobalPosition, BlockType.Light);
-                        _lightBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = LightUtils.MaxLightIntensity });
-                        await LightCalculator.PropagateBlockLightAsync(_lightBfsQueue, chunksNeedUpdate);
-                        //StartCoroutine(FindAnyObjectByType<LightCalculator>().PropagateBlockLightAsync(_lightBfsQueue, chunksNeedUpdate));
-
+                        _lightBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = LightUtils.MaxLightIntensity });                   
+                        await LightCalculator.PropagateBlockLightAsync(_lightBfsQueue, chunksNeedUpdate);              
                         DrawChunksAtOnce(chunksNeedUpdate);
                     }                
                 }
@@ -96,10 +94,8 @@ namespace PixelMiner.WorldInteraction
                     if (Main.Instance.GetBlock(hitGlobalPosition) != BlockType.Air)
                     {
                         Main.Instance.SetBlock(hitGlobalPosition, BlockType.Air);
-                        _lightRemovalBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = Main.Instance.GetBlockLight(hitGlobalPosition) });
-                        await LightCalculator.RemoveBlockLightAsync(_lightRemovalBfsQueue, chunksNeedUpdate);
-                        //StartCoroutine(FindAnyObjectByType<LightCalculator>().RemoveBlockLightAsync(_lightRemovalBfsQueue, chunksNeedUpdate));
-
+                        _lightRemovalBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = Main.Instance.GetBlockLight(hitGlobalPosition) });                    
+                        await LightCalculator.RemoveBlockLightAsync(_lightRemovalBfsQueue, chunksNeedUpdate);                    
                         DrawChunksAtOnce(chunksNeedUpdate);
                     }
                 }

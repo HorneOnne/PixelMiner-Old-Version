@@ -118,7 +118,7 @@ namespace PixelMiner.Core
         {
             Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
             Chunk chunkFound = GetChunkPerformance(chunk, globalPosition);
-            if(chunkFound.HasDrawnFirstTime)
+            if(chunkFound != null && chunkFound.HasDrawnFirstTime)
             {
                 return chunkFound.GetBlock(relativePosition);
             }

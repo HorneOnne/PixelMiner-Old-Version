@@ -50,8 +50,7 @@ namespace PixelMiner.Miscellaneous
 
 
         private void OnPostRender()
-        {
-            //Debug.Log("OnPostRender");    
+        {  
             for (int bc = 0; bc < _bounds.Count; ++bc)
             {
                 Bounds b = _bounds[bc];
@@ -59,15 +58,16 @@ namespace PixelMiner.Miscellaneous
 
                 Vector3 c = b.center;
                 Vector3 e = b.extents;
+                float d = 0.01f;
 
-                _v[0] = new Vector3(c.x - e.x, c.y - e.y, c.z - e.z);
-                _v[1] = new Vector3(c.x + e.x, c.y - e.y, c.z - e.z);
-                _v[2] = new Vector3(c.x - e.x, c.y + e.y, c.z - e.z);
-                _v[3] = new Vector3(c.x + e.x, c.y + e.y, c.z - e.z);
-                _v[4] = new Vector3(c.x - e.x, c.y - e.y, c.z + e.z);
-                _v[5] = new Vector3(c.x + e.x, c.y - e.y, c.z + e.z);
-                _v[6] = new Vector3(c.x - e.x, c.y + e.y, c.z + e.z);
-                _v[7] = new Vector3(c.x + e.x, c.y + e.y, c.z + e.z);
+                _v[0] = new Vector3(c.x - e.x - d, c.y - e.y - d, c.z - e.z - d);
+                _v[1] = new Vector3(c.x + e.x + d, c.y - e.y - d, c.z - e.z - d);
+                _v[2] = new Vector3(c.x - e.x - d, c.y + e.y + d, c.z - e.z - d);
+                _v[3] = new Vector3(c.x + e.x + d, c.y + e.y + d, c.z - e.z - d);
+                _v[4] = new Vector3(c.x - e.x - d, c.y - e.y - d, c.z + e.z + d);
+                _v[5] = new Vector3(c.x + e.x + d, c.y - e.y - d, c.z + e.z + d);
+                _v[6] = new Vector3(c.x - e.x - d, c.y + e.y + d, c.z + e.z + d);
+                _v[7] = new Vector3(c.x + e.x + d, c.y + e.y + d, c.z + e.z + d);
 
 
                 LineMat.SetPass(0);
@@ -147,6 +147,13 @@ namespace PixelMiner.Miscellaneous
         {
             _lines.Add(p1);
             _lines.Add(p2);
+            _lineColors.Add(c);
+        }
+
+        public void AddRay(Vector3 origin, Vector3 dir, Color c)
+        {
+            _lines.Add(origin);
+            _lines.Add(dir-origin);
             _lineColors.Add(c);
         }
 

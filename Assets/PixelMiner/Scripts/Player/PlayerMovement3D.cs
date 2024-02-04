@@ -52,7 +52,7 @@ namespace PixelMiner.Character
                 y = transform.position.y,
                 z = transform.position.z - 0.5f,
                 w = 1,
-                h = 2,
+                h = 1.9f,
                 d = 1,
             };
 
@@ -79,7 +79,7 @@ namespace PixelMiner.Character
 
 
 
-            if (_input.Fire1 == false)
+            if (_input.Fire1 == false && _input.Move != Vector2.zero)
             {
                 UpdateRotation();
             }
@@ -105,12 +105,12 @@ namespace PixelMiner.Character
             if (_input.Move != Vector2.zero && _input.Fire1 == false)
             {
                 _moveDirection = new Vector3(_input.Move.x * _moveSpeed, 0, _input.Move.y * _moveSpeed);
-                //Move(_moveDirection.Iso(new Vector3(0, _cameraLogicHandler.CurrentYRotAngle, 0)));
-                _entity.SetVelocity(_moveDirection.Iso(new Vector3(0, _cameraLogicHandler.CurrentYRotAngle, 0)));
+                Vector3 _rotMoveDir = _moveDirection.Iso(new Vector3(0, _cameraLogicHandler.CurrentYRotAngle, 0));
+                _entity.SetVelocity(new Vector3(_rotMoveDir.x, _entity.Velocity.y, _rotMoveDir.z));
             }
             else
             {
-                _entity.SetVelocity(Vector3.zero);
+                _entity.SetVelocity(new Vector3(0, _entity.Velocity.y,0));
             }
         }
 

@@ -15,7 +15,7 @@ namespace PixelMiner.World
         [SerializeField] public MeshFilter SolidTransparentMeshFilter;
         [SerializeField] public MeshFilter GrassMeshFilter;
         [SerializeField] public MeshFilter WaterMeshFilter;
-        public MeshCollider MeshCollider;
+
 
         private Transform _playerTrans;
 
@@ -90,7 +90,6 @@ namespace PixelMiner.World
 
         private void Awake()
         {
-            MeshCollider = SolidMeshFilter.GetComponent<MeshCollider>();
             HasOceanBiome = false;
         }
 

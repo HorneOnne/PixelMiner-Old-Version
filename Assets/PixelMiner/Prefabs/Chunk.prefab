@@ -227,7 +227,7 @@ MonoBehaviour:
   _height: 0
   _depth: 0
   Dimensions: {x: 0, y: 0, z: 0}
-  ChunkHasDrawn: 0
+  HasDrawnFirstTime: 0
   <West>k__BackingField: {fileID: 0}
   <East>k__BackingField: {fileID: 0}
   <North>k__BackingField: {fileID: 0}
@@ -252,8 +252,10 @@ MonoBehaviour:
   BiomesData: 
   VoxelLightData: 
   AmbientLightData: 
+  HeatValues: []
   RiverBiomes: 
   HasOceanBiome: 0
+  <MaxBlocksHeightInit>k__BackingField: 0
 --- !u!1 &4778986418883693240
 GameObject:
   m_ObjectHideFlags: 0
@@ -265,7 +267,6 @@ GameObject:
   - component: {fileID: 1013910877219395666}
   - component: {fileID: 8567393047937385915}
   - component: {fileID: 6227397144623573410}
-  - component: {fileID: 8989714558887643382}
   m_Layer: 0
   m_Name: SolidBlocks
   m_TagString: Untagged
@@ -337,28 +338,6 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4778986418883693240}
-  m_Mesh: {fileID: 0}
---- !u!64 &8989714558887643382
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4778986418883693240}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
   m_Mesh: {fileID: 0}
 --- !u!1 &8162278847806210795
 GameObject:

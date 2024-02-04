@@ -82,7 +82,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AmbientOcclusion: 1
     - _Float0: 0
-    - _LightIntensity: 0.06319348
+    - _LightIntensity: 0.3009777
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 0

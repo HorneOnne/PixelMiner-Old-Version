@@ -23,7 +23,10 @@ namespace PixelMiner.Physics
         {
             _main = Main.Instance;
             _drawer = DrawBounds.Instance;
-            //Time.timeScale = 0.4f;
+            //Time.timeScale = 0.1f;
+
+            Debug.Log($"Dot Product: {Vector3.Dot(new Vector3(1, 0, 1), new Vector3(0, 0, -1))}");
+            Debug.Log($"Dot Product: {Vector3.Dot(new Vector3(-1, 0, 1), new Vector3(0, 0, -1))}");
         }
 
         public static void AddDynamicEntity(DynamicEntity entity)
@@ -35,25 +38,37 @@ namespace PixelMiner.Physics
         {
             Vector3 gravityForce = _gravity * _gravityForce;
             for (int entity = 0; entity < _dynamicEntities.Count; entity++)
-            {
-                _collisionTimes.Clear();
-
+            {   
                 DynamicEntity dEntity = _dynamicEntities[entity];
                 if (!dEntity.Simulate) continue;
                 dEntity.Position = dEntity.Transform.position;
-              
-                //dEntity.SetVelocity(new Vector3(1.0f, 0.0f, -1.0f));         
-                  
-                if (dEntity.Velocity == Vector3.zero) continue;
 
-                AABB broadPhase = AABBExtensions.GetSweptBroadphaseBox(dEntity.AABB, dEntity.Velocity);
-                _drawer.AddPhysicBounds(broadPhase, Color.black);
-                float threshold = 0.01f;
-                Vector3Int minBP = _main.GetBlockGPos(new Vector3(broadPhase.x - threshold, broadPhase.y - threshold, broadPhase.z - threshold));
-                Vector3Int maxBP = _main.GetBlockGPos(new Vector3((broadPhase.x + broadPhase.w) + threshold, (broadPhase.y + broadPhase.h) + threshold, (broadPhase.z + broadPhase.d) + threshold));
-                //Debug.Log($"{minBP}   {maxBP}");
-                
+                if(dEntity.Velocity.y > -5f)
+                {
+                    dEntity.AddVelocityY(-1f * Time.deltaTime);
+                }
+
+
                 _bounds.Clear();
+                float normalX = 0, normalY = 0, normalZ = 0;
+                float nearestCollisionTimeX = 1.0f;
+                float nearestCollisionTimeY = 1.0f;
+                float nearestCollisionTimeZ = 1.0f;
+                int nearestAxis = -1;
+                float remainingTimeX = 0;
+                float remainingTimeY = 0;
+                float remainingTimeZ = 0;
+
+                AABB broadPhase;
+                Vector3Int minBP, maxBP;
+ 
+
+                // Y
+                // ------------------------------------
+                broadPhase = AABBExtensions.GetSweptBroadphaseBox(dEntity.AABB, new Vector3(0, dEntity.Velocity.y, 0) * Time.deltaTime);
+                _drawer.AddPhysicBounds(broadPhase, Color.black);
+                minBP = _main.GetBlockGPos(new Vector3(broadPhase.x , broadPhase.y, broadPhase.z));
+                maxBP = _main.GetBlockGPos(new Vector3(broadPhase.x + broadPhase.w, broadPhase.y + broadPhase.h, broadPhase.z + broadPhase.d));
                 for (int y = minBP.y; y <= maxBP.y; y++)
                 {
                     for (int z = minBP.z; z <= maxBP.z; z++)
@@ -62,118 +77,148 @@ namespace PixelMiner.Physics
                         {
                             if (_main.GetBlock(new Vector3(x, y, z)) != BlockType.Air)
                             {
-                                AABB b = GetBlockBound(new Vector3(x, y, z));
-                                if(AABBExtensions.AABBCheck(broadPhase, b))
-                                {
-                                    _drawer.AddPhysicBounds(b, Color.red);
-                                    _bounds.Add(b);
-                                }
+                                AABB bound = GetBlockBound(new Vector3(x, y, z));
+                                _drawer.AddPhysicBounds(bound, Color.red);
+                                //_bounds.Add(b);
+
+                                int axis = AABBExtensions.SweepTest(dEntity.AABB, bound, new Vector3(0, dEntity.Velocity.y, 0) * Time.deltaTime, out float t,
+                                    out normalX, out normalY, out normalZ);
+
+                                if (axis == -1 || t >= nearestCollisionTimeY) continue;
+
+                                nearestCollisionTimeY = t;
                             }
                         }
                     }
                 }
-
-
-
-                int loopCount = 0;
-                int maxLoops = 10;
-                float remainingDelta = Time.deltaTime;
-                //Debug.Log($"Bound count: {_bounds.Count}");
-                float nearestEntryTime = 1.0f;
-                int nearestAxis = -1;
-                float normalX = 0, normalY = 0, normalZ = 0;
-                for (int i = 0; i < _bounds.Count; i++)
+                remainingTimeY = 1.0f - nearestCollisionTimeY;
+                if (remainingTimeY > 0.0f)
                 {
-                    AABB bound = _bounds[i];
-                    int axis = AABBExtensions.SweepTest(dEntity.AABB, bound, dEntity.Velocity, out float t,
-                      out normalX, out normalY, out normalZ);
-                    //int axis = AABBExtensions.SweepTest2(dEntity.AABB, bound, dEntity.Velocity, out float t);
- 
-         
-                    if (axis == -1)
+                    dEntity.Position.y += dEntity.Velocity.y * (nearestCollisionTimeY - 1e-3f) * Time.deltaTime;
+                }
+                else
+                {
+                    dEntity.Position.y += dEntity.Velocity.y * nearestCollisionTimeY * Time.deltaTime;
+                }
+
+
+
+
+
+                // X
+                // ------------------------------------
+                broadPhase = AABBExtensions.GetSweptBroadphaseBox(dEntity.AABB, new Vector3(dEntity.Velocity.x, 0, 0) * Time.deltaTime);
+                _drawer.AddPhysicBounds(broadPhase, Color.black);
+                minBP = _main.GetBlockGPos(new Vector3(broadPhase.x, broadPhase.y, broadPhase.z));
+                maxBP = _main.GetBlockGPos(new Vector3(broadPhase.x + broadPhase.w, broadPhase.y + broadPhase.h, broadPhase.z + broadPhase.d));
+                for (int y = minBP.y; y <= maxBP.y; y++)
+                {
+                    for (int z = minBP.z; z <= maxBP.z; z++)
                     {
-                        continue;
+                        for (int x = minBP.x; x <= maxBP.x; x++)
+                        {
+                            if (_main.GetBlock(new Vector3(x, y, z)) != BlockType.Air)
+                            {
+                                AABB bound = GetBlockBound(new Vector3(x, y, z));
+                                _drawer.AddPhysicBounds(bound, Color.red);
+                                //_bounds.Add(b);
+
+                                int axis = AABBExtensions.SweepTest(dEntity.AABB, bound, new Vector3(dEntity.Velocity.x, 0, 0) * Time.deltaTime, out float t,
+                                    out normalX, out normalY, out normalZ);
+
+                                if (axis == -1 || t >= nearestCollisionTimeX) continue;
+
+                                nearestCollisionTimeX = t;
+                            }
+                        }
                     }
+                }
+                remainingTimeX = 1.0f - nearestCollisionTimeX;
+                if (remainingTimeX > 0.0f)
+                {
+                    dEntity.Position.x += dEntity.Velocity.x * (nearestCollisionTimeX - 1e-3f) * Time.deltaTime;
+                }
+                else
+                {
+                    dEntity.Position.x += dEntity.Velocity.x * nearestCollisionTimeX * Time.deltaTime;
+                }
 
 
-                    if (nearestEntryTime > t)
+
+
+
+                // Z
+                // ------------------------------------
+                broadPhase = AABBExtensions.GetSweptBroadphaseBox(dEntity.AABB, new Vector3(0, 0, dEntity.Velocity.z) * Time.deltaTime);
+                _drawer.AddPhysicBounds(broadPhase, Color.black);
+                minBP = _main.GetBlockGPos(new Vector3(broadPhase.x, broadPhase.y, broadPhase.z));
+                maxBP = _main.GetBlockGPos(new Vector3(broadPhase.x + broadPhase.w, broadPhase.y + broadPhase.h, broadPhase.z + broadPhase.d));
+                for (int y = minBP.y; y <= maxBP.y; y++)
+                {
+                    for (int z = minBP.z; z <= maxBP.z; z++)
                     {
-                        nearestEntryTime = t;
-                        nearestAxis = axis;
+                        for (int x = minBP.x; x <= maxBP.x; x++)
+                        {
+                            if (_main.GetBlock(new Vector3(x, y, z)) != BlockType.Air)
+                            {
+                                AABB bound = GetBlockBound(new Vector3(x, y, z));
+                                _drawer.AddPhysicBounds(bound, Color.red);
+                                //_bounds.Add(b);
+
+                                int axis = AABBExtensions.SweepTest(dEntity.AABB, bound, new Vector3(0, 0, dEntity.Velocity.z) * Time.deltaTime, out float t,
+                                    out normalX, out normalY, out normalZ);
+
+                                if (axis == -1 || t >= nearestCollisionTimeZ) continue;
+
+                                nearestCollisionTimeZ = t;
+                            }
+                        }
                     }
                 }
-                Vector3 offset = new Vector3(0, 2, 0);
-                if(nearestAxis == 0)
+                remainingTimeZ = 1.0f - nearestCollisionTimeZ;
+                if (remainingTimeZ > 0.0f)
                 {
-                    _drawer.AddLine(dEntity.Position + offset, (dEntity.Position + offset) + Vector3.right * normalX * nearestEntryTime, Color.red);
+                    dEntity.Position.z += dEntity.Velocity.z * (nearestCollisionTimeZ - 1e-3f) * Time.deltaTime;
                 }
-                else if(nearestAxis == 1)
+                else
                 {
-                    _drawer.AddLine(dEntity.Position + offset, (dEntity.Position + offset) + Vector3.up * normalY * nearestEntryTime, Color.green);
-                }
-                else if(nearestAxis == 2)
-                {
-                    _drawer.AddLine(dEntity.Position + offset, (dEntity.Position + offset) + Vector3.forward * normalZ * nearestEntryTime, Color.blue);
+                    dEntity.Position.z += dEntity.Velocity.z * nearestCollisionTimeZ * Time.deltaTime;
                 }
 
-                float remainingTime = 1.0f - nearestEntryTime;
 
-                // Zero out velocity on collided axis
-                //if (nearestAxis == 0)
+
+
+
+                //Push
+                //if (remainingTime != 0)
                 //{
-                //    dEntity.Velocity.x = 0;
-                //}
-                //else if (nearestAxis == 1)
-                //{
-                //    dEntity.Velocity.y = 0;
-                //}
-                //else if (nearestAxis == 2)
-                //{
+                //    float magnitude = dEntity.Velocity.magnitude * remainingTime;
+                //    float dotProduct = Mathf.Sign(dEntity.Velocity.x * normalZ + dEntity.Velocity.z * normalX);
+
+                //    dEntity.Velocity.x = -10;
                 //    dEntity.Velocity.z = 0;
+
+                //    if (normalX != 0) dEntity.Velocity.x = 0;
+                //    if (normalZ != 0) dEntity.Velocity.z = 0;
+
+                //    //Debug.Log($"Loop: {loopCount}   {normalX}   {normalZ}   {dotProduct}   {dEntity.Velocity}");
+                //    collisionTime = remainingTime * Time.deltaTime;
+                //    dEntity.Position += dEntity.Velocity * collisionTime;
                 //}
 
 
-                //if (currentAxis == -1)
-                //{
-                //    currentAxis = nearestAxis;
-                //}
-                //else
-                //{
-                //    if (currentAxis != nearestAxis)
-                //    {
-                //        Debug.Break();
-                //    }
-                //}
 
-          
-
-                if (nearestEntryTime > Time.deltaTime)
-                    nearestEntryTime = Time.deltaTime;
-
-
-                dEntity.Position += dEntity.Velocity * nearestEntryTime;
                 dEntity.Transform.position = dEntity.Position;
-
                 dEntity.AABB = new AABB()
                 {
                     x = dEntity.Transform.position.x - 0.5f,
                     y = dEntity.Transform.position.y,
                     z = dEntity.Transform.position.z - 0.5f,
-                    w = 1,
-                    h = 2,
-                    d = 1,
+                    w = 0.9f,
+                    h = 1.9f,
+                    d = 0.9f
                 };
                 _drawer.AddPhysicBounds(dEntity.AABB, Color.green);
-
-                //if (nearestAxis != -1)
-                //{ 
-                //    Debug.Break();
-                //}
-
-                //Debug.Log($"{dEntity.Velocity} {nearestEntryTime} {remainingDelta}");
-
-
-             
             }
         }
 

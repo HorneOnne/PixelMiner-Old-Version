@@ -49,7 +49,7 @@ namespace PixelMiner.Cam
                                                                   Mathf.FloorToInt(hitVoxel.point.z + 0.001f));
                 Vector3 hitCenter = hitGlobalPosition + _blockOffsetOrigin;
 
-                _drawer.AddBounds(new Bounds(hitCenter, new Vector3(1.01f, 1.01f, 1.01f)), Color.white);
+                _drawer.AddBounds(new Bounds(hitCenter, new Vector3(1.01f, 1.01f, 1.01f)), Color.grey);
             }
             else
             {

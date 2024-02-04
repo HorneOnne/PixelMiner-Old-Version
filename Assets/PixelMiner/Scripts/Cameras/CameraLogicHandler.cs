@@ -35,7 +35,7 @@ namespace PixelMiner.Cam
 
         void Start()
         {
-            CameraSwitcher.SwitchCamera(_isometricCam);
+            CameraSwitcher.SwitchCamera(_topDownCam);
             MainCam = UnityEngine.Camera.main;
             if (_isometricCam == null)
             {

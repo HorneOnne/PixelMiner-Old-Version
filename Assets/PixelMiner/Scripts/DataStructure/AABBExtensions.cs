@@ -205,9 +205,6 @@ namespace PixelMiner.DataStructure
             }
             else
             {
-                //xEntry = dynamicBox.x - (staticBox.x + staticBox.w);
-                //xExit = (dynamicBox.x + dynamicBox.w) - staticBox.x;
-
                 xEntry = (staticBox.x + staticBox.w) - dynamicBox.x;
                 xExit = staticBox.x - (dynamicBox.x + dynamicBox.w);
             }
@@ -219,8 +216,8 @@ namespace PixelMiner.DataStructure
             }
             else
             {
-                yEntry = dynamicBox.y - (staticBox.y + staticBox.h);
-                yExit = (dynamicBox.y + dynamicBox.h) - staticBox.y;
+                yEntry = (staticBox.y + staticBox.h) - dynamicBox.y;
+                yExit = staticBox.y - (dynamicBox.y + dynamicBox.h);
             }
 
             if(vel.z > 0)
@@ -230,9 +227,6 @@ namespace PixelMiner.DataStructure
             }
             else
             {
-                //zEntry = dynamicBox.z - (staticBox.z + staticBox.d);
-                //zExit = (dynamicBox.z + dynamicBox.d) - staticBox.z;
-
                 zEntry = (staticBox.z + staticBox.d) - dynamicBox.z;
                 zExit = staticBox.z - (dynamicBox.z + dynamicBox.d);
             }
@@ -256,8 +250,8 @@ namespace PixelMiner.DataStructure
             }
             else
             {
-                yTimeEntry = Mathf.Abs(yEntry / vel.y);
-                yTimeExit = Mathf.Abs(yExit / vel.y);
+                yTimeEntry = yEntry / vel.y;
+                yTimeExit = yExit / vel.y;
             }
 
             if(vel.z == 0)
@@ -272,7 +266,7 @@ namespace PixelMiner.DataStructure
             }
 
 
-            Debug.Log($"{xTimeEntry} {zTimeEntry}");
+ 
             //Debug.Log($"TimeEntry: {xTimeEntry}  {zTimeEntry}");
 
             time = Mathf.Max(xTimeEntry, yTimeEntry, zTimeEntry);
