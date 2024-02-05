@@ -24,16 +24,13 @@ namespace PixelMiner.Physics
             _main = Main.Instance;
             _drawer = DrawBounds.Instance;
             //Time.timeScale = 0.1f;
-
-            Debug.Log($"Dot Product: {Vector3.Dot(new Vector3(1, 0, 1), new Vector3(0, 0, -1))}");
-            Debug.Log($"Dot Product: {Vector3.Dot(new Vector3(-1, 0, 1), new Vector3(0, 0, -1))}");
         }
 
         public static void AddDynamicEntity(DynamicEntity entity)
         {
             _dynamicEntities.Add(entity);
         }
-        private int currentAxis = -1;
+ 
         private void Update()
         {
             Vector3 gravityForce = _gravity * _gravityForce;
@@ -55,7 +52,6 @@ namespace PixelMiner.Physics
                 float nearestCollisionTimeX = 1.0f;
                 float nearestCollisionTimeY = 1.0f;
                 float nearestCollisionTimeZ = 1.0f;
-                int nearestAxis = -1;
                 float remainingTimeX = 0;
                 float remainingTimeY = 0;
                 float remainingTimeZ = 0;
@@ -95,7 +91,7 @@ namespace PixelMiner.Physics
                 remainingTimeY = 1.0f - nearestCollisionTimeY;
                 if (remainingTimeY > 0.0f)
                 {
-                    dEntity.Position.y += dEntity.Velocity.y * (nearestCollisionTimeY - 1e-3f) * Time.deltaTime;
+                    dEntity.Position.y += dEntity.Velocity.y * (nearestCollisionTimeY - 1e-1f) * Time.deltaTime;
                 }
                 else
                 {
@@ -118,8 +114,8 @@ namespace PixelMiner.Physics
                     {
                         for (int x = minBP.x; x <= maxBP.x; x++)
                         {
-                            if (_main.GetBlock(new Vector3(x, y, z)) != BlockType.Air)
-                            {
+                            if (_main.GetBlock(new Vector3(x, y, z)) != BlockType.Air && z < (dEntity.AABB.z + dEntity.AABB.d))
+                            {   
                                 AABB bound = GetBlockBound(new Vector3(x, y, z));
                                 _drawer.AddPhysicBounds(bound, Color.red);
                                 //_bounds.Add(b);
@@ -160,7 +156,7 @@ namespace PixelMiner.Physics
                     {
                         for (int x = minBP.x; x <= maxBP.x; x++)
                         {
-                            if (_main.GetBlock(new Vector3(x, y, z)) != BlockType.Air)
+                            if (_main.GetBlock(new Vector3(x, y, z)) != BlockType.Air && x < (dEntity.AABB.x + dEntity.AABB.w))
                             {
                                 AABB bound = GetBlockBound(new Vector3(x, y, z));
                                 _drawer.AddPhysicBounds(bound, Color.red);

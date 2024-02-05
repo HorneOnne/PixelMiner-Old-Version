@@ -1,0 +1,16 @@
+{
+    "name": "PixelMiner.Inventory",
+    "rootNamespace": "PixelMiner.Inventory",
+    "references": [
+        "GUID:83a651e378233fe418e687488e563cf9"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
