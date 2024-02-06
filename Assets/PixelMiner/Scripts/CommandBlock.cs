@@ -18,7 +18,7 @@ namespace PixelMiner
             Player player = GameObject.FindAnyObjectByType<Player>();   
             if(player != null )
             {
-                player.PlayerMovement.SetPlayerSpeed(value);
+                //player.PlayerMovement3D.SetPlayerSpeed(value);
             }
         }
 
