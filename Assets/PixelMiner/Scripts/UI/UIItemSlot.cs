@@ -13,13 +13,27 @@ namespace PixelMiner.UI
         public TextMeshProUGUI QuantityText;
 
 
+        public void UpdateSlot(ItemInstance item)
+        {
+            UpdateIcon(item);
+            UpdateQuantity(item.Quantity);
+        }
+
         public void UpdateQuantity(int quantity)
         {
-            QuantityText.text = quantity.ToString();
+            if (quantity > 0)
+                QuantityText.text = quantity.ToString();
+            else
+                QuantityText.text = "";
         }
 
         public void UpdateIcon(ItemInstance item)
         {
+            if(item.ItemData == null)
+            {
+                ItemIcon.enabled = false;
+                return;
+            }
             ItemIcon.sprite = item.ItemData.Icon;
             ItemIcon.enabled = true;
         }

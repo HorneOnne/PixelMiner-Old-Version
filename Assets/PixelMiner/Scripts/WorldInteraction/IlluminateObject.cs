@@ -18,8 +18,16 @@ namespace PixelMiner.WorldInteraction
 
         private void Start()
         {
-            //_mat = _meshRenderer.material;       
-            _mat = _skinMeshRenderer.material;       
+            //_mat = _meshRenderer.material;
+            if(_meshRenderer != null)
+            {
+                _mat = _meshRenderer.material;
+            }
+            else if(_skinMeshRenderer != null)
+            {
+                _mat = _skinMeshRenderer.material;
+            }
+               
         }
 
         private void Update()
