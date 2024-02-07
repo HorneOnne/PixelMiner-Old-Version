@@ -39,10 +39,19 @@ namespace PixelMiner
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""Look"",
+                    ""name"": ""LookHorizontal"",
                     ""type"": ""Value"",
                     ""id"": ""a6eac7f4-e3ea-42f2-9c58-ebbc005c7e7b"",
                     ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""LookVertical"",
+                    ""type"": ""Value"",
+                    ""id"": ""a12098aa-fa2b-4947-8062-1c56f3f35cf9"",
+                    ""expectedControlType"": ""Axis"",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
@@ -259,7 +268,7 @@ namespace PixelMiner
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": "";Gamepad"",
-                    ""action"": ""Look"",
+                    ""action"": ""LookHorizontal"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -270,7 +279,7 @@ namespace PixelMiner
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Joystick"",
-                    ""action"": ""Look"",
+                    ""action"": ""LookHorizontal"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -392,6 +401,39 @@ namespace PixelMiner
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""Rotate"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""1D Axis"",
+                    ""id"": ""4359113b-f1b9-4801-b089-8f21978363ff"",
+                    ""path"": ""1DAxis"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""LookVertical"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""negative"",
+                    ""id"": ""c18b1c73-bcb0-4c10-8044-21e7e39240d9"",
+                    ""path"": ""<Gamepad>/leftTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""LookVertical"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""positive"",
+                    ""id"": ""cdce3209-ef8c-4c72-aea3-38e49ac79b97"",
+                    ""path"": ""<Gamepad>/rightTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""LookVertical"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 }
@@ -980,7 +1022,8 @@ namespace PixelMiner
             // Player
             m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
             m_Player_Move = m_Player.FindAction("Move", throwIfNotFound: true);
-            m_Player_Look = m_Player.FindAction("Look", throwIfNotFound: true);
+            m_Player_LookHorizontal = m_Player.FindAction("LookHorizontal", throwIfNotFound: true);
+            m_Player_LookVertical = m_Player.FindAction("LookVertical", throwIfNotFound: true);
             m_Player_Fire1 = m_Player.FindAction("Fire1", throwIfNotFound: true);
             m_Player_Cancel = m_Player.FindAction("Cancel", throwIfNotFound: true);
             m_Player_Rotate = m_Player.FindAction("Rotate", throwIfNotFound: true);
@@ -1058,7 +1101,8 @@ namespace PixelMiner
         private readonly InputActionMap m_Player;
         private List<IPlayerActions> m_PlayerActionsCallbackInterfaces = new List<IPlayerActions>();
         private readonly InputAction m_Player_Move;
-        private readonly InputAction m_Player_Look;
+        private readonly InputAction m_Player_LookHorizontal;
+        private readonly InputAction m_Player_LookVertical;
         private readonly InputAction m_Player_Fire1;
         private readonly InputAction m_Player_Cancel;
         private readonly InputAction m_Player_Rotate;
@@ -1067,7 +1111,8 @@ namespace PixelMiner
             private @PlayerInput m_Wrapper;
             public PlayerActions(@PlayerInput wrapper) { m_Wrapper = wrapper; }
             public InputAction @Move => m_Wrapper.m_Player_Move;
-            public InputAction @Look => m_Wrapper.m_Player_Look;
+            public InputAction @LookHorizontal => m_Wrapper.m_Player_LookHorizontal;
+            public InputAction @LookVertical => m_Wrapper.m_Player_LookVertical;
             public InputAction @Fire1 => m_Wrapper.m_Player_Fire1;
             public InputAction @Cancel => m_Wrapper.m_Player_Cancel;
             public InputAction @Rotate => m_Wrapper.m_Player_Rotate;
@@ -1083,9 +1128,12 @@ namespace PixelMiner
                 @Move.started += instance.OnMove;
                 @Move.performed += instance.OnMove;
                 @Move.canceled += instance.OnMove;
-                @Look.started += instance.OnLook;
-                @Look.performed += instance.OnLook;
-                @Look.canceled += instance.OnLook;
+                @LookHorizontal.started += instance.OnLookHorizontal;
+                @LookHorizontal.performed += instance.OnLookHorizontal;
+                @LookHorizontal.canceled += instance.OnLookHorizontal;
+                @LookVertical.started += instance.OnLookVertical;
+                @LookVertical.performed += instance.OnLookVertical;
+                @LookVertical.canceled += instance.OnLookVertical;
                 @Fire1.started += instance.OnFire1;
                 @Fire1.performed += instance.OnFire1;
                 @Fire1.canceled += instance.OnFire1;
@@ -1102,9 +1150,12 @@ namespace PixelMiner
                 @Move.started -= instance.OnMove;
                 @Move.performed -= instance.OnMove;
                 @Move.canceled -= instance.OnMove;
-                @Look.started -= instance.OnLook;
-                @Look.performed -= instance.OnLook;
-                @Look.canceled -= instance.OnLook;
+                @LookHorizontal.started -= instance.OnLookHorizontal;
+                @LookHorizontal.performed -= instance.OnLookHorizontal;
+                @LookHorizontal.canceled -= instance.OnLookHorizontal;
+                @LookVertical.started -= instance.OnLookVertical;
+                @LookVertical.performed -= instance.OnLookVertical;
+                @LookVertical.canceled -= instance.OnLookVertical;
                 @Fire1.started -= instance.OnFire1;
                 @Fire1.performed -= instance.OnFire1;
                 @Fire1.canceled -= instance.OnFire1;
@@ -1297,7 +1348,8 @@ namespace PixelMiner
         public interface IPlayerActions
         {
             void OnMove(InputAction.CallbackContext context);
-            void OnLook(InputAction.CallbackContext context);
+            void OnLookHorizontal(InputAction.CallbackContext context);
+            void OnLookVertical(InputAction.CallbackContext context);
             void OnFire1(InputAction.CallbackContext context);
             void OnCancel(InputAction.CallbackContext context);
             void OnRotate(InputAction.CallbackContext context);

@@ -98,5 +98,47 @@ namespace PixelMiner.Utilities
             return (float)Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
         }
 
+
+
+        public static Vector3 RotateVectorUseMatrix(Vector3 originalVector, float angleInDegrees, Vector3 axisOfRotation)
+        {
+            // Convert the angle to radians
+            //float angleInRadians = Mathf.Deg2Rad * angleInDegrees;
+
+            // Create the rotation matrix
+            Matrix4x4 rotationMatrix = Matrix4x4.Rotate(Quaternion.AngleAxis(angleInDegrees, axisOfRotation));
+
+            // Apply the rotation to the original vector
+            Vector3 rotatedVector = rotationMatrix.MultiplyPoint(originalVector);
+
+            return rotatedVector;
+        }
+
+        public static Vector3 RotateVectorUseTrigonometry(Vector3 originalVector, float angleInDegrees)
+        {
+            float angleInRadians = Mathf.Deg2Rad * angleInDegrees;
+
+            float x = Mathf.Cos(angleInRadians) * originalVector.x - Mathf.Sin(angleInRadians) * originalVector.y;
+            float y = Mathf.Sin(angleInRadians) * originalVector.x + Mathf.Cos(angleInRadians) * originalVector.y;
+
+            float z = originalVector.z;
+
+            return new Vector3(x, y, z);
+        }
+
+        public static Vector3 RotateVectorByUnity(Vector3 vector, float angle, Vector3 axis)
+        {
+            //Quaternion rotation = Quaternion.Euler(0, angle, 0);
+            //Vector3 rotatedVector = rotation * vector;
+            //return rotatedVector;
+
+            // Create a Quaternion representing the rotation around the Y-axis
+            Quaternion rotation = Quaternion.AngleAxis(angle, axis);
+
+            // Rotate the vector using the Quaternion
+            Vector3 rotatedVector = rotation * vector;
+
+            return rotatedVector;
+        }
     }
 }

@@ -27,6 +27,9 @@ namespace PixelMiner.Character
         private Vector3 _startLookPos;
         private Vector3 _forwardPosition;
         private Vector3 _lookPosition;
+        public float CurrentVerticalLookAngle = 0;  // Angle in degrees
+        public float CurrentHorizontalLookAngle = 0;  // Angle in degrees
+        [SerializeField] private float _verticalSensitive = 20f;
 
 
         // Physics
@@ -67,36 +70,71 @@ namespace PixelMiner.Character
             };
 
             _entity = new DynamicEntity(this.transform, bound);
-            _entity.Simulate = Simulate;    
+            _entity.Simulate = Simulate;
             GamePhysics.AddDynamicEntity(_entity);
         }
 
 
         private void Update()
         {
-            if(Simulate)
+            Vector3 worldForward = transform.TransformDirection(Vector3.forward);
+            //CurrentLookAngle += _input.LookVertical * _verticalSensitive * UnityEngine.Time.deltaTime;
+            CurrentHorizontalLookAngle = _input.LookHorizontal.x * _verticalSensitive;
+            CurrentVerticalLookAngle = _input.LookHorizontal.y * _verticalSensitive;
+            float maxAngle = 90;
+            if (CurrentHorizontalLookAngle > maxAngle) CurrentHorizontalLookAngle = maxAngle;
+            if (CurrentHorizontalLookAngle < -maxAngle) CurrentHorizontalLookAngle = -maxAngle;
+            if (CurrentVerticalLookAngle > maxAngle) CurrentVerticalLookAngle = maxAngle;
+            if (CurrentVerticalLookAngle < -maxAngle) CurrentVerticalLookAngle = -maxAngle;
+
+            if (Simulate)
             {
                 _entity.Simulate = Simulate;
             }
 
             UpdatePosition();
 
-            if (_input.Fire1 == false && _input.Move != Vector2.zero)
-            {
-                UpdateRotation();
-            }
 
 
             // Aiming
             // =======
-            _inputLookDir = new Vector3(_input.Look.x, _input.Look.y, 0);
+            _inputLookDir = new Vector3(_input.LookHorizontal.x, _input.LookHorizontal.y, 0);
             _startLookPos = transform.position + _handOffset;
+            Vector3 offset = _inputLookDir == Vector3.zero ? transform.forward : Vector3.zero;
             _forwardPosition = _startLookPos + transform.TransformDirection(Vector3.forward) * 5;
-            _lookPosition = _startLookPos + transform.TransformDirection(Vector3.forward + _inputLookDir.ToGameDirection()) * 5;
+            if(_inputLookDir != Vector3.zero)
+            {
+                _lookPosition = _startLookPos + transform.TransformDirection(_inputLookDir + new Vector3(0,0,0.025f));
+            }
+            else
+            {
+                _lookPosition = _startLookPos +  transform.TransformDirection(Vector3.forward);
+            }
+            
             _aimTarrgetTrans.position = _lookPosition;
-            float angle = Vector3.Angle(_forwardPosition - _startLookPos, _lookPosition - _startLookPos);
 
 
+            // Vector3 verticalV = MathHelper.RotateVectorUseMatrix(transform.forward, CurrentVerticalLookAngle, -transform.right);
+            //Vector3 verticalH = MathHelper.RotateVectorUseMatrix(transform.forward, CurrentHorizontalLookAngle, transform.up);
+            // _aimTarrgetTrans.position = _startLookPos +  verticalH + verticalV;
+
+
+            if (_input.Fire1 == false)
+            {
+                //if (_input.LookHorizontal != Vector2.zero)
+                //{
+                //    UpdateRotation(new Vector3(_input.LookHorizontal.x, 0, _input.LookHorizontal.y).ToGameDirection());
+                //}
+                //else if (_input.Move != Vector2.zero)
+                //{
+                //    UpdateRotation(new Vector3(_input.Move.x, 0, _input.Move.y).ToGameDirection());
+                //}
+
+                if (_input.Move != Vector2.zero)
+                {
+                    UpdateRotation(new Vector3(_input.Move.x, 0, _input.Move.y).ToGameDirection());
+                }
+            }
 
 
             // Animation
@@ -114,13 +152,16 @@ namespace PixelMiner.Character
 
         private void LateUpdate()
         {
-            Vector3 worldForward = transform.TransformDirection(Vector3.forward);
-            DrawBounds.Instance.AddLine(_startLookPos, _forwardPosition, Color.red);
-            DrawBounds.Instance.AddLine(_startLookPos, _lookPosition, Color.cyan);
+            DrawBounds.Instance.AddRay(_startLookPos, transform.right, Color.red, 3);
+            DrawBounds.Instance.AddRay(_startLookPos, transform.forward, Color.blue, 3);
+            DrawBounds.Instance.AddRay(_startLookPos, transform.up, Color.green, 3);
 
-            Quaternion rotation = Quaternion.Euler(60f, 0, 0f);
-            Vector3 rotateVector = rotation * (_forwardPosition - _startLookPos);
-            DrawBounds.Instance.AddLine(_startLookPos, rotateVector, Color.gray);
+
+            //DrawBounds.Instance.AddRay(_startLookPos, MathHelper.RotateVectorUseMatrix(transform.forward, CurrentVerticalLookAngle, -transform.right), Color.yellow);
+            Vector3 verticalV = MathHelper.RotateVectorUseMatrix(transform.forward, CurrentVerticalLookAngle, -transform.right);
+            Vector3 verticalH = MathHelper.RotateVectorUseMatrix(transform.forward, CurrentHorizontalLookAngle, transform.up);
+            //DrawBounds.Instance.AddRay(_startLookPos, verticalH + verticalV, Color.yellow);
+            DrawBounds.Instance.AddRay(_startLookPos, _aimTarrgetTrans.transform.position - _startLookPos, Color.yellow);
         }
 
 
@@ -130,12 +171,12 @@ namespace PixelMiner.Character
             {
                 _moveDirection = new Vector3(_input.Move.x * _moveSpeed, 0, _input.Move.y * _moveSpeed);
                 Vector3 _rotMoveDir = _moveDirection.ToGameDirection();
-              
+
                 _entity.SetVelocity(new Vector3(_rotMoveDir.x, _entity.Velocity.y, _rotMoveDir.z));
             }
             else
             {
-                _entity.SetVelocity(new Vector3(0, _entity.Velocity.y,0));
+                _entity.SetVelocity(new Vector3(0, _entity.Velocity.y, 0));
             }
         }
 
@@ -146,9 +187,9 @@ namespace PixelMiner.Character
             transform.position += movement;
         }
 
-        private void UpdateRotation()
+        private void UpdateRotation(Vector3 gameDirection)
         {
-            RotateTowardMoveDirection(_moveDirection.ToGameDirection());
+            RotateTowardMoveDirection(gameDirection);
         }
 
 

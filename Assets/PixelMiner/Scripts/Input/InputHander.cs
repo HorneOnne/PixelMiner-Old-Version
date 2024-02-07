@@ -11,7 +11,8 @@ namespace PixelMiner
 
         [Header("Character Input Values")]
         public Vector2 Move;
-        public Vector2 Look;
+        public Vector2 LookHorizontal;
+        public float LookVertical;
         public float MouseScrollY;
         public bool Cancel;
         public bool Fire1;
@@ -30,9 +31,14 @@ namespace PixelMiner
             playerInput.Player.Move.canceled += x => { Move = x.ReadValue<Vector2>().normalized; };
 
 
-            playerInput.Player.Look.started += x => { Look = x.ReadValue<Vector2>(); };
-            playerInput.Player.Look.performed += x => { Look = x.ReadValue<Vector2>(); };
-            playerInput.Player.Look.canceled += x => { Look = x.ReadValue<Vector2>(); };
+            playerInput.Player.LookHorizontal.started += x => { LookHorizontal = x.ReadValue<Vector2>(); };
+            playerInput.Player.LookHorizontal.performed += x => { LookHorizontal = x.ReadValue<Vector2>(); };
+            playerInput.Player.LookHorizontal.canceled += x => { LookHorizontal = x.ReadValue<Vector2>(); };
+
+            playerInput.Player.LookVertical.started += x => { LookVertical = x.ReadValue<float>(); };
+            playerInput.Player.LookVertical.performed += x => { LookVertical = x.ReadValue<float>(); };
+            playerInput.Player.LookVertical.canceled += x => { LookVertical = x.ReadValue<float>(); };
+
 
 
             playerInput.Player.Cancel.started += x => { Cancel = x.ReadValue<float>() == 1 ? true: false ; };

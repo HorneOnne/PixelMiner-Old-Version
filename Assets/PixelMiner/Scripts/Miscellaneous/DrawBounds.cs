@@ -150,11 +150,10 @@ namespace PixelMiner.Miscellaneous
             _lineColors.Add(c);
         }
 
-        public void AddRay(Vector3 origin, Vector3 dir, Color c)
+        public void AddRay(Vector3 origin, Vector3 dir, Color c, float maxLength = 10)
         {
-            _lines.Add(origin);
-            _lines.Add(dir-origin);
-            _lineColors.Add(c);
+            Vector3 endpoint = origin + dir.normalized * maxLength;
+            AddLine(origin, endpoint, c);
         }
 
         public void Clear()
