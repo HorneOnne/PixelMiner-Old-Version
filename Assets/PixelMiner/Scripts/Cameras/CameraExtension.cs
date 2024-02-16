@@ -37,35 +37,26 @@ namespace PixelMiner.Cam
 
         private void Update()
         {
-            _drawer.Clear();
+         
 
-            _ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            Vector3 rayDirection = _ray.direction;
-            if (_rayCasting.DDAVoxelRayCast(_mainCam.transform.position, rayDirection, out RaycastVoxelHit hitVoxel, out RaycastVoxelHit preHitVoxel))
-            {
-                VoxelHit = hitVoxel;
-                Vector3Int hitGlobalPosition = new Vector3Int(Mathf.FloorToInt(hitVoxel.point.x + 0.001f),
-                                                                  Mathf.FloorToInt(hitVoxel.point.y + 0.001f),
-                                                                  Mathf.FloorToInt(hitVoxel.point.z + 0.001f));
-                Vector3 hitCenter = hitGlobalPosition + _blockOffsetOrigin;
-
-                _drawer.AddBounds(new Bounds(hitCenter, new Vector3(1.01f, 1.01f, 1.01f)), Color.grey);
-            }
-            else
-            {
-                VoxelHit = default;
-            }
-
-            //if (VoxelHit.point == default(Vector3Int))
+            //_ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            //Vector3 rayDirection = _ray.direction;
+            //if (_rayCasting.DDAVoxelRayCast(_mainCam.transform.position, rayDirection, out RaycastVoxelHit hitVoxel, out RaycastVoxelHit preHitVoxel))
             //{
-            //    Debug.Log("not hit");
+            //    VoxelHit = hitVoxel;
+            //    Vector3Int hitGlobalPosition = new Vector3Int(Mathf.FloorToInt(hitVoxel.point.x + 0.001f),
+            //                                                      Mathf.FloorToInt(hitVoxel.point.y + 0.001f),
+            //                                                      Mathf.FloorToInt(hitVoxel.point.z + 0.001f));
+            //    Vector3 hitCenter = hitGlobalPosition + _blockOffsetOrigin;
+
+            //    _drawer.AddBounds(new Bounds(hitCenter, new Vector3(1.01f, 1.01f, 1.01f)), Color.grey);
             //}
             //else
             //{
-            //    Debug.Log("hit");
+            //    VoxelHit = default;
             //}
-
         }
+
         private void LateUpdate()
         {
             //_lastDir = Camera.main.ScreenPointToRay(Input.mousePosition).direction;       

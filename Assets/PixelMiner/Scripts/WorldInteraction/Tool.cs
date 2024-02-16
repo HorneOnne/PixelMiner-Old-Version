@@ -45,16 +45,16 @@ namespace PixelMiner.WorldInteraction
             {
                 _timer = Time.time;
 
-                _ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                Vector3 rayDirection = _ray.direction;
-                if (_rayCasting.DDAVoxelRayCast(_mainCam.transform.position, rayDirection, out RaycastVoxelHit hit, out RaycastVoxelHit preHit))
-                {
-                    Vector3Int hitGlobalPosition = hit.point;
-                    Vector3Int relativePosition = GlobalToRelativeBlockPosition(hitGlobalPosition);
+                //_ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                //Vector3 rayDirection = _ray.direction;
+                //if (_rayCasting.DDAVoxelRayCast(_mainCam.transform.position, rayDirection, out RaycastVoxelHit hit, out RaycastVoxelHit preHit))
+                //{
+                //    Vector3Int hitGlobalPosition = hit.point;
+                //    Vector3Int relativePosition = GlobalToRelativeBlockPosition(hitGlobalPosition);
 
             
-                    OnTarget?.Invoke(hitGlobalPosition, Main.Instance.GetBlock(hitGlobalPosition), Main.Instance.GetBlockLight(preHit.point), Main.Instance.GetAmbientLight(preHit.point));
-                }
+                //    OnTarget?.Invoke(hitGlobalPosition, Main.Instance.GetBlock(hitGlobalPosition), Main.Instance.GetBlockLight(preHit.point), Main.Instance.GetAmbientLight(preHit.point));
+                //}
             }
 
             if (Input.GetMouseButtonDown(0))

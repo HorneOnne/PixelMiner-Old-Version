@@ -1,16 +1,15 @@
 ﻿using UnityEngine;
-
-
-namespace PixelMiner.Character
+using PixelMiner.Core;
+using PixelMiner.Miscellaneous;
+namespace PixelMiner
 {
     public class PlayerBehaviour : MonoBehaviour
     {
+        private Player _player;
         private InputHander _input;
         private Animator _anim;
         private bool _hasAnimator;
 
-
-       
 
 
         // Timer
@@ -19,15 +18,18 @@ namespace PixelMiner.Character
 
 
 
-
-
         // animation IDs
         private int _animIDRightHand;
 
 
+        private Vector3 _blockOffsetOrigin = new Vector3(0.5f, 0.5f, 0.5f);
+        public RaycastVoxelHit VoxelHit { get; private set; }
+        private RayCasting _rayCasting;
+        Vector3Int hitGlobalPosition;
 
         private void Start()
         {
+            _player = GetComponent<Player>();
             _input = InputHander.Instance;
             _anim = GetComponent<Animator>();
             _hasAnimator = _anim != null;
@@ -44,15 +46,43 @@ namespace PixelMiner.Character
 
                 _anim.SetTrigger(_animIDRightHand);
             }
+
+
+    
+            if (RayCasting.Instance.DDAVoxelRayCast(_player.PlayerController.EyePosition,
+                                                    _player.PlayerController.LookDirection,
+                                                    out RaycastVoxelHit hitVoxel,
+                                                    out RaycastVoxelHit preHitVoxel,
+                                                    maxDistance: 10))
+            {
+                VoxelHit = hitVoxel;
+                hitGlobalPosition = new Vector3Int(Mathf.FloorToInt(hitVoxel.point.x + 0.001f),
+                                                                  Mathf.FloorToInt(hitVoxel.point.y + 0.001f),
+                                                                  Mathf.FloorToInt(hitVoxel.point.z + 0.001f));
+                            
+            }
+            else
+            {
+                VoxelHit = default;
+            }
         }
 
-        
+        private void LateUpdate()
+        {
+            if(!VoxelHit.Equals(default))
+            {
+                Vector3 hitCenter = hitGlobalPosition + _blockOffsetOrigin;
+                DrawBounds.Instance.AddBounds(new Bounds(hitCenter, new Vector3(1.01f, 1.01f, 1.01f)), Color.grey);
+            }
+          
+        }
+
+
 
 
         private void AssignAnimationIDs()
         {
             _animIDRightHand = Animator.StringToHash("RHand");
         }
-
     }
 }

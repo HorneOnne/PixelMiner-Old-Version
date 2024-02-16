@@ -9,7 +9,7 @@ namespace PixelMiner.Core
     public class Main : MonoBehaviour
     {
         public static Main Instance { get; private set; }
-
+        
         // Chunk data
         [Header("Data Cached")]
         public Dictionary<Vector3Int, Chunk> Chunks;

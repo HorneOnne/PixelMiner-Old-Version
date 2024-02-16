@@ -5,5 +5,6 @@ namespace PixelMiner.Enums
         None = 0,
         StoneAxe = 1,
         StonePickaxe = 2,
+        StoneSword = 3,
     }
 }

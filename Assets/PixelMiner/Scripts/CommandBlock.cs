@@ -5,7 +5,7 @@ using PixelMiner.Enums;
 using PixelMiner.World;
 using PixelMiner.WorldBuilding;
 using PixelMiner.Core;
-using PixelMiner.Character;
+
 
 namespace PixelMiner
 {

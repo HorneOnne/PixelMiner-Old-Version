@@ -13,6 +13,7 @@ namespace PixelMiner.Core
 
     public class RayCasting : MonoBehaviour
     {
+        public static RayCasting Instance { get; private set; }
         private Main _main;
 
         private List<Vector3> _ddaVoxelVisualizationList = new List<Vector3>();
@@ -22,12 +23,16 @@ namespace PixelMiner.Core
         private Vector3 _blockOffsetOrigin = new Vector3(0.5f, 0.5f, 0.5f);
         private Chunk _currentChunk;
 
+        private void Awake()
+        {
+            Instance = this;
+        }
         private void Start()
         {
             _main = Main.Instance;
         }
 
-        public bool DDAVoxelRayCast(Vector3 origin, Vector3 dir, out RaycastVoxelHit hit, out RaycastVoxelHit preHit)
+        public bool DDAVoxelRayCast(Vector3 origin, Vector3 dir, out RaycastVoxelHit hit, out RaycastVoxelHit preHit, float maxDistance = 100)
         {
             dir.Normalize();
             _rayDir = dir;
@@ -51,7 +56,7 @@ namespace PixelMiner.Core
         
 
             Vector3 radius = Vector3.zero;
-            float maxDistance = 40000; // 200 * 200
+            float maxSqrtDistance = maxDistance * maxDistance;
             Vector3Int step = Vector3Int.zero;
             // ray distance it takes to equal one block unit in each direction (this one doesnt change in loop)
             Vector3 tDelta = Vector3.positiveInfinity;
@@ -107,7 +112,7 @@ namespace PixelMiner.Core
 
 
             int attempts = 0;
-            while (radius.x * radius.x + radius.y * radius.y + radius.z * radius.z < maxDistance)
+            while (radius.x * radius.x + radius.y * radius.y + radius.z * radius.z < maxSqrtDistance)
             {
                 if (tMax.x < tMax.y)
                 {                
@@ -172,7 +177,7 @@ namespace PixelMiner.Core
             return hitVoxel;
         }
 
-       
+
 
         private void OnDrawGizmos()
         {
@@ -180,7 +185,7 @@ namespace PixelMiner.Core
             {
                 Gizmos.color = Color.cyan;
                 Gizmos.DrawRay(_origin, _rayDir * 200);
-     
+
 
                 Gizmos.color = Color.blue;
                 for (int i = 0; i < _ddaVoxelVisualizationList.Count; i++)

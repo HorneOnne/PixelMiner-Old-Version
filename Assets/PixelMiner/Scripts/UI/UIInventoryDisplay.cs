@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using PixelMiner.Items;
+using PixelMiner;
 
 namespace PixelMiner.UI
 {
@@ -73,7 +73,7 @@ namespace PixelMiner.UI
  
         private void InitializeInventory()
         {
-            for (int i = 0; i < PInventory.Items.Count; i++)
+            for (int i = 0; i < PInventory.Slots.Count; i++)
             {
                 ItemSlots.Add(Instantiate(_uiSlotPrefab, _slotParent));
             }
@@ -83,7 +83,7 @@ namespace PixelMiner.UI
         {
             for (int i = 0; i < ItemSlots.Count; i++)
             {
-                ItemSlots[i].UpdateSlot(PInventory.Items[i]);
+                ItemSlots[i].UpdateSlot(PInventory.Slots[i]);
             }
         }
 

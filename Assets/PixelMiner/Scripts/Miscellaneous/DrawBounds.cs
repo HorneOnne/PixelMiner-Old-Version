@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using PixelMiner.DataStructure;
+using System;
 
 namespace PixelMiner.Miscellaneous
 {
@@ -34,7 +35,6 @@ namespace PixelMiner.Miscellaneous
             RenderPipelineManager.endCameraRendering += RenderPipelineManager_endCameraRendering;
         }
 
-  
         private void OnDisable()
         {
             RenderPipelineManager.endCameraRendering -= RenderPipelineManager_endCameraRendering;
@@ -44,9 +44,11 @@ namespace PixelMiner.Miscellaneous
         {
             //Debug.Log(camera.name);
             OnPostRender();
-
         }
-
+        private void Update()
+        {
+            Clear();
+        }
 
 
         private void OnPostRender()

@@ -5,7 +5,7 @@ using PixelMiner.Physics;
 using PixelMiner.DataStructure;
 using PixelMiner.Miscellaneous;
 
-namespace PixelMiner.Character
+namespace PixelMiner
 {
     public class PlayerController : MonoBehaviour
     {
@@ -24,7 +24,8 @@ namespace PixelMiner.Character
         [SerializeField] private Transform _aimTarrgetTrans;
         private Vector3 _inputLookDir;
         private Vector3 _handOffset = new Vector3(0, 1.5f, 0);
-        private Vector3 _startLookPos;
+        public Vector3 EyePosition { get; private set; }
+        public Vector3 LookDirection { get; private set; }
         private Vector3 _forwardPosition;
         private Vector3 _lookPosition;
         public float CurrentVerticalLookAngle = 0;  // Angle in degrees
@@ -99,18 +100,18 @@ namespace PixelMiner.Character
             // Aiming
             // =======
             _inputLookDir = new Vector3(_input.LookHorizontal.x, _input.LookHorizontal.y, 0);
-            _startLookPos = transform.position + _handOffset;
+            EyePosition = transform.position + _handOffset;
             Vector3 offset = _inputLookDir == Vector3.zero ? transform.forward : Vector3.zero;
-            _forwardPosition = _startLookPos + transform.TransformDirection(Vector3.forward) * 5;
-            if(_inputLookDir != Vector3.zero)
+            _forwardPosition = EyePosition + transform.TransformDirection(Vector3.forward) * 5;
+            if(_inputLookDir.sqrMagnitude > 0.005f)
             {
-                _lookPosition = _startLookPos + transform.TransformDirection(_inputLookDir + new Vector3(0,0,0.025f));
+                _lookPosition = EyePosition + transform.TransformDirection(_inputLookDir + new Vector3(0,0,0.025f));
             }
             else
             {
-                _lookPosition = _startLookPos +  transform.TransformDirection(Vector3.forward);
+                _lookPosition = EyePosition +  transform.TransformDirection(Vector3.forward);
             }
-            
+            LookDirection = _lookPosition - EyePosition;
             _aimTarrgetTrans.position = _lookPosition;
 
 
@@ -152,16 +153,16 @@ namespace PixelMiner.Character
 
         private void LateUpdate()
         {
-            DrawBounds.Instance.AddRay(_startLookPos, transform.right, Color.red, 3);
-            DrawBounds.Instance.AddRay(_startLookPos, transform.forward, Color.blue, 3);
-            DrawBounds.Instance.AddRay(_startLookPos, transform.up, Color.green, 3);
+            DrawBounds.Instance.AddRay(EyePosition, transform.right, Color.red, 3);
+            DrawBounds.Instance.AddRay(EyePosition, transform.forward, Color.blue, 3);
+            DrawBounds.Instance.AddRay(EyePosition, transform.up, Color.green, 3);
 
 
             //DrawBounds.Instance.AddRay(_startLookPos, MathHelper.RotateVectorUseMatrix(transform.forward, CurrentVerticalLookAngle, -transform.right), Color.yellow);
             Vector3 verticalV = MathHelper.RotateVectorUseMatrix(transform.forward, CurrentVerticalLookAngle, -transform.right);
             Vector3 verticalH = MathHelper.RotateVectorUseMatrix(transform.forward, CurrentHorizontalLookAngle, transform.up);
             //DrawBounds.Instance.AddRay(_startLookPos, verticalH + verticalV, Color.yellow);
-            DrawBounds.Instance.AddRay(_startLookPos, _aimTarrgetTrans.transform.position - _startLookPos, Color.yellow);
+            DrawBounds.Instance.AddRay(EyePosition, _aimTarrgetTrans.transform.position - EyePosition, Color.yellow);
         }
 
 

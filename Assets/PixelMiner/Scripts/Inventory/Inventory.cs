@@ -1,35 +1,35 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-namespace PixelMiner.Items
+namespace PixelMiner
 {
     public class Inventory : MonoBehaviour
     {
-        public List<ItemInstance> Items;
+        public List<ItemSlot> Slots;
         [SerializeField] private int _size;
 
         private void Awake ()
         {
-            Items = new List<ItemInstance>(_size);
+            Slots = new List<ItemSlot>(_size);
             for(int i = 0; i < _size; i++)
             {
-                Items.Add(new ItemInstance(null, 0));
+                Slots.Add(new ItemSlot(null, 0));
             }
 
         }
 
-        public bool AddItem(ItemInstance itemNeedAdd)
+        public bool AddItem(IItem item)
         {
             // Finds an empty slot if there is no exist one.
             List<int> sameSlotsFoundIndex = new List<int>();
             int firstEmptySlot = -1;
             for(int i = 0; i < _size; i++)
             {
-                if (Items[i].ItemData.ID == itemNeedAdd.ItemData.ID)
+                if (Slots[i].ItemData.ID == item.Data.ID)
                 {
                     sameSlotsFoundIndex.Add(i);
                 }
 
-                if (Items[i] == null)
+                if (Slots[i] == null)
                 {
                     firstEmptySlot = i;
                 }
@@ -39,7 +39,7 @@ namespace PixelMiner.Items
             {
                 for(int j = 0; j < sameSlotsFoundIndex.Count; j++)
                 {
-                    if (Items[sameSlotsFoundIndex[j]].TryAdd())
+                    if (Slots[sameSlotsFoundIndex[j]].TryAdd())
                     {
                         return true;
                     }
@@ -52,11 +52,16 @@ namespace PixelMiner.Items
                     return false;
                 else
                 {
-                    Items[firstEmptySlot] = itemNeedAdd;
+                    Slots[firstEmptySlot] = new ItemSlot(item.Data,1);
                     return true;
                 }
                    
             }
+        }
+
+        public void UseItem(int slotIndex)
+        {
+          
         }
     }
 }

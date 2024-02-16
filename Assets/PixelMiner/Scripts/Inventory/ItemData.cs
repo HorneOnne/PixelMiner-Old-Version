@@ -1,7 +1,7 @@
 using UnityEngine;
 using PixelMiner.Enums;
 
-namespace PixelMiner.Items
+namespace PixelMiner
 {
     [CreateAssetMenu]
     public class ItemData : ScriptableObject
@@ -9,7 +9,8 @@ namespace PixelMiner.Items
         public ItemID ID;
         public string ItemName;
         public Sprite Icon;
-        public GameObject Model;
+        public int MaxUses;
         public int MaxStack;
+        public GameObject Model;
     }
 }

@@ -1,7 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using PixelMiner.Items;
+using PixelMiner;
+
 namespace PixelMiner.UI
 {
     public class UIItemSlot : MonoBehaviour
@@ -13,7 +14,7 @@ namespace PixelMiner.UI
         public TextMeshProUGUI QuantityText;
 
 
-        public void UpdateSlot(ItemInstance item)
+        public void UpdateSlot(ItemSlot item)
         {
             UpdateIcon(item);
             UpdateQuantity(item.Quantity);
@@ -27,7 +28,7 @@ namespace PixelMiner.UI
                 QuantityText.text = "";
         }
 
-        public void UpdateIcon(ItemInstance item)
+        public void UpdateIcon(ItemSlot item)
         {
             if(item.ItemData == null)
             {
