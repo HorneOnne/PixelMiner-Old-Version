@@ -9,8 +9,7 @@ namespace PixelMiner
         private InputHander _input;
         private Animator _anim;
         private bool _hasAnimator;
-
-
+        
 
         // Timer
         private float _lastFire1Time;
@@ -26,6 +25,10 @@ namespace PixelMiner
         public RaycastVoxelHit VoxelHit { get; private set; }
         private RayCasting _rayCasting;
         Vector3Int hitGlobalPosition;
+
+
+        // Testing
+        [SerializeField] private Transform _sampleBlockTrans;
 
         private void Start()
         {
@@ -49,21 +52,24 @@ namespace PixelMiner
 
 
     
-            if (RayCasting.Instance.DDAVoxelRayCast(_player.PlayerController.EyePosition,
+            if (RayCasting.Instance.DDAVoxelRayCast(_player.CurrentBCheckTrans.position,
                                                     _player.PlayerController.LookDirection,
                                                     out RaycastVoxelHit hitVoxel,
                                                     out RaycastVoxelHit preHitVoxel,
-                                                    maxDistance: 10))
+                                                    maxDistance: 1))
             {
                 VoxelHit = hitVoxel;
                 hitGlobalPosition = new Vector3Int(Mathf.FloorToInt(hitVoxel.point.x + 0.001f),
                                                                   Mathf.FloorToInt(hitVoxel.point.y + 0.001f),
                                                                   Mathf.FloorToInt(hitVoxel.point.z + 0.001f));
-                            
+                _sampleBlockTrans.position = hitGlobalPosition + new Vector3(0.5f,0.5f,0.5f);                              
             }
             else
             {
                 VoxelHit = default;
+
+                Vector3 endPosition = _player.CurrentBCheckTrans.position + _player.PlayerController.LookDirection;
+                _sampleBlockTrans.position = Main.Instance.GetBlockGPos(endPosition) + new Vector3(0.5f, 0.5f, 0.5f);
             }
         }
 

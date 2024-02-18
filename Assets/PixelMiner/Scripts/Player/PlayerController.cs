@@ -13,7 +13,7 @@ namespace PixelMiner
         private InputHander _input;
         private Rigidbody _rb;
         private Animator _anim;
-
+        private Player _player;
 
         [SerializeField] private float _moveSpeed;
         [SerializeField] private Vector3 _moveDirection;
@@ -22,9 +22,13 @@ namespace PixelMiner
 
         // Aiming
         [SerializeField] private Transform _aimTarrgetTrans;
+        private Vector3 _currentBCheckPos;
         private Vector3 _inputLookDir;
-        private Vector3 _handOffset = new Vector3(0, 1.5f, 0);
-        public Vector3 EyePosition { get; private set; }
+        private readonly Vector3 _upperHeadLookOffset = new Vector3(0,0,0);
+        private readonly Vector3 _middleHeadLookOffset = new Vector3(0, -0.1f, 0);
+        private readonly Vector3 _lowerHeadLookOffset = new Vector3(0,-0.25f,0);
+        private Vector3 _currentHeadLookOffset;
+
         public Vector3 LookDirection { get; private set; }
         private Vector3 _forwardPosition;
         private Vector3 _lookPosition;
@@ -46,6 +50,7 @@ namespace PixelMiner
         private int _animIDVelocity;
 
 
+
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
@@ -56,6 +61,7 @@ namespace PixelMiner
 
         private void Start()
         {
+            _player = GetComponent<Player>();
             _input = InputHander.Instance;
             _cameraLogicHandler = CameraLogicHandler.Instance;
             AssignAnimationIDs();
@@ -99,20 +105,29 @@ namespace PixelMiner
 
             // Aiming
             // =======
-            _inputLookDir = new Vector3(_input.LookHorizontal.x, _input.LookHorizontal.y, 0);
-            EyePosition = transform.position + _handOffset;
-            Vector3 offset = _inputLookDir == Vector3.zero ? transform.forward : Vector3.zero;
-            _forwardPosition = EyePosition + transform.TransformDirection(Vector3.forward) * 5;
-            if(_inputLookDir.sqrMagnitude > 0.005f)
+            _inputLookDir = new Vector3(0, _input.LookHorizontal.y, 0).normalized;
+            if(_inputLookDir.y > 0)
             {
-                _lookPosition = EyePosition + transform.TransformDirection(_inputLookDir + new Vector3(0,0,0.025f));
+                _player.CurrentBCheckTrans = _player.UpperBCheckTrans;
+                _currentHeadLookOffset = _upperHeadLookOffset;
+            }
+            else if(_inputLookDir.y < 0)
+            {
+                _player.CurrentBCheckTrans = _player.LowerBCheckTrans;
+                _currentHeadLookOffset = _lowerHeadLookOffset;
             }
             else
             {
-                _lookPosition = EyePosition +  transform.TransformDirection(Vector3.forward);
+                _player.CurrentBCheckTrans = _player.MiddleBCheckTrans;
+                _currentHeadLookOffset = _middleHeadLookOffset;
             }
-            LookDirection = _lookPosition - EyePosition;
-            _aimTarrgetTrans.position = _lookPosition;
+            _currentBCheckPos = _player.CurrentBCheckTrans.position;
+
+
+            _forwardPosition = _currentBCheckPos + transform.TransformDirection(Vector3.forward);   
+            _lookPosition = _forwardPosition;
+            LookDirection = _lookPosition - _currentBCheckPos;
+            _aimTarrgetTrans.position = _player.CombatRayPointTrans.position + _currentHeadLookOffset;
 
 
             // Vector3 verticalV = MathHelper.RotateVectorUseMatrix(transform.forward, CurrentVerticalLookAngle, -transform.right);
@@ -153,16 +168,14 @@ namespace PixelMiner
 
         private void LateUpdate()
         {
-            DrawBounds.Instance.AddRay(EyePosition, transform.right, Color.red, 3);
-            DrawBounds.Instance.AddRay(EyePosition, transform.forward, Color.blue, 3);
-            DrawBounds.Instance.AddRay(EyePosition, transform.up, Color.green, 3);
+            //DrawBounds.Instance.AddRay(_player.RaycastingPoint.position, transform.right, Color.red, 3);
+            //DrawBounds.Instance.AddRay(_player.RaycastingPoint.position, transform.forward, Color.blue, 3);
+            //DrawBounds.Instance.AddRay(_player.RaycastingPoint.position, transform.up, Color.green, 3);
 
 
-            //DrawBounds.Instance.AddRay(_startLookPos, MathHelper.RotateVectorUseMatrix(transform.forward, CurrentVerticalLookAngle, -transform.right), Color.yellow);
-            Vector3 verticalV = MathHelper.RotateVectorUseMatrix(transform.forward, CurrentVerticalLookAngle, -transform.right);
-            Vector3 verticalH = MathHelper.RotateVectorUseMatrix(transform.forward, CurrentHorizontalLookAngle, transform.up);
-            //DrawBounds.Instance.AddRay(_startLookPos, verticalH + verticalV, Color.yellow);
-            DrawBounds.Instance.AddRay(EyePosition, _aimTarrgetTrans.transform.position - EyePosition, Color.yellow);
+            //Vector3 verticalV = MathHelper.RotateVectorUseMatrix(transform.forward, CurrentVerticalLookAngle, -transform.right);
+            //Vector3 verticalH = MathHelper.RotateVectorUseMatrix(transform.forward, CurrentHorizontalLookAngle, transform.up);
+            DrawBounds.Instance.AddRay(_currentBCheckPos, _lookPosition - _currentBCheckPos, Color.yellow);
         }
 
 
@@ -218,31 +231,7 @@ namespace PixelMiner
 
         }
 
-        private void OnDrawGizmos()
-        {
-            //if (_entity != null && _entity.AABB.Equals(default) == false)
-            //{
-            //    Gizmos.color = Color.green;
-            //    // Draw the bottom face
-            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z));
-            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d));
-            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d));
-            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z));
 
-            //    // Draw the top face
-            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z));
-            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d));
-            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d));
-            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z));
-
-            //    // Connect the corresponding points between the top and bottom faces
-            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z), new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z));
-            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z));
-            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x + _entity.AABB.w, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d));
-            //    Gizmos.DrawLine(new Vector3(_entity.AABB.x, _entity.AABB.y, _entity.AABB.z + _entity.AABB.d), new Vector3(_entity.AABB.x, _entity.AABB.y + _entity.AABB.h, _entity.AABB.z + _entity.AABB.d));
-
-            //}
-        }
     }
 
 }
