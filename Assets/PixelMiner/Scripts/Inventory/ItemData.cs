@@ -3,7 +3,7 @@ using PixelMiner.Enums;
 
 namespace PixelMiner
 {
-    [CreateAssetMenu]
+    [CreateAssetMenu(fileName = "ItemData", menuName = "PixelMiner/ItemData", order = 51)]
     public class ItemData : ScriptableObject
     {
         public ItemID ID;
