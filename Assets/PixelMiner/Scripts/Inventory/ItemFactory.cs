@@ -13,7 +13,10 @@ namespace PixelMiner
         {
             for(int i = 0; i < Datas.Count; i++)
             {
-                _itemDictionary.Add(Datas[i].ID, Datas[i]);
+                if ((ushort)Datas[i].ID < 4096)
+                {
+                    _itemDictionary.Add(Datas[i].ID, Datas[i]);
+                }
             }
         }
 

@@ -5,5 +5,4 @@
         public void Use(Player player);
         public int RemainingUses { get; }
     }
-
 }

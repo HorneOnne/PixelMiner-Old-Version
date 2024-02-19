@@ -15,6 +15,6 @@ MonoBehaviour:
   ID: 2
   ItemName: Sword
   Icon: {fileID: 893804736, guid: bd3c11bfca2a89d42bec09b073894821, type: 3}
-  MaxUses: 0
+  MaxUses: 128
   MaxStack: 1
   Model: {fileID: 3255290797020418693, guid: 597821c8a7a7fd94da4b6ccf38075bc2, type: 3}

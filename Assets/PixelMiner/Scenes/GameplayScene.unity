@@ -2523,7 +2523,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6eeac8337ccd8d4a8ff9beda31b4360, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _gravity: {x: 0, y: -10, z: 0}
+  _gravity: {x: 0, y: 0, z: 0}
   _minFallForce: -10
   _maxJumpForce: 10
 --- !u!1001 &588119833

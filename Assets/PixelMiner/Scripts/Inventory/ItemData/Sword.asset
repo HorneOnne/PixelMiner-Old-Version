@@ -15,6 +15,6 @@ MonoBehaviour:
   ID: 3
   ItemName: Pickaxe
   Icon: {fileID: -674223843, guid: bd3c11bfca2a89d42bec09b073894821, type: 3}
-  MaxUses: 0
+  MaxUses: 128
   MaxStack: 1
   Model: {fileID: 3050933064929443879, guid: 527b6d2eb53eef046a14a86022d4df99, type: 3}
