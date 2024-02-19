@@ -41,8 +41,8 @@ namespace PixelMiner.UI
 
         private void Start()
         {
-      
-            PInventory = GameObject.FindGameObjectWithTag(PLAYER_INVENTORY_TAG).GetComponent<Inventory>();
+            return;
+            PInventory = GameObject.FindGameObjectWithTag(PLAYER_INVENTORY_TAG).GetComponent<PlayerInventory>().PInventory;
             if (PInventory != null)
             {
                 InitializeInventory();

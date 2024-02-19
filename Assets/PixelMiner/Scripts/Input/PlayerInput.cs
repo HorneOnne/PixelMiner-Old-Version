@@ -82,6 +82,15 @@ namespace PixelMiner
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Jump"",
+                    ""type"": ""Button"",
+                    ""id"": ""24ae5e4a-26af-44a2-a9d1-e1f3339a3d60"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -436,6 +445,17 @@ namespace PixelMiner
                     ""action"": ""LookVertical"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5cdfaedb-c07e-4925-80a1-88eeaf40a4ab"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Jump"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -1027,6 +1047,7 @@ namespace PixelMiner
             m_Player_Fire1 = m_Player.FindAction("Fire1", throwIfNotFound: true);
             m_Player_Cancel = m_Player.FindAction("Cancel", throwIfNotFound: true);
             m_Player_Rotate = m_Player.FindAction("Rotate", throwIfNotFound: true);
+            m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
             // UI
             m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
             m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1106,6 +1127,7 @@ namespace PixelMiner
         private readonly InputAction m_Player_Fire1;
         private readonly InputAction m_Player_Cancel;
         private readonly InputAction m_Player_Rotate;
+        private readonly InputAction m_Player_Jump;
         public struct PlayerActions
         {
             private @PlayerInput m_Wrapper;
@@ -1116,6 +1138,7 @@ namespace PixelMiner
             public InputAction @Fire1 => m_Wrapper.m_Player_Fire1;
             public InputAction @Cancel => m_Wrapper.m_Player_Cancel;
             public InputAction @Rotate => m_Wrapper.m_Player_Rotate;
+            public InputAction @Jump => m_Wrapper.m_Player_Jump;
             public InputActionMap Get() { return m_Wrapper.m_Player; }
             public void Enable() { Get().Enable(); }
             public void Disable() { Get().Disable(); }
@@ -1143,6 +1166,9 @@ namespace PixelMiner
                 @Rotate.started += instance.OnRotate;
                 @Rotate.performed += instance.OnRotate;
                 @Rotate.canceled += instance.OnRotate;
+                @Jump.started += instance.OnJump;
+                @Jump.performed += instance.OnJump;
+                @Jump.canceled += instance.OnJump;
             }
 
             private void UnregisterCallbacks(IPlayerActions instance)
@@ -1165,6 +1191,9 @@ namespace PixelMiner
                 @Rotate.started -= instance.OnRotate;
                 @Rotate.performed -= instance.OnRotate;
                 @Rotate.canceled -= instance.OnRotate;
+                @Jump.started -= instance.OnJump;
+                @Jump.performed -= instance.OnJump;
+                @Jump.canceled -= instance.OnJump;
             }
 
             public void RemoveCallbacks(IPlayerActions instance)
@@ -1353,6 +1382,7 @@ namespace PixelMiner
             void OnFire1(InputAction.CallbackContext context);
             void OnCancel(InputAction.CallbackContext context);
             void OnRotate(InputAction.CallbackContext context);
+            void OnJump(InputAction.CallbackContext context);
         }
         public interface IUIActions
         {

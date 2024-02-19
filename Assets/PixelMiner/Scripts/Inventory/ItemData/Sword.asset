@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a27c63228b4fcc94bb58f06a91872184, type: 3}
   m_Name: Sword
   m_EditorClassIdentifier: 
-  ID: 2
+  ID: 3
   ItemName: Pickaxe
   Icon: {fileID: -674223843, guid: bd3c11bfca2a89d42bec09b073894821, type: 3}
+  MaxUses: 0
   MaxStack: 1
   Model: {fileID: 3050933064929443879, guid: 527b6d2eb53eef046a14a86022d4df99, type: 3}

@@ -13,10 +13,14 @@ namespace PixelMiner.Physics
         private static List<DynamicEntity> _dynamicEntities = new List<DynamicEntity>();
         private Main _main;
 
-        private Vector3 _gravity = Vector3.down;
-        [SerializeField] private float _gravityForce = 9.8f;
+        [SerializeField] private Vector3 _gravity = Vector3.down;
         private List<float> _collisionTimes = new List<float>();
         private List<AABB> _bounds = new List<AABB>();
+
+
+        // Physics clamp
+        [SerializeField] private float _minFallForce = -10;
+        [SerializeField] private float _maxJumpForce = 10;
 
         private DrawBounds _drawer;
         private void Start()
@@ -33,7 +37,6 @@ namespace PixelMiner.Physics
  
         private void Update()
         {
-            Vector3 gravityForce = _gravity * _gravityForce;
             for (int entity = 0; entity < _dynamicEntities.Count; entity++)
             {   
                 DynamicEntity dEntity = _dynamicEntities[entity];
@@ -41,9 +44,9 @@ namespace PixelMiner.Physics
                 dEntity.Position = dEntity.Transform.position;
                
 
-                if (dEntity.Velocity.y > -5f)
+                if (dEntity.Velocity.y > _minFallForce)
                 {
-                    dEntity.AddVelocityY(-1f * Time.deltaTime);
+                    dEntity.AddVelocity(_gravity * Time.deltaTime);
                 }
 
 
@@ -66,6 +69,7 @@ namespace PixelMiner.Physics
                 _drawer.AddPhysicBounds(broadPhase, Color.black);
                 minBP = _main.GetBlockGPos(new Vector3(broadPhase.x , broadPhase.y, broadPhase.z));
                 maxBP = _main.GetBlockGPos(new Vector3(broadPhase.x + broadPhase.w, broadPhase.y + broadPhase.h, broadPhase.z + broadPhase.d));
+                int axis;
                 for (int y = minBP.y; y <= maxBP.y; y++)
                 {
                     for (int z = minBP.z; z <= maxBP.z; z++)
@@ -78,7 +82,7 @@ namespace PixelMiner.Physics
                                 _drawer.AddPhysicBounds(bound, Color.red);
                                 //_bounds.Add(b);
 
-                                int axis = AABBExtensions.SweepTest(dEntity.AABB, bound, new Vector3(0, dEntity.Velocity.y, 0) * Time.deltaTime, out float t,
+                                axis = AABBExtensions.SweepTest(dEntity.AABB, bound, new Vector3(0, dEntity.Velocity.y, 0) * Time.deltaTime, out float t,
                                     out normalX, out normalY, out normalZ);
 
                                 if (axis == -1 || t >= nearestCollisionTimeY) continue;
@@ -92,10 +96,17 @@ namespace PixelMiner.Physics
                 if (remainingTimeY > 0.0f)
                 {
                     dEntity.Position.y += dEntity.Velocity.y * (nearestCollisionTimeY - 1e-1f) * Time.deltaTime;
+
+                    if(normalY == 1)
+                    {
+                        dEntity.OnGround = true;
+                    }
+                   
                 }
                 else
                 {
                     dEntity.Position.y += dEntity.Velocity.y * nearestCollisionTimeY * Time.deltaTime;
+                    dEntity.OnGround = false;
                 }
 
 
@@ -120,7 +131,7 @@ namespace PixelMiner.Physics
                                 _drawer.AddPhysicBounds(bound, Color.red);
                                 //_bounds.Add(b);
 
-                                int axis = AABBExtensions.SweepTest(dEntity.AABB, bound, new Vector3(dEntity.Velocity.x, 0, 0) * Time.deltaTime, out float t,
+                                axis = AABBExtensions.SweepTest(dEntity.AABB, bound, new Vector3(dEntity.Velocity.x, 0, 0) * Time.deltaTime, out float t,
                                     out normalX, out normalY, out normalZ);
 
                                 if (axis == -1 || t >= nearestCollisionTimeX) continue;
@@ -162,7 +173,7 @@ namespace PixelMiner.Physics
                                 _drawer.AddPhysicBounds(bound, Color.red);
                                 //_bounds.Add(b);
 
-                                int axis = AABBExtensions.SweepTest(dEntity.AABB, bound, new Vector3(0, 0, dEntity.Velocity.z) * Time.deltaTime, out float t,
+                                axis = AABBExtensions.SweepTest(dEntity.AABB, bound, new Vector3(0, 0, dEntity.Velocity.z) * Time.deltaTime, out float t,
                                     out normalX, out normalY, out normalZ);
 
                                 if (axis == -1 || t >= nearestCollisionTimeZ) continue;

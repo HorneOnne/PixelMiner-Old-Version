@@ -6,7 +6,9 @@ namespace PixelMiner
     {
         public PlayerBehaviour PlayerBehaviour { get; private set; }
         public PlayerController PlayerController { get; private set; }
-        
+
+        public Transform AimTarrgetTrans;
+
         public Transform UpperBCheckTrans;
         public Transform MiddleBCheckTrans;
         public Transform LowerBCheckTrans;

@@ -2,19 +2,27 @@
 using System.Collections.Generic;
 namespace PixelMiner
 {
-    public class Inventory : MonoBehaviour
+    [System.Serializable]
+    public class Inventory
     {
         public List<ItemSlot> Slots;
-        [SerializeField] private int _size;
 
-        private void Awake ()
+        public Inventory(int size)
         {
-            Slots = new List<ItemSlot>(_size);
-            for(int i = 0; i < _size; i++)
+            Slots = new List<ItemSlot>(size);
+            for (int i = 0; i < size; i++)
             {
-                Slots.Add(new ItemSlot(null, 0));
+                if(i == 0)
+                {
+                    var itemData = ItemFactory.GetItemData(Enums.ItemID.StonePickaxe);
+                    Slots.Add(new ItemSlot(ItemFactory.GetItemData(Enums.ItemID.StonePickaxe), 1));
+                }
+                else
+                {
+                    Slots.Add(new ItemSlot(null, 0));
+                }
+               
             }
-
         }
 
         public bool AddItem(IItem item)
@@ -22,7 +30,7 @@ namespace PixelMiner
             // Finds an empty slot if there is no exist one.
             List<int> sameSlotsFoundIndex = new List<int>();
             int firstEmptySlot = -1;
-            for(int i = 0; i < _size; i++)
+            for(int i = 0; i < Slots.Count; i++)
             {
                 if (Slots[i].ItemData.ID == item.Data.ID)
                 {
@@ -54,14 +62,8 @@ namespace PixelMiner
                 {
                     Slots[firstEmptySlot] = new ItemSlot(item.Data,1);
                     return true;
-                }
-                   
+                }      
             }
-        }
-
-        public void UseItem(int slotIndex)
-        {
-          
         }
     }
 }

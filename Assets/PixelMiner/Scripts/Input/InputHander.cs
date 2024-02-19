@@ -19,6 +19,7 @@ namespace PixelMiner
         public bool Fire2;
         public bool Fire3;
         public float Rot;
+        public bool Jump;
 
 
         private void Awake()
@@ -48,6 +49,11 @@ namespace PixelMiner
             playerInput.Player.Fire1.started += x => { Fire1 = x.ReadValue<float>() == 1 ? true : false; };
             playerInput.Player.Fire1.performed += x => { Fire1 = x.ReadValue<float>() == 1 ? true : false; };
             playerInput.Player.Fire1.canceled += x => { Fire1 = x.ReadValue<float>() == 1 ? true : false; };
+
+
+            playerInput.Player.Jump.started += x => { Jump = x.ReadValue<float>() == 1 ? true : false; };
+            playerInput.Player.Jump.performed += x => { Jump = x.ReadValue<float>() == 1 ? true : false; };
+            playerInput.Player.Jump.canceled += x => { Jump = x.ReadValue<float>() == 1 ? true : false; };
 
 
             playerInput.Player.Rotate.performed += OnRotatePerformed;

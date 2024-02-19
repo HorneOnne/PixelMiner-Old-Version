@@ -11,6 +11,7 @@ namespace PixelMiner.Physics
         public Vector3 Velocity;
         public float Mass;
         public bool Simulate;
+        public bool OnGround;
 
         public DynamicEntity(Transform transform, AABB bound)
         {

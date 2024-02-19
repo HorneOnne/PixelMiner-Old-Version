@@ -4,14 +4,13 @@ using UnityEngine;
 using PixelMiner.Physics;
 using PixelMiner.DataStructure;
 using PixelMiner.Miscellaneous;
-
+using PixelMiner.Core;
 namespace PixelMiner
 {
     public class PlayerController : MonoBehaviour
     {
         private CameraLogicHandler _cameraLogicHandler;
         private InputHander _input;
-        private Rigidbody _rb;
         private Animator _anim;
         private Player _player;
 
@@ -21,7 +20,6 @@ namespace PixelMiner
 
 
         // Aiming
-        [SerializeField] private Transform _aimTarrgetTrans;
         private Vector3 _currentBCheckPos;
         private Vector3 _inputLookDir;
         private readonly Vector3 _upperHeadLookOffset = new Vector3(0,0,0);
@@ -53,7 +51,6 @@ namespace PixelMiner
 
         private void Awake()
         {
-            _rb = GetComponent<Rigidbody>();
             _anim = GetComponent<Animator>();
             _hasAnimator = _anim != null;
         }
@@ -127,7 +124,9 @@ namespace PixelMiner
             _forwardPosition = _currentBCheckPos + transform.TransformDirection(Vector3.forward);   
             _lookPosition = _forwardPosition;
             LookDirection = _lookPosition - _currentBCheckPos;
-            _aimTarrgetTrans.position = _player.CombatRayPointTrans.position + _currentHeadLookOffset;
+
+            //_aimTarrgetTrans.position = _player.CombatRayPointTrans.position + _currentHeadLookOffset;
+        
 
 
             // Vector3 verticalV = MathHelper.RotateVectorUseMatrix(transform.forward, CurrentVerticalLookAngle, -transform.right);
@@ -137,20 +136,21 @@ namespace PixelMiner
 
             if (_input.Fire1 == false)
             {
-                //if (_input.LookHorizontal != Vector2.zero)
-                //{
-                //    UpdateRotation(new Vector3(_input.LookHorizontal.x, 0, _input.LookHorizontal.y).ToGameDirection());
-                //}
-                //else if (_input.Move != Vector2.zero)
-                //{
-                //    UpdateRotation(new Vector3(_input.Move.x, 0, _input.Move.y).ToGameDirection());
-                //}
-
                 if (_input.Move != Vector2.zero)
                 {
                     UpdateRotation(new Vector3(_input.Move.x, 0, _input.Move.y).ToGameDirection());
                 }
             }
+
+
+
+            // Jump
+            if(_input.Jump && _entity.OnGround)
+            {
+                Debug.Log("Jump");
+                _entity.SetVelocityY(3);
+            }
+
 
 
             // Animation

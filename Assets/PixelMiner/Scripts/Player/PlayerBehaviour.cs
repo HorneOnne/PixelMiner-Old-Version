@@ -25,7 +25,7 @@ namespace PixelMiner
         public RaycastVoxelHit VoxelHit { get; private set; }
         private RayCasting _rayCasting;
         Vector3Int hitGlobalPosition;
-
+        private float _headLookSpeed = 5f;
 
         // Testing
         [SerializeField] private Transform _sampleBlockTrans;
@@ -51,7 +51,7 @@ namespace PixelMiner
             }
 
 
-    
+
             if (RayCasting.Instance.DDAVoxelRayCast(_player.CurrentBCheckTrans.position,
                                                     _player.PlayerController.LookDirection,
                                                     out RaycastVoxelHit hitVoxel,
@@ -62,7 +62,7 @@ namespace PixelMiner
                 hitGlobalPosition = new Vector3Int(Mathf.FloorToInt(hitVoxel.point.x + 0.001f),
                                                                   Mathf.FloorToInt(hitVoxel.point.y + 0.001f),
                                                                   Mathf.FloorToInt(hitVoxel.point.z + 0.001f));
-                _sampleBlockTrans.position = hitGlobalPosition + new Vector3(0.5f,0.5f,0.5f);                              
+                _sampleBlockTrans.position = hitGlobalPosition + new Vector3(0.5f, 0.5f, 0.5f);
             }
             else
             {
@@ -71,7 +71,12 @@ namespace PixelMiner
                 Vector3 endPosition = _player.CurrentBCheckTrans.position + _player.PlayerController.LookDirection;
                 _sampleBlockTrans.position = Main.Instance.GetBlockGPos(endPosition) + new Vector3(0.5f, 0.5f, 0.5f);
             }
+
+            // Head look
+            _player.AimTarrgetTrans.position = Vector3.Lerp(_player.AimTarrgetTrans.position, _sampleBlockTrans.position, Time.deltaTime * _headLookSpeed);
+
         }
+
 
         private void LateUpdate()
         {

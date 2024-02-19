@@ -1,26 +1,27 @@
-﻿namespace PixelMiner
+﻿using UnityEngine;
+namespace PixelMiner
 {
     [System.Serializable]
-    public class ItemSlot
+    public class ItemSlot 
     {
         //private ItemData _itemData;
-      
+
         //public ItemData ItemData { get => _itemData; }
 
-        public IItem Item { get; set; }
-        public int Quantity { get; private set; }
+        //public IItem Item { get; set; }
+        [field: SerializeField] public int Quantity { get; private set; }
 
-        public ItemData ItemData => Item.Data;
+        [field: SerializeField] public ItemData ItemData { get; private set; }
 
         public ItemSlot(ItemData itemData, int quantity)
         {
-            Item.Data = itemData;
+            ItemData = itemData;
             Quantity = quantity;
         }
 
         public bool TryAdd()
         {
-            if(Quantity < Item.Data.MaxStack)
+            if(Quantity < ItemData.MaxStack)
             {
                 Quantity++;
                 return true;
