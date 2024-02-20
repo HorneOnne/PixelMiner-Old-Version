@@ -49,6 +49,7 @@ namespace PixelMiner.Core
         {
             _worldTime = WorldTime.Instance;
 
+            return;
             if (_worldTime.Hours > 5)
             {
                 if (_worldTime.Hours < 16)
@@ -71,7 +72,8 @@ namespace PixelMiner.Core
         private void Update()
         {
             UpdateSunLightIntensityMat(_worldTime.Hours + (_worldTime.Minutes / 60));
-  
+
+            return;
             if (_worldTime.Hours > 5)
             {
                 if (_worldTime.Hours < 16)

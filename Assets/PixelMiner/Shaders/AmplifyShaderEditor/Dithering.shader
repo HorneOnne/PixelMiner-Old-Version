@@ -12,6 +12,7 @@ Shader "Dithering"
 		_AmbientLightValue("AmbientLightValue", Int) = 0
 		_LightMap("LightMap", 2DArray) = "white" {}
 		_MainTex1("MainTex", 2D) = "white" {}
+		_DitherColor("DitherColor", Color) = (0,0,0,0)
 		[HideInInspector] _texcoord( "", 2D ) = "white" {}
 
 
@@ -245,6 +246,7 @@ Shader "Dithering"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _MainTex1_ST;
+			float4 _DitherColor;
 			float4 _LightMap_ST;
 			int _BlockLightValue;
 			int _AmbientLightValue;
@@ -450,7 +452,7 @@ Shader "Dithering"
 				
 				float3 BakedAlbedo = 0;
 				float3 BakedEmission = 0;
-				float3 Color = ( tex2D( _MainTex1, uv_MainTex1 ) * ( SAMPLE_TEXTURE2D_ARRAY( _LightMap, sampler_LightMap, uv_LightMap,(float)_BlockLightValue ) + ( SAMPLE_TEXTURE2D_ARRAY( _LightMap, sampler_LightMap, uv_LightMap,(float)_AmbientLightValue ) * _AmbientIntensity ) ) ).rgb;
+				float3 Color = ( ( tex2D( _MainTex1, uv_MainTex1 ) * _DitherColor ) * ( SAMPLE_TEXTURE2D_ARRAY( _LightMap, sampler_LightMap, uv_LightMap,(float)_BlockLightValue ) + ( SAMPLE_TEXTURE2D_ARRAY( _LightMap, sampler_LightMap, uv_LightMap,(float)_AmbientLightValue ) * _AmbientIntensity ) ) ).rgb;
 				float Alpha = _Alpha;
 				float AlphaClipThreshold = dither10;
 				float AlphaClipThresholdShadow = 0.5;
@@ -543,6 +545,7 @@ Shader "Dithering"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _MainTex1_ST;
+			float4 _DitherColor;
 			float4 _LightMap_ST;
 			int _BlockLightValue;
 			int _AmbientLightValue;
@@ -793,6 +796,7 @@ Shader "Dithering"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _MainTex1_ST;
+			float4 _DitherColor;
 			float4 _LightMap_ST;
 			int _BlockLightValue;
 			int _AmbientLightValue;
@@ -1035,6 +1039,7 @@ Shader "Dithering"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _MainTex1_ST;
+			float4 _DitherColor;
 			float4 _LightMap_ST;
 			int _BlockLightValue;
 			int _AmbientLightValue;
@@ -1285,6 +1290,7 @@ Shader "Dithering"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _MainTex1_ST;
+			float4 _DitherColor;
 			float4 _LightMap_ST;
 			int _BlockLightValue;
 			int _AmbientLightValue;
@@ -1522,7 +1528,9 @@ Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;1;26.9792,104.0626;Float;Fa
 Node;AmplifyShaderEditor.IntNode;26;-1552.848,460.1728;Inherit;False;Property;_BlockLightValue;BlockLightValue;2;0;Create;True;0;0;0;False;0;False;0;3;False;0;1;INT;0
 Node;AmplifyShaderEditor.RangedFloatNode;25;-1107.222,659.3984;Inherit;False;Property;_AmbientIntensity;AmbientIntensity;1;0;Create;True;0;0;0;False;0;False;0;114.76;0;0;0;1;FLOAT;0
 Node;AmplifyShaderEditor.IntNode;27;-1571.896,594.1255;Inherit;False;Property;_AmbientLightValue;AmbientLightValue;3;0;Create;True;0;0;0;False;0;False;0;2;False;0;1;INT;0
-WireConnection;20;0;21;0
+Node;AmplifyShaderEditor.ColorNode;30;-999.1129,-34.43903;Inherit;False;Property;_DitherColor;DitherColor;6;0;Create;True;0;0;0;False;0;False;0,0,0,0;0,0,0,0;True;0;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
+Node;AmplifyShaderEditor.SimpleMultiplyOpNode;31;-666.6805,-70.54031;Inherit;False;2;2;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;1;COLOR;0
+WireConnection;20;0;31;0
 WireConnection;20;1;29;0
 WireConnection;22;0;28;0
 WireConnection;22;6;26;0
@@ -1535,5 +1543,7 @@ WireConnection;29;1;24;0
 WireConnection;1;2;20;0
 WireConnection;1;3;11;0
 WireConnection;1;4;10;0
+WireConnection;31;0;21;0
+WireConnection;31;1;30;0
 ASEEND*/
-//CHKSM=939EA470C1177AA261ADFCF6ABA2A8B61548AB02
+//CHKSM=7F5ADB76A2DB7DB563FAB0723D8B9D29A44303F2

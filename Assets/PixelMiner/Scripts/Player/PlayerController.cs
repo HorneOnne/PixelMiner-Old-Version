@@ -5,12 +5,11 @@ using PixelMiner.Physics;
 using PixelMiner.DataStructure;
 using PixelMiner.Miscellaneous;
 using PixelMiner.Core;
-using UnityEngine.Rendering.Universal;
+
 namespace PixelMiner
 {
     public class PlayerController : MonoBehaviour
     {
-        [SerializeField] private DecalProjector _blobShadowProjector;
         private CameraLogicHandler _cameraLogicHandler;
         private InputHander _input;
         private Animator _anim;

@@ -22,11 +22,11 @@ namespace PixelMiner.WorldInteraction
             //_mat = _meshRenderer.material;
             if(_meshRenderer != null)
             {
-                _mat = _meshRenderer.material;
+                _mat = _meshRenderer.sharedMaterial;
             }
             else if(_skinMeshRenderer != null)
             {
-                _mat = _skinMeshRenderer.material;
+                _mat = _skinMeshRenderer.sharedMaterial;
             }
                
         }
@@ -41,9 +41,14 @@ namespace PixelMiner.WorldInteraction
                 _ambientLight = Main.Instance.GetAmbientLight(transform.position + _offsetY);
                 _ambientLightIntensity = Main.Instance.GetAmbientLightIntensity();
 
-                //_mat.SetInt("_BlockLightValue", _blockLight);
-                //_mat.SetInt("_AmbientLightValue", _ambientLight);
-                //_mat.SetFloat("_AmbientIntensity", _ambientLightIntensity);
+                _mat.SetInt("_BlockLightValue", _blockLight);
+                _mat.SetInt("_AmbientLightValue", _ambientLight);
+                _mat.SetFloat("_AmbientIntensity", _ambientLightIntensity);
+
+
+                _highlightMat.SetInt("_BlockLightValue", _blockLight);
+                _highlightMat.SetInt("_AmbientLightValue", _ambientLight);
+                _highlightMat.SetFloat("_AmbientIntensity", _ambientLightIntensity);
             } 
         }
     }

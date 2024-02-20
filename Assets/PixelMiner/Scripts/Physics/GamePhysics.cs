@@ -19,7 +19,7 @@ namespace PixelMiner.Physics
 
 
         // Physics clamp
-        [SerializeField] private float _minFallForce = -10;
+        [SerializeField] private float _minFallForce = -3;
         [SerializeField] private float _maxJumpForce = 10;
 
         private DrawBounds _drawer;
