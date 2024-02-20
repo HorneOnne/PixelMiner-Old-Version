@@ -639,18 +639,20 @@ namespace PixelMiner.WorldBuilding
                 // Mesh
                 // ----
 
-                MeshData solidMeshData = await MeshUtils.RenderSolidMesh(chunk, LightAnimCurve, isTransparentMesh: false);
-                MeshData transparentSolidMeshData = await MeshUtils.RenderSolidMesh(chunk, LightAnimCurve, isTransparentMesh: true);
+                MeshData solidVoxelMeshData = await MeshUtils.Instance.RenderSolidMesh(chunk, LightAnimCurve, isTransparentMesh: false);
+                MeshData transparentSolidMeshData = await MeshUtils.Instance.RenderSolidMesh(chunk, LightAnimCurve, isTransparentMesh: true);
+                MeshData solidNonVoxelMeshData = await MeshUtils.Instance.RenderSolidNonvoxelMesh(chunk, LightAnimCurve);
 
-                MeshData grassMeshData = await MeshUtils.GetChunkGrassMeshData(chunk, LightAnimCurve, _grassNoiseDistribute);
-                MeshData waterMeshData = await MeshUtils.WaterGreedyMeshingAsync(chunk, LightAnimCurve);
+                MeshData grassMeshData = await MeshUtils.Instance.GetChunkGrassMeshData(chunk, LightAnimCurve, _grassNoiseDistribute);
+                MeshData waterMeshData = await MeshUtils.Instance.WaterGreedyMeshingAsync(chunk, LightAnimCurve);
                 //MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(chunk);
 
 
 
-                chunk.SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
+                chunk.SolidVoxelMeshFilter.sharedMesh = CreateMesh(solidVoxelMeshData);
                 chunk.SolidTransparentMeshFilter.sharedMesh = CreateMesh(transparentSolidMeshData);
                 chunk.WaterMeshFilter.sharedMesh =  CreateMesh(waterMeshData);
+                chunk.SolidNonvoxelMeshFilter.sharedMesh = CreateMesh(solidNonVoxelMeshData);
 
 
                 // Grass
@@ -659,18 +661,13 @@ namespace PixelMiner.WorldBuilding
 
 
 
-                // Collider
-                // -------
-                //chunk.MeshCollider.sharedMesh = null;
-                //chunk.MeshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
-
-
                 // Release mesh data
-                MeshDataPool.Release(solidMeshData);
+                MeshDataPool.Release(solidVoxelMeshData);
                 MeshDataPool.Release(transparentSolidMeshData);
                 MeshDataPool.Release(grassMeshData);
                 MeshDataPool.Release(waterMeshData);
-                //MeshDataPool.Release(colliderMeshData);
+                MeshDataPool.Release(solidNonVoxelMeshData);
+
 
                 //LogUtils.WriteMeshToFile(chunk.SolidMeshFilter.sharedMesh, "Meshdata.txt");
                 chunk.HasDrawnFirstTime = true;
@@ -678,28 +675,26 @@ namespace PixelMiner.WorldBuilding
         }
         public async Task ReDrawChunkTask(Chunk chunk)
         {
-            MeshData solidMeshData = await MeshUtils.RenderSolidMesh(chunk, LightAnimCurve);
-            MeshData transparentSolidMeshData = await MeshUtils.RenderSolidMesh(chunk, LightAnimCurve, isTransparentMesh: true);
-            MeshData grassMeshData = await MeshUtils.GetChunkGrassMeshData(chunk, LightAnimCurve, _grassNoiseDistribute);
-            //MeshData colliderMeshData = await MeshUtils.SolidGreedyMeshingForColliderAsync(chunk);
+            MeshData solidMeshData = await MeshUtils.Instance.RenderSolidMesh(chunk, LightAnimCurve);
+            MeshData transparentSolidMeshData = await MeshUtils.Instance.RenderSolidMesh(chunk, LightAnimCurve, isTransparentMesh: true);
+            MeshData grassMeshData = await MeshUtils.Instance.GetChunkGrassMeshData(chunk, LightAnimCurve, _grassNoiseDistribute);
+            MeshData solidNonVoxelMeshData = await MeshUtils.Instance.RenderSolidNonvoxelMesh(chunk, LightAnimCurve);
 
-            chunk.SolidMeshFilter.sharedMesh = CreateMesh(solidMeshData);
+            chunk.SolidVoxelMeshFilter.sharedMesh = CreateMesh(solidMeshData);
             chunk.SolidTransparentMeshFilter.sharedMesh = CreateMesh(transparentSolidMeshData);
+            chunk.SolidNonvoxelMeshFilter.sharedMesh = CreateMesh(solidNonVoxelMeshData);
 
             // Grass
             // -----
             chunk.GrassMeshFilter.sharedMesh = CreateMesh(grassMeshData);
 
 
-            //chunk.MeshCollider.sharedMesh = null;
-            //chunk.MeshCollider.sharedMesh = CreateColliderMesh(colliderMeshData);
-
 
             // Release mesh data
             MeshDataPool.Release(solidMeshData);
             MeshDataPool.Release(transparentSolidMeshData);
-            //MeshDataPool.Release(colliderMeshData);
             MeshDataPool.Release(grassMeshData);
+            MeshDataPool.Release(solidNonVoxelMeshData);
 
         }
         public Mesh CreateMesh(MeshData meshData)

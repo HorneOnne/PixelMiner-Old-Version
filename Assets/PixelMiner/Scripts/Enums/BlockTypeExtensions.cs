@@ -5,31 +5,40 @@ namespace PixelMiner.Enums
     public static class BlockTypeExtensions
     {
         public static byte[] BlockProperties;
-        private static HashSet<BlockType> _solidBlocksSet;
-        private static HashSet<BlockType> _solidTransparentBlocksSet;
+        private static HashSet<BlockType> _solidVoxelSet;
+        private static HashSet<BlockType> _solidTransparentVoxelSet;
+        private static HashSet<BlockType> _solidNonVoxelSet;
 
 
         static BlockTypeExtensions()
         {
             InitializeSolidBlocksSet();
             InitializeSolidTransparentBlocksSet();
+            InitializeSolidNonvoxelSet();
+
             BlockProperties = new byte[(int)BlockType.Count];
 
             // bit 0: Solid block (Set bit 0: TRUE if solid else FALSE)
-            foreach (var solidBlock in _solidBlocksSet)
+            foreach (var solidBlock in _solidVoxelSet)
             {
                 BlockProperties[(byte)solidBlock] = (byte)(BlockProperties[(byte)solidBlock] | (1 << 0));
             }
 
             // bit 1: Solid transparent block (Set bit 1: TRUE if solid else FALSE)
-            foreach (var solidBlock in _solidTransparentBlocksSet)
+            foreach (var solidBlock in _solidTransparentVoxelSet)
             {
                 BlockProperties[(byte)solidBlock] = (byte)(BlockProperties[(byte)solidBlock] | (1 << 1));
             }
 
+            // bit 2: Solid model (not block) (Set bit 2: TRUE if solid else FALSE)
+            foreach (var solidBlock in _solidNonVoxelSet)
+            {
+                BlockProperties[(byte)solidBlock] = (byte)(BlockProperties[(byte)solidBlock] | (1 << 2));
+            }
 
-            _solidBlocksSet = null;
-            _solidTransparentBlocksSet = null;
+            _solidVoxelSet = null;
+            _solidTransparentVoxelSet = null;
+            _solidNonVoxelSet = null;
         }
 
 
@@ -37,7 +46,7 @@ namespace PixelMiner.Enums
         #region  INITIALIZE DATA
         private static void InitializeSolidBlocksSet()
         {
-            _solidBlocksSet = new HashSet<BlockType>()
+            _solidVoxelSet = new HashSet<BlockType>()
             {
                     {BlockType.DirtGrass},
                     {BlockType.Dirt},
@@ -58,16 +67,24 @@ namespace PixelMiner.Enums
         }
         private static void InitializeSolidTransparentBlocksSet()
         {
-            _solidTransparentBlocksSet = new HashSet<BlockType>()
+            _solidTransparentVoxelSet = new HashSet<BlockType>()
             {
                     {BlockType.Glass},
                     {BlockType.Leaves},
             };
         }
+
+        private static void InitializeSolidNonvoxelSet()
+        {
+            _solidNonVoxelSet = new HashSet<BlockType>()
+            {
+                    {BlockType.Torch},
+            };
+        }
         #endregion
 
 
-        public static bool IsSolid(this BlockType blockType)
+        public static bool IsSolidVoxel(this BlockType blockType)
         {
             //return blockType != BlockType.Air &&
             //       blockType != BlockType.Water &&
@@ -87,7 +104,7 @@ namespace PixelMiner.Enums
                    blockType == BlockType.SnowDritGrass;
         }
 
-        public static bool IsTransparentSolidBlock(this BlockType blockType)
+        public static bool IsTransparentVoxel(this BlockType blockType)
         {
             //return blockType == BlockType.Glass ||
             //       blockType == BlockType.Leaves;
@@ -108,6 +125,12 @@ namespace PixelMiner.Enums
                    blockType == BlockType.DirtGrass ||
                    blockType == BlockType.TallGrass ||
                    blockType == BlockType.Leaves;
+        }
+
+        public static bool IsSolidNonvoxel(this BlockType blockType)
+        {
+            // Get bit 2.
+            return (BlockProperties[(byte)blockType] & (1 << 2)) != 0;
         }
     }
 }

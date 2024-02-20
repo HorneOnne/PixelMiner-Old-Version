@@ -11,7 +11,8 @@ namespace PixelMiner.World
         public static System.Action<Chunk> OnChunkFarAway;
         public static System.Action<Chunk> OnChunkHasNeighbors;
 
-        [SerializeField] public MeshFilter SolidMeshFilter;
+        [SerializeField] public MeshFilter SolidVoxelMeshFilter;
+        [SerializeField] public MeshFilter SolidNonvoxelMeshFilter;
         [SerializeField] public MeshFilter SolidTransparentMeshFilter;
         [SerializeField] public MeshFilter GrassMeshFilter;
         [SerializeField] public MeshFilter WaterMeshFilter;
@@ -111,7 +112,7 @@ namespace PixelMiner.World
             //MoistureValues = null;
             //_solidNeighbors = null;
 
-            Object.Destroy(SolidMeshFilter.sharedMesh);
+            Object.Destroy(SolidVoxelMeshFilter.sharedMesh);
             Object.Destroy(WaterMeshFilter.sharedMesh);
             //Destroy(SolidMeshFilter);
             //Destroy(WaterMeshFilter);
@@ -175,7 +176,7 @@ namespace PixelMiner.World
         public bool IsSolid(Vector3Int relativePosition)
         {
             BlockType block = GetBlock(relativePosition);
-            return block.IsSolid();
+            return block.IsSolidVoxel();
             //return block != BlockType.Air && block != BlockType.Water;
         }
         public bool IsWater(Vector3Int relativePosition)
@@ -191,7 +192,7 @@ namespace PixelMiner.World
             {
                 if (IsValidRelativePosition(_faceNeighbors[i]))
                 {
-                    if (ChunkData[IndexOf(_faceNeighbors[i].x, _faceNeighbors[i].y, _faceNeighbors[i].z)].IsTransparentSolidBlock())
+                    if (ChunkData[IndexOf(_faceNeighbors[i].x, _faceNeighbors[i].y, _faceNeighbors[i].z)].IsTransparentVoxel())
                     {
                         return false;
                     }
@@ -200,7 +201,7 @@ namespace PixelMiner.World
                 {
                     if (FindNeighbor(_faceNeighbors[i], out Chunk neighborChunk, out Vector3Int nbRelativePosition))
                     {
-                        if (neighborChunk.ChunkData[IndexOf(nbRelativePosition.x, nbRelativePosition.y, nbRelativePosition.z)].IsTransparentSolidBlock())
+                        if (neighborChunk.ChunkData[IndexOf(nbRelativePosition.x, nbRelativePosition.y, nbRelativePosition.z)].IsTransparentVoxel())
                         {
                             return false;
                         }
@@ -357,12 +358,12 @@ namespace PixelMiner.World
         {
             position[dimension] += isBackFace ? -1 : 1;
             //return GetBlock(position).IsSolid() == false;
-            return GetBlock(position).IsSolid() == false;
+            return GetBlock(position).IsSolidVoxel() == false;
         }
         public bool IsTransparentBlockFaceVisible(Vector3Int position, int dimension, bool isBackFace)
         {
             position[dimension] += isBackFace ? -1 : 1;
-            return !GetBlock(position).IsTransparentSolidBlock();
+            return !GetBlock(position).IsTransparentVoxel();
         }
 
         public bool IsWaterFaceVisible(Vector3Int position, int dimension, bool isBackFace)

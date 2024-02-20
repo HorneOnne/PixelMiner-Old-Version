@@ -8,6 +8,7 @@ namespace PixelMiner.WorldInteraction
         [SerializeField] private MeshRenderer _meshRenderer;
         [SerializeField] private SkinnedMeshRenderer _skinMeshRenderer;
         private Material _mat;
+        public Material _highlightMat;
 
         private byte _blockLight;
         private byte _ambientLight;
@@ -40,9 +41,9 @@ namespace PixelMiner.WorldInteraction
                 _ambientLight = Main.Instance.GetAmbientLight(transform.position + _offsetY);
                 _ambientLightIntensity = Main.Instance.GetAmbientLightIntensity();
 
-                _mat.SetInt("_BlockLightValue", _blockLight);
-                _mat.SetInt("_AmbientLightValue", _ambientLight);
-                _mat.SetFloat("_AmbientIntensity", _ambientLightIntensity);
+                //_mat.SetInt("_BlockLightValue", _blockLight);
+                //_mat.SetInt("_AmbientLightValue", _ambientLight);
+                //_mat.SetFloat("_AmbientIntensity", _ambientLightIntensity);
             } 
         }
     }

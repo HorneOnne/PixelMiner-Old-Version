@@ -157,7 +157,7 @@ namespace PixelMiner.Core
 #endif
 
 
-                if (_main.GetBlock(voxelPosition).IsSolid() || _main.GetBlock(voxelPosition).IsTransparentSolidBlock())
+                if (_main.GetBlock(voxelPosition).IsSolidVoxel() || _main.GetBlock(voxelPosition).IsTransparentVoxel())
                 {
                     hit.point = voxelPosition.ToVector3Int();
                     hitVoxel = true;

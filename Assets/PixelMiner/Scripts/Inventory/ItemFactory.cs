@@ -1,10 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using PixelMiner.Enums;
+using Sirenix.OdinInspector;
+
 namespace PixelMiner
 {
     public class ItemFactory : MonoBehaviour
     {
+        [AssetList(Path = "PixelMiner/Scripts/Inventory")]
         public List<ItemData> Datas = new List<ItemData>();
         private static Dictionary<ItemID, ItemData> _itemDictionary = new Dictionary<ItemID, ItemData>();
 
@@ -15,7 +18,14 @@ namespace PixelMiner
             {
                 if ((ushort)Datas[i].ID < 4096)
                 {
-                    _itemDictionary.Add(Datas[i].ID, Datas[i]);
+                    if (_itemDictionary.ContainsKey(Datas[i].ID) == false)
+                    {
+                        _itemDictionary.Add(Datas[i].ID, Datas[i]);
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"{Datas[i].ID} exist.");
+                    }
                 }
             }
         }

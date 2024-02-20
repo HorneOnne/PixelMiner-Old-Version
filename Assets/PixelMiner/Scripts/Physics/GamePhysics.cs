@@ -95,10 +95,11 @@ namespace PixelMiner.Physics
                 remainingTimeY = 1.0f - nearestCollisionTimeY;
                 if (remainingTimeY > 0.0f)
                 {
-                    dEntity.Position.y += dEntity.Velocity.y * (nearestCollisionTimeY - 1e-1f) * Time.deltaTime;
+                    dEntity.Position.y += dEntity.Velocity.y * (nearestCollisionTimeY) * Time.deltaTime;
 
                     if(normalY == 1)
                     {
+                        dEntity.Position.y = Mathf.FloorToInt(dEntity.Position.y);
                         dEntity.OnGround = true;
                     }
                    

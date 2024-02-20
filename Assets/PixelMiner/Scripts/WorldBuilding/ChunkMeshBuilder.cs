@@ -17,7 +17,7 @@ namespace PixelMiner.WorldBuilding
         public bool[][,] Merged;
         private bool _isInit = false;
 
- 
+
         public int VerticesCount { get => _vertices.Count; }
 
         public ChunkMeshBuilder()
@@ -28,7 +28,7 @@ namespace PixelMiner.WorldBuilding
 
         ~ChunkMeshBuilder()
         {
-        
+
         }
 
         public void InitOrLoad(Vector3Int dimensions)
@@ -44,7 +44,7 @@ namespace PixelMiner.WorldBuilding
             _uv4s = new List<Vector4>(100);
             _colors = new List<Color32>(100);
             _vertexAO = new List<byte>(10);
-          
+
 
             Merged = new bool[][,]
             {
@@ -106,6 +106,30 @@ namespace PixelMiner.WorldBuilding
             this._uvs.Add(uvs[1]);
             this._uvs.Add(uvs[2]);
             this._uvs.Add(uvs[3]);
+        }
+
+        public void AddQuadFace(Vector3[] vertices, int[] tris, Vector3[] uvs)
+        {
+            if (vertices.Length != 4)
+            {
+                throw new System.ArgumentException("A quad requires 4 vertices");
+            }
+
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                _vertices.Add(vertices[i]);
+            }
+
+
+            for (int i = 0; i < tris.Length; i++)
+            {
+                _triangles.Add(tris[i]);
+            }
+
+            for (int i = 0; i < uvs.Length; i++)
+            {
+                _uvs.Add(uvs[i]);
+            }
         }
 
 
@@ -271,7 +295,7 @@ namespace PixelMiner.WorldBuilding
 
 
         public void Add(ChunkMeshBuilder otherBuilder)
-        { 
+        {
             int currentVertexCount = this.VerticesCount;
             this._vertices.AddRange(otherBuilder._vertices);
 

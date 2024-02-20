@@ -13,7 +13,7 @@
         Glass = 49,
         Snow = 66,
         Ice = 67,
-
+        Torch = 80,
         Light = 105,
 
         BarkWood = 20,

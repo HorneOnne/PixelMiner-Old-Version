@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a27c63228b4fcc94bb58f06a91872184, type: 3}
-  m_Name: IceBlock
+  m_Name: Snow
   m_EditorClassIdentifier: 
-  ID: 4103
-  ItemName: Ice
-  Icon: {fileID: 21300000, guid: 79de059136f202148a49309b521cdb4e, type: 3}
+  ID: 4102
+  ItemName: Snow
+  Icon: {fileID: 21300000, guid: f3ff101efc6ecba4e85fcbca99ae073a, type: 3}
   MaxUses: 1
   MaxStack: 64
   Model: {fileID: 0}

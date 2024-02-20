@@ -147,7 +147,7 @@ namespace PixelMiner
         {
             if(Main.Instance.TryGetChunk(globalPosition, out Chunk chunk))
             {
-                LogUtils.WriteMeshToFile(chunk.SolidMeshFilter.sharedMesh, "MeshData.txt");
+                LogUtils.WriteMeshToFile(chunk.SolidVoxelMeshFilter.sharedMesh, "MeshData.txt");
             }
             
         }

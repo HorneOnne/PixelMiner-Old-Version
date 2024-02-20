@@ -7,6 +7,7 @@ using PixelMiner.Utilities;
 using PixelMiner.World;
 using System.Collections.Generic;
 using System.Linq;
+using PixelMiner.Core;
 
 namespace PixelMiner.WorldBuilding
 {
@@ -19,8 +20,15 @@ namespace PixelMiner.WorldBuilding
         * 5: Back
         */
 
-    public static class MeshUtils
+    public class MeshUtils : MonoBehaviour
     {
+        public static MeshUtils Instance { get; private set; }
+        public ModelData TorchModel;
+        private void Awake()
+        {
+            Instance = this;
+        }
+
         public static Vector2[,] ColorMapUVs =
         {
             /*
@@ -300,6 +308,22 @@ namespace PixelMiner.WorldBuilding
             uvs[3] = new Vector3(0, height, blockIndex);
         }
 
+        private static void GetNonblockUVs(BlockType blockType, ref Vector3[] uvs)
+        {
+            int blockIndex = (ushort)blockType;
+            switch (blockType)
+            {
+                case BlockType.Torch:
+                    uvs[0] = new Vector3(0, 0, blockIndex);
+                    uvs[1] = new Vector3(1, 0, blockIndex);
+                    uvs[2] = new Vector3(1, 1, blockIndex);
+                    uvs[3] = new Vector3(0, 1, blockIndex);
+                    break;
+                default: 
+                    break;
+            }
+        }
+
         public static void GetColorMapUVs(BlockType blockType, int face, float heatValue, ref Vector2[] uv2s)
         {
             GetColorMap(ref uv2s, heatValue, clear: true);
@@ -482,7 +506,7 @@ namespace PixelMiner.WorldBuilding
 
 
 
-        private static async Task<ChunkMeshBuilder> RenderChunkFace(Chunk chunk, int voxelFace, AnimationCurve lightAnimCurve, bool isTransparentMesh = false)
+        private async Task<ChunkMeshBuilder> RenderChunkFace(Chunk chunk, int voxelFace, AnimationCurve lightAnimCurve, bool isTransparentMesh = false)
         {
             bool GreedyCompareLogic(Vector3Int a, Vector3Int b, int dimension, bool isBackFace, int voxelFace)
             {
@@ -609,7 +633,7 @@ namespace PixelMiner.WorldBuilding
                             if (isTransparentMesh)
                             {
                                 // TRANSPARENT SOLID
-                                if (chunk.GetBlock(startPos).IsTransparentSolidBlock() == false)
+                                if (chunk.GetBlock(startPos).IsTransparentVoxel() == false)
                                 {
                                     continue;
                                 }
@@ -628,13 +652,13 @@ namespace PixelMiner.WorldBuilding
                             else
                             {
                                 // OPAQUE SOLID
-                                if (chunk.GetBlock(startPos).IsSolid() == false ||
+                                if (chunk.GetBlock(startPos).IsSolidVoxel() == false ||
                                     chunk.IsBlockFaceVisible(startPos, d, isBackFace) == false)
                                 {
                                     continue;
                                 }
 
-                                if (chunk.GetBlock(startPos).IsTransparentSolidBlock() == true)
+                                if (chunk.GetBlock(startPos).IsTransparentVoxel() == true)
                                 {
                                     continue;
                                 }
@@ -744,10 +768,10 @@ namespace PixelMiner.WorldBuilding
                             slaf[2] = GetBlockTypeLightAdjacentFace(chunk, startPos + m + n, voxelFace);
                             slaf[3] = GetBlockTypeLightAdjacentFace(chunk, startPos + n, voxelFace);
 
-                            slafSolid[0] = slaf[0].IsSolid();
-                            slafSolid[1] = slaf[1].IsSolid();
-                            slafSolid[2] = slaf[2].IsSolid();
-                            slafSolid[3] = slaf[3].IsSolid();
+                            slafSolid[0] = slaf[0].IsSolidVoxel();
+                            slafSolid[1] = slaf[1].IsSolidVoxel();
+                            slafSolid[2] = slaf[2].IsSolidVoxel();
+                            slafSolid[3] = slaf[3].IsSolidVoxel();
 
                             // BLock light
                             // ===========
@@ -915,7 +939,7 @@ namespace PixelMiner.WorldBuilding
             //ChunkMeshBuilderPool.Release(builder);
             //return meshData;
         }
-        public static async Task<MeshData> RenderSolidMesh(Chunk chunk, AnimationCurve lightAnimCurve, bool isTransparentMesh = false)
+        public async Task<MeshData> RenderSolidMesh(Chunk chunk, AnimationCurve lightAnimCurve, bool isTransparentMesh = false)
         {
 
 
@@ -1019,7 +1043,7 @@ namespace PixelMiner.WorldBuilding
 
             return meshData;
         }
-        public static async Task<MeshData> GetChunkGrassMeshData(Chunk chunk, AnimationCurve lightAnimCurve, FastNoiseLite randomNoise)
+        public async Task<MeshData> GetChunkGrassMeshData(Chunk chunk, AnimationCurve lightAnimCurve, FastNoiseLite randomNoise)
         {
             ChunkMeshBuilder builder = ChunkMeshBuilderPool.Get();
             builder.InitOrLoad(chunk.Dimensions);
@@ -1172,11 +1196,75 @@ namespace PixelMiner.WorldBuilding
             ChunkMeshBuilderPool.Release(builder);
             return meshData;
         }
-        public static async Task<MeshData> SolidGreedyMeshingForColliderAsync(Chunk chunk)
+        public async Task<MeshData> RenderSolidNonvoxelMesh(Chunk chunk, AnimationCurve lightAnimCurve)
+        {
+            ChunkMeshBuilder builder = ChunkMeshBuilderPool.Get();
+            builder.InitOrLoad(chunk.Dimensions);
+
+            Vector3[] vertices = new Vector3[4];
+            Vector3[] uvs = new Vector3[4];
+            Vector2[] uv2s = new Vector2[4];
+            Vector4[] uv3s = new Vector4[4];
+            Color32[] colors = new Color32[4];
+            int[] tris = new int[6];
+            byte[] verticesAO = new byte[4];
+            byte[] vertexColorIntensity = new byte[4];
+            Vector3 _centerOffset = new Vector3(0.5f, 0.5f, 0.5f);
+
+            await Task.Run(() =>
+            {
+
+                for (int i = 0; i < chunk.ChunkData.Length; i++)
+                {
+                    int x = i % chunk._width;
+                    int y = (i / chunk._width) % chunk._height;
+                    int z = i / (chunk._width * chunk._height);
+
+                    BlockType currBlock = chunk.ChunkData[i];
+                    if (currBlock == BlockType.Torch)
+                    {
+                        Vector3Int curBlockPos = new Vector3Int(x, y, z);
+                        Vector3 offsetTorchPos = curBlockPos + new Vector3(0.5f, 0.5f, 0.5f);
+                        for (int j = 0; j < TorchModel.Vertices.Count; j++)
+                        {
+                            if (j % 4 == 0)
+                            {
+                                vertices[0] = offsetTorchPos + TorchModel.Vertices[j];
+                                vertices[1] = offsetTorchPos + TorchModel.Vertices[j + 1];
+                                vertices[2] = offsetTorchPos + TorchModel.Vertices[j + 2];
+                                vertices[3] = offsetTorchPos + TorchModel.Vertices[j + 3];
+
+                                tris[0] = TorchModel.Triangles[j / 4 * 6 + 0];
+                                tris[1] = TorchModel.Triangles[j / 4 * 6 + 1];
+                                tris[2] = TorchModel.Triangles[j / 4 * 6 + 2];
+                                tris[3] = TorchModel.Triangles[j / 4 * 6 + 3];
+                                tris[4] = TorchModel.Triangles[j / 4 * 6 + 4];
+                                tris[5] = TorchModel.Triangles[j / 4 * 6 + 5];
+
+
+                                GetNonblockUVs(BlockType.Torch, ref uvs);
+                                builder.AddQuadFace(vertices, tris, uvs);
+                            }
+                        }
+
+                      
+
+                    }
+                }
+            });
+
+
+
+            MeshData meshData = builder.ToMeshData();
+            ChunkMeshBuilderPool.Release(builder);
+            return meshData;
+        }
+
+        public async Task<MeshData> SolidGreedyMeshingForColliderAsync(Chunk chunk)
         {
             bool GreedyCompareLogic(Vector3Int a, Vector3Int b, int dimension, bool isBackFace)
             {
-                return chunk.GetBlock(b).IsSolid() && chunk.IsBlockFaceVisible(b, dimension, isBackFace);
+                return chunk.GetBlock(b).IsSolidVoxel() && chunk.IsBlockFaceVisible(b, dimension, isBackFace);
             }
 
             ChunkMeshBuilder builder = ChunkMeshBuilderPool.Get();
@@ -1232,10 +1320,10 @@ namespace PixelMiner.WorldBuilding
                                 }
 
                                 currBlock = chunk.GetBlock(startPos);
-                                if (currBlock.IsSolid() == false) continue;
+                                if (currBlock.IsSolidVoxel() == false) continue;
 
                                 // If this block has already been merged, is air, or not visible -> skip it.
-                                if (currBlock.IsSolid() == false||
+                                if (currBlock.IsSolidVoxel() == false ||
                                     chunk.IsBlockFaceVisible(startPos, d, isBackFace) == false ||
                                     builder.Merged[d][startPos[u], startPos[v]])
                                 {
@@ -1292,9 +1380,9 @@ namespace PixelMiner.WorldBuilding
                                 offsetPos = startPos;
                                 offsetPos[d] += isBackFace ? 0 : 1;
 
-           
 
-                                if(voxelFace == 2 || voxelFace == 3)
+
+                                if (voxelFace == 2 || voxelFace == 3)
                                 {
                                     vertices[1] = offsetPos;
                                     vertices[0] = offsetPos + m;
@@ -1308,7 +1396,7 @@ namespace PixelMiner.WorldBuilding
                                     vertices[2] = offsetPos + m + n;
                                     vertices[3] = offsetPos + n;
                                 }
-                               
+
 
 
                                 builder.AddQuadFace(vertices);
@@ -1333,7 +1421,7 @@ namespace PixelMiner.WorldBuilding
             return meshData;
         }
 
-        public static async Task<MeshData> WaterGreedyMeshingAsync(Chunk chunk, AnimationCurve lightAnimCurve)
+        public async Task<MeshData> WaterGreedyMeshingAsync(Chunk chunk, AnimationCurve lightAnimCurve)
         {
             bool GreedyCompareLogic(Vector3Int a, Vector3Int b, int dimension, bool isBackFace)
             {
