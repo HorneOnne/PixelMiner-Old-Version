@@ -46,7 +46,7 @@ namespace PixelMiner.Physics
 
                 if (dEntity.Velocity.y > _minFallForce)
                 {
-                    dEntity.AddVelocity(_gravity * Time.deltaTime);
+                    dEntity.AddVelocity(_gravity * dEntity.Mass * Time.deltaTime);
                 }
 
 

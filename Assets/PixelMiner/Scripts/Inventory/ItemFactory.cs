@@ -16,18 +16,18 @@ namespace PixelMiner
         {
             for(int i = 0; i < Datas.Count; i++)
             {
-                if ((ushort)Datas[i].ID < 4096)
+                if (_itemDictionary.ContainsKey(Datas[i].ID) == false)
                 {
-                    if (_itemDictionary.ContainsKey(Datas[i].ID) == false)
-                    {
-                        _itemDictionary.Add(Datas[i].ID, Datas[i]);
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"{Datas[i].ID} exist.");
-                    }
+                    _itemDictionary.Add(Datas[i].ID, Datas[i]);
+                }
+                else
+                {
+                    Debug.LogWarning($"{Datas[i].ID} exist.");
                 }
             }
+
+            Debug.Log(Datas.Count);
+            Debug.Log(_itemDictionary.Count);
         }
 
         public static IItem CreateItem(ItemData itemData, Vector3 gPosition)

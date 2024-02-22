@@ -41,7 +41,7 @@ namespace PixelMiner
 
 
         private void Update()
-        {
+        {       
             if (_input.Fire1 && UnityEngine.Time.time - _lastFire1Time >= _fire1Interval)
             {
                 Debug.Log("Fire 1");

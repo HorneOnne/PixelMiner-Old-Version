@@ -10,6 +10,7 @@ namespace PixelMiner.UI
         [Header("References")]
         public Image Background;
         public Image Border;
+        public Image Selected;
         public Image ItemIcon;
         public TextMeshProUGUI QuantityText;
 
@@ -30,13 +31,25 @@ namespace PixelMiner.UI
 
         public void UpdateIcon(ItemSlot item)
         {
-            if(item.ItemData == null)
+            if (item.ItemData == null)
             {
                 ItemIcon.enabled = false;
                 return;
             }
             ItemIcon.sprite = item.ItemData.Icon;
             ItemIcon.enabled = true;
+        }
+
+        public void Select(bool select)
+        {
+            if(select)
+            {
+                Selected.enabled = true;
+            }
+            else
+            {
+                Selected.enabled = false;
+            }
         }
 
         public void Clear()

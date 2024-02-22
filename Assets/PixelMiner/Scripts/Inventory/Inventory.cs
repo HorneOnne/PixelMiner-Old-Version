@@ -7,63 +7,46 @@ namespace PixelMiner
     {
         public List<ItemSlot> Slots;
 
-        public Inventory(int size)
+        public Inventory(int width, int height)
         {
+            int size = width * height;
+            // Init empty inventory
             Slots = new List<ItemSlot>(size);
             for (int i = 0; i < size; i++)
             {
-                if(i == 0)
-                {
-                    var itemData = ItemFactory.GetItemData(Enums.ItemID.StonePickaxe);
-                    Slots.Add(new ItemSlot(ItemFactory.GetItemData(Enums.ItemID.StonePickaxe), 1));
-                }
-                else
-                {
-                    Slots.Add(new ItemSlot(null, 0));
-                }
-               
+                Slots.Add(new ItemSlot(null, 0));
             }
         }
 
-        public bool AddItem(IItem item)
+    
+        public bool AddItem(ItemData itemData)
         {
-            // Finds an empty slot if there is no exist one.
-            List<int> sameSlotsFoundIndex = new List<int>();
-            int firstEmptySlot = -1;
-            for(int i = 0; i < Slots.Count; i++)
-            {
-                if (Slots[i].ItemData.ID == item.Data.ID)
-                {
-                    sameSlotsFoundIndex.Add(i);
-                }
+            bool canAddItem = false;
 
-                if (Slots[i] == null)
-                {
-                    firstEmptySlot = i;
-                }
-            }
-
-            if(sameSlotsFoundIndex.Count > 0)
+            for (int i = 0; i < Slots.Count; i++)
             {
-                for(int j = 0; j < sameSlotsFoundIndex.Count; j++)
+                if (Slots[i].ItemData == null)
                 {
-                    if (Slots[sameSlotsFoundIndex[j]].TryAdd())
-                    {
-                        return true;
-                    }
+                    Slots[i].TryAddItem(itemData);
+                    canAddItem = true;
+                    break;
                 }
-                return false;
-            }
-            else
-            {
-                if (firstEmptySlot == -1)
-                    return false;
                 else
                 {
-                    Slots[firstEmptySlot] = new ItemSlot(item.Data,1);
-                    return true;
-                }      
+                    if (Slots[i].ItemData == itemData)
+                    {
+                        bool canAdd = Slots[i].TryAddItem(itemData);
+
+                        if (canAdd == true)
+                        {
+                            canAddItem = true;
+                            break;
+                        }
+                    }
+                }
             }
+
+            return canAddItem;
         }
     }
 }

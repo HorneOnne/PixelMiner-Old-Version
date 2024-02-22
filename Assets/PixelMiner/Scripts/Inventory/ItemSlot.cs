@@ -13,23 +13,37 @@ namespace PixelMiner
 
         [field: SerializeField] public ItemData ItemData { get; private set; }
 
-        public ItemSlot(ItemData itemData, int quantity)
+        public ItemSlot(ItemData itemData = null, int quantity = 0)
         {
             ItemData = itemData;
             Quantity = quantity;
         }
 
-        public bool TryAdd()
+
+
+        public bool TryAddItem(ItemData itemData)
         {
-            if(Quantity < ItemData.MaxStack)
+            if (ItemData == null)
             {
-                Quantity++;
+                ItemData = itemData;
+                Quantity = 1;
                 return true;
             }
             else
             {
+                if(ItemData.ID == itemData.ID)
+                {
+                    Quantity++;
+                    if (Quantity > this.ItemData.MaxStack)
+                    {
+                        Quantity = this.ItemData.MaxStack;
+                        return false;
+                    }
+                    return true;
+                }
                 return false;
             }
         }
+
     }
 }

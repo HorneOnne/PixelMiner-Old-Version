@@ -10,6 +10,7 @@ namespace PixelMiner.WorldBuilding
     public class WorldLoading : MonoBehaviour
     {
         public static WorldLoading Instance { get; private set; }
+        public static System.Action OnFirstLoadChunks;
         private Main _main;
         private WorldGeneration _worldGen;
 
@@ -40,6 +41,7 @@ namespace PixelMiner.WorldBuilding
         private List<Chunk> _unloadChunkList = new List<Chunk>();
         private bool _finishLoadChunk = true;
         private bool _worldGenStartFinish = false;
+
         private void Awake()
         {
             Instance = this;
@@ -54,7 +56,7 @@ namespace PixelMiner.WorldBuilding
             _worldGen = WorldGeneration.Instance;
 
 
-            _worldGen.OnWorldGenWhenStartFinished += () =>
+            WorldGeneration.OnWorldLoadFinished += () =>
             {
                 LastChunkFrame = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
             };
@@ -85,6 +87,8 @@ namespace PixelMiner.WorldBuilding
                         _finishLoadChunk = false;
                         LastChunkFrame = _currentFrame;
                         LoadChunkAroundAysnc();
+
+                        OnFirstLoadChunks?.Invoke();
                     }
                 }
             }

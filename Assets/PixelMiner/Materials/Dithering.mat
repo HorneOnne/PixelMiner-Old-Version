@@ -68,6 +68,6 @@ Material:
     - _f: 0.93
     - _scale: 0.39
     m_Colors:
-    - _DitherColor: {r: 1, g: 0.6428997, b: 0, a: 1}
+    - _DitherColor: {r: 1, g: 0.46153843, b: 0, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

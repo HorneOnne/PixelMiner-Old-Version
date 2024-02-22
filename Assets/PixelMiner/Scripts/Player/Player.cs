@@ -6,6 +6,7 @@ namespace PixelMiner
     {
         public PlayerBehaviour PlayerBehaviour { get; private set; }
         public PlayerController PlayerController { get; private set; }
+        public PlayerInventory PlayerInventory { get; private set; }
 
         public Transform AimTarrgetTrans;
 
@@ -22,6 +23,7 @@ namespace PixelMiner
         {
             PlayerBehaviour = GetComponent<PlayerBehaviour>();
             PlayerController = GetComponent<PlayerController>();
+            PlayerInventory = GetComponent<PlayerInventory>();
         }
     }
 }

@@ -7,44 +7,36 @@ namespace PixelMiner.UI
 {
     public class UIInventoryDisplay : MonoBehaviour
     {
-        private const string PLAYER_INVENTORY_TAG = "PInventory";
-        private readonly Vector2 OFFSET_COLLAPSE_BTN = new Vector2(10, -10f);
-        private int DEFAULT_INVENTORY_COLUMNS_SHOWN = 2;
-        private const int MIN_INVENTORY_COLUMNS_SHOWN = 1;
-        private const int MAX_INVENTORY_COLUMNS_SHOWN = 3;
+        private const string PLAYER_TAG = "Player";
 
+
+        [SerializeField] private Button _closeBtn;
+        [SerializeField] private GameObject _previewHotbar;
 
         [Header("References")]
-        public Inventory PInventory;
-        [HideInInspector] public List<UIItemSlot> ItemSlots;
+        public Player Player;
+        private PlayerInventory _pInventory;
+        [HideInInspector] public List<UIItemSlot> InBagSlots;
+        [HideInInspector] public List<UIItemSlot> HotbarSlots;
         [SerializeField] private UIItemSlot _uiSlotPrefab;
-        [SerializeField] private Transform _slotParent;
+        [SerializeField] private Transform _hotbbarSlotsParent;
+        [SerializeField] private Transform _bagHotbbarSlotsParent;
+        [SerializeField] private Transform _bagSlotsParent;
 
-        [Header("Utilities")]
-        public Button CollapseExpandBtn;
-        public RectTransform _collapseExpandBtnRect;
-        public RectTransform _content;
 
-        private Rect _defaultCollapseExpandRect;
-        private int _currentIventoryColumnsShown;
-        private GridLayoutGroup _contentGroup;
-    
 
         private void Awake()
         {
-            _defaultCollapseExpandRect = _content.rect;
-            _collapseExpandBtnRect = CollapseExpandBtn.GetComponent<RectTransform>();
-            _currentIventoryColumnsShown = DEFAULT_INVENTORY_COLUMNS_SHOWN;
-            _contentGroup = _content.GetComponent<GridLayoutGroup>();
-            _contentGroup.constraintCount = DEFAULT_INVENTORY_COLUMNS_SHOWN;
+            _previewHotbar.SetActive(false);
         }
 
         private void Start()
         {
-            return;
-            PInventory = GameObject.FindGameObjectWithTag(PLAYER_INVENTORY_TAG).GetComponent<PlayerInventory>().PInventory;
-            if (PInventory != null)
+            Player = GameObject.FindGameObjectWithTag(PLAYER_TAG).GetComponent<Player>();
+            _pInventory = Player.PlayerInventory;
+            if (Player != null)
             {
+                //InitializeHotbar();
                 InitializeInventory();
                 UpdateInventory();
             }
@@ -53,43 +45,74 @@ namespace PixelMiner.UI
                 Debug.LogWarning("Missing player inventory!");
             }
 
-            CollapseExpandBtn.onClick.AddListener(() =>
+            _closeBtn.onClick.AddListener(() =>
             {
-                _currentIventoryColumnsShown++;
-                if(_currentIventoryColumnsShown > MAX_INVENTORY_COLUMNS_SHOWN)
-                {
-                    _currentIventoryColumnsShown = MIN_INVENTORY_COLUMNS_SHOWN;
-                }
-                _contentGroup.constraintCount = _currentIventoryColumnsShown;
-            });
 
-            //InvokeRepeating(nameof(UpdateCollapseExpandRectAnchor), 0f, 0.02f);
+            });
         }
+
+        private void Update()
+        {
+            UpdateInventory();
+        }
+
         private void OnDestroy()
         {
-            CollapseExpandBtn.onClick.RemoveAllListeners();
+            _closeBtn.onClick.RemoveAllListeners();
         }
 
  
+        private void InitializeHotbar()
+        {
+            for (int i = 0; i < PlayerInventory.WIDTH; i++)
+            {
+                HotbarSlots.Add(Instantiate(_uiSlotPrefab, _hotbbarSlotsParent));
+            }
+        }
+
         private void InitializeInventory()
         {
-            for (int i = 0; i < PInventory.Slots.Count; i++)
+            // Hotbar
+            InitializeHotbar();
+
+            // Bag
+            for (int i = 0; i < _pInventory.Inventory.Slots.Count; i++)
             {
-                ItemSlots.Add(Instantiate(_uiSlotPrefab, _slotParent));
+                // Hotbar in bag
+                if(i < PlayerInventory.WIDTH)
+                {
+                    InBagSlots.Add(Instantiate(_uiSlotPrefab, _bagHotbbarSlotsParent));
+                }
+                else
+                {
+                    // bag
+                    InBagSlots.Add(Instantiate(_uiSlotPrefab, _bagSlotsParent));
+                }
+               
             }
         }
 
         public void UpdateInventory()
         {
-            for (int i = 0; i < ItemSlots.Count; i++)
+            for (int i = 0; i < HotbarSlots.Count; i++)
             {
-                ItemSlots[i].UpdateSlot(PInventory.Slots[i]);
+                if(_pInventory.CurrentHotbarSlotIndex == i)
+                {
+                    HotbarSlots[i].Select(true);
+                }
+                else
+                {
+                    HotbarSlots[i].Select(false);
+                }
+    
+                HotbarSlots[i].UpdateSlot(_pInventory.Inventory.Slots[i]);
+            }
+
+            for (int i = 0; i < InBagSlots.Count; i++)
+            {
+                InBagSlots[i].UpdateSlot(_pInventory.Inventory.Slots[i]);
             }
         }
 
-        private void UpdateCollapseExpandRectAnchor()
-        {
-            _collapseExpandBtnRect.anchoredPosition = _defaultCollapseExpandRect.position + new Vector2(_content.rect.width + OFFSET_COLLAPSE_BTN.x, OFFSET_COLLAPSE_BTN.y);
-        }
     }
 }

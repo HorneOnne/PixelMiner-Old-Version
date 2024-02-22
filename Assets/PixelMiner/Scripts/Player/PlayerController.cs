@@ -41,6 +41,8 @@ namespace PixelMiner
         //[SerializeField] private AABB _entity.AABB;
         private DynamicEntity _entity;
         public bool Simulate = false;
+        [SerializeField] private float _jumpForce;
+        [SerializeField] private float _mass;
 
 
         // Animation
@@ -76,9 +78,19 @@ namespace PixelMiner
 
             _entity = new DynamicEntity(this.transform, bound);
             _entity.Simulate = Simulate;
+            _entity.Mass = _mass;
             GamePhysics.AddDynamicEntity(_entity);
+
+
+            WorldBuilding.WorldLoading.OnFirstLoadChunks += () =>
+            {
+                Simulate = true;
+                _entity.Simulate = Simulate;
+            };
         }
 
+
+  
 
         private void Update()
         {  
@@ -149,7 +161,7 @@ namespace PixelMiner
             if(_input.Jump && _entity.OnGround)
             {
                 Debug.Log("Jump");
-                _entity.SetVelocityY(3);
+                _entity.SetVelocityY(_jumpForce);
             }
 
 
@@ -164,7 +176,7 @@ namespace PixelMiner
 
         private void FixedUpdate()
         {
-
+            _entity.Mass = _mass;   
         }
 
         private void LateUpdate()

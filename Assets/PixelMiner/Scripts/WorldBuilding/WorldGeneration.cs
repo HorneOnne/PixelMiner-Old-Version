@@ -24,7 +24,7 @@ namespace PixelMiner.WorldBuilding
     public class WorldGeneration : MonoBehaviour
     {
         public static WorldGeneration Instance { get; private set; }
-        public event System.Action OnWorldGenWhenStartFinished;
+        public static event System.Action OnWorldLoadFinished;
 
         #region Fileds and Variables
         [FoldoutGroup("References"), SerializeField] private Chunk _chunkPrefab;
@@ -345,7 +345,7 @@ namespace PixelMiner.WorldBuilding
                                      heightInit: _worldLoading.InitWorldHeight,
                                      depthInit: _worldLoading.InitWorldDepth, () =>
             {
-                OnWorldGenWhenStartFinished?.Invoke();
+                OnWorldLoadFinished?.Invoke();  
             });
 
             //Chunk.OnChunkHasNeighbors += PropagateAmbientLight;

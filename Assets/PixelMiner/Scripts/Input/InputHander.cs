@@ -21,6 +21,8 @@ namespace PixelMiner
         public float Rot;
         public bool Jump;
 
+        public float DirectionalHorbarInventory;
+
 
         private void Awake()
         {
@@ -54,6 +56,11 @@ namespace PixelMiner
             playerInput.Player.Jump.started += x => { Jump = x.ReadValue<float>() == 1 ? true : false; };
             playerInput.Player.Jump.performed += x => { Jump = x.ReadValue<float>() == 1 ? true : false; };
             playerInput.Player.Jump.canceled += x => { Jump = x.ReadValue<float>() == 1 ? true : false; };
+
+
+            playerInput.Player.InventoryHotbarDirectional.started += x => { DirectionalHorbarInventory = x.ReadValue<float>(); };
+            playerInput.Player.InventoryHotbarDirectional.performed += x => { DirectionalHorbarInventory = x.ReadValue<float>(); };
+            playerInput.Player.InventoryHotbarDirectional.canceled += x => { DirectionalHorbarInventory = x.ReadValue<float>(); };
 
 
             playerInput.Player.Rotate.performed += OnRotatePerformed;
