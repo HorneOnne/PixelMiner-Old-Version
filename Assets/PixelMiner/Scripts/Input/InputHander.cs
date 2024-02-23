@@ -15,13 +15,15 @@ namespace PixelMiner
         public float LookVertical;
         public float MouseScrollY;
         public bool Cancel;
+        public bool Fire0;
         public bool Fire1;
         public bool Fire2;
-        public bool Fire3;
         public float Rot;
         public bool Jump;
 
+
         public float DirectionalHorbarInventory;
+        public float AccessHorbarInventory;
 
 
         private void Awake()
@@ -48,9 +50,17 @@ namespace PixelMiner
             playerInput.Player.Cancel.canceled += x => { Cancel = x.ReadValue<float>() == 1 ? true : false; };
 
 
-            playerInput.Player.Fire1.started += x => { Fire1 = x.ReadValue<float>() == 1 ? true : false; };
-            playerInput.Player.Fire1.performed += x => { Fire1 = x.ReadValue<float>() == 1 ? true : false; };
-            playerInput.Player.Fire1.canceled += x => { Fire1 = x.ReadValue<float>() == 1 ? true : false; };
+            playerInput.Player.Fire0.started += x => { Fire0 = x.ReadValue<float>() > 0.5f ? true : false; };
+            playerInput.Player.Fire0.performed += x => { Fire0 = x.ReadValue<float>() > 0.5f ? true : false; };
+            playerInput.Player.Fire0.canceled += x => { Fire0 = x.ReadValue<float>() > 0.5f ? true : false; };
+
+
+            playerInput.Player.Fire1.started += x => { Fire1 = x.ReadValue<float>() > 0.5f ? true : false; };
+            playerInput.Player.Fire1.performed += x => { Fire1 = x.ReadValue<float>() > 0.5f ? true : false; };
+            playerInput.Player.Fire1.canceled += x => { Fire1 = x.ReadValue<float>() > 0.5f ? true : false; };
+
+
+
 
 
             playerInput.Player.Jump.started += x => { Jump = x.ReadValue<float>() == 1 ? true : false; };
@@ -61,6 +71,11 @@ namespace PixelMiner
             playerInput.Player.InventoryHotbarDirectional.started += x => { DirectionalHorbarInventory = x.ReadValue<float>(); };
             playerInput.Player.InventoryHotbarDirectional.performed += x => { DirectionalHorbarInventory = x.ReadValue<float>(); };
             playerInput.Player.InventoryHotbarDirectional.canceled += x => { DirectionalHorbarInventory = x.ReadValue<float>(); };
+
+
+            playerInput.Player.InventoryHotbar.started += x => { AccessHorbarInventory = x.ReadValue<float>(); };
+            playerInput.Player.InventoryHotbar.performed += x => { AccessHorbarInventory = x.ReadValue<float>(); };
+            playerInput.Player.InventoryHotbar.canceled += x => { AccessHorbarInventory = x.ReadValue<float>(); };
 
 
             playerInput.Player.Rotate.performed += OnRotatePerformed;

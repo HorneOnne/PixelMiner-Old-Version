@@ -147,7 +147,7 @@ namespace PixelMiner
             // _aimTarrgetTrans.position = _startLookPos +  verticalH + verticalV;
 
 
-            if (_input.Fire1 == false)
+            //if (_input.Fire1 == false)
             {
                 if (_input.Move != Vector2.zero)
                 {
@@ -194,7 +194,7 @@ namespace PixelMiner
 
         private void UpdatePosition()
         {
-            if (_input.Move != Vector2.zero && _input.Fire1 == false)
+            if (_input.Move != Vector2.zero)// && _input.Fire1 == false)
             {
                 _moveDirection = new Vector3(_input.Move.x * _moveSpeed, 0, _input.Move.y * _moveSpeed);
                 Vector3 _rotMoveDir = _moveDirection.ToGameDirection();

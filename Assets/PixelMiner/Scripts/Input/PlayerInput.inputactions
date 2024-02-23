@@ -42,6 +42,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "Fire0",
+                    "type": "Button",
+                    "id": "ed9b105b-14fc-460c-955a-7c9ec24f39bc",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Cancel",
                     "type": "Button",
                     "id": "f8410628-3b79-4004-9dd5-d251001ff6b4",
@@ -472,6 +481,17 @@
                     "action": "InventoryHotbarDirectional",
                     "isComposite": false,
                     "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "e7c07eb2-439e-4d83-844d-8c35f0bd2129",
+                    "path": "<Gamepad>/leftTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Gamepad",
+                    "action": "Fire0",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },

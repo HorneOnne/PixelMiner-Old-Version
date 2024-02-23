@@ -11,6 +11,7 @@ namespace PixelMiner.UI
 
 
         [SerializeField] private Button _closeBtn;
+        [SerializeField] private ExpandInventoryBtn _expandInventoryBtn;
         [SerializeField] private GameObject _previewHotbar;
 
         [Header("References")]
@@ -99,11 +100,23 @@ namespace PixelMiner.UI
                 if(_pInventory.CurrentHotbarSlotIndex == i)
                 {
                     HotbarSlots[i].Select(true);
+
+                    if(_pInventory.OpenHotbarInventory == false)
+                    {
+                        HotbarSlots[i].Use(true);
+                    }
+                    else
+                    {
+                        HotbarSlots[i].Use(false);
+                    }
                 }
                 else
                 {
                     HotbarSlots[i].Select(false);
+
+                    HotbarSlots[i].Use(false);
                 }
+
     
                 HotbarSlots[i].UpdateSlot(_pInventory.Inventory.Slots[i]);
             }

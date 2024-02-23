@@ -11,6 +11,7 @@ namespace PixelMiner.UI
         public Image Background;
         public Image Border;
         public Image Selected;
+        public Image CurrentUse;
         public Image ItemIcon;
         public TextMeshProUGUI QuantityText;
 
@@ -51,6 +52,19 @@ namespace PixelMiner.UI
                 Selected.enabled = false;
             }
         }
+
+        public void Use(bool use)
+        {
+            if(use)
+            {
+                CurrentUse.enabled = true;
+            }
+            else
+            {
+                CurrentUse.enabled = false;
+            }
+        }
+
 
         public void Clear()
         {

@@ -66,6 +66,15 @@ namespace PixelMiner
                     ""initialStateCheck"": false
                 },
                 {
+                    ""name"": ""Fire0"",
+                    ""type"": ""Button"",
+                    ""id"": ""ed9b105b-14fc-460c-955a-7c9ec24f39bc"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
                     ""name"": ""Cancel"",
                     ""type"": ""Button"",
                     ""id"": ""f8410628-3b79-4004-9dd5-d251001ff6b4"",
@@ -496,6 +505,17 @@ namespace PixelMiner
                     ""action"": ""InventoryHotbarDirectional"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e7c07eb2-439e-4d83-844d-8c35f0bd2129"",
+                    ""path"": ""<Gamepad>/leftTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Fire0"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -1085,6 +1105,7 @@ namespace PixelMiner
             m_Player_LookHorizontal = m_Player.FindAction("LookHorizontal", throwIfNotFound: true);
             m_Player_LookVertical = m_Player.FindAction("LookVertical", throwIfNotFound: true);
             m_Player_Fire1 = m_Player.FindAction("Fire1", throwIfNotFound: true);
+            m_Player_Fire0 = m_Player.FindAction("Fire0", throwIfNotFound: true);
             m_Player_Cancel = m_Player.FindAction("Cancel", throwIfNotFound: true);
             m_Player_Rotate = m_Player.FindAction("Rotate", throwIfNotFound: true);
             m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
@@ -1167,6 +1188,7 @@ namespace PixelMiner
         private readonly InputAction m_Player_LookHorizontal;
         private readonly InputAction m_Player_LookVertical;
         private readonly InputAction m_Player_Fire1;
+        private readonly InputAction m_Player_Fire0;
         private readonly InputAction m_Player_Cancel;
         private readonly InputAction m_Player_Rotate;
         private readonly InputAction m_Player_Jump;
@@ -1180,6 +1202,7 @@ namespace PixelMiner
             public InputAction @LookHorizontal => m_Wrapper.m_Player_LookHorizontal;
             public InputAction @LookVertical => m_Wrapper.m_Player_LookVertical;
             public InputAction @Fire1 => m_Wrapper.m_Player_Fire1;
+            public InputAction @Fire0 => m_Wrapper.m_Player_Fire0;
             public InputAction @Cancel => m_Wrapper.m_Player_Cancel;
             public InputAction @Rotate => m_Wrapper.m_Player_Rotate;
             public InputAction @Jump => m_Wrapper.m_Player_Jump;
@@ -1206,6 +1229,9 @@ namespace PixelMiner
                 @Fire1.started += instance.OnFire1;
                 @Fire1.performed += instance.OnFire1;
                 @Fire1.canceled += instance.OnFire1;
+                @Fire0.started += instance.OnFire0;
+                @Fire0.performed += instance.OnFire0;
+                @Fire0.canceled += instance.OnFire0;
                 @Cancel.started += instance.OnCancel;
                 @Cancel.performed += instance.OnCancel;
                 @Cancel.canceled += instance.OnCancel;
@@ -1237,6 +1263,9 @@ namespace PixelMiner
                 @Fire1.started -= instance.OnFire1;
                 @Fire1.performed -= instance.OnFire1;
                 @Fire1.canceled -= instance.OnFire1;
+                @Fire0.started -= instance.OnFire0;
+                @Fire0.performed -= instance.OnFire0;
+                @Fire0.canceled -= instance.OnFire0;
                 @Cancel.started -= instance.OnCancel;
                 @Cancel.performed -= instance.OnCancel;
                 @Cancel.canceled -= instance.OnCancel;
@@ -1438,6 +1467,7 @@ namespace PixelMiner
             void OnLookHorizontal(InputAction.CallbackContext context);
             void OnLookVertical(InputAction.CallbackContext context);
             void OnFire1(InputAction.CallbackContext context);
+            void OnFire0(InputAction.CallbackContext context);
             void OnCancel(InputAction.CallbackContext context);
             void OnRotate(InputAction.CallbackContext context);
             void OnJump(InputAction.CallbackContext context);

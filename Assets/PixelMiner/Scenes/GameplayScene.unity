@@ -1347,6 +1347,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48bf95869d5dae541933f3f87c95a8c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _diggingTime: 0.2
   _sampleBlockTrans: {fileID: 1554338823}
 --- !u!114 &314038825
 MonoBehaviour:
@@ -2305,6 +2306,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _closeBtn: {fileID: 1865543641}
+  _expandInventoryBtn: {fileID: 0}
   _previewHotbar: {fileID: 583951920}
   Player: {fileID: 0}
   InBagSlots: []
@@ -4897,7 +4899,7 @@ GameObject:
   - component: {fileID: 1163018544}
   - component: {fileID: 1163018543}
   m_Layer: 0
-  m_Name: ExtendInventory
+  m_Name: ExpandInventoryBtn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7115,12 +7117,13 @@ MonoBehaviour:
   LookVertical: 0
   MouseScrollY: 0
   Cancel: 0
+  Fire0: 0
   Fire1: 0
   Fire2: 0
-  Fire3: 0
   Rot: 0
   Jump: 0
   DirectionalHorbarInventory: 0
+  AccessHorbarInventory: 0
 --- !u!4 &1590955043
 Transform:
   m_ObjectHideFlags: 0

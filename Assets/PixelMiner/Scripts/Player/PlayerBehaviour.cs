@@ -11,10 +11,6 @@ namespace PixelMiner
         private bool _hasAnimator;
         
 
-        // Timer
-        private float _lastFire1Time;
-        private float _fire1Interval = 0.7f;
-
 
 
         // animation IDs
@@ -26,6 +22,11 @@ namespace PixelMiner
         private RayCasting _rayCasting;
         Vector3Int hitGlobalPosition;
         private float _headLookSpeed = 5f;
+
+
+        // Digging
+        [SerializeField] private float _diggingTime = 0.2f;
+        private bool _canDig = true;
 
         // Testing
         [SerializeField] private Transform _sampleBlockTrans;
@@ -41,13 +42,13 @@ namespace PixelMiner
 
 
         private void Update()
-        {       
-            if (_input.Fire1 && UnityEngine.Time.time - _lastFire1Time >= _fire1Interval)
+        {
+            if (_input.Fire1 && _canDig)
             {
-                Debug.Log("Fire 1");
-                _lastFire1Time = UnityEngine.Time.time;
-
+                Debug.Log("Dig");
                 _anim.SetTrigger(_animIDRightHand);
+                _canDig = false;
+                Invoke(nameof(ResetDig), _diggingTime);
             }
 
 
@@ -89,7 +90,10 @@ namespace PixelMiner
         }
 
 
-
+        private void ResetDig()
+        {
+            _canDig = true;
+        }
 
         private void AssignAnimationIDs()
         {

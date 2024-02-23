@@ -13,10 +13,11 @@ ModelImporter:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
     resampleCurves: 1
-    optimizeGameObjects: 0
+    optimizeGameObjects: 1
     removeConstantScaleCurves: 0
     motionNodeName: 
-    rigImportErrors: 
+    rigImportErrors: "Invalid Avatar Rig Configuration. Missing or invalid transform:\n\tRequired
+      human bone 'Head' not found\n"
     rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: 
@@ -24,12 +25,14 @@ ModelImporter:
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
     importConstraints: 0
-    animationCompression: 1
+    animationCompression: 3
     animationRotationError: 0.5
     animationPositionError: 0.5
     animationScaleError: 0.5
     animationWrapMode: 0
-    extraExposedTransformPaths: []
+    extraExposedTransformPaths:
+    - Root
+    - SkinnedMesh
     extraUserProperties: []
     clipAnimations: []
     isReadable: 0
@@ -55,9 +58,9 @@ ModelImporter:
     bakeAxisConversion: 0
     preserveHierarchy: 0
     skinWeightsMode: 0
-    maxBonesPerVertex: 4
+    maxBonesPerVertex: 3
     minBoneWeight: 0.001
-    optimizeBones: 1
+    optimizeBones: 0
     meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
@@ -82,7 +85,102 @@ ModelImporter:
   humanDescription:
     serializedVersion: 3
     human: []
-    skeleton: []
+    skeleton:
+    - name: Character(Clone)
+      parentName: 
+      position: {x: 0, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: Root
+      parentName: Character(Clone)
+      position: {x: -0, y: 0, z: 0}
+      rotation: {x: -0.000000037748947, y: 0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: Rig1
+      parentName: Root
+      position: {x: 0.000000057208073, y: 0.8098628, z: 0.0000000066608337}
+      rotation: {x: 0.000011176552, y: 0.0010801626, z: -0.010346543, w: 0.9999459}
+      scale: {x: 1, y: 1, z: 1}
+    - name: LegL1
+      parentName: Rig1
+      position: {x: -0.11689618, y: -0.031174285, z: -0.0002525241}
+      rotation: {x: -0.0010801627, y: 0.000011173922, z: 0.9999459, w: -0.010346565}
+      scale: {x: 0.99999994, y: 1, z: 1}
+    - name: LegL2
+      parentName: LegL1
+      position: {x: 0.0000000018996131, y: 0.33125132, z: 4.157997e-16}
+      rotation: {x: 0.0000000026247042, y: 2.2791474e-11, z: -0.008671122, w: 0.99996245}
+      scale: {x: 1, y: 0.9999999, z: 1}
+    - name: LegL3
+      parentName: LegL2
+      position: {x: -0.0000000024807314, y: 0.36005422, z: -2.4336368e-15}
+      rotation: {x: -3.1544242e-14, y: 5.0775658e-17, z: 0.99996245, w: -0.008671145}
+      scale: {x: 1, y: 0.99999994, z: 1}
+    - name: LegR1
+      parentName: Rig1
+      position: {x: 0.12056895, y: -0.026259596, z: 0.00026048417}
+      rotation: {x: 0.9999459, y: 0.010346529, z: 0.0010801462, w: 0.000011195343}
+      scale: {x: 0.9999999, y: 0.99999994, z: 1}
+    - name: LegR2
+      parentName: LegR1
+      position: {x: -0.000000010169697, y: 0.33125135, z: 0}
+      rotation: {x: -0.000000002537492, y: -0.000000027296824, z: -0.000000024058693, w: 1}
+      scale: {x: 0.9999999, y: 0.99999994, z: 1}
+    - name: LegR3
+      parentName: LegR2
+      position: {x: -0, y: 0.35999995, z: -7.9936056e-16}
+      rotation: {x: 1, y: 0.000000019868223, z: -0.0000000754979, w: 1.4387767e-15}
+      scale: {x: 1, y: 1, z: 1}
+    - name: Spine1
+      parentName: Rig1
+      position: {x: -0.0024830892, y: 0.11997419, z: -0.0000053638373}
+      rotation: {x: 0.005588879, y: 0.0052842977, z: 0.0029230728, w: 0.99996614}
+      scale: {x: 0.99999994, y: 1.0000002, z: 1}
+    - name: Spine2
+      parentName: Spine1
+      position: {x: 0.0000000011594966, y: 0.46333933, z: -0.0000000011455268}
+      rotation: {x: 0.02358074, y: 0.0017251959, z: -0.028539302, w: 0.999313}
+      scale: {x: 0.99999976, y: 0.9999997, z: 0.99999994}
+    - name: ArmL1
+      parentName: Spine2
+      position: {x: -0.3862032, y: 0.14019811, z: -0.051510576}
+      rotation: {x: 0.7718623, y: 0.6307697, z: -0.042637095, w: 0.067380466}
+      scale: {x: 1.0000013, y: 1.0000001, z: 1.0000032}
+    - name: ArmL2
+      parentName: ArmL1
+      position: {x: -0.000000043088836, y: 0.3948784, z: 0.000000005388865}
+      rotation: {x: 0.008849675, y: 0.015764756, z: -0.10098638, w: 0.99472356}
+      scale: {x: 0.9999999, y: 1, z: 0.9999998}
+    - name: ArmL3
+      parentName: ArmL2
+      position: {x: -0.0000000026822053, y: 0.3600001, z: -1.0274448e-13}
+      rotation: {x: 1, y: 0.0000000018626446, z: -0.00000007549776, w: 2.0185782e-16}
+      scale: {x: 1, y: 1, z: 1}
+    - name: ArmR1
+      parentName: Spine2
+      position: {x: 0.340949, y: 0.18104714, z: -0.050778266}
+      rotation: {x: 0.81327057, y: -0.57349306, z: 0.07055763, w: 0.06869016}
+      scale: {x: 1.0000001, y: 1, z: 1.0000006}
+    - name: ArmR2
+      parentName: ArmR1
+      position: {x: -0.0000000404617, y: 0.38429633, z: -0.000000016048562}
+      rotation: {x: 0.012736892, y: -0.020764122, z: 0.10146038, w: 0.9945413}
+      scale: {x: 0.9999999, y: 1, z: 0.9999999}
+    - name: ArmR3
+      parentName: ArmR2
+      position: {x: -0.000000027436762, y: 0.35999987, z: 4.350895e-15}
+      rotation: {x: 1, y: 0.0000000016298144, z: -0.000000075497894, w: 1.8427989e-16}
+      scale: {x: 1, y: 1, z: 1}
+    - name: Neck1
+      parentName: Spine2
+      position: {x: -0.003142751, y: 0.14004852, z: 0.002462571}
+      rotation: {x: -0.02058952, y: 0.0048193326, z: 0.034181695, w: 0.99919194}
+      scale: {x: 0.99999994, y: 0.99999994, z: 1}
+    - name: SkinnedMesh
+      parentName: Character(Clone)
+      position: {x: -0, y: 4.6182622e-35, z: 5.5445976e-31}
+      rotation: {x: -0.000000037748947, y: -0, z: 2.75506e-40, w: 1}
+      scale: {x: 1, y: 1, z: 1}
     armTwist: 0.5
     foreArmTwist: 0.5
     upperLegTwist: 0.5
@@ -93,7 +191,7 @@ ModelImporter:
     globalScale: 12
     rootMotionBoneName: 
     hasTranslationDoF: 0
-    hasExtraRoot: 0
+    hasExtraRoot: 1
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   autoGenerateAvatarMappingIfUnspecified: 1

@@ -8,7 +8,7 @@ namespace PixelMiner
         private InputHander _input;
         public int MAX_PLAYER_INVENTORY_SLOTS { get; private set; }
         public const int WIDTH = 9;
-        public const int HEIGHT = 4;
+        public const int HEIGHT = 1;
 
 
         public int CurrentHotbarSlotIndex = -1;
@@ -17,6 +17,7 @@ namespace PixelMiner
         private float _directionalTime = 0.25f;
         private bool _canDirectionalHotbar = true;
 
+        public bool OpenHotbarInventory { get; private set; } = false;
 
         private void Awake()
         {
@@ -47,7 +48,16 @@ namespace PixelMiner
             }
 
 
-            if (_canDirectionalHotbar)
+
+            if(_input.AccessHorbarInventory == -1)
+            {
+                OpenHotbarInventory = true;
+            }
+            else if(_input.AccessHorbarInventory == 1)
+            {
+                OpenHotbarInventory = false;
+            }
+            if (_canDirectionalHotbar && OpenHotbarInventory)
             {
                 if (_input.DirectionalHorbarInventory == 1)
                 {
@@ -61,7 +71,7 @@ namespace PixelMiner
                     _canDirectionalHotbar = false;
                     Invoke(nameof(ResetDirectionalHotbar), 0.2f);
                 }
-             
+
             }
         }
 
@@ -70,16 +80,29 @@ namespace PixelMiner
             _canDirectionalHotbar = true;
         }
 
-        public void Next() => CurrentHotbarSlotIndex = (CurrentHotbarSlotIndex + 1) % WIDTH;
+        public void Next()
+        {
+            //CurrentHotbarSlotIndex = (CurrentHotbarSlotIndex + 1) % WIDTH;
+            CurrentHotbarSlotIndex++;
+            if (CurrentHotbarSlotIndex == WIDTH)
+            {
+                CurrentHotbarSlotIndex = -1;
+            }
+
+        }
 
 
-        public void Previous() => CurrentHotbarSlotIndex = (CurrentHotbarSlotIndex - 1 + WIDTH) % WIDTH;
-        //{
-        //    CurrentHotbarSlotIndex--;
-        //    if(CurrentHotbarSlotIndex == -1)
-        //    {
-        //        CurrentHotbarSlotIndex = WIDTH - 1;
-        //    }
-        //}
+        public void Previous()
+        {
+            //CurrentHotbarSlotIndex = (CurrentHotbarSlotIndex - 1 + WIDTH) % WIDTH;
+
+            CurrentHotbarSlotIndex--;
+            if (CurrentHotbarSlotIndex == -2)
+            {
+                CurrentHotbarSlotIndex = WIDTH - 1;
+            }
+
+            
+        }
     }
 }
