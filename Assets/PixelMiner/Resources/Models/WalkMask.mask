@@ -7,5 +7,43 @@ AvatarMask:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: WalkMask
-  m_Mask: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-  m_Elements: []
+  m_Mask: 01000000000000000000000001000000010000000000000000000000000000000000000001000000010000000000000000000000
+  m_Elements:
+  - m_Path: 
+    m_Weight: 1
+  - m_Path: Root
+    m_Weight: 1
+  - m_Path: Root/Rig1
+    m_Weight: 0
+  - m_Path: Root/Rig1/Spine1
+    m_Weight: 0
+  - m_Path: Root/Rig1/Spine1/Spine2
+    m_Weight: 0
+  - m_Path: Root/Rig1/Spine1/Spine2/Neck1
+    m_Weight: 0
+  - m_Path: Root/Rig1/Spine1/Spine2/ArmR1
+    m_Weight: 0
+  - m_Path: Root/Rig1/Spine1/Spine2/ArmR1/ArmR2
+    m_Weight: 0
+  - m_Path: Root/Rig1/Spine1/Spine2/ArmR1/ArmR2/ArmR3
+    m_Weight: 0
+  - m_Path: Root/Rig1/Spine1/Spine2/ArmL1
+    m_Weight: 0
+  - m_Path: Root/Rig1/Spine1/Spine2/ArmL1/ArmL2
+    m_Weight: 0
+  - m_Path: Root/Rig1/Spine1/Spine2/ArmL1/ArmL2/ArmL3
+    m_Weight: 0
+  - m_Path: Root/Rig1/LegR1
+    m_Weight: 0
+  - m_Path: Root/Rig1/LegR1/LegR2
+    m_Weight: 0
+  - m_Path: Root/Rig1/LegR1/LegR2/LegR3
+    m_Weight: 0
+  - m_Path: Root/Rig1/LegL1
+    m_Weight: 0
+  - m_Path: Root/Rig1/LegL1/LegL2
+    m_Weight: 0
+  - m_Path: Root/Rig1/LegL1/LegL2/LegL3
+    m_Weight: 0
+  - m_Path: SkinnedMesh
+    m_Weight: 1

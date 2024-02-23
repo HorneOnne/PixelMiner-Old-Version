@@ -16,6 +16,7 @@ namespace PixelMiner
         private Player _player;
 
         [SerializeField] private float _moveSpeed;
+        [SerializeField] private float _digMoveSpeed;
         [SerializeField] private Vector3 _moveDirection;
         private Vector3 _cameraIsometricRot = new Vector3(0, 45, 0);
 
@@ -109,7 +110,10 @@ namespace PixelMiner
                 _entity.Simulate = Simulate;
             }
 
-            UpdatePosition();
+            float currentMoveSpeed = _input.Fire1 ? _digMoveSpeed : _moveSpeed; 
+
+
+            UpdatePosition(currentMoveSpeed);
 
 
 
@@ -170,7 +174,15 @@ namespace PixelMiner
             // =========
             if (_hasAnimator)
             {
-                _anim.SetFloat(_animIDVelocity, _input.Move.magnitude);
+                if(_input.Fire1 == true)
+                {
+                    _anim.SetFloat(_animIDVelocity, Mathf.Min(_input.Move.magnitude, 0.3f));
+                }
+                else
+                {
+                    _anim.SetFloat(_animIDVelocity, _input.Move.magnitude);
+                }
+                
             }
         }
 
@@ -192,11 +204,11 @@ namespace PixelMiner
         }
 
 
-        private void UpdatePosition()
+        private void UpdatePosition(float speed)
         {
             if (_input.Move != Vector2.zero)// && _input.Fire1 == false)
             {
-                _moveDirection = new Vector3(_input.Move.x * _moveSpeed, 0, _input.Move.y * _moveSpeed);
+                _moveDirection = new Vector3(_input.Move.x * speed, 0, _input.Move.y * speed);
                 Vector3 _rotMoveDir = _moveDirection.ToGameDirection();
 
                 _entity.SetVelocity(new Vector3(_rotMoveDir.x, _entity.Velocity.y, _rotMoveDir.z));
@@ -207,12 +219,7 @@ namespace PixelMiner
             }
         }
 
-        private void Move(Vector3 direction)
-        {
-            Vector3 movement = direction * _moveSpeed * UnityEngine.Time.deltaTime;
-            //_rb.MovePosition(_rb.position + movement);
-            transform.position += movement;
-        }
+        
 
         private void UpdateRotation(Vector3 gameDirection)
         {

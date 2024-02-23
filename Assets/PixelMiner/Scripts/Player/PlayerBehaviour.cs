@@ -30,6 +30,7 @@ namespace PixelMiner
 
         // Testing
         [SerializeField] private Transform _sampleBlockTrans;
+        
 
         private void Start()
         {
@@ -43,12 +44,21 @@ namespace PixelMiner
 
         private void Update()
         {
-            if (_input.Fire1 && _canDig)
+            if (_input.Fire1)
             {
-                Debug.Log("Dig");
-                _anim.SetTrigger(_animIDRightHand);
-                _canDig = false;
-                Invoke(nameof(ResetDig), _diggingTime);
+                if(_canDig)
+                {
+                    _anim.SetLayerWeight(1, 1.0f);
+                    //_anim.SetTrigger(_animIDRightHand);
+                    _canDig = false;
+                    Invoke(nameof(ResetDig), _diggingTime);
+                }              
+            }
+            else
+            {
+                Debug.Log("B");
+                _canDig = true;
+                _anim.SetLayerWeight(1, 0.0f);
             }
 
 
@@ -99,5 +109,6 @@ namespace PixelMiner
         {
             _animIDRightHand = Animator.StringToHash("RHand");
         }
+
     }
 }
