@@ -4,6 +4,8 @@ namespace PixelMiner
 {
     public class PlayerInventory : MonoBehaviour
     {
+        public static event System.Action OnCurrentUseItemChanged;
+
         public Inventory Inventory;
         private InputHander _input;
         public int MAX_PLAYER_INVENTORY_SLOTS { get; private set; }
@@ -12,6 +14,7 @@ namespace PixelMiner
 
 
         public int CurrentHotbarSlotIndex = -1;
+        public int CurrentHotbarUseSlotIndex = -1;
 
         private float _directionalTimer = 0.0f;
         private float _directionalTime = 0.25f;
@@ -19,10 +22,15 @@ namespace PixelMiner
 
         public bool OpenHotbarInventory { get; private set; } = false;
 
+        private Item _currentItem;
+        [SerializeField] private Transform _rightHand;
+
         private void Awake()
         {
             MAX_PLAYER_INVENTORY_SLOTS = WIDTH * HEIGHT;
             Inventory = new Inventory(WIDTH, HEIGHT);
+            
+
         }
 
 
@@ -30,8 +38,18 @@ namespace PixelMiner
         {
             _input = InputHander.Instance;
             CurrentHotbarSlotIndex = 0;
+
+
+            // Add init items for testing purposes
+            Inventory.AddItem(ItemFactory.GetItemData(ItemID.StonePickaxe));
+            Inventory.AddItem(ItemFactory.GetItemData(ItemID.StoneSword));
+
         }
 
+        private void OnDestroy()
+        {
+
+        }
 
         private void Update()
         {
@@ -73,6 +91,25 @@ namespace PixelMiner
                 }
 
             }
+
+
+            if (CurrentHotbarSlotIndex != CurrentHotbarUseSlotIndex && 
+                CurrentHotbarSlotIndex != -1 && 
+                _input.AccessHorbarInventory == 1)
+            {
+                CurrentHotbarUseSlotIndex = CurrentHotbarSlotIndex;
+
+
+                DestroyOldItemObject();
+                ItemSlot currentSlot = Inventory.Slots[CurrentHotbarUseSlotIndex];
+                if (currentSlot != null && currentSlot.ItemData != null && currentSlot.ItemData.Model != null)
+                {
+                    _currentItem = CreateNewItemObject(currentSlot.ItemData);
+                }
+
+                OnCurrentUseItemChanged?.Invoke();
+            }
+
         }
 
         private void ResetDirectionalHotbar()
@@ -100,9 +137,23 @@ namespace PixelMiner
             if (CurrentHotbarSlotIndex == -2)
             {
                 CurrentHotbarSlotIndex = WIDTH - 1;
-            }
-
-            
+            }        
         }
+
+        private void DestroyOldItemObject()
+        {
+            if (_currentItem != null)
+            {
+                Destroy(_currentItem.gameObject);
+                _currentItem = null;
+            }
+        }
+        private Item CreateNewItemObject(ItemData itemData)
+        {
+            Item item = ItemFactory.CreateItem(itemData, Vector3.zero, Vector3.zero, _rightHand);
+            return item; 
+        }
+
+
     }
 }

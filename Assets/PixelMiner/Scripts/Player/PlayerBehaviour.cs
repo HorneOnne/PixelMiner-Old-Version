@@ -56,7 +56,6 @@ namespace PixelMiner
             }
             else
             {
-                Debug.Log("B");
                 _canDig = true;
                 _anim.SetLayerWeight(1, 0.0f);
             }

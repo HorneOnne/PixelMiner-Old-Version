@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
 namespace PixelMiner
 {
-    public class Pickaxe : Item, IUseable
-    {
-        public static System.Action OnItemBroken;
 
+    public class Block : Item, IUseable
+    {
         private int _remainingUses;
         public int RemainingUses { get => _remainingUses; }
+
 
 
         public override void Initialize(ItemData data)
@@ -30,11 +30,10 @@ namespace PixelMiner
 
 
                 // Handle item is broken.
-                if(_remainingUses == 0)
+                if (_remainingUses == 0)
                 {
                     Debug.Log($"{Data.ItemName} has been broken.");
                     Destroy(this.gameObject);
-                    OnItemBroken?.Invoke();
                 }
             }
             else

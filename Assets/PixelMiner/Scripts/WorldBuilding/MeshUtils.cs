@@ -607,18 +607,19 @@ namespace PixelMiner.WorldBuilding
                         for (startPos[v] = 0; startPos[v] < dimensions[v]; startPos[v]++)
                         {
                             if (startPos.y == 0 && voxelFace != 1) continue;
-
-
+     
 
                             if (builder.Merged[d][startPos[u], startPos[v]])
                             {
                                 continue;
                             }
-
+                            
 
 
                             currBlock = chunk.GetBlock(startPos);
                             if (currBlock == BlockType.Air) continue;
+                          
+
 
                             // If this block has already been merged, is air, or not visible -> skip it.
                             //if (chunk.IsSolid(startPos) == false ||

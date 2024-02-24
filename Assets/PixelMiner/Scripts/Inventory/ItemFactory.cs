@@ -14,7 +14,7 @@ namespace PixelMiner
 
         private void Awake()
         {
-            for(int i = 0; i < Datas.Count; i++)
+            for (int i = 0; i < Datas.Count; i++)
             {
                 if (_itemDictionary.ContainsKey(Datas[i].ID) == false)
                 {
@@ -25,24 +25,24 @@ namespace PixelMiner
                     Debug.LogWarning($"{Datas[i].ID} exist.");
                 }
             }
-
-            Debug.Log(Datas.Count);
-            Debug.Log(_itemDictionary.Count);
         }
 
-        public static IItem CreateItem(ItemData itemData, Vector3 gPosition)
+        public static Item CreateItem(ItemData itemData, Vector3 position, Vector3 eulerAngles, Transform parent = null)
         {
-            IItem item = Instantiate(itemData.Model, gPosition, Quaternion.identity).GetComponent<IItem>();
+            Item item = Instantiate(itemData.Model, parent).GetComponent<Item>();
+            item.transform.localPosition = position + item.Offset;
+            item.transform.localEulerAngles = eulerAngles + item.RotAngles;
             item.Data = itemData;
-            item.Initialize();
+            item.Initialize(itemData);
             return item;
         }
+  
 
-        public static IItem CreateItem(ItemID itemId, Vector3 gPosition)
+        public static Item CreateItem(ItemID itemId, Vector3 position, Vector3 eulerAngles, Transform parent)
         {
-            if(_itemDictionary.TryGetValue(itemId, out ItemData itemData))
+            if (_itemDictionary.TryGetValue(itemId, out ItemData itemData))
             {
-                return CreateItem(itemData, gPosition);
+                return CreateItem(itemData, position, eulerAngles, parent);
             }
             Debug.LogWarning("Not found this item id.");
             return null;

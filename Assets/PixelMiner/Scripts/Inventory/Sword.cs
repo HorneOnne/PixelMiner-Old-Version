@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 namespace PixelMiner
 {
-    public class Pickaxe : Item, IUseable
+    public class Sword : Item, IUseable
     {
         public static System.Action OnItemBroken;
 
@@ -14,7 +14,6 @@ namespace PixelMiner
             base.Initialize(data);
             _remainingUses = Data.MaxUses;
         }
-
 
 
         public void Use(Player player)
@@ -30,7 +29,7 @@ namespace PixelMiner
 
 
                 // Handle item is broken.
-                if(_remainingUses == 0)
+                if (_remainingUses == 0)
                 {
                     Debug.Log($"{Data.ItemName} has been broken.");
                     Destroy(this.gameObject);
@@ -42,5 +41,7 @@ namespace PixelMiner
                 Debug.Log($"Out of uses for: {Data.ItemName}");
             }
         }
+
+
     }
 }

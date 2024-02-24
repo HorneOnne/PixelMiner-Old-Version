@@ -17,4 +17,4 @@ MonoBehaviour:
   Icon: {fileID: 21300000, guid: c768527dce146b34f83046bd63cd1c93, type: 3}
   MaxUses: 1
   MaxStack: 64
-  Model: {fileID: 0}
+  Model: {fileID: 6343593323314058632, guid: 9c493e739f50de348bec1b991fc43662, type: 3}

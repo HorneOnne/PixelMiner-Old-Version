@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using TMPro;
 using PixelMiner;
 
@@ -24,7 +25,7 @@ namespace PixelMiner.UI
 
         public void UpdateQuantity(int quantity)
         {
-            if (quantity > 0)
+            if (quantity > 1)
                 QuantityText.text = quantity.ToString();
             else
                 QuantityText.text = "";
@@ -70,6 +71,21 @@ namespace PixelMiner.UI
         {
             ItemIcon.enabled = false;
             QuantityText.text = "";
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            //Debug.Log("POinter enter");
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            //Debug.Log("Pointer exit");
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            Debug.Log("Pointer click");
         }
     }
 }

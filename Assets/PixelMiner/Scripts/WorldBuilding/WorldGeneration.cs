@@ -350,8 +350,6 @@ namespace PixelMiner.WorldBuilding
 
             //Chunk.OnChunkHasNeighbors += PropagateAmbientLight;
             //Chunk.OnChunkHasNeighbors += DrawChunk;
-
-
         }
 
         private void OnDestroy()
@@ -638,7 +636,6 @@ namespace PixelMiner.WorldBuilding
             {
                 // Mesh
                 // ----
-
                 MeshData solidVoxelMeshData = await MeshUtils.Instance.RenderSolidMesh(chunk, LightAnimCurve, isTransparentMesh: false);
                 MeshData transparentSolidMeshData = await MeshUtils.Instance.RenderSolidMesh(chunk, LightAnimCurve, isTransparentMesh: true);
                 MeshData solidNonVoxelMeshData = await MeshUtils.Instance.RenderSolidNonvoxelMesh(chunk, LightAnimCurve);

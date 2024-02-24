@@ -11,7 +11,7 @@ namespace PixelMiner.BuildHelper
         {
 #if UNITY_ANDROID && !UNITY_EDITOR
             Application.targetFrameRate = 60;
-#endif
+#endif    
         }
         private void Update()
         {
