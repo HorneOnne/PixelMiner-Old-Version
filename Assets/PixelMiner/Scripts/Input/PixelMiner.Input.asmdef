@@ -2,7 +2,8 @@
     "name": "PixelMiner.Input",
     "rootNamespace": "PixelMiner.Input",
     "references": [
-        "GUID:75469ad4d38634e559750d17036d5f7c"
+        "GUID:75469ad4d38634e559750d17036d5f7c",
+        "GUID:83a651e378233fe418e687488e563cf9"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

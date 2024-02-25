@@ -22,6 +22,8 @@ namespace PixelMiner.Physics
         [SerializeField] private float _minFallForce = -3;
         [SerializeField] private float _maxJumpForce = 10;
 
+
+        [SerializeField] private AnimationCurve _physicWaterFloatingCurve;
         private DrawBounds _drawer;
         private void Start()
         {
@@ -76,18 +78,24 @@ namespace PixelMiner.Physics
                     {
                         for (int x = minBP.x; x <= maxBP.x; x++)
                         {
-                            if (_main.GetBlock(new Vector3(x, y, z)) != BlockType.Air)
+                            BlockType currBlock = _main.GetBlock(new Vector3(x, y, z));
+                            AABB bound = GetBlockBound(new Vector3(x, y, z));
+                            if (currBlock.IsSolidVoxel())
                             {
-                                AABB bound = GetBlockBound(new Vector3(x, y, z));
-                                _drawer.AddPhysicBounds(bound, Color.red);
-                                //_bounds.Add(b);
-
+                                //_drawer.AddPhysicBounds(bound, Color.red);
                                 axis = AABBExtensions.SweepTest(dEntity.AABB, bound, new Vector3(0, dEntity.Velocity.y, 0) * Time.deltaTime, out float t,
                                     out normalX, out normalY, out normalZ);
 
                                 if (axis == -1 || t >= nearestCollisionTimeY) continue;
 
                                 nearestCollisionTimeY = t;
+                            }
+                            else if(currBlock == BlockType.Water)
+                            {
+                                AABBExtensions.AABBOverlapVolumnCheck(dEntity.AABB, bound, out float w, out float h, out float d);
+                                //dEntity.AddVelocityY(2f * dEntity.Mass * h * Time.deltaTime);
+                                dEntity.AddVelocityY(2f * dEntity.Mass * _physicWaterFloatingCurve.Evaluate(h) * Time.deltaTime);
+
                             }
                         }
                     }
@@ -101,6 +109,10 @@ namespace PixelMiner.Physics
                     {
                         dEntity.Position.y = Mathf.FloorToInt(dEntity.Position.y);
                         dEntity.OnGround = true;
+
+                        // Reset velocity at y when on ground (remove gravity force)
+                        if(dEntity.Velocity.y < 0)
+                            dEntity.Velocity.y = 0;
                     }
                    
                 }

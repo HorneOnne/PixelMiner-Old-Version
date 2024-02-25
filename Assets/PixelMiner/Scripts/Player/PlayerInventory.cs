@@ -53,37 +53,85 @@ namespace PixelMiner
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Alpha1))
+            if((_input.ControlScheme & Enums.ControlScheme.KeyboardAndMouse) != 0)
             {
-                Debug.Log("Alpha1");
-                bool success = Inventory.AddItem(ItemFactory.GetItemData(ItemID.Dirt));
-                Debug.Log($"Success: {success}");
+                if (Input.GetKeyDown(KeyCode.Alpha1))
+                {
+                    CurrentHotbarSlotIndex = 0;
+                }
+                if (Input.GetKeyDown(KeyCode.Alpha2))
+                {
+                    CurrentHotbarSlotIndex = 1;
+                }
+                if (Input.GetKeyDown(KeyCode.Alpha3))
+                {
+                    CurrentHotbarSlotIndex = 2;
+                }
+                if (Input.GetKeyDown(KeyCode.Alpha4))
+                {
+                    CurrentHotbarSlotIndex = 3;
+                }
+                if (Input.GetKeyDown(KeyCode.Alpha5))
+                {
+                    CurrentHotbarSlotIndex = 4;
+                }
+                if (Input.GetKeyDown(KeyCode.Alpha6))
+                {
+                    CurrentHotbarSlotIndex = 5;
+                }
+                if (Input.GetKeyDown(KeyCode.Alpha7))
+                {
+                    CurrentHotbarSlotIndex = 6;
+                }
+                if (Input.GetKeyDown(KeyCode.Alpha8))
+                {
+                    CurrentHotbarSlotIndex = 7;
+                }
+                if (Input.GetKeyDown(KeyCode.Alpha9))
+                {
+                    CurrentHotbarSlotIndex = 8;
+                }
+
+                if (CurrentHotbarSlotIndex != CurrentHotbarUseSlotIndex)
+                {
+                    CurrentHotbarUseSlotIndex = CurrentHotbarSlotIndex;
+                    DestroyOldItem();
+                    CreateNewItem();
+
+                    OnCurrentUseItemChanged?.Invoke();
+                }
             }
-            if (Input.GetKeyDown(KeyCode.Alpha2))
-            {
-                Debug.Log("Alpha2");
-                Inventory.AddItem(ItemFactory.GetItemData(ItemID.DirtGrass));
-            }
+            //if (Input.GetKeyDown(KeyCode.Alpha1))
+            //{
+            //    Debug.Log("Alpha1");
+            //    bool success = Inventory.AddItem(ItemFactory.GetItemData(ItemID.Dirt));
+            //    Debug.Log($"Success: {success}");
+            //}
+            //if (Input.GetKeyDown(KeyCode.Alpha2))
+            //{
+            //    Debug.Log("Alpha2");
+            //    Inventory.AddItem(ItemFactory.GetItemData(ItemID.DirtGrass));
+            //}
 
 
 
-            if(_input.AccessHorbarInventory == -1)
+            if(_input.InventoryDirectional.y == -1)
             {
                 OpenHotbarInventory = true;
             }
-            else if(_input.AccessHorbarInventory == 1)
+            else if(_input.InventoryDirectional.y == 1)
             {
                 OpenHotbarInventory = false;
             }
             if (_canDirectionalHotbar && OpenHotbarInventory)
             {
-                if (_input.DirectionalHorbarInventory == 1)
+                if (_input.InventoryDirectional.x == 1)
                 {
                     Next();
                     _canDirectionalHotbar = false;
                     Invoke(nameof(ResetDirectionalHotbar), 0.2f);
                 }
-                else if (_input.DirectionalHorbarInventory == -1)
+                else if (_input.InventoryDirectional.x == -1)
                 {
                     Previous();
                     _canDirectionalHotbar = false;
@@ -95,17 +143,13 @@ namespace PixelMiner
 
             if (CurrentHotbarSlotIndex != CurrentHotbarUseSlotIndex && 
                 CurrentHotbarSlotIndex != -1 && 
-                _input.AccessHorbarInventory == 1)
+                _input.InventoryDirectional.y == 1)
             {
                 CurrentHotbarUseSlotIndex = CurrentHotbarSlotIndex;
 
 
-                DestroyOldItemObject();
-                ItemSlot currentSlot = Inventory.Slots[CurrentHotbarUseSlotIndex];
-                if (currentSlot != null && currentSlot.ItemData != null && currentSlot.ItemData.Model != null)
-                {
-                    _currentItem = CreateNewItemObject(currentSlot.ItemData);
-                }
+                DestroyOldItem();
+                CreateNewItem();
 
                 OnCurrentUseItemChanged?.Invoke();
             }
@@ -140,7 +184,7 @@ namespace PixelMiner
             }        
         }
 
-        private void DestroyOldItemObject()
+        private void DestroyOldItem()
         {
             if (_currentItem != null)
             {
@@ -148,11 +192,23 @@ namespace PixelMiner
                 _currentItem = null;
             }
         }
+        private void CreateNewItem()
+        {
+            ItemSlot currentSlot = Inventory.Slots[CurrentHotbarUseSlotIndex];
+            if (currentSlot != null && currentSlot.ItemData != null && currentSlot.ItemData.Model != null)
+            {
+                _currentItem = CreateNewItemObject(currentSlot.ItemData);
+            }
+        }
+
+
         private Item CreateNewItemObject(ItemData itemData)
         {
             Item item = ItemFactory.CreateItem(itemData, Vector3.zero, Vector3.zero, _rightHand);
             return item; 
         }
+
+     
 
 
     }

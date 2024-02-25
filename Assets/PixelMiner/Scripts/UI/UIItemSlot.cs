@@ -2,12 +2,14 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
-using PixelMiner;
+using PixelMiner.Enums;
 
 namespace PixelMiner.UI
 {
-    public class UIItemSlot : MonoBehaviour
+    public class UIItemSlot : MonoBehaviour, IPointerClickHandler
     {
+        public static event System.Action<int> OnSlotClicked;
+
         [Header("References")]
         public Image Background;
         public Image Border;
@@ -16,6 +18,15 @@ namespace PixelMiner.UI
         public Image ItemIcon;
         public TextMeshProUGUI QuantityText;
 
+        public int IndexOfInventory { get; private set; }
+        public InventoryID InventoryID { get; private set; }
+
+        public void Initialized(int slotIndex, InventoryID inventoryID)
+        {
+            IndexOfInventory = slotIndex;
+            InventoryID = inventoryID;
+         
+        }
 
         public void UpdateSlot(ItemSlot item)
         {
@@ -23,7 +34,7 @@ namespace PixelMiner.UI
             UpdateQuantity(item.Quantity);
         }
 
-        public void UpdateQuantity(int quantity)
+        private void UpdateQuantity(int quantity)
         {
             if (quantity > 1)
                 QuantityText.text = quantity.ToString();
@@ -31,7 +42,7 @@ namespace PixelMiner.UI
                 QuantityText.text = "";
         }
 
-        public void UpdateIcon(ItemSlot item)
+        private void UpdateIcon(ItemSlot item)
         {
             if (item.ItemData == null)
             {
@@ -85,7 +96,8 @@ namespace PixelMiner.UI
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            Debug.Log("Pointer click");
+            OnSlotClicked?.Invoke(IndexOfInventory);
+            Debug.Log($"Pointer click: {IndexOfInventory}  {InventoryID}");
         }
     }
 }

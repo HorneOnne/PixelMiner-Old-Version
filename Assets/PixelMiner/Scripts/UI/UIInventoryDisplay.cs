@@ -24,7 +24,8 @@ namespace PixelMiner.UI
         [SerializeField] private Transform _bagHotbbarSlotsParent;
         [SerializeField] private Transform _bagSlotsParent;
 
-
+        [SerializeField] private UIItemHold _uiItemHold;
+        private ItemSlot _currentHoldItemSlot;
 
         private void Awake()
         {
@@ -37,8 +38,8 @@ namespace PixelMiner.UI
             _pInventory = Player.PlayerInventory;
             if (Player != null)
             {
-                //InitializeHotbar();
-                InitializeInventory();
+                InitializeHotbar();
+                //InitializeInventory();
                 UpdateInventory();
             }
             else
@@ -55,6 +56,9 @@ namespace PixelMiner.UI
         private void Update()
         {
             UpdateInventory();
+
+
+            //UpdateHoldItemVisual();
         }
 
         private void OnDestroy()
@@ -67,31 +71,35 @@ namespace PixelMiner.UI
         {
             for (int i = 0; i < PlayerInventory.WIDTH; i++)
             {
-                HotbarSlots.Add(Instantiate(_uiSlotPrefab, _hotbbarSlotsParent));
+                var uiItemSlot = Instantiate(_uiSlotPrefab, _hotbbarSlotsParent);
+                uiItemSlot.Initialized(i, Enums.InventoryID.Hotbars);
+                HotbarSlots.Add(uiItemSlot);
             }
         }
 
-        private void InitializeInventory()
-        {
-            // Hotbar
-            InitializeHotbar();
+        //private void InitializeInventory()
+        //{
+        //    // Hotbar
+        //    InitializeHotbar();
 
-            // Bag
-            for (int i = 0; i < _pInventory.Inventory.Slots.Count; i++)
-            {
-                // Hotbar in bag
-                if(i < PlayerInventory.WIDTH)
-                {
-                    InBagSlots.Add(Instantiate(_uiSlotPrefab, _bagHotbbarSlotsParent));
-                }
-                else
-                {
-                    // bag
-                    InBagSlots.Add(Instantiate(_uiSlotPrefab, _bagSlotsParent));
-                }
+        //    // Bag
+        //    for (int i = 0; i < _pInventory.Inventory.Slots.Count; i++)
+        //    {
+        //        // Hotbar in bag
+        //        if(i < PlayerInventory.WIDTH)
+        //        {
+        //            var uiItemSlot = Instantiate(_uiSlotPrefab, _bagHotbbarSlotsParent);
+        //            uiItemSlot.Initialized(i);
+        //            InBagSlots.Add(uiItemSlot);
+        //        }
+        //        else
+        //        {
+        //            // bag
+        //            InBagSlots.Add(Instantiate(_uiSlotPrefab, _bagSlotsParent));
+        //        }
                
-            }
-        }
+        //    }
+        //}
 
         public void UpdateInventory()
         {
@@ -127,5 +135,10 @@ namespace PixelMiner.UI
             }
         }
 
+
+        public void UpdateHoldItemVisual()
+        {
+            _uiItemHold.UpdateSlot(_currentHoldItemSlot);
+        }
     }
 }

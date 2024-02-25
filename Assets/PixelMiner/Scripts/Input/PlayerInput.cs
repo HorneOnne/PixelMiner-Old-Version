@@ -102,19 +102,10 @@ namespace PixelMiner
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""InventoryHotbar"",
+                    ""name"": ""InventoryDirectional"",
                     ""type"": ""Value"",
-                    ""id"": ""77ffcae2-5da5-4cd6-9d2c-1ef1c1e577fe"",
-                    ""expectedControlType"": ""Axis"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": true
-                },
-                {
-                    ""name"": ""InventoryHotbarDirectional"",
-                    ""type"": ""Value"",
-                    ""id"": ""5fa7f5d4-be69-4e7c-a0b7-c7c876c25442"",
-                    ""expectedControlType"": ""Axis"",
+                    ""id"": ""3fa55f16-6308-4dfc-a015-7e754bcffe42"",
+                    ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
@@ -441,72 +432,6 @@ namespace PixelMiner
                     ""isPartOfComposite"": false
                 },
                 {
-                    ""name"": ""Open/Close"",
-                    ""id"": ""a0a34ab0-4371-437b-bc03-120af4a42870"",
-                    ""path"": ""1DAxis"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""InventoryHotbar"",
-                    ""isComposite"": true,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""negative"",
-                    ""id"": ""a62b7996-3d29-4610-aeac-440c519b86f6"",
-                    ""path"": ""<Gamepad>/dpad/down"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard&Mouse"",
-                    ""action"": ""InventoryHotbar"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""positive"",
-                    ""id"": ""e119352e-525f-45a1-8a3a-b83da4817803"",
-                    ""path"": ""<Gamepad>/dpad/up"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard&Mouse"",
-                    ""action"": ""InventoryHotbar"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""Left/Right"",
-                    ""id"": ""575c0f21-d880-4fae-9de8-323ba984e190"",
-                    ""path"": ""1DAxis"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""InventoryHotbarDirectional"",
-                    ""isComposite"": true,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""negative"",
-                    ""id"": ""2436d8b6-3b0b-48da-8825-baa5869bd9cc"",
-                    ""path"": ""<Gamepad>/dpad/left"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard&Mouse"",
-                    ""action"": ""InventoryHotbarDirectional"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""positive"",
-                    ""id"": ""05ccdce4-9065-47b6-9204-b5c1a59d7a1a"",
-                    ""path"": ""<Gamepad>/dpad/right"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard&Mouse"",
-                    ""action"": ""InventoryHotbarDirectional"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
                     ""name"": """",
                     ""id"": ""e7c07eb2-439e-4d83-844d-8c35f0bd2129"",
                     ""path"": ""<Gamepad>/leftTrigger"",
@@ -516,6 +441,61 @@ namespace PixelMiner
                     ""action"": ""Fire0"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""DPad"",
+                    ""id"": ""15fd9c95-c97a-410d-8e95-0114233d520b"",
+                    ""path"": ""2DVector"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""InventoryDirectional"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""up"",
+                    ""id"": ""4f3319eb-1704-4ecc-9fa7-3e85345af8ce"",
+                    ""path"": ""<Gamepad>/dpad/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""InventoryDirectional"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""down"",
+                    ""id"": ""32d974a1-556d-480d-b6bd-4e6f41e5e6d5"",
+                    ""path"": ""<Gamepad>/dpad/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""InventoryDirectional"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""left"",
+                    ""id"": ""f5fc23f8-2a51-493f-bcc2-da9120fe88d8"",
+                    ""path"": ""<Gamepad>/dpad/left"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""InventoryDirectional"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""right"",
+                    ""id"": ""4d56dc06-8485-44fc-9fc8-8ac4f209e886"",
+                    ""path"": ""<Gamepad>/dpad/right"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""InventoryDirectional"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
                 }
             ]
         },
@@ -1109,8 +1089,7 @@ namespace PixelMiner
             m_Player_Cancel = m_Player.FindAction("Cancel", throwIfNotFound: true);
             m_Player_Rotate = m_Player.FindAction("Rotate", throwIfNotFound: true);
             m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
-            m_Player_InventoryHotbar = m_Player.FindAction("InventoryHotbar", throwIfNotFound: true);
-            m_Player_InventoryHotbarDirectional = m_Player.FindAction("InventoryHotbarDirectional", throwIfNotFound: true);
+            m_Player_InventoryDirectional = m_Player.FindAction("InventoryDirectional", throwIfNotFound: true);
             // UI
             m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
             m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1192,8 +1171,7 @@ namespace PixelMiner
         private readonly InputAction m_Player_Cancel;
         private readonly InputAction m_Player_Rotate;
         private readonly InputAction m_Player_Jump;
-        private readonly InputAction m_Player_InventoryHotbar;
-        private readonly InputAction m_Player_InventoryHotbarDirectional;
+        private readonly InputAction m_Player_InventoryDirectional;
         public struct PlayerActions
         {
             private @PlayerInput m_Wrapper;
@@ -1206,8 +1184,7 @@ namespace PixelMiner
             public InputAction @Cancel => m_Wrapper.m_Player_Cancel;
             public InputAction @Rotate => m_Wrapper.m_Player_Rotate;
             public InputAction @Jump => m_Wrapper.m_Player_Jump;
-            public InputAction @InventoryHotbar => m_Wrapper.m_Player_InventoryHotbar;
-            public InputAction @InventoryHotbarDirectional => m_Wrapper.m_Player_InventoryHotbarDirectional;
+            public InputAction @InventoryDirectional => m_Wrapper.m_Player_InventoryDirectional;
             public InputActionMap Get() { return m_Wrapper.m_Player; }
             public void Enable() { Get().Enable(); }
             public void Disable() { Get().Disable(); }
@@ -1241,12 +1218,9 @@ namespace PixelMiner
                 @Jump.started += instance.OnJump;
                 @Jump.performed += instance.OnJump;
                 @Jump.canceled += instance.OnJump;
-                @InventoryHotbar.started += instance.OnInventoryHotbar;
-                @InventoryHotbar.performed += instance.OnInventoryHotbar;
-                @InventoryHotbar.canceled += instance.OnInventoryHotbar;
-                @InventoryHotbarDirectional.started += instance.OnInventoryHotbarDirectional;
-                @InventoryHotbarDirectional.performed += instance.OnInventoryHotbarDirectional;
-                @InventoryHotbarDirectional.canceled += instance.OnInventoryHotbarDirectional;
+                @InventoryDirectional.started += instance.OnInventoryDirectional;
+                @InventoryDirectional.performed += instance.OnInventoryDirectional;
+                @InventoryDirectional.canceled += instance.OnInventoryDirectional;
             }
 
             private void UnregisterCallbacks(IPlayerActions instance)
@@ -1275,12 +1249,9 @@ namespace PixelMiner
                 @Jump.started -= instance.OnJump;
                 @Jump.performed -= instance.OnJump;
                 @Jump.canceled -= instance.OnJump;
-                @InventoryHotbar.started -= instance.OnInventoryHotbar;
-                @InventoryHotbar.performed -= instance.OnInventoryHotbar;
-                @InventoryHotbar.canceled -= instance.OnInventoryHotbar;
-                @InventoryHotbarDirectional.started -= instance.OnInventoryHotbarDirectional;
-                @InventoryHotbarDirectional.performed -= instance.OnInventoryHotbarDirectional;
-                @InventoryHotbarDirectional.canceled -= instance.OnInventoryHotbarDirectional;
+                @InventoryDirectional.started -= instance.OnInventoryDirectional;
+                @InventoryDirectional.performed -= instance.OnInventoryDirectional;
+                @InventoryDirectional.canceled -= instance.OnInventoryDirectional;
             }
 
             public void RemoveCallbacks(IPlayerActions instance)
@@ -1471,8 +1442,7 @@ namespace PixelMiner
             void OnCancel(InputAction.CallbackContext context);
             void OnRotate(InputAction.CallbackContext context);
             void OnJump(InputAction.CallbackContext context);
-            void OnInventoryHotbar(InputAction.CallbackContext context);
-            void OnInventoryHotbarDirectional(InputAction.CallbackContext context);
+            void OnInventoryDirectional(InputAction.CallbackContext context);
         }
         public interface IUIActions
         {

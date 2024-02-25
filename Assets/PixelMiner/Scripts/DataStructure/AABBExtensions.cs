@@ -58,7 +58,7 @@ namespace PixelMiner.DataStructure
             {
                 xTimeEntry = xEntry / Mathf.Abs(vel.x);
                 xTimeExit = xExit / Mathf.Abs(vel.x);
-               // Debug.Log("B");
+                // Debug.Log("B");
             }
 
             if (vel.y == 0.0f)
@@ -110,7 +110,7 @@ namespace PixelMiner.DataStructure
                 // Calculate normal of collided surface
                 if (xTimeEntry > yTimeEntry)
                 {
-                    if(xTimeEntry > zTimeEntry)
+                    if (xTimeEntry > zTimeEntry)
                     {
                         if (xEntry < 0.0f)
                         {
@@ -127,7 +127,7 @@ namespace PixelMiner.DataStructure
                     }
                     else
                     {
-                        if(zEntry < 0.0f)
+                        if (zEntry < 0.0f)
                         {
                             normalX = 0.0f;
                             normalY = 0.0f;
@@ -140,11 +140,11 @@ namespace PixelMiner.DataStructure
                             normalZ = -1.0f;
                         }
                     }
-                   
+
                 }
                 else
                 {
-                    if(yTimeEntry > zTimeEntry)
+                    if (yTimeEntry > zTimeEntry)
                     {
                         if (yEntry < 0.0f)
                         {
@@ -174,7 +174,7 @@ namespace PixelMiner.DataStructure
                             normalZ = -1.0f;
                         }
                     }
-                   
+
                 }
             }   // return the time of collision return entryTime
 
@@ -193,12 +193,12 @@ namespace PixelMiner.DataStructure
             //rel.d = (dynamicBox.z + dynamicBox.d) - staticBox.z;
 
             float xEntry, yEntry, zEntry;
-            float xExit, yExit, zExit;  
+            float xExit, yExit, zExit;
 
             float xTimeEntry, yTimeEntry, zTimeEntry;
             float xTimeExit, yTimeExit, zTimeExit;
 
-            if(vel.x > 0)
+            if (vel.x > 0)
             {
                 xEntry = staticBox.x - (dynamicBox.x + dynamicBox.w);
                 xExit = (staticBox.x + staticBox.w) - dynamicBox.x;
@@ -209,7 +209,7 @@ namespace PixelMiner.DataStructure
                 xExit = staticBox.x - (dynamicBox.x + dynamicBox.w);
             }
 
-            if(vel.y > 0)
+            if (vel.y > 0)
             {
                 yEntry = staticBox.y - (dynamicBox.y + dynamicBox.h);
                 yExit = (staticBox.y + staticBox.h) - dynamicBox.y;
@@ -220,7 +220,7 @@ namespace PixelMiner.DataStructure
                 yExit = staticBox.y - (dynamicBox.y + dynamicBox.h);
             }
 
-            if(vel.z > 0)
+            if (vel.z > 0)
             {
                 zEntry = staticBox.z - (dynamicBox.z + dynamicBox.d);
                 zExit = (staticBox.z + staticBox.d) - dynamicBox.z;
@@ -232,7 +232,7 @@ namespace PixelMiner.DataStructure
             }
 
 
-            if(vel.x == 0)
+            if (vel.x == 0)
             {
                 xTimeEntry = float.NegativeInfinity;
                 xTimeExit = float.PositiveInfinity;
@@ -243,7 +243,7 @@ namespace PixelMiner.DataStructure
                 xTimeExit = xExit / vel.x;
             }
 
-            if(vel.y == 0)
+            if (vel.y == 0)
             {
                 yTimeEntry = float.NegativeInfinity;
                 yTimeExit = float.PositiveInfinity;
@@ -254,7 +254,7 @@ namespace PixelMiner.DataStructure
                 yTimeExit = yExit / vel.y;
             }
 
-            if(vel.z == 0)
+            if (vel.z == 0)
             {
                 zTimeEntry = float.NegativeInfinity;
                 zTimeExit = float.PositiveInfinity;
@@ -266,7 +266,7 @@ namespace PixelMiner.DataStructure
             }
 
 
- 
+
             //Debug.Log($"TimeEntry: {xTimeEntry}  {zTimeEntry}");
 
             time = Mathf.Max(xTimeEntry, yTimeEntry, zTimeEntry);
@@ -274,8 +274,8 @@ namespace PixelMiner.DataStructure
 
 
             //Debug.Log($"{xTimeEntry} {yTimeEntry} {zTimeEntry}");
-   
-            if(time > timeExit || (xTimeEntry < 0 && yTimeEntry < 0 && zTimeEntry < 0) || xTimeEntry > 1.0f || yTimeEntry > 1.0f || zTimeEntry > 1.0f)
+
+            if (time > timeExit || (xTimeEntry < 0 && yTimeEntry < 0 && zTimeEntry < 0) || xTimeEntry > 1.0f || yTimeEntry > 1.0f || zTimeEntry > 1.0f)
             {
                 // No collision
                 normalX = 0.0f;
@@ -285,12 +285,12 @@ namespace PixelMiner.DataStructure
             }
             else
             {
-                if(xTimeEntry > yTimeEntry)
+                if (xTimeEntry > yTimeEntry)
                 {
                     if (xTimeEntry > zTimeEntry)
                     {
                         // X
-                        if(xEntry < 0)
+                        if (xEntry < 0)
                         {
                             normalX = 1.0f;
                             normalY = 0.0f;
@@ -361,124 +361,7 @@ namespace PixelMiner.DataStructure
                 }
             }
         }
-        public static int SweepTest2(AABB dynamicBox, AABB staticBox, Vector3 vel, out float dtime)
-        {
-            // find distance between objects on near and far sides
-            float invEntrX;
-            float invEntrY;
-            float invEntrZ;
-            float invExitX;
-            float invExitY;
-            float invExitZ;
 
-            if (vel.x > 0.0f)
-            {
-                invEntrX = staticBox.x - dynamicBox.x + dynamicBox.w;
-                invExitX = staticBox.x + staticBox.w - dynamicBox.x;
-            }
-            else
-            {
-                invEntrX = staticBox.x + staticBox.w - dynamicBox.x;
-                invExitX = staticBox.x - dynamicBox.x + dynamicBox.w;
-            }
-            if (vel.y > 0.0f)
-            {
-                invEntrY = staticBox.y - dynamicBox.y + dynamicBox.h;
-                invExitY = staticBox.y + staticBox.h - dynamicBox.y;
-            }
-            else
-            {
-                invEntrY = staticBox.y + staticBox.h - dynamicBox.y;
-                invExitY = staticBox.y - dynamicBox.y + dynamicBox.h;
-            }
-            if (vel.z > 0.0f)
-            {
-                invEntrZ = staticBox.z - dynamicBox.z + dynamicBox.d;
-                invExitZ = staticBox.z + staticBox.d - dynamicBox.z;
-            }
-            else
-            {
-                invEntrZ = staticBox.z + staticBox.d - dynamicBox.z;
-                invExitZ = staticBox.z - dynamicBox.z + dynamicBox.d;
-            }
-
-            float entrX;
-            float entrY;
-            float entrZ;
-            float exitX;
-            float exitY;
-            float exitZ;
-
-            if (vel.x == 0.0f)
-            {
-                entrX = float.NegativeInfinity;
-                exitX = float.PositiveInfinity;
-            }
-            else
-            {
-                entrX = invEntrX / vel.x;
-                exitX = invExitX / vel.x;
-            }
-            if (vel.y == 0.0f)
-            {
-                entrY = float.NegativeInfinity;
-                exitY = float.PositiveInfinity;
-            }
-            else
-            {
-                entrY = invEntrY / vel.y;
-                exitY = invExitY / vel.y;
-            }
-            if (vel.z == 0.0f)
-            {
-                entrZ = float.NegativeInfinity;
-                exitZ = float.PositiveInfinity;
-            }
-            else
-            {
-                entrZ = invEntrZ / vel.z;
-                exitZ = invExitZ / vel.z;
-            }
-
-            
-
-
-            float entrTime = Mathf.Max(entrX, Mathf.Max(entrY, entrZ));
-            float exitTime = Mathf.Min(exitX, Mathf.Min(exitY, exitZ));
-
-            dtime = entrTime;
-            // check if no collision
-            if (entrTime > exitTime ||
-                entrX < 0.0f && entrY < 0.0f && entrZ < 0.0f ||
-                entrX > 1.0f || entrY > 1.0f || entrZ > 1.0f)
-            {
-                return -1;
-            }
-
-            if (entrX > entrY)
-            {
-                if (entrX > entrZ)
-                {
-                    return 0;
-                }
-                else
-                {
-                    return 2;
-                }
-            }
-            else
-            {
-                if (entrY > entrZ)
-                {
-                    return 1;
-                }
-                else
-                {
-                    return 2;
-                }
-            }
-
-        }
 
 
 
@@ -498,11 +381,29 @@ namespace PixelMiner.DataStructure
             return broadphasebox;
         }
 
-        public static bool AABBCheck(AABB b1, AABB b2)
+        public static bool AABBOverlapCheck(AABB b1, AABB b2)
         {
-            return !(b1.x + b1.w < b2.x || b1.x > b2.x + b2.w || 
+            return !(b1.x + b1.w < b2.x || b1.x > b2.x + b2.w ||
                     b1.y + b1.h < b2.y || b1.y > b2.y + b2.h ||
                     b1.z + b1.d < b2.z || b1.z > b2.z + b2.d);
+        }
+
+        public static void AABBOverlapVolumnCheck(AABB box1, AABB box2, out float w, out float h, out float d)
+        {
+            // Compute overlapping interval along the X-axis
+            float xMin = Mathf.Max(box1.x, box2.x);
+            float xMax = Mathf.Min(box1.x + box1.w, box2.x + box2.w);
+            w = Mathf.Max(0, xMax - xMin);
+
+            // Compute overlapping interval along the Y-axis
+            float yMin = Mathf.Max(box1.y, box2.y);
+            float yMax = Mathf.Min(box1.y + box1.h, box2.y + box2.h);
+            h = Mathf.Max(0, yMax - yMin);
+
+            // Compute overlapping interval along the Z-axis
+            float zMin = Mathf.Max(box1.z, box2.z);
+            float zMax = Mathf.Min(box1.z + box1.d, box2.z + box2.d);
+            d = Mathf.Max(0, zMax - zMin);
         }
     }
 }

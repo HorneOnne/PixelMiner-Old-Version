@@ -38,9 +38,7 @@ namespace PixelMiner
 
 
         // Physics
-        [SerializeField] private Vector3 _gravity;
-        //[SerializeField] private AABB _entity.AABB;
-        private DynamicEntity _entity;
+        [SerializeField] private DynamicEntity _entity;
         public bool Simulate = false;
         [SerializeField] private float _jumpForce;
         [SerializeField] private float _mass;
@@ -240,10 +238,7 @@ namespace PixelMiner
         }
 
 
-        private void ApplyGravity()
-        {
-            transform.position += _gravity * UnityEngine.Time.deltaTime;
-        }
+
 
         private void AssignAnimationIDs()
         {

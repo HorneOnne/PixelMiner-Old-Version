@@ -3,6 +3,7 @@ using PixelMiner.DataStructure;
 
 namespace PixelMiner.Physics
 {
+    [System.Serializable]
     public class DynamicEntity
     {
         public Transform Transform;

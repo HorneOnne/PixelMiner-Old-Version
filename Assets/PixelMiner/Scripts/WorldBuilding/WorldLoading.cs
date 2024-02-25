@@ -86,8 +86,11 @@ namespace PixelMiner.WorldBuilding
                     {
                         _finishLoadChunk = false;
                         LastChunkFrame = _currentFrame;
-                        LoadChunkAroundAysnc();
-
+                        //LoadChunkAroundAysnc();
+                        await LoadChunksAroundPositionTask(LastChunkFrame.x, LastChunkFrame.y, LastChunkFrame.z,
+                                                         offsetWidth: LoadChunkOffsetWidth,
+                                                         offsetHeight: LoadChunkOffsetHeight,
+                                                         offsetDepth: LoadChunkOffsetDepth);
                         OnFirstLoadChunks?.Invoke();
                     }
                 }

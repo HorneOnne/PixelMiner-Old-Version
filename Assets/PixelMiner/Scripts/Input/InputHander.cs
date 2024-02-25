@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using PixelMiner.Enums;
 namespace PixelMiner
 {
     public class InputHander : MonoBehaviour
@@ -21,15 +22,16 @@ namespace PixelMiner
         public float Rot;
         public bool Jump;
 
+        public Vector2 InventoryDirectional;
 
-        public float DirectionalHorbarInventory;
-        public float AccessHorbarInventory;
 
+        public Enums.ControlScheme ControlScheme;
 
         private void Awake()
         {
             Instance = this;
             playerInput = new PlayerInput();
+            ControlScheme = Enums.ControlScheme.KeyboardAndMouse | Enums.ControlScheme.Controller;
 
             playerInput.Player.Move.started += x => { Move = x.ReadValue<Vector2>().normalized; };
             playerInput.Player.Move.performed += x => { Move = x.ReadValue<Vector2>().normalized; };
@@ -68,14 +70,11 @@ namespace PixelMiner
             playerInput.Player.Jump.canceled += x => { Jump = x.ReadValue<float>() == 1 ? true : false; };
 
 
-            playerInput.Player.InventoryHotbarDirectional.started += x => { DirectionalHorbarInventory = x.ReadValue<float>(); };
-            playerInput.Player.InventoryHotbarDirectional.performed += x => { DirectionalHorbarInventory = x.ReadValue<float>(); };
-            playerInput.Player.InventoryHotbarDirectional.canceled += x => { DirectionalHorbarInventory = x.ReadValue<float>(); };
+            playerInput.Player.InventoryDirectional.started += x => { InventoryDirectional = x.ReadValue<Vector2>(); };
+            playerInput.Player.InventoryDirectional.performed += x => { InventoryDirectional = x.ReadValue<Vector2>(); };
+            playerInput.Player.InventoryDirectional.canceled += x => { InventoryDirectional = x.ReadValue<Vector2>(); };
 
 
-            playerInput.Player.InventoryHotbar.started += x => { AccessHorbarInventory = x.ReadValue<float>(); };
-            playerInput.Player.InventoryHotbar.performed += x => { AccessHorbarInventory = x.ReadValue<float>(); };
-            playerInput.Player.InventoryHotbar.canceled += x => { AccessHorbarInventory = x.ReadValue<float>(); };
 
 
             playerInput.Player.Rotate.performed += OnRotatePerformed;
