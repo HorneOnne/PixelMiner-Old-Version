@@ -80,7 +80,7 @@ namespace PixelMiner.Physics
                         {
                             BlockType currBlock = _main.GetBlock(new Vector3(x, y, z));
                             AABB bound = GetBlockBound(new Vector3(x, y, z));
-                            if (currBlock.IsSolidVoxel())
+                            if (currBlock.IsSolidVoxel() || currBlock.IsTransparentVoxel())
                             {
                                 //_drawer.AddPhysicBounds(bound, Color.red);
                                 axis = AABBExtensions.SweepTest(dEntity.AABB, bound, new Vector3(0, dEntity.Velocity.y, 0) * Time.deltaTime, out float t,
@@ -138,12 +138,11 @@ namespace PixelMiner.Physics
                     {
                         for (int x = minBP.x; x <= maxBP.x; x++)
                         {
-                            if (_main.GetBlock(new Vector3(x, y, z)) != BlockType.Air && z < (dEntity.AABB.z + dEntity.AABB.d))
+                            BlockType currBlock = _main.GetBlock(new Vector3(x, y, z));
+                            AABB bound = GetBlockBound(new Vector3(x, y, z));
+                            if (currBlock.IsSolidVoxel() || currBlock.IsTransparentVoxel() && z < (dEntity.AABB.z + dEntity.AABB.d))
                             {   
-                                AABB bound = GetBlockBound(new Vector3(x, y, z));
-                                _drawer.AddPhysicBounds(bound, Color.red);
-                                //_bounds.Add(b);
-
+                                //_drawer.AddPhysicBounds(bound, Color.red);
                                 axis = AABBExtensions.SweepTest(dEntity.AABB, bound, new Vector3(dEntity.Velocity.x, 0, 0) * Time.deltaTime, out float t,
                                     out normalX, out normalY, out normalZ);
 
@@ -180,12 +179,12 @@ namespace PixelMiner.Physics
                     {
                         for (int x = minBP.x; x <= maxBP.x; x++)
                         {
-                            if (_main.GetBlock(new Vector3(x, y, z)) != BlockType.Air && x < (dEntity.AABB.x + dEntity.AABB.w))
+                            BlockType currBlock = _main.GetBlock(new Vector3(x, y, z));
+                            AABB bound = GetBlockBound(new Vector3(x, y, z));
+                            if (currBlock.IsSolidVoxel() || currBlock.IsTransparentVoxel() && x < (dEntity.AABB.x + dEntity.AABB.w))
                             {
-                                AABB bound = GetBlockBound(new Vector3(x, y, z));
-                                _drawer.AddPhysicBounds(bound, Color.red);
-                                //_bounds.Add(b);
-
+                                //_drawer.AddPhysicBounds(bound, Color.red);
+     
                                 axis = AABBExtensions.SweepTest(dEntity.AABB, bound, new Vector3(0, 0, dEntity.Velocity.z) * Time.deltaTime, out float t,
                                     out normalX, out normalY, out normalZ);
 
@@ -243,13 +242,6 @@ namespace PixelMiner.Physics
             }
         }
 
-        private void LateUpdate()
-        {
-            //for (int i = 0; i < _dynamicEntities.Count; i++)
-            //{
-            //    _dynamicEntities[i].SetVelocity(Vector3.zero);
-            //}
-        }
 
 
         private void ApplyGravity(DynamicEntity entity, float collisionTime)

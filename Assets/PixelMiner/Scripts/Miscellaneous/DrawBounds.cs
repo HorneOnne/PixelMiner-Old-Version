@@ -9,8 +9,9 @@ namespace PixelMiner.Miscellaneous
 {
     public class DrawBounds : MonoBehaviour
     {
-        public static DrawBounds Instance { get; private set; } 
+        public static DrawBounds Instance { get; private set; }
 
+        private CommandBuffer _commandBuffer;
         public Material LineMat;
 
         private List<Bounds> _bounds = new List<Bounds>();
@@ -23,6 +24,7 @@ namespace PixelMiner.Miscellaneous
         private Vector3[] _v = new Vector3[8];
 
 
+
         private void Awake()
         {
             Instance = this;
@@ -30,29 +32,34 @@ namespace PixelMiner.Miscellaneous
         }
 
 
-        private void OnEnable()
-        {
-            RenderPipelineManager.endCameraRendering += RenderPipelineManager_endCameraRendering;
-        }
 
-        private void OnDisable()
-        {
-            RenderPipelineManager.endCameraRendering -= RenderPipelineManager_endCameraRendering;
-        }
 
-        private void RenderPipelineManager_endCameraRendering(ScriptableRenderContext context, Camera camera)
-        {
-            //Debug.Log(camera.name);
-            OnPostRender();
-        }
+        //private void OnEnable()
+        //{
+        //    RenderPipelineManager.endCameraRendering += RenderPipelineManager_endCameraRendering;
+        //}
+
+    
+
+        //private void OnDisable()
+        //{
+        //    RenderPipelineManager.endCameraRendering -= RenderPipelineManager_endCameraRendering;
+        //}
+
+        //private void RenderPipelineManager_endCameraRendering(ScriptableRenderContext context, Camera camera)
+        //{
+
+        //}
+
+ 
+
         private void Update()
         {
             Clear();
         }
 
-
-        private void OnPostRender()
-        {  
+        private void OnRenderObject()
+        {
             for (int bc = 0; bc < _bounds.Count; ++bc)
             {
                 Bounds b = _bounds[bc];
@@ -118,6 +125,8 @@ namespace PixelMiner.Miscellaneous
             GL.PopMatrix();
         }
 
+
+
         public void AddBounds(Bounds b, Color c)
         {
             _bounds.Add(b);
@@ -167,16 +176,7 @@ namespace PixelMiner.Miscellaneous
         }
 
 
-        private void DrawLineSegment(Vector3 start, Vector3 end)
-        {
-            GL.PushMatrix();
-            LineMat.SetPass(0);
-            GL.Begin(GL.LINES);
-            GL.Vertex(start);
-            GL.Vertex(end);
-            GL.End();
-            GL.PopMatrix();
-        }
+  
 
         private void OnApplicationQuit()
         {
@@ -185,4 +185,5 @@ namespace PixelMiner.Miscellaneous
 #endif
         }
     }
+
 }
