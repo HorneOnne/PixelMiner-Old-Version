@@ -4,7 +4,6 @@ using PixelMiner.WorldBuilding;
 using PixelMiner.Enums;
 using PixelMiner.Core;
 using System.Threading.Tasks;
-using PixelMiner.World;
 using PixelMiner.Cam;
 
 namespace PixelMiner.WorldInteraction

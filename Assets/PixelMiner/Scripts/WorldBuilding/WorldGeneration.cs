@@ -7,7 +7,6 @@ using Sirenix.OdinInspector;
 using PixelMiner.Utilities;
 using PixelMiner.Enums;
 using PixelMiner.Core;
-using PixelMiner.World;
 using TMPro;
 using System.Collections;
 using System.Linq;
@@ -2160,46 +2159,6 @@ namespace PixelMiner.WorldBuilding
         {
             return (noiseValue - oldMin) * (newMax - newMin) / (oldMax - oldMin) + newMin;
         }
-        #endregion
-
-
-
-
-
-
-
-
-        #region ALGORITHM
-        // Use to detect block that has height > 1. like(door, tall grass, cactus,...)
-        // This method only check downward
-        public int GetBlockHeightFromOrigin(Chunk chunk, Vector3Int relativePosition)
-        {
-            int heightFromOrigin = 0;   // At origin
-            int attempt = 0;
-            BlockType blockNeedCheck = chunk.GetBlock(relativePosition);
-            Vector3Int currBlockPos = relativePosition;
-            while (true)
-            {
-                Vector3Int nextRelativePosition = new Vector3Int(currBlockPos.x, currBlockPos.y - 1, currBlockPos.z);
-                if (blockNeedCheck == chunk.GetBlock(nextRelativePosition))
-                {
-                    currBlockPos = nextRelativePosition;
-                    heightFromOrigin++;
-                }
-                else
-                {
-                    break;
-                }
-
-                if (attempt++ > 100)
-                {
-                    Debug.Log("Infinite loop");
-                    break;
-                }
-            }
-            return heightFromOrigin;
-        }
-
         #endregion
     }
 

@@ -2,9 +2,8 @@
 using UnityEngine;
 using PixelMiner.UI.WorldGen;
 using PixelMiner.Enums;
-using PixelMiner.World;
-using PixelMiner.WorldBuilding;
 using PixelMiner.Core;
+using PixelMiner.WorldBuilding;
 
 
 namespace PixelMiner

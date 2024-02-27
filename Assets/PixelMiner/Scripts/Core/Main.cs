@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using PixelMiner.World;
 using PixelMiner.Enums;
+using System.Threading.Tasks;
+
 namespace PixelMiner.Core
 {
     public class Main : MonoBehaviour
@@ -234,22 +235,22 @@ namespace PixelMiner.Core
 
 
         #region World 
-        public bool PlaceBlock(Vector3Int blockGPosition, BlockType blockType)
+        public async Task<bool> PlaceBlock(Vector3Int blockGPosition, BlockType blockType)
         {
-            //Chunk targetChunk = GetChunk((Vector3)blockGPosition);
+            Chunk targetChunk = GetChunk((Vector3)blockGPosition);
 
-            //if (targetChunk.HasDrawnFirstTime == false)
-            //    return false;
+            if (targetChunk.HasDrawnFirstTime == false)
+                return false;
 
-            //Vector3Int blockRelativePosition = GlobalToRelativeBlockPosition(blockGPosition, targetChunk._width, targetChunk._height, targetChunk._depth);
-            //BlockType currBlock = targetChunk.GetBlock(blockRelativePosition);
-            //if (currBlock.IsSolidVoxel()) return false;
-            //if (currBlock.IsTransparentVoxel()) return false;
+            Vector3Int blockRelativePosition = GlobalToRelativeBlockPosition(blockGPosition, targetChunk._width, targetChunk._height, targetChunk._depth);
+            BlockType currBlock = targetChunk.GetBlock(blockRelativePosition);
+            if (currBlock.IsSolidVoxel()) return false;
+            if (currBlock.IsTransparentVoxel()) return false;
 
-            //targetChunk.SetBlock(blockRelativePosition, blockType);
-            //_lightBfsQueue.Enqueue(new LightNode() { GlobalPosition = blockGPosition, Intensity = MAX_LIGHT_INTENSITY });
-            //await LightCalculator.PropagateBlockLightAsync(_lightBfsQueue, chunksNeedUpdate);
-            //DrawChunksAtOnce(chunksNeedUpdate);
+            targetChunk.SetBlock(blockRelativePosition, blockType);
+            _lightBfsQueue.Enqueue(new LightNode() { GlobalPosition = blockGPosition, Intensity = MAX_LIGHT_INTENSITY });
+            await LightCalculator.PropagateBlockLightAsync(_lightBfsQueue, chunksNeedUpdate);
+            DrawChunksAtOnce(chunksNeedUpdate);
 
             return true;
         }
@@ -259,6 +260,49 @@ namespace PixelMiner.Core
 
         }
 
+
+        private async void DrawChunksAtOnce(HashSet<Chunk> chunks)
+        {
+            //List<Task> drawChunkTasks = new List<Task>();
+            ////Debug.Log($"Draw at once: {chunks.Count}");
+            //foreach (var chunk in chunks)
+            //{
+            //    drawChunkTasks.Add(WorldGeneration.Instance.ReDrawChunkTask(chunk));
+            //    //await WorldGeneration.Instance.ReDrawChunkTask(chunk);
+            //}
+            //await Task.WhenAll(drawChunkTasks);
+            //chunks.Clear();
+        }
+
+        // Use to detect block that has height > 1. like(door, tall grass, cactus,...)
+        // This method only check downward
+        public int GetBlockHeightFromOrigin(Chunk chunk, Vector3Int relativePosition)
+        {
+            int heightFromOrigin = 0;   // At origin
+            int attempt = 0;
+            BlockType blockNeedCheck = chunk.GetBlock(relativePosition);
+            Vector3Int currBlockPos = relativePosition;
+            while (true)
+            {
+                Vector3Int nextRelativePosition = new Vector3Int(currBlockPos.x, currBlockPos.y - 1, currBlockPos.z);
+                if (blockNeedCheck == chunk.GetBlock(nextRelativePosition))
+                {
+                    currBlockPos = nextRelativePosition;
+                    heightFromOrigin++;
+                }
+                else
+                {
+                    break;
+                }
+
+                if (attempt++ > 100)
+                {
+                    Debug.Log("Infinite loop");
+                    break;
+                }
+            }
+            return heightFromOrigin;
+        }
         #endregion
 
 

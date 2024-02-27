@@ -1,6 +1,6 @@
 ﻿using PixelMiner.DataStructure;
 
-namespace PixelMiner.WorldBuilding
+namespace PixelMiner.Core
 {
     public static class ChunkDataPool
     {

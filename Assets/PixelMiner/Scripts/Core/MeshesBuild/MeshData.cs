@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-namespace PixelMiner.WorldBuilding
+namespace PixelMiner.Core
 {
     public class MeshData
     {

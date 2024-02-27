@@ -6,7 +6,7 @@
         Touch = 1 << 1,
         Controller = 1 << 2,
         KeyboardAndMouse = 1 << 3,
-        ALl = Touch | Controller | KeyboardAndMouse
+        All = Touch | Controller | KeyboardAndMouse
     }
 
 }

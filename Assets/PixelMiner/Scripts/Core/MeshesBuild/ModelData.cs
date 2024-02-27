@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace PixelMiner.WorldBuilding
+namespace PixelMiner.Core
 {
     [CreateAssetMenu]
     public class ModelData : ScriptableObject

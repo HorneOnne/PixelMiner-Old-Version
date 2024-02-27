@@ -3,11 +3,10 @@ using System.Threading.Tasks;
 using System.Threading;
 using PixelMiner.WorldBuilding;
 using PixelMiner.Enums;
-using PixelMiner.World;
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections.Concurrent;
-
+using PixelMiner.Core;
 
 namespace PixelMiner.UI.WorldGen
 {

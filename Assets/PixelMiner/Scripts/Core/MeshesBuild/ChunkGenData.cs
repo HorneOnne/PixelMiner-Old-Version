@@ -1,4 +1,4 @@
-﻿namespace PixelMiner.WorldBuilding
+﻿namespace PixelMiner.Core
 {
     public class ChunkGenData
     {

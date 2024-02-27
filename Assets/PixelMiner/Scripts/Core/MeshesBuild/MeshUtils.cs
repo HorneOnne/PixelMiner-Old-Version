@@ -3,12 +3,10 @@ using UnityEngine;
 using PixelMiner.Enums;
 using System;
 using PixelMiner.Utilities;
-using PixelMiner.World;
 using System.Collections.Generic;
 using System.Linq;
-using PixelMiner.Core;
 
-namespace PixelMiner.WorldBuilding
+namespace PixelMiner.Core
 {
     /* Voxel Face Index
         * 0: Right
@@ -1153,7 +1151,7 @@ namespace PixelMiner.WorldBuilding
                             float rotationAngle = ((float)(randomNoise.GetNoise(x + 1, y + 1) + 1.0f) / 2.0f * (maxRotationAngle - minRotationAngle) + minRotationAngle);
                             float rotationAngleRad = rotationAngle * Mathf.Deg2Rad;
                             Quaternion rotation = Quaternion.Euler(0f, rotationAngle, 0f);
-                            int heightFromOrigin = WorldGeneration.Instance.GetBlockHeightFromOrigin(chunk, curBlockPos);
+                            int heightFromOrigin = _main.GetBlockHeightFromOrigin(chunk, curBlockPos);
                             vertices[0] = RotatePointAroundPivot(offsetPos, _centerOffset + offsetPos, rotation);
                             vertices[1] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 0, 1), _centerOffset + offsetPos, rotation);
                             vertices[2] = RotatePointAroundPivot(offsetPos + new Vector3Int(1, 1, 1), _centerOffset + offsetPos, rotation);
@@ -1171,7 +1169,7 @@ namespace PixelMiner.WorldBuilding
                         }
                         else
                         {
-                            int heightFromOrigin = WorldGeneration.Instance.GetBlockHeightFromOrigin(chunk, curBlockPos);
+                            int heightFromOrigin = _main.GetBlockHeightFromOrigin(chunk, curBlockPos);
                             vertices[0] = offsetPos;
                             vertices[1] = offsetPos + new Vector3Int(1, 0, 1);
                             vertices[2] = offsetPos + new Vector3Int(1, 1, 1);

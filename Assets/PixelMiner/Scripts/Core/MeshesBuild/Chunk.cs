@@ -2,8 +2,9 @@
 using PixelMiner.Enums;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
-namespace PixelMiner.World
+namespace PixelMiner.Core
 {
     [SelectionBase]
     public class Chunk : MonoBehaviour
@@ -372,6 +373,34 @@ namespace PixelMiner.World
             return GetBlock(position) == BlockType.Air;
         }
 
+
+
+        #region Renders
+        public async Task RenderChunkTask()
+        {
+            //MeshData solidMeshData = await MeshUtils.Instance.RenderSolidMesh(chunk, LightAnimCurve);
+            //MeshData transparentSolidMeshData = await MeshUtils.Instance.RenderSolidMesh(chunk, LightAnimCurve, isTransparentMesh: true);
+            //MeshData grassMeshData = await MeshUtils.Instance.GetChunkGrassMeshData(chunk, LightAnimCurve, _grassNoiseDistribute);
+            //MeshData solidNonVoxelMeshData = await MeshUtils.Instance.RenderSolidNonvoxelMesh(chunk, LightAnimCurve);
+
+            //chunk.SolidVoxelMeshFilter.sharedMesh = CreateMesh(solidMeshData);
+            //chunk.SolidTransparentMeshFilter.sharedMesh = CreateMesh(transparentSolidMeshData);
+            //chunk.SolidNonvoxelMeshFilter.sharedMesh = CreateMesh(solidNonVoxelMeshData);
+
+            //// Grass
+            //// -----
+            //chunk.GrassMeshFilter.sharedMesh = CreateMesh(grassMeshData);
+
+
+
+            //// Release mesh data
+            //MeshDataPool.Release(solidMeshData);
+            //MeshDataPool.Release(transparentSolidMeshData);
+            //MeshDataPool.Release(grassMeshData);
+            //MeshDataPool.Release(solidNonVoxelMeshData);
+
+        }
+        #endregion
 
 
 

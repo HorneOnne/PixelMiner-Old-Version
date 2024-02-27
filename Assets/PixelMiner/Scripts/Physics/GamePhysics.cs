@@ -247,7 +247,6 @@ namespace PixelMiner.Physics
                 {
                     objectMove = true;
                     bool removeSuccess = _octreePhysics.Remove(dEntity);
-                    Debug.Log(removeSuccess);
                 }
 
 

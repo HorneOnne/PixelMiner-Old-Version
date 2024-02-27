@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using PixelMiner.WorldBuilding;
+using PixelMiner.Core;
 
 namespace PixelMiner.Tools
 {

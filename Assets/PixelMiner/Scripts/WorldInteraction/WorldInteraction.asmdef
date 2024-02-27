@@ -3,7 +3,6 @@
     "rootNamespace": "WorldInteraction",
     "references": [
         "GUID:0d21e01c3270e324eb9ced7a2d86e65c",
-        "GUID:cdce3721149a968458d95984d050e50d",
         "GUID:83a651e378233fe418e687488e563cf9",
         "GUID:6a81283e11ef63341ac2bd3e6f2eff5c",
         "GUID:49f2eca994477e84ba327c3a83e9e5c7",
