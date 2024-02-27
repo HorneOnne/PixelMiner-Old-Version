@@ -16,7 +16,7 @@ namespace PixelMiner
         }
 
 
-        public void Use(Player player)
+        public bool Use(Player player)
         {
             if (_remainingUses > 0)
             {
@@ -40,6 +40,8 @@ namespace PixelMiner
             {
                 Debug.Log($"Out of uses for: {Data.ItemName}");
             }
+
+            return true;
         }
 
 

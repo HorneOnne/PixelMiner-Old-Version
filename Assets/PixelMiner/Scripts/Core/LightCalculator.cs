@@ -2,12 +2,10 @@ using PixelMiner.Enums;
 using PixelMiner.World;
 using System.Collections.Generic;
 using UnityEngine;
-using PixelMiner.Core;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
-using TMPro;
 
-namespace PixelMiner.Lighting
+namespace PixelMiner.Core
 {
     /// <summary>
     /// To calculate lighting i use global position for LightNode.Position for easily calcualting light propagate cross chunk.

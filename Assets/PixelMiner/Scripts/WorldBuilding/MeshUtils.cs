@@ -2,7 +2,6 @@
 using UnityEngine;
 using PixelMiner.Enums;
 using System;
-using PixelMiner.Lighting;
 using PixelMiner.Utilities;
 using PixelMiner.World;
 using System.Collections.Generic;
@@ -24,9 +23,14 @@ namespace PixelMiner.WorldBuilding
     {
         public static MeshUtils Instance { get; private set; }
         public ModelData TorchModel;
+        private Main _main;
         private void Awake()
         {
             Instance = this;
+        }
+        private void Start()
+        {
+            _main = Main.Instance;  
         }
 
         public static Vector2[,] ColorMapUVs =
@@ -171,10 +175,10 @@ namespace PixelMiner.WorldBuilding
         }
         public static void GetAmbientLightUVs(byte[] ambientLight, ref Vector4[] uv4s)
         {
-            float i0 = ambientLight[0] / (float)LightUtils.MaxLightIntensity;
-            float i1 = ambientLight[1] / (float)LightUtils.MaxLightIntensity;
-            float i2 = ambientLight[2] / (float)LightUtils.MaxLightIntensity;
-            float i3 = ambientLight[3] / (float)LightUtils.MaxLightIntensity;
+            float i0 = ambientLight[0] / (float)Main.MAX_LIGHT_INTENSITY;
+            float i1 = ambientLight[1] / (float)Main.MAX_LIGHT_INTENSITY;
+            float i2 = ambientLight[2] / (float)Main.MAX_LIGHT_INTENSITY;
+            float i3 = ambientLight[3] / (float)Main.MAX_LIGHT_INTENSITY;
 
             uv4s[0] = new Vector4(i0, i0, i0, i0);
             uv4s[1] = new Vector4(i1, i1, i1, i1);
@@ -373,14 +377,14 @@ namespace PixelMiner.WorldBuilding
 
         public static Color32 GetLightColor(byte light, AnimationCurve lightAnimCurve)
         {
-            float channelValue = lightAnimCurve.Evaluate(light / (float)LightUtils.MaxLightIntensity);
+            float channelValue = lightAnimCurve.Evaluate(light / (float)Main.MAX_LIGHT_INTENSITY);
             byte lightValue = (byte)Mathf.Clamp(channelValue * 255, 0, 255);
             return new Color32(lightValue, lightValue, lightValue, 255);
         }
 
         public static float GetLightIntensityNormalize(byte lightIntensity, AnimationCurve lightAnimCurve)
         {
-            return lightAnimCurve.Evaluate(lightIntensity / LightUtils.MaxLightIntensity); ;
+            return lightAnimCurve.Evaluate(lightIntensity / Main.MAX_LIGHT_INTENSITY);
         }
 
         private static byte GetBlockLightPropagationForAdjacentFace(Chunk chunk, Vector3Int blockPosition, int voxelFace)

@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using PixelMiner.WorldBuilding;
-using PixelMiner.Lighting;
 using PixelMiner.Enums;
 using PixelMiner.Core;
 using System.Threading.Tasks;
@@ -72,7 +71,7 @@ namespace PixelMiner.WorldInteraction
                         Main.Instance.GetBlock(hitGlobalPosition).IsTransparentVoxel() == false)
                     {
                         Main.Instance.SetBlock(hitGlobalPosition, BlockType.Light);
-                        _lightBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = LightUtils.MaxLightIntensity });                   
+                        _lightBfsQueue.Enqueue(new LightNode() { GlobalPosition = hitGlobalPosition, Intensity = Main.MAX_LIGHT_INTENSITY });                   
                         await LightCalculator.PropagateBlockLightAsync(_lightBfsQueue, chunksNeedUpdate);              
                         DrawChunksAtOnce(chunksNeedUpdate);
                     }                

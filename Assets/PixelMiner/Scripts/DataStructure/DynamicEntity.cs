@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
-using PixelMiner.DataStructure;
 
-namespace PixelMiner.Physics
+namespace PixelMiner.DataStructure
 {
     [System.Serializable]
     public class DynamicEntity
@@ -58,5 +57,20 @@ namespace PixelMiner.Physics
             Velocity.z += velZ;
         }
 
+        //public override int GetHashCode()
+        //{
+        //    int hash = 17;
+
+        //    // Combine hash codes of relevant fields
+        //    hash = hash * 23 + Transform.GetHashCode();
+        //    hash = hash * 23 + Position.GetHashCode();
+        //    hash = hash * 23 + AABB.GetHashCode();
+        //    hash = hash * 23 + Velocity.GetHashCode();
+        //    hash = hash * 23 + Mass.GetHashCode();
+        //    hash = hash * 23 + Simulate.GetHashCode();
+        //    hash = hash * 23 + OnGround.GetHashCode();
+
+        //    return hash;
+        //}
     }
 }

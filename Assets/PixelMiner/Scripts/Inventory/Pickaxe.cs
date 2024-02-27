@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using PixelMiner.Core;
 namespace PixelMiner
 {
     public class Pickaxe : Item, IUseable
@@ -17,11 +18,15 @@ namespace PixelMiner
 
 
 
-        public void Use(Player player)
+        public bool Use(Player player)
         {
             if (_remainingUses > 0)
             {
                 // Implemeent use logic here.
+                //if(Main.Instance.getblock)
+                //{
+                //    return true;
+                //}
 
 
 
@@ -41,6 +46,8 @@ namespace PixelMiner
             {
                 Debug.Log($"Out of uses for: {Data.ItemName}");
             }
+
+            return false;
         }
     }
 }

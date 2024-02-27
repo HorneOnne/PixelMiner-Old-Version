@@ -78,7 +78,7 @@ namespace PixelMiner
             _entity = new DynamicEntity(this.transform, bound);
             _entity.Simulate = Simulate;
             _entity.Mass = _mass;
-            GamePhysics.AddDynamicEntity(_entity);
+            GamePhysics.Instance.AddDynamicEntity(_entity);
 
 
             WorldBuilding.WorldLoading.OnFirstLoadChunks += () =>

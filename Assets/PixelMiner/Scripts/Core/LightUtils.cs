@@ -2,12 +2,12 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace PixelMiner.Lighting
+namespace PixelMiner.Core
 {
     public class LightUtils : MonoBehaviour
     {
         public static LightUtils Instance { get; private set; }
-        public const int MaxLightIntensity = 150;
+        //public const int MaxLightIntensity = 150;
 
         private Dictionary<BlockType, byte> _opacityMap = new Dictionary<BlockType, byte>
         {
@@ -49,15 +49,15 @@ namespace PixelMiner.Lighting
 
 
 
-        public static Color32 GetLightColor(byte light)
-        {
-            //float channelValue = light / maxLight;
-            //return new Color(channelValue, channelValue, channelValue, 1.0f);
+        //public static Color32 GetLightColor(byte light)
+        //{
+        //    //float channelValue = light / maxLight;
+        //    //return new Color(channelValue, channelValue, channelValue, 1.0f);
 
-            // Apply square function for a darker appearance
-            float channelValue = Mathf.Pow(light / (float)MaxLightIntensity, 2);
-            byte lightValue = (byte)(channelValue * 255);
-            return new Color32(lightValue, lightValue, lightValue, 255);
-        }
+        //    // Apply square function for a darker appearance
+        //    float channelValue = Mathf.Pow(light / (float)MaxLightIntensity, 2);
+        //    byte lightValue = (byte)(channelValue * 255);
+        //    return new Color32(lightValue, lightValue, lightValue, 255);
+        //}
     }
 }

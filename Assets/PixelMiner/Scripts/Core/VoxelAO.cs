@@ -2,7 +2,7 @@ using PixelMiner.World;
 using UnityEngine;
 using PixelMiner.Enums;
 
-namespace PixelMiner.Lighting
+namespace PixelMiner.Core
 {
     public class VoxelAO 
     {

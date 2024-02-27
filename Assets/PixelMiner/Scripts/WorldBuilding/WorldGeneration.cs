@@ -7,7 +7,6 @@ using Sirenix.OdinInspector;
 using PixelMiner.Utilities;
 using PixelMiner.Enums;
 using PixelMiner.Core;
-using PixelMiner.Lighting;
 using PixelMiner.World;
 using TMPro;
 using System.Collections;
@@ -1953,7 +1952,7 @@ namespace PixelMiner.WorldBuilding
                         for (int x = 0; x < _chunkDimension[0]; x++)
                         {
                             Vector3Int relativePos = new Vector3Int(x, y, z);
-                            chunk.SetAmbientLight(relativePos, LightUtils.MaxLightIntensity);
+                            chunk.SetAmbientLight(relativePos, Main.MAX_LIGHT_INTENSITY);
                         }
                     }
                 });
@@ -1967,7 +1966,7 @@ namespace PixelMiner.WorldBuilding
                         //chunk.AmbientLightBfsQueue.Enqueue(new LightNode(lightNodeGlobalPosition, LightUtils.MaxLightIntensity));
 
                         Vector3Int lightNodeGlobalPosition = chunk.GlobalPosition + new Vector3Int(x, chunk.MaxBlocksHeightInit + 1, z);
-                        chunk.AmbientLightBfsQueue.Enqueue(new LightNode(lightNodeGlobalPosition, LightUtils.MaxLightIntensity));
+                        chunk.AmbientLightBfsQueue.Enqueue(new LightNode(lightNodeGlobalPosition, Main.MAX_LIGHT_INTENSITY));
                     }
                 }
             });

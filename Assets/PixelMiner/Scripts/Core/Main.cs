@@ -2,12 +2,13 @@
 using UnityEngine;
 using PixelMiner.World;
 using PixelMiner.Enums;
-
 namespace PixelMiner.Core
 {
     public class Main : MonoBehaviour
     {
         public static Main Instance { get; private set; }
+
+
 
         // Chunk data
         [Header("Data Cached")]
@@ -23,6 +24,12 @@ namespace PixelMiner.Core
         public bool AutoUnloadChunk = true;
 
 
+        // Update chunks data structures
+        private Queue<LightNode> _lightBfsQueue = new Queue<LightNode>();
+        private Queue<LightNode> _lightRemovalBfsQueue = new Queue<LightNode>();
+        private HashSet<Chunk> chunksNeedUpdate = new HashSet<Chunk>();
+        public const int MAX_LIGHT_INTENSITY = 150;
+
         private void Awake()
         {
             Instance = this;
@@ -33,14 +40,14 @@ namespace PixelMiner.Core
         }
         private void Start()
         {
-          
+
         }
 
-       
+
         private void Update()
         {
-            if(Input.GetKeyDown(KeyCode.T))
-            {          
+            if (Input.GetKeyDown(KeyCode.T))
+            {
                 UnityEngine.Profiling.Profiler.BeginSample("test01");
                 Chunk c = GetChunk(new Vector3(384, 0, 576));
                 int loopCount = 1000000;
@@ -52,7 +59,7 @@ namespace PixelMiner.Core
                 }
                 UnityEngine.Profiling.Profiler.EndSample();
             }
-           
+
         }
 
 
@@ -117,7 +124,7 @@ namespace PixelMiner.Core
         {
             Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
             Chunk chunkFound = GetChunkPerformance(chunk, globalPosition);
-            if(chunkFound != null && chunkFound.HasDrawnFirstTime)
+            if (chunkFound != null && chunkFound.HasDrawnFirstTime)
             {
                 return chunkFound.GetBlock(relativePosition);
             }
@@ -221,6 +228,40 @@ namespace PixelMiner.Core
         }
         #endregion
 
+
+
+
+
+
+        #region World 
+        public bool PlaceBlock(Vector3Int blockGPosition, BlockType blockType)
+        {
+            //Chunk targetChunk = GetChunk((Vector3)blockGPosition);
+
+            //if (targetChunk.HasDrawnFirstTime == false)
+            //    return false;
+
+            //Vector3Int blockRelativePosition = GlobalToRelativeBlockPosition(blockGPosition, targetChunk._width, targetChunk._height, targetChunk._depth);
+            //BlockType currBlock = targetChunk.GetBlock(blockRelativePosition);
+            //if (currBlock.IsSolidVoxel()) return false;
+            //if (currBlock.IsTransparentVoxel()) return false;
+
+            //targetChunk.SetBlock(blockRelativePosition, blockType);
+            //_lightBfsQueue.Enqueue(new LightNode() { GlobalPosition = blockGPosition, Intensity = MAX_LIGHT_INTENSITY });
+            //await LightCalculator.PropagateBlockLightAsync(_lightBfsQueue, chunksNeedUpdate);
+            //DrawChunksAtOnce(chunksNeedUpdate);
+
+            return true;
+        }
+
+        public void RemoveBlock()
+        {
+
+        }
+
+        #endregion
+
+
         public static Vector3Int GlobalToRelativeBlockPosition(Vector3 globalPosition,
           int chunkWidth, int chunkHeight, int chunkDepth)
         {
@@ -268,7 +309,7 @@ namespace PixelMiner.Core
                            (globalPosition.z >= chunk.MaxZGPos) ? 1 : 0;
 
             Vector3Int offset = new Vector3Int(xOffset, yOffset, zOffset);
-            if(offset == Vector3Int.zero)
+            if (offset == Vector3Int.zero)
             {
                 return chunk;
             }

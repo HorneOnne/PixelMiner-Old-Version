@@ -10,7 +10,9 @@ namespace PixelMiner.Physics
 {
     public class GamePhysics : MonoBehaviour
     {
-        private static List<DynamicEntity> _dynamicEntities = new List<DynamicEntity>();
+        public static GamePhysics Instance { get; private set; }    
+
+        private List<DynamicEntity> _dynamicEntities = new List<DynamicEntity>();
         private Main _main;
 
         [SerializeField] private Vector3 _gravity = Vector3.down;
@@ -25,6 +27,16 @@ namespace PixelMiner.Physics
 
         [SerializeField] private AnimationCurve _physicWaterFloatingCurve;
         private DrawBounds _drawer;
+
+        private Octree<DynamicEntity> _octreePhysics;
+
+
+        private void Awake()
+        {
+            Instance = this;
+            _octreePhysics = new Octree<DynamicEntity>(new AABB(-700, -700, -700, 1400, 1400, 1400), 3);
+        }
+
         private void Start()
         {
             _main = Main.Instance;
@@ -32,19 +44,23 @@ namespace PixelMiner.Physics
             //Time.timeScale = 0.1f;
         }
 
-        public static void AddDynamicEntity(DynamicEntity entity)
+        public void AddDynamicEntity(DynamicEntity entity)
         {
             _dynamicEntities.Add(entity);
+
+            bool canInsert = _octreePhysics.Insert(entity);
         }
  
         private void Update()
         {
+            //var l = _octreePhysics.Query(new AABB(-700, -700, -700, 1400, 1400, 1400));
+            //Debug.Log(l.Count);
             for (int entity = 0; entity < _dynamicEntities.Count; entity++)
-            {   
+            {
                 DynamicEntity dEntity = _dynamicEntities[entity];
                 if (!dEntity.Simulate) continue;
                 dEntity.Position = dEntity.Transform.position;
-               
+
 
                 if (dEntity.Velocity.y > _minFallForce)
                 {
@@ -63,13 +79,13 @@ namespace PixelMiner.Physics
 
                 AABB broadPhase;
                 Vector3Int minBP, maxBP;
- 
+
 
                 // Y
                 // ------------------------------------
                 broadPhase = AABBExtensions.GetSweptBroadphaseBox(dEntity.AABB, new Vector3(0, dEntity.Velocity.y, 0) * Time.deltaTime);
                 _drawer.AddPhysicBounds(broadPhase, Color.black);
-                minBP = _main.GetBlockGPos(new Vector3(broadPhase.x , broadPhase.y, broadPhase.z));
+                minBP = _main.GetBlockGPos(new Vector3(broadPhase.x, broadPhase.y, broadPhase.z));
                 maxBP = _main.GetBlockGPos(new Vector3(broadPhase.x + broadPhase.w, broadPhase.y + broadPhase.h, broadPhase.z + broadPhase.d));
                 int axis;
                 for (int y = minBP.y; y <= maxBP.y; y++)
@@ -90,7 +106,7 @@ namespace PixelMiner.Physics
 
                                 nearestCollisionTimeY = t;
                             }
-                            else if(currBlock == BlockType.Water)
+                            else if (currBlock == BlockType.Water)
                             {
                                 AABBExtensions.AABBOverlapVolumnCheck(dEntity.AABB, bound, out float w, out float h, out float d);
                                 //dEntity.AddVelocityY(2f * dEntity.Mass * h * Time.deltaTime);
@@ -105,16 +121,16 @@ namespace PixelMiner.Physics
                 {
                     dEntity.Position.y += dEntity.Velocity.y * (nearestCollisionTimeY) * Time.deltaTime;
 
-                    if(normalY == 1)
+                    if (normalY == 1)
                     {
                         dEntity.Position.y = Mathf.FloorToInt(dEntity.Position.y);
                         dEntity.OnGround = true;
 
                         // Reset velocity at y when on ground (remove gravity force)
-                        if(dEntity.Velocity.y < 0)
+                        if (dEntity.Velocity.y < 0)
                             dEntity.Velocity.y = 0;
                     }
-                   
+
                 }
                 else
                 {
@@ -141,7 +157,7 @@ namespace PixelMiner.Physics
                             BlockType currBlock = _main.GetBlock(new Vector3(x, y, z));
                             AABB bound = GetBlockBound(new Vector3(x, y, z));
                             if (currBlock.IsSolidVoxel() || currBlock.IsTransparentVoxel() && z < (dEntity.AABB.z + dEntity.AABB.d))
-                            {   
+                            {
                                 //_drawer.AddPhysicBounds(bound, Color.red);
                                 axis = AABBExtensions.SweepTest(dEntity.AABB, bound, new Vector3(dEntity.Velocity.x, 0, 0) * Time.deltaTime, out float t,
                                     out normalX, out normalY, out normalZ);
@@ -184,7 +200,7 @@ namespace PixelMiner.Physics
                             if (currBlock.IsSolidVoxel() || currBlock.IsTransparentVoxel() && x < (dEntity.AABB.x + dEntity.AABB.w))
                             {
                                 //_drawer.AddPhysicBounds(bound, Color.red);
-     
+
                                 axis = AABBExtensions.SweepTest(dEntity.AABB, bound, new Vector3(0, 0, dEntity.Velocity.z) * Time.deltaTime, out float t,
                                     out normalX, out normalY, out normalZ);
 
@@ -226,6 +242,14 @@ namespace PixelMiner.Physics
                 //    dEntity.Position += dEntity.Velocity * collisionTime;
                 //}
 
+                bool objectMove = false;
+                if (dEntity.Transform.position != dEntity.Position)
+                {
+                    objectMove = true;
+                    bool removeSuccess = _octreePhysics.Remove(dEntity);
+                    Debug.Log(removeSuccess);
+                }
+
 
                 dEntity.Transform.position = dEntity.Position;
                 dEntity.AABB = new AABB()
@@ -239,7 +263,18 @@ namespace PixelMiner.Physics
                 };
                 _drawer.AddPhysicBounds(dEntity.AABB, Color.green);
 
+
+                if (objectMove)
+                {
+                    _octreePhysics.Insert(dEntity);
+                }
             }
+
+
+            _octreePhysics.TraverseRecursive((AABB) =>
+            {
+                _drawer.AddPhysicBounds(AABB, Color.blue);
+            });
         }
 
 
