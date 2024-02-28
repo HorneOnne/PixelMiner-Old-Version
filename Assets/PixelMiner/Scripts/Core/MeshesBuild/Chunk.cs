@@ -90,6 +90,11 @@ namespace PixelMiner.Core
 
         [field: SerializeField] public int MaxBlocksHeightInit { get; private set; } = 0; // Used to optimize ambient light propagate.
 
+
+        private FastNoiseLite _grassNoiseDistribute;
+        // Lighting
+        [SerializeField] private AnimationCurve _lightCurve;
+
         private void Awake()
         {
             HasOceanBiome = false;
@@ -120,7 +125,7 @@ namespace PixelMiner.Core
         }
 
 
-        public void Init(int frameX, int frameY, int frameZ, int width, int height, int depth)
+        public void Init(int frameX, int frameY, int frameZ, int width, int height, int depth, FastNoiseLite _grassNosie)
         {
 
             // Set properties
@@ -152,6 +157,7 @@ namespace PixelMiner.Core
             MinZGPos = GlobalPosition.z;
             MaxZGPos = GlobalPosition.z + _depth;
 
+            _grassNoiseDistribute = _grassNosie;
 
             // Set all light dark by default
             for (int i = 0; i < VoxelLightData.Length; i++)
@@ -378,28 +384,29 @@ namespace PixelMiner.Core
         #region Renders
         public async Task RenderChunkTask()
         {
-            //MeshData solidMeshData = await MeshUtils.Instance.RenderSolidMesh(chunk, LightAnimCurve);
-            //MeshData transparentSolidMeshData = await MeshUtils.Instance.RenderSolidMesh(chunk, LightAnimCurve, isTransparentMesh: true);
-            //MeshData grassMeshData = await MeshUtils.Instance.GetChunkGrassMeshData(chunk, LightAnimCurve, _grassNoiseDistribute);
-            //MeshData solidNonVoxelMeshData = await MeshUtils.Instance.RenderSolidNonvoxelMesh(chunk, LightAnimCurve);
+            MeshData solidMeshData = await MeshUtils.Instance.RenderSolidMesh(this, _lightCurve);
+            MeshData transparentSolidMeshData = await MeshUtils.Instance.RenderSolidMesh(this, _lightCurve, isTransparentMesh: true);
+            MeshData grassMeshData = await MeshUtils.Instance.GetChunkGrassMeshData(this, _lightCurve, _grassNoiseDistribute);
+            MeshData solidNonVoxelMeshData = await MeshUtils.Instance.RenderSolidNonvoxelMesh(this, _lightCurve);
 
-            //chunk.SolidVoxelMeshFilter.sharedMesh = CreateMesh(solidMeshData);
-            //chunk.SolidTransparentMeshFilter.sharedMesh = CreateMesh(transparentSolidMeshData);
-            //chunk.SolidNonvoxelMeshFilter.sharedMesh = CreateMesh(solidNonVoxelMeshData);
+            SolidVoxelMeshFilter.sharedMesh = MeshUtils.CreateMesh(solidMeshData);
+            SolidTransparentMeshFilter.sharedMesh = MeshUtils.CreateMesh(transparentSolidMeshData);
+            SolidNonvoxelMeshFilter.sharedMesh = MeshUtils.CreateMesh(solidNonVoxelMeshData);
 
-            //// Grass
-            //// -----
-            //chunk.GrassMeshFilter.sharedMesh = CreateMesh(grassMeshData);
+            // Grass
+            // -----
+            GrassMeshFilter.sharedMesh = MeshUtils.CreateMesh(grassMeshData);
 
 
 
-            //// Release mesh data
-            //MeshDataPool.Release(solidMeshData);
-            //MeshDataPool.Release(transparentSolidMeshData);
-            //MeshDataPool.Release(grassMeshData);
-            //MeshDataPool.Release(solidNonVoxelMeshData);
-
+            // Release mesh data
+            MeshDataPool.Release(solidMeshData);
+            MeshDataPool.Release(transparentSolidMeshData);
+            MeshDataPool.Release(grassMeshData);
+            MeshDataPool.Release(solidNonVoxelMeshData);
         }
+
+      
         #endregion
 
 

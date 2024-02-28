@@ -63,8 +63,8 @@ Material:
     m_Ints: []
     m_Floats:
     - _AlphaCutoff: 0.5
-    - _AmbientIntensity: 0.014869738
-    - _AmbientLightValue: 150
+    - _AmbientIntensity: 0.3064791
+    - _AmbientLightValue: 140
     - _BlockLightValue: 0
     - _QueueControl: 0
     - _QueueOffset: 0

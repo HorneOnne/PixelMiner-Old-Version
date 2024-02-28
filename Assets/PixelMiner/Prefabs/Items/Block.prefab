@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2921345650742489115}
   - component: {fileID: 3413223264637047197}
   - component: {fileID: 6818159654822242420}
-  m_Layer: 0
+  m_Layer: 23
   m_Name: Block
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -97,6 +97,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70daad47f456ba542b9083d1cfa1c001, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Offset: {x: 0, y: 0, z: 0}
+  RotAngles: {x: 0, y: 0, z: 0}
+  <BoxOffset>k__BackingField: {x: -0.3, y: -0.5, z: -0.3}
+  <BoxSize>k__BackingField: {x: 0.6, y: 0.6, z: 0.6}
 --- !u!114 &6818159654822242420
 MonoBehaviour:
   m_ObjectHideFlags: 0

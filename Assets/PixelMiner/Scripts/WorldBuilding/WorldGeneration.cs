@@ -7,10 +7,6 @@ using Sirenix.OdinInspector;
 using PixelMiner.Utilities;
 using PixelMiner.Enums;
 using PixelMiner.Core;
-using TMPro;
-using System.Collections;
-using System.Linq;
-
 
 namespace PixelMiner.WorldBuilding
 {
@@ -549,7 +545,7 @@ namespace PixelMiner.WorldBuilding
             Vector3Int frame = new Vector3Int(frameX, frameY, frameZ);
             Vector3 worldPosition = frame * new Vector3Int(chunkDimension[0], chunkDimension[1], chunkDimension[2]);
             Chunk newChunk = Instantiate(_chunkPrefab, worldPosition, Quaternion.identity, _chunkParent.transform);
-            newChunk.Init(frameX, frameY, frameZ, chunkDimension[0], chunkDimension[1], chunkDimension[2]);
+            newChunk.Init(frameX, frameY, frameZ, chunkDimension[0], chunkDimension[1], chunkDimension[2], _grassNoiseDistribute);
 
             ChunkGenData chunkData = ChunkDataPool.Get();
             chunkData.Init(newChunk._width, newChunk._height, newChunk._depth);
@@ -644,15 +640,15 @@ namespace PixelMiner.WorldBuilding
 
 
 
-                chunk.SolidVoxelMeshFilter.sharedMesh = CreateMesh(solidVoxelMeshData);
-                chunk.SolidTransparentMeshFilter.sharedMesh = CreateMesh(transparentSolidMeshData);
-                chunk.WaterMeshFilter.sharedMesh =  CreateMesh(waterMeshData);
-                chunk.SolidNonvoxelMeshFilter.sharedMesh = CreateMesh(solidNonVoxelMeshData);
+                chunk.SolidVoxelMeshFilter.sharedMesh = MeshUtils.CreateMesh(solidVoxelMeshData);
+                chunk.SolidTransparentMeshFilter.sharedMesh = MeshUtils.CreateMesh(transparentSolidMeshData);
+                chunk.WaterMeshFilter.sharedMesh = MeshUtils.CreateMesh(waterMeshData);
+                chunk.SolidNonvoxelMeshFilter.sharedMesh = MeshUtils.CreateMesh(solidNonVoxelMeshData);
 
 
                 // Grass
                 // -----
-                chunk.GrassMeshFilter.sharedMesh = CreateMesh(grassMeshData);
+                chunk.GrassMeshFilter.sharedMesh = MeshUtils.CreateMesh(grassMeshData);
 
 
 
@@ -675,13 +671,13 @@ namespace PixelMiner.WorldBuilding
             MeshData grassMeshData = await MeshUtils.Instance.GetChunkGrassMeshData(chunk, LightAnimCurve, _grassNoiseDistribute);
             MeshData solidNonVoxelMeshData = await MeshUtils.Instance.RenderSolidNonvoxelMesh(chunk, LightAnimCurve);
 
-            chunk.SolidVoxelMeshFilter.sharedMesh = CreateMesh(solidMeshData);
-            chunk.SolidTransparentMeshFilter.sharedMesh = CreateMesh(transparentSolidMeshData);
-            chunk.SolidNonvoxelMeshFilter.sharedMesh = CreateMesh(solidNonVoxelMeshData);
+            chunk.SolidVoxelMeshFilter.sharedMesh = MeshUtils.CreateMesh(solidMeshData);
+            chunk.SolidTransparentMeshFilter.sharedMesh = MeshUtils.CreateMesh(transparentSolidMeshData);
+            chunk.SolidNonvoxelMeshFilter.sharedMesh = MeshUtils.CreateMesh(solidNonVoxelMeshData);
 
             // Grass
             // -----
-            chunk.GrassMeshFilter.sharedMesh = CreateMesh(grassMeshData);
+            chunk.GrassMeshFilter.sharedMesh = MeshUtils.CreateMesh(grassMeshData);
 
 
 
@@ -692,22 +688,7 @@ namespace PixelMiner.WorldBuilding
             MeshDataPool.Release(solidNonVoxelMeshData);
 
         }
-        public Mesh CreateMesh(MeshData meshData)
-        {
-            Mesh mesh = new Mesh();
-            mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
-            mesh.SetVertices(meshData.Vertices);
-            mesh.SetColors(meshData.Colors);
-            mesh.SetTriangles(meshData.Triangles, 0);
-            mesh.SetUVs(0, meshData.UVs);
-            mesh.SetUVs(1, meshData.UV2s);
-            mesh.SetUVs(2, meshData.UV3s);
-            mesh.SetUVs(3, meshData.UV4s);
-            mesh.RecalculateNormals();
-            mesh.RecalculateBounds();
-
-            return mesh;
-        }
+      
         private Mesh CreateColliderMesh(MeshData meshData)
         {
             Mesh colliderMesh = new Mesh();

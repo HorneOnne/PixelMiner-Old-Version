@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using PixelMiner.WorldInteraction;
+using PixelMiner.Core;
 
 
 namespace PixelMiner.UI
@@ -33,6 +34,7 @@ namespace PixelMiner.UI
         private string _ambientLightString;
         private string _worldTimeString;
 
+        private Transform _playerTrans;
         
         private void OnEnable()
         {
@@ -46,9 +48,13 @@ namespace PixelMiner.UI
 
         private void Start()
         {
+            _playerTrans = GameObject.FindWithTag("Player").transform;
             InvokeRepeating(nameof(UpdateLogText), 1.0f, 0.02f);
             _worldTime = WorldTime.Instance;
         }
+
+
+ 
 
         private void UpdateLogText()
         {
@@ -77,6 +83,9 @@ namespace PixelMiner.UI
             deltaTime += (UnityEngine.Time.unscaledDeltaTime - deltaTime) * 0.1f;
             msec = deltaTime * 1000.0f;
             fps = 1.0f / deltaTime;
+
+            this._ambientLight = Main.Instance.GetAmbientLight(_playerTrans.position);
+            this._blockLight = Main.Instance.GetBlockLight(_playerTrans.position);
         }
 
         private void UpdateTarget(Vector3Int target, BlockType blockType, byte blockLight, byte ambientLight)

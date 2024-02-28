@@ -72,7 +72,7 @@ Material:
     - _AO: 1
     - _AlphaCutoff: 0.5
     - _AmbientOcclusion: 1
-    - _LightIntensity: 0.014869738
+    - _LightIntensity: 0.3064791
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 0

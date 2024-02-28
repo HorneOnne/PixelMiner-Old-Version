@@ -7,9 +7,9 @@ namespace PixelMiner.Core
     public class LightUtils : MonoBehaviour
     {
         public static LightUtils Instance { get; private set; }
-        //public const int MaxLightIntensity = 150;
 
-        private Dictionary<BlockType, byte> _opacityMap = new Dictionary<BlockType, byte>
+
+        private Dictionary<BlockType, byte> _lightResistanceMap = new Dictionary<BlockType, byte>
         {
             { BlockType.Air, 10 },     
             { BlockType.DirtGrass, 150 },
@@ -28,23 +28,46 @@ namespace PixelMiner.Core
             { BlockType.PineLeaves, 20 },     
         };
 
-        public static byte[] BlocksOpaque = new byte[256];
+        private Dictionary<BlockType, byte> _lightMap = new Dictionary<BlockType, byte>
+        {
+            { BlockType.Light, 150 }
+        };
+
+
+        public static byte[] BlocksLightResistance = new byte[(int)BlockType.Count];
+        public static byte[] BlocksLight = new byte[(int)BlockType.Count];
 
 
         private void Awake()
         {
             Instance = this;
 
-
-            for (int i = 0; i < BlocksOpaque.GetLength(0); i++)
+            // Light
+            for (int i = 0; i < BlocksLight.GetLength(0); i++)
             {
-                BlocksOpaque[i] = 10;
+                BlocksLight[i] = 0;
+            }
+            foreach (var b in _lightMap)
+            {
+                BlocksLight[(byte)b.Key] = b.Value;
             }
 
-            foreach (var opaqueValue in _opacityMap)
+
+
+            // Light resistance
+            for (int i = 0; i < BlocksLightResistance.GetLength(0); i++)
             {
-                BlocksOpaque[(byte)opaqueValue.Key] = opaqueValue.Value;
+                BlocksLightResistance[i] = 10;
             }
+            foreach (var opaqueValue in _lightResistanceMap)
+            {
+                BlocksLightResistance[(byte)opaqueValue.Key] = opaqueValue.Value;
+            }
+
+
+
+
+
         }
 
 

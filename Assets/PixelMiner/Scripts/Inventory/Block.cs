@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
+using PixelMiner.DataStructure;
 namespace PixelMiner
 {
-
     public class Block : Item, IUseable
     {
         private int _remainingUses;
@@ -22,7 +22,7 @@ namespace PixelMiner
             if (_remainingUses > 0)
             {
                 // Implemeent use logic here.
-
+                
 
 
                 // Decrease the remaining uses
@@ -42,6 +42,15 @@ namespace PixelMiner
             }
 
             return true;
+        }
+
+        public override void EnablePhysics()
+        {
+            AABB bound = new AABB(transform.position.x, 
+                                  transform.position.y, 
+                                  transform.position.z,
+                                  BoxSize.x, BoxSize.y, BoxSize.z);
+            dEntity = new DynamicEntity(this.transform, bound, BoxOffset, PhysicLayer);
         }
     }
 }

@@ -12,6 +12,10 @@ namespace PixelMiner.DataStructure
         public float h;
         public float d;
 
+        public Vector3 Min { get => new Vector3(x,y,z); }
+        public Vector3 Max { get => new Vector3(x + w,y + h,z + d); }
+        public Vector3 Center { get => new Vector3(x + w / 2.0f, y + h / 2.0f, z + d / 2.0f); }
+
         public AABB(float x, float y, float z, float width, float height, float depth)
         {
             this.x = x;
@@ -21,6 +25,7 @@ namespace PixelMiner.DataStructure
             this.h = height;
             this.d = depth;
         }
+
 
 
         public override string ToString()

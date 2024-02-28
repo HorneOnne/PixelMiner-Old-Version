@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a27c63228b4fcc94bb58f06a91872184, type: 3}
   m_Name: Ice
   m_EditorClassIdentifier: 
-  ID: 4103
+  ID: 67
   ItemName: Ice
   Icon: {fileID: 21300000, guid: d98dc28f83831234a933b5821f38c3c1, type: 3}
   MaxUses: 1

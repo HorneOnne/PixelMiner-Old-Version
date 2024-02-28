@@ -13,14 +13,24 @@ namespace PixelMiner.DataStructure
         public bool Simulate;
         public bool OnGround;
 
-        public DynamicEntity(Transform transform, AABB bound)
+        public Vector3 BoxOffset;
+        public LayerMask PhysicLayer;
+        //public PhysicLayers Layers;
+        //public PhysicLayers CollideLayers;
+
+        public DynamicEntity(Transform transform, AABB bound, Vector3 boxOffset, 
+                             LayerMask layerMask)
         {
             this.Transform = transform;
             this.AABB = bound;
+            this.BoxOffset = boxOffset;
             Position = default;
             Velocity = default;
             Mass = 1;
             Simulate = true;
+            //this.Layers = layers;
+            //this.CollideLayers = collideLayers;
+            this.PhysicLayer = layerMask;
         }
 
         public void SetVelocity(Vector3 vel)

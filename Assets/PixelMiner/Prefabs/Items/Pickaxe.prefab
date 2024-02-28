@@ -52,6 +52,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Pickaxe
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: ec0811fcf1d0af54cb006fc4609201bb, type: 3}
+      propertyPath: m_Layer
+      value: 23
+      objectReference: {fileID: 0}
     - target: {fileID: 1151388028547126963, guid: ec0811fcf1d0af54cb006fc4609201bb, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.014
@@ -92,6 +96,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 16.243
       objectReference: {fileID: 0}
+    - target: {fileID: 8164078558771037576, guid: ec0811fcf1d0af54cb006fc4609201bb, type: 3}
+      propertyPath: m_Layer
+      value: 23
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -119,3 +127,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Offset: {x: 0.027, y: 0.054, z: -0.033}
   RotAngles: {x: 48.474, y: -2.963, z: -99.422}
+  <BoxOffset>k__BackingField: {x: 0, y: 0, z: 0}
+  <BoxSize>k__BackingField: {x: 0, y: 0, z: 0}

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a27c63228b4fcc94bb58f06a91872184, type: 3}
   m_Name: DirtGrass
   m_EditorClassIdentifier: 
-  ID: 4096
+  ID: 3
   ItemName: Dirt Grass
   Icon: {fileID: 21300000, guid: c515d0f3137c0844987d9a27279ae7a0, type: 3}
   MaxUses: 1

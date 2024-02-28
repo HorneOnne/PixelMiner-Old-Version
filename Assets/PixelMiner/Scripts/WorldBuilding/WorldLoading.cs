@@ -100,7 +100,8 @@ namespace PixelMiner.WorldBuilding
             {
                 foreach (var chunk in Main.Instance.ActiveChunks)
                 {
-                    await _worldGen.ReDrawChunkTask(chunk);
+                    if(chunk.HasDrawnFirstTime)
+                        await _worldGen.ReDrawChunkTask(chunk);
                 }
             }
         }

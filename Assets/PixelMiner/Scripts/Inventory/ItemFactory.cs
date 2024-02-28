@@ -54,6 +54,12 @@ namespace PixelMiner
             _itemDictionary.TryGetValue(itemId, out itemData);
             return itemData;
         }
+        //public static ItemData GetItemBlockData(BlockType blockType)
+        //{
+        //    ItemData itemData;
+        //    _itemDictionary.TryGetValue(itemId, out itemData);
+        //    return itemData;
+        //}
 
 
         private void OnApplicationQuit()

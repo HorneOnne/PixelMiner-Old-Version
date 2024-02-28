@@ -26,8 +26,10 @@ namespace PixelMiner.Core
 
 
         // Update chunks data structures
-        private Queue<LightNode> _lightBfsQueue = new Queue<LightNode>();
-        private Queue<LightNode> _lightRemovalBfsQueue = new Queue<LightNode>();
+        private Queue<LightNode> _blockLightBfsQueue = new Queue<LightNode>();
+        private Queue<LightNode> _ambientLightBfsQueue = new Queue<LightNode>();
+        private Queue<LightNode> _blockLightRemovalBfsQueue = new Queue<LightNode>();
+        private Queue<LightNode> _ambientLightRemovalBfsQueue = new Queue<LightNode>();
         private HashSet<Chunk> chunksNeedUpdate = new HashSet<Chunk>();
         public const int MAX_LIGHT_INTENSITY = 150;
 
@@ -45,23 +47,7 @@ namespace PixelMiner.Core
         }
 
 
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.T))
-            {
-                UnityEngine.Profiling.Profiler.BeginSample("test01");
-                Chunk c = GetChunk(new Vector3(384, 0, 576));
-                int loopCount = 1000000;
-                for (int i = 0; i < loopCount; i++)
-                {
-                    //TryGetChunk(Vector3.zero, out Chunk chunk);
-                    GetChunkPerformance(c, new Vector3(384, 0, 576));
 
-                }
-                UnityEngine.Profiling.Profiler.EndSample();
-            }
-
-        }
 
 
         #region Get, Set Chunk
@@ -235,43 +221,76 @@ namespace PixelMiner.Core
 
 
         #region World 
-        public async Task<bool> PlaceBlock(Vector3Int blockGPosition, BlockType blockType)
+        public bool PlaceBlock(Vector3 globalPosition, BlockType blockType)
         {
-            Chunk targetChunk = GetChunk((Vector3)blockGPosition);
-
+            Chunk targetChunk = GetChunk(globalPosition);
             if (targetChunk.HasDrawnFirstTime == false)
                 return false;
 
-            Vector3Int blockRelativePosition = GlobalToRelativeBlockPosition(blockGPosition, targetChunk._width, targetChunk._height, targetChunk._depth);
+            Vector3Int blockRelativePosition = GlobalToRelativeBlockPosition(globalPosition, targetChunk._width, targetChunk._height, targetChunk._depth);
             BlockType currBlock = targetChunk.GetBlock(blockRelativePosition);
             if (currBlock.IsSolidVoxel()) return false;
             if (currBlock.IsTransparentVoxel()) return false;
 
             targetChunk.SetBlock(blockRelativePosition, blockType);
-            _lightBfsQueue.Enqueue(new LightNode() { GlobalPosition = blockGPosition, Intensity = MAX_LIGHT_INTENSITY });
-            await LightCalculator.PropagateBlockLightAsync(_lightBfsQueue, chunksNeedUpdate);
-            DrawChunksAtOnce(chunksNeedUpdate);
-
+            Vector3Int blockGPosition = GetBlockGPos(globalPosition);
+            AfterPlaceBlock(blockGPosition, blockType);
             return true;
         }
 
-        public void RemoveBlock()
-        {
 
+      
+        public bool RemoveBlock(Vector3 globalPosition, out BlockType removedBlock)
+        {
+            Chunk targetChunk = GetChunk(globalPosition);
+            Vector3Int blockRelativePosition = GlobalToRelativeBlockPosition(globalPosition, targetChunk._width, targetChunk._height, targetChunk._depth);
+            BlockType currBlock = targetChunk.GetBlock(blockRelativePosition);
+            removedBlock = currBlock;
+
+            if (targetChunk.HasDrawnFirstTime == false)
+                return false;
+            Vector3Int blockGPosition = GetBlockGPos(globalPosition);
+            if (currBlock != BlockType.Air)
+            {
+                targetChunk.SetBlock(blockRelativePosition, BlockType.Air);
+                AfterRemoveBlock(blockGPosition);
+                return true;
+            }
+
+            return false;
+        }
+
+        private async void AfterPlaceBlock(Vector3Int blockGPosition, BlockType blockType)
+        {
+            _blockLightBfsQueue.Enqueue(new LightNode() { GlobalPosition = blockGPosition, Intensity = LightUtils.BlocksLight[(ushort)blockType]});
+            await LightCalculator.PropagateBlockLightAsync(_blockLightBfsQueue, chunksNeedUpdate);
+            DrawChunksAtOnce(chunksNeedUpdate);
+        }
+
+
+        private async void AfterRemoveBlock(Vector3Int blockGPosition)
+        {
+            _blockLightRemovalBfsQueue.Enqueue(new LightNode() { GlobalPosition = blockGPosition, Intensity = GetBlockLight(blockGPosition)});
+            await LightCalculator.RemoveBlockLightAsync(_blockLightRemovalBfsQueue, chunksNeedUpdate);
+
+
+            _ambientLightBfsQueue.Enqueue(new LightNode() { GlobalPosition = blockGPosition, Intensity = GetAmbientLight(blockGPosition) });
+            await LightCalculator.RemoveAmbientLightAsync(_ambientLightBfsQueue, chunksNeedUpdate);
+            DrawChunksAtOnce(chunksNeedUpdate);
         }
 
 
         private async void DrawChunksAtOnce(HashSet<Chunk> chunks)
         {
-            //List<Task> drawChunkTasks = new List<Task>();
-            ////Debug.Log($"Draw at once: {chunks.Count}");
-            //foreach (var chunk in chunks)
-            //{
-            //    drawChunkTasks.Add(WorldGeneration.Instance.ReDrawChunkTask(chunk));
-            //    //await WorldGeneration.Instance.ReDrawChunkTask(chunk);
-            //}
-            //await Task.WhenAll(drawChunkTasks);
-            //chunks.Clear();
+            List<Task> drawChunkTasks = new List<Task>();
+            //Debug.Log($"Draw at once: {chunks.Count}");
+            foreach (var chunk in chunks)
+            {
+                drawChunkTasks.Add(chunk.RenderChunkTask());
+                //await WorldGeneration.Instance.ReDrawChunkTask(chunk);
+            }
+            await Task.WhenAll(drawChunkTasks);
+            chunks.Clear();
         }
 
         // Use to detect block that has height > 1. like(door, tall grass, cactus,...)

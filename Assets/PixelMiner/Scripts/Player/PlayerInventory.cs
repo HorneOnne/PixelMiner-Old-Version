@@ -1,11 +1,16 @@
 ﻿using UnityEngine;
 using PixelMiner.Enums;
+using PixelMiner.Physics;
+using PixelMiner.DataStructure;
+using System.Collections.Generic;
+using PixelMiner.Miscellaneous;
 namespace PixelMiner
 {
     public class PlayerInventory : MonoBehaviour
     {
         public static event System.Action OnCurrentUseItemChanged;
 
+        private Player _player;
         public Inventory Inventory;
         private InputHander _input;
         public int MAX_PLAYER_INVENTORY_SLOTS { get; private set; }
@@ -24,12 +29,23 @@ namespace PixelMiner
 
         private Item _currentItem;
         [SerializeField] private Transform _rightHand;
+        private int _useItemTimesPersecond = 5;
+        private float _useItemResetTime;
+        private bool _canUseItem = true;
+
+        [Header("Looot items")]
+        [SerializeField] private Vector3 _center;
+        [SerializeField] private Vector3 _halfSize;
+        [SerializeField] private Color _boundColor;
+        [SerializeField] private bool _showBounds;
+        private DynamicEntity[] _itemEntites;
+        private const int MAX_ITEM_DETECT_IN_FRAME = 8;
 
         private void Awake()
         {
             MAX_PLAYER_INVENTORY_SLOTS = WIDTH * HEIGHT;
             Inventory = new Inventory(WIDTH, HEIGHT);
-            
+            _itemEntites = new DynamicEntity[MAX_ITEM_DETECT_IN_FRAME];
 
         }
 
@@ -37,12 +53,15 @@ namespace PixelMiner
         private void Start()
         {
             _input = InputHander.Instance;
+            _player = GetComponent<Player>();
             CurrentHotbarSlotIndex = 0;
 
 
             // Add init items for testing purposes
             Inventory.AddItem(ItemFactory.GetItemData(ItemID.StonePickaxe));
             Inventory.AddItem(ItemFactory.GetItemData(ItemID.StoneSword));
+
+            _useItemResetTime = 1.0f / _useItemTimesPersecond;
 
         }
 
@@ -51,9 +70,34 @@ namespace PixelMiner
 
         }
 
+        private void FixedUpdate()
+        {
+            int itemHit = GamePhysics.Instance.OverlapBoxNonAlloc(transform.position + _center, _halfSize, _itemEntites);
+            if (itemHit > 0)
+            {
+                for (int i = 0; i < itemHit; i++)
+                {
+                    if (_itemEntites[i].Transform.TryGetComponent<Item>(out Item item))
+                    {
+                        Debug.Log("hit item");
+                        GamePhysics.Instance.RemoveDynamicEntity(_itemEntites[i]);
+                        //Destroy(item.gameObject);
+                        Inventory.AddItem(item.Data);
+                    }
+                }
+            }
+
+        }
+
         private void Update()
         {
-            if((_input.ControlScheme & Enums.ControlScheme.KeyboardAndMouse) != 0)
+            if (_showBounds)
+            {
+                Bounds b = new Bounds(transform.position + _center, _halfSize * 2);
+                DrawBounds.Instance.AddBounds(b, _boundColor);
+            }
+
+            if ((_input.ControlScheme & Enums.ControlScheme.KeyboardAndMouse) != 0)
             {
                 if (Input.GetKeyDown(KeyCode.Alpha1))
                 {
@@ -115,11 +159,11 @@ namespace PixelMiner
 
 
 
-            if(_input.InventoryDirectional.y == -1)
+            if (_input.InventoryDirectional.y == -1)
             {
                 OpenHotbarInventory = true;
             }
-            else if(_input.InventoryDirectional.y == 1)
+            else if (_input.InventoryDirectional.y == 1)
             {
                 OpenHotbarInventory = false;
             }
@@ -141,8 +185,8 @@ namespace PixelMiner
             }
 
 
-            if (CurrentHotbarSlotIndex != CurrentHotbarUseSlotIndex && 
-                CurrentHotbarSlotIndex != -1 && 
+            if (CurrentHotbarSlotIndex != CurrentHotbarUseSlotIndex &&
+                CurrentHotbarSlotIndex != -1 &&
                 _input.InventoryDirectional.y == 1)
             {
                 CurrentHotbarUseSlotIndex = CurrentHotbarSlotIndex;
@@ -152,6 +196,23 @@ namespace PixelMiner
                 CreateNewItem();
 
                 OnCurrentUseItemChanged?.Invoke();
+            }
+
+
+            // Use item
+            if (_input.Fire1 && _canUseItem)
+            {
+                IUseable useableItem = _currentItem as IUseable;
+
+                if (useableItem != null)
+                {
+                    // Use the item
+                    if (useableItem.Use(_player))
+                    {
+                        _canUseItem = false;
+                        Invoke(nameof(EnableCanUseItem), _useItemResetTime);
+                    }
+                }
             }
 
         }
@@ -169,7 +230,6 @@ namespace PixelMiner
             {
                 CurrentHotbarSlotIndex = -1;
             }
-
         }
 
 
@@ -181,7 +241,7 @@ namespace PixelMiner
             if (CurrentHotbarSlotIndex == -2)
             {
                 CurrentHotbarSlotIndex = WIDTH - 1;
-            }        
+            }
         }
 
         private void DestroyOldItem()
@@ -205,10 +265,15 @@ namespace PixelMiner
         private Item CreateNewItemObject(ItemData itemData)
         {
             Item item = ItemFactory.CreateItem(itemData, Vector3.zero, Vector3.zero, _rightHand);
-            return item; 
+            return item;
         }
 
-     
+
+        private void EnableCanUseItem()
+        {
+            _canUseItem = true;
+        }
+
 
 
     }

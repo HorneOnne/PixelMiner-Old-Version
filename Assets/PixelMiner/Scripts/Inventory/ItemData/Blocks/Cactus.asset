@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a27c63228b4fcc94bb58f06a91872184, type: 3}
   m_Name: Cactus
   m_EditorClassIdentifier: 
-  ID: 4112
+  ID: 70
   ItemName: Cactus
   Icon: {fileID: 21300000, guid: f39aec1bdd2330d4c95ce5363836e22d, type: 3}
   MaxUses: 1

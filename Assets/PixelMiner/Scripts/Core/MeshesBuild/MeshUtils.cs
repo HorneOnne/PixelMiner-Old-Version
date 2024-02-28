@@ -182,6 +182,11 @@ namespace PixelMiner.Core
             uv4s[1] = new Vector4(i1, i1, i1, i1);
             uv4s[2] = new Vector4(i2, i2, i2, i2);
             uv4s[3] = new Vector4(i3, i3, i3, i3);
+
+            //uv4s[0] = new Vector4(i0, i0, i0, i0);
+            //uv4s[1] = new Vector4(i0, i0, i0, i0);
+            //uv4s[2] = new Vector4(i0, i0, i0, i0);
+            //uv4s[3] = new Vector4(i0, i0, i0, i0);
         }
 
 
@@ -505,7 +510,22 @@ namespace PixelMiner.Core
 
 
 
+        public static Mesh CreateMesh(MeshData meshData)
+        {
+            Mesh mesh = new Mesh();
+            mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
+            mesh.SetVertices(meshData.Vertices);
+            mesh.SetColors(meshData.Colors);
+            mesh.SetTriangles(meshData.Triangles, 0);
+            mesh.SetUVs(0, meshData.UVs);
+            mesh.SetUVs(1, meshData.UV2s);
+            mesh.SetUVs(2, meshData.UV3s);
+            mesh.SetUVs(3, meshData.UV4s);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
 
+            return mesh;
+        }
 
 
         private async Task<ChunkMeshBuilder> RenderChunkFace(Chunk chunk, int voxelFace, AnimationCurve lightAnimCurve, bool isTransparentMesh = false)
@@ -789,6 +809,8 @@ namespace PixelMiner.Core
                                     blockColorIntensity[1] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
                                     blockColorIntensity[2] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + m + n, voxelFace);
                                     blockColorIntensity[3] = GetBlockLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
+
+
                                 }
                                 else if (!slafSolid[0] && !slafSolid[1] && slafSolid[2] && slafSolid[3])
                                 {
@@ -835,23 +857,30 @@ namespace PixelMiner.Core
                                 else
                                 {
                                     blockColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                                    blockColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                                    blockColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
-                                    blockColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                    blockColorIntensity[1] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                    blockColorIntensity[2] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                    blockColorIntensity[3] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
                                 }
+
+                                colors[0] = GetLightColor(blockColorIntensity[0], lightAnimCurve);
+                                colors[1] = GetLightColor(blockColorIntensity[1], lightAnimCurve);
+                                colors[2] = GetLightColor(blockColorIntensity[2], lightAnimCurve);
+                                colors[3] = GetLightColor(blockColorIntensity[3], lightAnimCurve);
                             }
                             else
                             {
+                                blockColorIntensity[0] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                blockColorIntensity[1] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                blockColorIntensity[2] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                blockColorIntensity[3] = GetBlockLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+
                                 colors[0] = GetLightColor(blockColorIntensity[0], lightAnimCurve);
                                 colors[1] = GetLightColor(blockColorIntensity[0], lightAnimCurve);
                                 colors[2] = GetLightColor(blockColorIntensity[0], lightAnimCurve);
                                 colors[3] = GetLightColor(blockColorIntensity[0], lightAnimCurve);
                             }
 
-                            colors[0] = GetLightColor(blockColorIntensity[0], lightAnimCurve);
-                            colors[1] = GetLightColor(blockColorIntensity[1], lightAnimCurve);
-                            colors[2] = GetLightColor(blockColorIntensity[2], lightAnimCurve);
-                            colors[3] = GetLightColor(blockColorIntensity[3], lightAnimCurve);
+                            
 
 
 
@@ -911,6 +940,13 @@ namespace PixelMiner.Core
                                 ambientColorIntensity[1] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
                                 ambientColorIntensity[2] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + m, voxelFace);
                                 ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos + n, voxelFace);
+                            }
+                            else
+                            {
+                                ambientColorIntensity[0] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                ambientColorIntensity[1] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                ambientColorIntensity[2] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
+                                ambientColorIntensity[3] = GetAmbientLightPropagationForAdjacentFace(chunk, startPos, voxelFace);
                             }
 
                             GetBlockUVs(currBlock, voxelFace, quadSize[u], quadSize[v], ref uvs);

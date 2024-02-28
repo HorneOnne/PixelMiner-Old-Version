@@ -5,6 +5,7 @@ namespace PixelMiner.Enums
     public static class BlockTypeExtensions
     {
         public static byte[] BlockProperties;
+
         private static HashSet<BlockType> _solidVoxelSet;
         private static HashSet<BlockType> _solidTransparentVoxelSet;
         private static HashSet<BlockType> _solidNonVoxelSet;

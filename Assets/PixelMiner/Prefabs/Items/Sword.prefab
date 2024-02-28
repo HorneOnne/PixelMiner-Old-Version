@@ -48,9 +48,25 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7862391691550088030, guid: 581015650a4bd8a4e93c3cec369e138b, type: 3}
+      propertyPath: m_Layer
+      value: 23
+      objectReference: {fileID: 0}
+    - target: {fileID: -7639331209684527813, guid: 581015650a4bd8a4e93c3cec369e138b, type: 3}
+      propertyPath: m_Layer
+      value: 23
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 581015650a4bd8a4e93c3cec369e138b, type: 3}
       propertyPath: m_Name
       value: Sword
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 581015650a4bd8a4e93c3cec369e138b, type: 3}
+      propertyPath: m_Layer
+      value: 23
+      objectReference: {fileID: 0}
+    - target: {fileID: 7742780737561719692, guid: 581015650a4bd8a4e93c3cec369e138b, type: 3}
+      propertyPath: m_Layer
+      value: 23
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -79,3 +95,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Offset: {x: -0.015, y: 0, z: -0.082}
   RotAngles: {x: -139.922, y: -8.411011, z: 102.935}
+  <BoxOffset>k__BackingField: {x: 0, y: 0, z: 0}
+  <BoxSize>k__BackingField: {x: 0, y: 0, z: 0}
