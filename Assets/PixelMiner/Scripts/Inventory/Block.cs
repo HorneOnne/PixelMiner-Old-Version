@@ -51,6 +51,8 @@ namespace PixelMiner
                                   transform.position.z,
                                   BoxSize.x, BoxSize.y, BoxSize.z);
             dEntity = new DynamicEntity(this.transform, bound, BoxOffset, PhysicLayer);
+            dEntity.SetConstraint(Constraint.X, true);
+            dEntity.SetConstraint(Constraint.Z, true);
         }
     }
 }

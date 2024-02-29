@@ -12,11 +12,11 @@ namespace PixelMiner.DataStructure
         public float Mass;
         public bool Simulate;
         public bool OnGround;
-
+        public Constraint Constraint{get; private set;}
         public Vector3 BoxOffset;
         public LayerMask PhysicLayer;
-        //public PhysicLayers Layers;
-        //public PhysicLayers CollideLayers;
+
+     
 
         public DynamicEntity(Transform transform, AABB bound, Vector3 boxOffset, 
                              LayerMask layerMask)
@@ -82,5 +82,34 @@ namespace PixelMiner.DataStructure
 
         //    return hash;
         //}
+
+
+        public void SetConstraint(Constraint constraint, bool enable)
+        {
+            if (enable)
+            {
+                // Add the flag using bitwise OR
+                Constraint |= constraint;
+            }
+            else
+            {
+                // Remove the flag using bitwise AND and bitwise complement
+                Constraint &= ~constraint;
+            }
+        }
+
+        public bool GetConstraint(Constraint coordinate)
+        {
+            return (Constraint & coordinate) != 0;  
+        }
     }
+
+    [System.Flags]
+    public enum Constraint : byte
+    {
+        X = 0x1, 
+        Y = 0x2, 
+        Z = 0x4,
+    }
+
 }

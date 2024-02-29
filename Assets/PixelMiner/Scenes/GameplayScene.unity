@@ -1429,9 +1429,12 @@ MonoBehaviour:
   CurrentHotbarUseSlotIndex: -1
   _rightHand: {fileID: 4523445320664673747}
   _center: {x: 0, y: 1, z: 0}
-  _halfSize: {x: 1.5, y: 1.5, z: 1.5}
+  _halfSize: {x: 1, y: 1, z: 1}
   _boundColor: {r: 1, g: 0, b: 0.6055651, a: 1}
   _showBounds: 1
+  _itemLayer:
+    serializedVersion: 2
+    m_Bits: 8388608
 --- !u!1 &316929662
 GameObject:
   m_ObjectHideFlags: 0

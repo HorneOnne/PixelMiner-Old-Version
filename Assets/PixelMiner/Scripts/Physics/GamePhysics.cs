@@ -38,7 +38,9 @@ namespace PixelMiner.Physics
         private Vector3[] _corners = new Vector3[8];
         private List<PhysicEntityOctree> _overlapBoxOctrees = new List<PhysicEntityOctree>();
         private List<DynamicEntity> _overlapEntitiesFound = new List<DynamicEntity>();
-        
+
+
+        public int TotalEntities;
 
         private void Awake()
         {
@@ -81,10 +83,11 @@ namespace PixelMiner.Physics
             if (SpatialOctrees.TryGetValue(octreeFrame, out PhysicEntityOctree octree))
             {
                 bool canRemove = octree.Remove(entity);
-                if(canRemove)
-                {
-                    Destroy(entity.Transform.gameObject);
-                }
+                //if(canRemove)
+                //{
+                //    Destroy(entity.Transform.gameObject);
+                //}
+                Debug.Log($"Can remove: {canRemove}");
             }
             else
             {
@@ -101,6 +104,8 @@ namespace PixelMiner.Physics
         {
             _removeEntityQueue.Enqueue(entity);
         }
+
+
 
 
         public int OverlapBoxNonAlloc(Vector3 center, Vector3 halfExtents, DynamicEntity[] entities)
@@ -151,9 +156,52 @@ namespace PixelMiner.Physics
             return actualSize;
         }
 
-        public int OverlapBoxNonAlloc(Vector3 center, Vector3 halfExtents, List<DynamicEntity> entities, int mask)
+        public int OverlapBoxNonAlloc(Vector3 center, Vector3 halfExtents, DynamicEntity[] entities, int mask)
         {
-            return 0;
+            _overlapEntitiesFound.Clear();
+            _overlapBoxOctrees.Clear();
+
+            AABB bounds = new AABB(center.x - halfExtents.x, center.y - halfExtents.y, center.z - halfExtents.z,
+                                   halfExtents.x * 2, halfExtents.y * 2, halfExtents.z * 2);
+
+            _corners[0] = new Vector3(bounds.x, bounds.y, bounds.z);
+            _corners[1] = new Vector3(bounds.Max.x, bounds.y, bounds.z);
+            _corners[2] = new Vector3(bounds.x, bounds.Max.y, bounds.z);
+            _corners[3] = new Vector3(bounds.Max.x, bounds.Max.y, bounds.z);
+            _corners[4] = new Vector3(bounds.x, bounds.y, bounds.Max.z);
+            _corners[5] = new Vector3(bounds.Max.x, bounds.y, bounds.Max.z);
+            _corners[6] = new Vector3(bounds.x, bounds.Max.y, bounds.Max.z);
+            _corners[7] = new Vector3(bounds.Max.x, bounds.Max.y, bounds.Max.z);
+
+
+            for (int i = 0; i < _corners.Length; i++)
+            {
+                Vector3Int octreeGridFrame = GetSpatialFrame(_corners[i]);
+                if (SpatialOctrees.TryGetValue(octreeGridFrame, out PhysicEntityOctree octree))
+                {
+                    if (!_overlapBoxOctrees.Contains(octree))
+                    {
+                        _overlapBoxOctrees.Add(octree);
+                    }
+                }
+            }
+
+            for (int i = 0; i < _overlapBoxOctrees.Count; i++)
+            {
+                //_overlapEntitiesFound = _overlapBoxOctrees[i].Query(bounds);
+                _overlapBoxOctrees[i].QueryNonAlloc(bounds, ref _overlapEntitiesFound, mask);
+            }
+
+            int actualSize = Mathf.Min(_overlapEntitiesFound.Count, entities.Length);
+            //entities = _overlapEntitiesFound.GetRange(0, actualSize).ToArray();
+            if (actualSize > 0)
+            {
+                for (int i = 0; i < actualSize; i++)
+                {
+                    entities[i] = _overlapEntitiesFound[i];
+                }
+            }
+            return actualSize;
         }
 
      
@@ -162,11 +210,12 @@ namespace PixelMiner.Physics
         {        
             UnityEngine.Profiling.Profiler.BeginSample("Recreate octree sample");
             _allEntitiesQueryList.Clear();
-            
+            TotalEntities = 0;
             foreach (var octree in SpatialOctrees)
             {
                 int entitiesFound = GetAllEntitiesInOctreeNonAlloc(octree.Key, ref _octreeEntitiesQueryList);
-                if(entitiesFound > 0)
+                TotalEntities += entitiesFound; 
+                if (entitiesFound > 0)
                 {
                     _allEntitiesQueryList.AddRange(_octreeEntitiesQueryList);
                 }
@@ -200,26 +249,35 @@ namespace PixelMiner.Physics
 
                     // Y
                     // ------------------------------------
-                    broadPhase = AABBExtensions.GetSweptBroadphaseBox(dEntity.AABB, new Vector3(0, dEntity.Velocity.y, 0) * Time.fixedDeltaTime);
-                    ResolveResolutionY(dEntity, broadPhase, Time.fixedDeltaTime);
+                    if(!dEntity.GetConstraint(Constraint.Y))
+                    {
+                        broadPhase = AABBExtensions.GetSweptBroadphaseBox(dEntity.AABB, new Vector3(0, dEntity.Velocity.y, 0) * Time.fixedDeltaTime);
+                        ResolveResolutionY(dEntity, broadPhase, Time.fixedDeltaTime);
+                    }
+
 
 
 
                     // X
                     // ------------------------------------
-                    broadPhase = AABBExtensions.GetSweptBroadphaseBox(dEntity.AABB, new Vector3(dEntity.Velocity.x, 0, 0) * Time.fixedDeltaTime);
-                    ResolveResolutionX(dEntity, broadPhase, Time.fixedDeltaTime);
+                    if (!dEntity.GetConstraint(Constraint.X))
+                    {
+                        broadPhase = AABBExtensions.GetSweptBroadphaseBox(dEntity.AABB, new Vector3(dEntity.Velocity.x, 0, 0) * Time.fixedDeltaTime);
+                        ResolveResolutionX(dEntity, broadPhase, Time.fixedDeltaTime);
+                    }
+
 
 
 
 
                     // Z
                     // ------------------------------------
-                    broadPhase = AABBExtensions.GetSweptBroadphaseBox(dEntity.AABB, new Vector3(0, 0, dEntity.Velocity.z) * Time.fixedDeltaTime);
-                    ResolveResolutionZ(dEntity, broadPhase, Time.fixedDeltaTime);
-
-
-
+                    if (!dEntity.GetConstraint(Constraint.Z))
+                    {
+                        broadPhase = AABBExtensions.GetSweptBroadphaseBox(dEntity.AABB, new Vector3(0, 0, dEntity.Velocity.z) * Time.fixedDeltaTime);
+                        ResolveResolutionZ(dEntity, broadPhase, Time.fixedDeltaTime);
+                    }
+                        
 
 
                     //Push
@@ -240,21 +298,8 @@ namespace PixelMiner.Physics
                     //}
 
 
-
-                    //bool objectMove = false;
-                    //if (dEntity.Transform.position != dEntity.Position)
-                    //{
-                    //    objectMove = true;
-                    //    bool removeSuccess = octree.Value.Remove(dEntity);
-                    //}
-
                     dEntity.Transform.position = dEntity.Position;
-                    //if (objectMove)
-                    //{
-                    //    AddDynamicEntity(dEntity);
-                    //}
-
-
+    
                     // Update new aabb bounds
                     dEntity.AABB = new AABB()
                     {
@@ -266,116 +311,7 @@ namespace PixelMiner.Physics
                         d = dEntity.AABB.d
                     };
                 }
-
             }
-
-
-            //for (int entity = 0; entity < _dynamicEntities.Count; entity++)
-            //{
-            //    DynamicEntity dEntity = _dynamicEntities[entity];
-            //    _entitiesQueryList.Clear();
-            //    _entitiesQueryList = _octreePhysics.Query(dEntity.AABB);
-            //    //Debug.Log(_entitiesQueryList.Count);
-            //    for (int i = 0; i < _entitiesQueryList.Count; i++)
-            //    {
-            //        if (!UnityEngine.Physics.GetIgnoreLayerCollision(dEntity.PhysicLayer, _entitiesQueryList[i].PhysicLayer) && dEntity != _entitiesQueryList[i])
-            //        {
-            //            Debug.Log($"{(int)dEntity.PhysicLayer} hit {(int)_entitiesQueryList[i].PhysicLayer}");
-            //        }
-            //    }
-
-            //    if (!dEntity.Simulate) continue;
-            //    dEntity.Position = dEntity.Transform.position;
-
-
-            //    if (dEntity.Velocity.y > _minFallForce)
-            //    {
-            //        dEntity.AddVelocity(_gravity * dEntity.Mass * Time.fixedDeltaTime);
-            //    }
-
-
-            //    _bounds.Clear();
-            //    float normalX = 0, normalY = 0, normalZ = 0;
-            //    float nearestCollisionTimeX = 1.0f;
-            //    float nearestCollisionTimeY = 1.0f;
-            //    float nearestCollisionTimeZ = 1.0f;
-            //    float remainingTimeX = 0;
-            //    float remainingTimeY = 0;
-            //    float remainingTimeZ = 0;
-            //    int axis;
-            //    int nearestAxis = -1;
-            //    AABB broadPhase;
-            //    Vector3Int minBP, maxBP;
-
-
-            //    // Y
-            //    // ------------------------------------
-            //    broadPhase = AABBExtensions.GetSweptBroadphaseBox(dEntity.AABB, new Vector3(0, dEntity.Velocity.y, 0) * Time.fixedDeltaTime);
-            //    ResolveResolutionY(dEntity, broadPhase, Time.fixedDeltaTime);
-
-
-
-            //    // X
-            //    // ------------------------------------
-            //    broadPhase = AABBExtensions.GetSweptBroadphaseBox(dEntity.AABB, new Vector3(dEntity.Velocity.x, 0, 0) * Time.fixedDeltaTime);
-            //    ResolveResolutionX(dEntity, broadPhase, Time.fixedDeltaTime);
-
-
-
-
-            //    // Z
-            //    // ------------------------------------
-            //    broadPhase = AABBExtensions.GetSweptBroadphaseBox(dEntity.AABB, new Vector3(0, 0, dEntity.Velocity.z) * Time.fixedDeltaTime);
-            //    ResolveResolutionZ(dEntity, broadPhase, Time.fixedDeltaTime);
-
-
-
-
-
-            //    //Push
-            //    //if (remainingTime != 0)
-            //    //{
-            //    //    float magnitude = dEntity.Velocity.magnitude * remainingTime;
-            //    //    float dotProduct = Mathf.Sign(dEntity.Velocity.x * normalZ + dEntity.Velocity.z * normalX);
-
-            //    //    dEntity.Velocity.x = -10;
-            //    //    dEntity.Velocity.z = 0;
-
-            //    //    if (normalX != 0) dEntity.Velocity.x = 0;
-            //    //    if (normalZ != 0) dEntity.Velocity.z = 0;
-
-            //    //    //Debug.Log($"Loop: {loopCount}   {normalX}   {normalZ}   {dotProduct}   {dEntity.Velocity}");
-            //    //    collisionTime = remainingTime * Time.deltaTime;
-            //    //    dEntity.Position += dEntity.Velocity * collisionTime;
-            //    //}
-
-            //    bool objectMove = false;
-            //    if (dEntity.Transform.position != dEntity.Position)
-            //    {
-            //        objectMove = true;
-            //        bool removeSuccess = _octreePhysics.Remove(dEntity);
-            //    }
-
-
-            //    dEntity.Transform.position = dEntity.Position;
-            //    if (objectMove)
-            //    {
-            //        _octreePhysics.Insert(dEntity);
-            //    }
-
-
-            //    // Update new aabb bounds
-            //    dEntity.AABB = new AABB()
-            //    {
-            //        x = dEntity.Transform.position.x + dEntity.BoxOffset.x,
-            //        y = dEntity.Transform.position.y + dEntity.BoxOffset.y,
-            //        z = dEntity.Transform.position.z + dEntity.BoxOffset.z,
-            //        w = dEntity.AABB.w,
-            //        h = dEntity.AABB.h,
-            //        d = dEntity.AABB.d
-            //    };
-            //}
-
 
             foreach (var e in SpatialOctrees)
             {
@@ -384,18 +320,21 @@ namespace PixelMiner.Physics
                     PhysicEntityOctreePool.Pool.Release(octree);
                 });
             }
-            SpatialOctrees.Clear();
+            SpatialOctrees.Clear(); 
             for (int i = 0; i < _allEntitiesQueryList.Count; i++)
             {
-                AddDynamicEntity(_allEntitiesQueryList[i]);
+                //AddDynamicEntity(_allEntitiesQueryList[i]);
+                _addEntityQueue.Enqueue(_allEntitiesQueryList[i]);
             }
-            
+          
+
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
        
         private void Update()
         {
+  
             if (_addEntityQueue.Count > 0)
             {
                 while (_addEntityQueue.Count > 0)
@@ -404,7 +343,6 @@ namespace PixelMiner.Physics
                     HandleAddDynamicEntity(_addEntityQueue.Dequeue());
                 }
             }
-
             if (_removeEntityQueue.Count > 0)
             {
                 while (_removeEntityQueue.Count > 0)
@@ -413,6 +351,7 @@ namespace PixelMiner.Physics
                     HandleRemoveDynamicEntity(_removeEntityQueue.Dequeue());
                 }
             }
+
 
             foreach (var octree in SpatialOctrees)
             {

@@ -38,8 +38,10 @@ namespace PixelMiner
         [SerializeField] private Vector3 _halfSize;
         [SerializeField] private Color _boundColor;
         [SerializeField] private bool _showBounds;
-        private DynamicEntity[] _itemEntites;
+        [SerializeField] private DynamicEntity[] _itemEntites;
         private const int MAX_ITEM_DETECT_IN_FRAME = 8;
+        [SerializeField] private LayerMask _itemLayer;
+        public int EntitiesHit;
 
         private void Awake()
         {
@@ -72,7 +74,8 @@ namespace PixelMiner
 
         private void FixedUpdate()
         {
-            int itemHit = GamePhysics.Instance.OverlapBoxNonAlloc(transform.position + _center, _halfSize, _itemEntites);
+            int itemHit = GamePhysics.Instance.OverlapBoxNonAlloc(transform.position + _center, _halfSize, _itemEntites, _itemLayer);
+            EntitiesHit = itemHit;
             if (itemHit > 0)
             {
                 for (int i = 0; i < itemHit; i++)
@@ -82,8 +85,13 @@ namespace PixelMiner
                         Debug.Log("hit item");
                         GamePhysics.Instance.RemoveDynamicEntity(_itemEntites[i]);
                         //Destroy(item.gameObject);
-                        Inventory.AddItem(item.Data);
+                        Inventory.AddItem(item.Data);                   
                     }
+                    else
+                    {
+                        Debug.Log("not player");
+                    }
+                    //System.Array.Clear(_itemEntites, 0, _itemEntites.Length);
                 }
             }
 

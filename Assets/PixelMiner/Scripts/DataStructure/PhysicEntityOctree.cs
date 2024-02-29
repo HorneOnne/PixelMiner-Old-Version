@@ -11,7 +11,8 @@ namespace PixelMiner.DataStructure
         public PhysicEntityOctree[] Neighbors;
         private bool _divided = false;
 
-        public HashSet<DynamicEntity> Entities;
+        //public HashSet<DynamicEntity> Entities;
+        public List<DynamicEntity> Entities;
 
         private const int MAX_LEVEL = 5;
         private int _level;
@@ -19,7 +20,8 @@ namespace PixelMiner.DataStructure
 
         public PhysicEntityOctree()
         {
-            Entities = new HashSet<DynamicEntity>();
+            //Entities = new HashSet<DynamicEntity>();
+            Entities = new List<DynamicEntity>();
             Neighbors = new PhysicEntityOctree[8];
         }
 
@@ -71,20 +73,13 @@ namespace PixelMiner.DataStructure
 
         public bool Remove(DynamicEntity entity)
         {
-            if (!this.Bound.Contains(entity.Transform.position))
+            if (Entities.Contains(entity))
             {
-                return false;
+                Entities.Remove(entity);
+                return true;
             }
 
-            if (!_divided)
-            {
-                if (Entities.Contains(entity))
-                {
-                    Entities.Remove(entity);
-                    return true;
-                }
-            }
-            else
+            if (_divided)
             {
                 for (int i = 0; i < Neighbors.Length; i++)
                 {
@@ -94,7 +89,8 @@ namespace PixelMiner.DataStructure
                     }
                 }
             }
-
+     
+            Debug.Log("F2");
             return false;
 
         }
@@ -224,6 +220,27 @@ namespace PixelMiner.DataStructure
                 }
             }
         }
+        public void QueryNonAlloc(AABB queryBound, ref List<DynamicEntity> entities, LayerMask layer)
+        {
+            if (this.Bound.Intersect(queryBound))
+            {
+                foreach (var e in this.Entities)
+                {
+                    if (queryBound.Contains(e.Transform.position) && (layer & e.PhysicLayer) != 0)
+                    {
+                        entities.Add(e);
+                    }
+                }
+                if (_divided)
+                {
+                    for (int i = 0; i < Neighbors.Length; i++)
+                    {
+                        Neighbors[i].QueryNonAlloc(queryBound, ref entities,layer);
+                    }
+                }
+            }
+        }
+
         public void Clear()
         {
             Entities.Clear();

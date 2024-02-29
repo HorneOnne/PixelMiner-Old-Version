@@ -99,8 +99,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Offset: {x: 0, y: 0, z: 0}
   RotAngles: {x: 0, y: 0, z: 0}
+  dEntity:
+    Transform: {fileID: 0}
+    Position: {x: 0, y: 0, z: 0}
+    Velocity: {x: 0, y: 0, z: 0}
+    Mass: 0
+    Simulate: 0
+    OnGround: 0
+    BoxOffset: {x: 0, y: 0, z: 0}
+    PhysicLayer:
+      serializedVersion: 2
+      m_Bits: 0
   <BoxOffset>k__BackingField: {x: -0.3, y: -0.5, z: -0.3}
   <BoxSize>k__BackingField: {x: 0.6, y: 0.6, z: 0.6}
+  PhysicLayer:
+    serializedVersion: 2
+    m_Bits: 8388608
 --- !u!114 &6818159654822242420
 MonoBehaviour:
   m_ObjectHideFlags: 0

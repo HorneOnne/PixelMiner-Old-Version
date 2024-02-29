@@ -10,11 +10,11 @@ namespace PixelMiner
         public Vector3 RotAngles;
         protected MeshRenderer[] meshRenderers;
 
-        protected DynamicEntity dEntity;
+        [SerializeField] protected DynamicEntity dEntity;
         public DynamicEntity DynamicEntity { get=> dEntity;}
         [field: SerializeField] public Vector3 BoxOffset { get; set; }    
         [field: SerializeField] public Vector3 BoxSize { get; set; }
-        protected LayerMask PhysicLayer { get => this.gameObject.layer; }
+        public LayerMask PhysicLayer;
 
         private void Awake()
         {
@@ -35,7 +35,10 @@ namespace PixelMiner
             }
         }
 
-        public virtual void EnablePhysics() { }
+        public virtual void EnablePhysics()
+        {
+           
+        }
     }
 
 }

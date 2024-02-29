@@ -73,6 +73,7 @@ namespace PixelMiner
         {
             AABB bound = new AABB(transform.position.x, transform.position.y, transform.position.z, BoxSize.x, BoxSize.y, BoxSize.z);
             dEntity = new DynamicEntity(this.transform, bound, Vector3.zero, PhysicLayer);
+            this.dEntity.PhysicLayer = this.gameObject.layer;
         }
 
 
