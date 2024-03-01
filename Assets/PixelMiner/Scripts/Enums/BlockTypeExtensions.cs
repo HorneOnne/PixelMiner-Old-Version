@@ -117,6 +117,7 @@ namespace PixelMiner.Enums
         public static bool IsGrassType(this BlockType blockType)
         {
             return blockType == BlockType.Grass ||
+                   blockType == BlockType.TallGrass ||
                    blockType == BlockType.Shrub;
         }
 

@@ -11,8 +11,8 @@ namespace PixelMiner.DataStructure
         public PhysicEntityOctree[] Neighbors;
         private bool _divided = false;
 
-        //public HashSet<DynamicEntity> Entities;
-        public List<DynamicEntity> Entities;
+        public HashSet<DynamicEntity> Entities;
+        //public List<DynamicEntity> Entities;
 
         private const int MAX_LEVEL = 5;
         private int _level;
@@ -20,8 +20,8 @@ namespace PixelMiner.DataStructure
 
         public PhysicEntityOctree()
         {
-            //Entities = new HashSet<DynamicEntity>();
-            Entities = new List<DynamicEntity>();
+            Entities = new HashSet<DynamicEntity>();
+            //Entities = new List<DynamicEntity>();
             Neighbors = new PhysicEntityOctree[8];
         }
 
@@ -90,7 +90,6 @@ namespace PixelMiner.DataStructure
                 }
             }
      
-            Debug.Log("F2");
             return false;
 
         }
@@ -112,17 +111,6 @@ namespace PixelMiner.DataStructure
             AABB une = new AABB(Bound.x + halfWidth, Bound.y + halfHeight, Bound.z + halfDepth, halfWidth, halfHeight, halfDepth);
 
             int nextLevel = _level+1;
-    
-            //Neighbors[0] = new Octree<T>(dsw, this.Capacity, nextLevel);
-            //Neighbors[1] = new Octree<T>(dse, this.Capacity, nextLevel);
-            //Neighbors[2] = new Octree<T>(dnw, this.Capacity, nextLevel);
-            //Neighbors[3] = new Octree<T>(dne, this.Capacity, nextLevel);
-
-            //Neighbors[4] = new Octree<T>(usw, this.Capacity, nextLevel);
-            //Neighbors[5] = new Octree<T>(use, this.Capacity, nextLevel);
-            //Neighbors[6] = new Octree<T>(unw, this.Capacity, nextLevel);
-            //Neighbors[7] = new Octree<T>(une, this.Capacity, nextLevel);
-
 
             Neighbors[0] = PhysicEntityOctreePool.Pool.Get();
             Neighbors[0].Init(dsw, this.Capacity, nextLevel);

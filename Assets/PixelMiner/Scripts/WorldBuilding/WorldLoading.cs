@@ -214,7 +214,7 @@ namespace PixelMiner.WorldBuilding
 
             if(_preDrawChunkTaskList.Count > 0)
             {
-                Debug.Log($"Pre-Draw last: {_preDrawChunkTaskList.Count}");
+                //Debug.Log($"Pre-Draw last: {_preDrawChunkTaskList.Count}");
                 await Task.WhenAll(_preDrawChunkTaskList);
                 _preDrawChunkTaskList.Clear();
             }

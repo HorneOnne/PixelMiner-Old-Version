@@ -7,62 +7,30 @@ namespace PixelMiner
 {
     public class Pickaxe : Item, IUseable
     {
-        public static System.Action OnItemBroken;
-
-        private int _remainingUses;
-        public int RemainingUses { get => _remainingUses; }
-
-
         public override void Initialize(ItemData data)
         {
             base.Initialize(data);
-            _remainingUses = Data.MaxUses;
         }
 
-
-
         public bool Use(Player player)
-        {
-            Debug.Log($"Use: {Data.ID}");
-            if (_remainingUses > 0)
+        {      
+            if (Main.Instance.RemoveBlock(player.PlayerBehaviour.SampleBlockTrans.position, out Enums.BlockType removedBlock))
             {
-                // Implemeent use logic here.
+                //player.PlayerInventory.Inventory.AddItem(ItemFactory.GetItemData(Enums.ItemID.Dirt));
 
-                if (Main.Instance.RemoveBlock(player.PlayerBehaviour.SampleBlockTrans.position, out Enums.BlockType removedBlock))
+                ItemID itemID = (ItemID)removedBlock;
+                ItemData removedData = ItemFactory.GetItemData(itemID);
+                if (removedData == null)
                 {
-                    //player.PlayerInventory.Inventory.AddItem(ItemFactory.GetItemData(Enums.ItemID.Dirt));
-
-                    ItemID itemID = (ItemID)removedBlock;
-                    ItemData removedData = ItemFactory.GetItemData(itemID);
-                    if (removedData == null)
-                    {
-                        Debug.Log($"null: {itemID}");
-                    }
-                    else
-                    {
-                        var item = ItemFactory.CreateItem(removedData, player.PlayerBehaviour.SampleBlockTrans.position, Vector3.zero);
-                        item.EnablePhysics();
-                        GamePhysics.Instance.AddDynamicEntity(item.DynamicEntity);
-                    }
-                    
-
-                    // Decrease the remaining uses
-                    _remainingUses--;
-
-                    // Handle item is broken.
-                    if (_remainingUses == 0)
-                    {
-                        Debug.Log($"{Data.ItemName} has been broken.");
-                        Destroy(this.gameObject);
-                        OnItemBroken?.Invoke();
-                    }
-
-                    return true;
+                    Debug.Log($"null: {itemID}");
                 }
-            }
-            else
-            {
-                Debug.Log($"Out of uses for: {Data.ItemName}");
+                else
+                {
+                    var item = ItemFactory.CreateItem(removedData, player.PlayerBehaviour.SampleBlockTrans.position, Vector3.zero);
+                    item.EnablePhysics();
+                    GamePhysics.Instance.AddDynamicEntity(item.DynamicEntity);
+                }
+                return true;
             }
 
             return false;

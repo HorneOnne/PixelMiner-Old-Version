@@ -454,10 +454,10 @@ namespace PixelMiner.Core
             {
                 neighborOffset.z = -1;
             }
-
-
+     
 
             neighborChunk = FindNeighbor(neighborOffset);
+ 
             if (neighborChunk != null)
             {
                 foundNeighborChunk = true;
@@ -513,6 +513,8 @@ namespace PixelMiner.Core
                     Debug.LogError("Out of range depth!");
                 }
             }
+
+           
 
             return foundNeighborChunk;
         }

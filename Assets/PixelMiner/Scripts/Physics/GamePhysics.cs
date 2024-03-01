@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using PixelMiner.Core;
@@ -13,8 +14,8 @@ namespace PixelMiner.Physics
         public static GamePhysics Instance { get; private set; }
         private Dictionary<Vector3Int, PhysicEntityOctree> SpatialOctrees;
         private Main _main;
-        private Vector3Int OctreeDimensions = new Vector3Int(256, 256, 256);
-        private const int OCTREE_CAPACITY = 3;
+        private Vector3Int OctreeDimensions = new Vector3Int(512, 512, 512);
+        private const int OCTREE_CAPACITY = 5;
 
         [SerializeField] private Vector3 _gravity = Vector3.down;
         private List<float> _collisionTimes = new List<float>();
@@ -49,6 +50,8 @@ namespace PixelMiner.Physics
             //_octreePhysics = new Octree<DynamicEntity>(new AABB(-700, -700, -700, 1400, 1400, 1400), OCTREE_CAPACITY, level: 0);
         }
 
+        public GameObject Prefab;
+        public LayerMask ItemLayer;
         private void Start()
         {
             _main = Main.Instance;
@@ -56,163 +59,55 @@ namespace PixelMiner.Physics
             //Time.timeScale = 0.1f;
 
             _entitiesQueryList = new List<DynamicEntity>();
-        }
 
-        private void HandleAddDynamicEntity(DynamicEntity entity)
-        {
-            //_dynamicEntities.Add(entity);
-            //bool canInsert = _octreePhysics.Insert(entity);       
-            Vector3Int octreeFrame = GetSpatialFrame(entity.Transform.position);
-            if (SpatialOctrees.TryGetValue(octreeFrame, out PhysicEntityOctree octree))
-            {
-                bool canInsert = octree.Insert(entity);
-            }
-            else
-            {
-                AABB octreeBounds = GetOctreeBounds(octreeFrame);
-                PhysicEntityOctree newOctree = PhysicEntityOctreePool.Pool.Get();
-                newOctree.Init(octreeBounds, capacity: OCTREE_CAPACITY, level: 0);
-                SpatialOctrees.Add(octreeFrame, newOctree);
-                bool canInsert = newOctree.Insert(entity);
-            }
-        }
 
-        private void HandleRemoveDynamicEntity(DynamicEntity entity)
-        {
-            Vector3Int octreeFrame = GetSpatialFrame(entity.Transform.position);
-            if (SpatialOctrees.TryGetValue(octreeFrame, out PhysicEntityOctree octree))
-            {
-                bool canRemove = octree.Remove(entity);
-                //if(canRemove)
-                //{
-                //    Destroy(entity.Transform.gameObject);
-                //}
-                Debug.Log($"Can remove: {canRemove}");
-            }
-            else
-            {
-                Debug.LogError("Physics ignored this entity.");
-            }
-        }
 
-        public void AddDynamicEntity(DynamicEntity entity)
-        {
-            _addEntityQueue.Enqueue(entity);
-        }
+            // Test
+            //int entityCount = 2000;
+            //for (int i = 0; i < entityCount; i++)
+            //{
+            //    Vector3 randomPosition = new Vector3(Random.Range(-300, 300), Random.Range(-300, 300), Random.Range(-300, 300));
+            //    var entityObject = Instantiate(Prefab, randomPosition, Quaternion.identity);
+            //    AABB bound = GetBlockBound(randomPosition);
+            //    DynamicEntity dEntity = new DynamicEntity(entityObject.transform, bound, Vector2.zero, ItemLayer);
+            //    dEntity.SetConstraint(Constraint.X, true);
+            //    dEntity.SetConstraint(Constraint.Y, true);
+            //    dEntity.SetConstraint(Constraint.Z, true);
 
-        public void RemoveDynamicEntity(DynamicEntity entity)
-        {
-            _removeEntityQueue.Enqueue(entity);
+            //    HandleAddDynamicEntity(dEntity);
+            //}
         }
 
 
-
-
-        public int OverlapBoxNonAlloc(Vector3 center, Vector3 halfExtents, DynamicEntity[] entities)
+        public int AddEachFrame = 0;
+        public int RemoveEachFrame = 0;
+        private void Update()
         {
-            _overlapEntitiesFound.Clear();
-            _overlapBoxOctrees.Clear();
-
-            AABB bounds = new AABB(center.x - halfExtents.x, center.y - halfExtents.y, center.z - halfExtents.z,
-                                   halfExtents.x * 2, halfExtents.y * 2, halfExtents.z * 2);
-
-            _corners[0] = new Vector3(bounds.x, bounds.y, bounds.z);
-            _corners[1] = new Vector3(bounds.Max.x, bounds.y, bounds.z);
-            _corners[2] = new Vector3(bounds.x, bounds.Max.y, bounds.z);
-            _corners[3] = new Vector3(bounds.Max.x, bounds.Max.y, bounds.z);
-            _corners[4] = new Vector3(bounds.x, bounds.y, bounds.Max.z);
-            _corners[5] = new Vector3(bounds.Max.x, bounds.y, bounds.Max.z);
-            _corners[6] = new Vector3(bounds.x, bounds.Max.y, bounds.Max.z);
-            _corners[7] = new Vector3(bounds.Max.x, bounds.Max.y, bounds.Max.z);
-  
-            
-            for (int i = 0; i < _corners.Length; i++)
+            foreach (var octree in SpatialOctrees)
             {
-                Vector3Int octreeGridFrame = GetSpatialFrame(_corners[i]);
-                if (SpatialOctrees.TryGetValue(octreeGridFrame, out PhysicEntityOctree octree))
+                int entitiesFound = GetAllEntitiesInOctreeNonAlloc(octree.Key, ref _octreeEntitiesQueryList);
+                for (int i = 0; i < _octreeEntitiesQueryList.Count; i++)
                 {
-                    if (!_overlapBoxOctrees.Contains(octree))
-                    {
-                        _overlapBoxOctrees.Add(octree);
-                    }
+                    _drawer.AddPhysicBounds(_octreeEntitiesQueryList[i].AABB, Color.green);
                 }
-            }
 
-            for (int i = 0; i < _overlapBoxOctrees.Count; i++)
-            {
-                //_overlapEntitiesFound = _overlapBoxOctrees[i].Query(bounds);
-                _overlapBoxOctrees[i].QueryNonAlloc(bounds, ref _overlapEntitiesFound);
-            }
-
-            int actualSize = Mathf.Min(_overlapEntitiesFound.Count, entities.Length);
-            //entities = _overlapEntitiesFound.GetRange(0, actualSize).ToArray();
-            if(actualSize> 0)
-            {
-                for(int i = 0;i  < actualSize;i++)
+                octree.Value.TraverseRecursive((AABB) =>
                 {
-                    entities[i] = _overlapEntitiesFound[i];
-                }
+                    _drawer.AddPhysicBounds(AABB, Color.blue);
+                });
             }
-            return actualSize;
         }
 
-        public int OverlapBoxNonAlloc(Vector3 center, Vector3 halfExtents, DynamicEntity[] entities, int mask)
-        {
-            _overlapEntitiesFound.Clear();
-            _overlapBoxOctrees.Clear();
-
-            AABB bounds = new AABB(center.x - halfExtents.x, center.y - halfExtents.y, center.z - halfExtents.z,
-                                   halfExtents.x * 2, halfExtents.y * 2, halfExtents.z * 2);
-
-            _corners[0] = new Vector3(bounds.x, bounds.y, bounds.z);
-            _corners[1] = new Vector3(bounds.Max.x, bounds.y, bounds.z);
-            _corners[2] = new Vector3(bounds.x, bounds.Max.y, bounds.z);
-            _corners[3] = new Vector3(bounds.Max.x, bounds.Max.y, bounds.z);
-            _corners[4] = new Vector3(bounds.x, bounds.y, bounds.Max.z);
-            _corners[5] = new Vector3(bounds.Max.x, bounds.y, bounds.Max.z);
-            _corners[6] = new Vector3(bounds.x, bounds.Max.y, bounds.Max.z);
-            _corners[7] = new Vector3(bounds.Max.x, bounds.Max.y, bounds.Max.z);
 
 
-            for (int i = 0; i < _corners.Length; i++)
-            {
-                Vector3Int octreeGridFrame = GetSpatialFrame(_corners[i]);
-                if (SpatialOctrees.TryGetValue(octreeGridFrame, out PhysicEntityOctree octree))
-                {
-                    if (!_overlapBoxOctrees.Contains(octree))
-                    {
-                        _overlapBoxOctrees.Add(octree);
-                    }
-                }
-            }
-
-            for (int i = 0; i < _overlapBoxOctrees.Count; i++)
-            {
-                //_overlapEntitiesFound = _overlapBoxOctrees[i].Query(bounds);
-                _overlapBoxOctrees[i].QueryNonAlloc(bounds, ref _overlapEntitiesFound, mask);
-            }
-
-            int actualSize = Mathf.Min(_overlapEntitiesFound.Count, entities.Length);
-            //entities = _overlapEntitiesFound.GetRange(0, actualSize).ToArray();
-            if (actualSize > 0)
-            {
-                for (int i = 0; i < actualSize; i++)
-                {
-                    entities[i] = _overlapEntitiesFound[i];
-                }
-            }
-            return actualSize;
-        }
-
-     
-
-        private void FixedUpdate()
+        private async void FixedUpdate()
         {        
             UnityEngine.Profiling.Profiler.BeginSample("Recreate octree sample");
             _allEntitiesQueryList.Clear();
             TotalEntities = 0;
             foreach (var octree in SpatialOctrees)
             {
+                _octreeEntitiesQueryList.Clear();
                 int entitiesFound = GetAllEntitiesInOctreeNonAlloc(octree.Key, ref _octreeEntitiesQueryList);
                 TotalEntities += entitiesFound; 
                 if (entitiesFound > 0)
@@ -320,26 +215,19 @@ namespace PixelMiner.Physics
                     PhysicEntityOctreePool.Pool.Release(octree);
                 });
             }
-            SpatialOctrees.Clear(); 
+            SpatialOctrees.Clear();
+
+
             for (int i = 0; i < _allEntitiesQueryList.Count; i++)
             {
-                //AddDynamicEntity(_allEntitiesQueryList[i]);
                 _addEntityQueue.Enqueue(_allEntitiesQueryList[i]);
             }
-          
-
-            UnityEngine.Profiling.Profiler.EndSample();
-        }
-
-       
-        private void Update()
-        {
-  
+            AddEachFrame = _addEntityQueue.Count;
+            RemoveEachFrame = _removeEntityQueue.Count;
             if (_addEntityQueue.Count > 0)
             {
                 while (_addEntityQueue.Count > 0)
                 {
-                    //Debug.Log("A");
                     HandleAddDynamicEntity(_addEntityQueue.Dequeue());
                 }
             }
@@ -347,26 +235,13 @@ namespace PixelMiner.Physics
             {
                 while (_removeEntityQueue.Count > 0)
                 {
-                    //Debug.Log("B");
                     HandleRemoveDynamicEntity(_removeEntityQueue.Dequeue());
                 }
             }
 
-
-            foreach (var octree in SpatialOctrees)
-            {
-                int entitiesFound = GetAllEntitiesInOctreeNonAlloc(octree.Key, ref _octreeEntitiesQueryList);
-                for (int i = 0; i < _octreeEntitiesQueryList.Count; i++)
-                {
-                    _drawer.AddPhysicBounds(_octreeEntitiesQueryList[i].AABB, Color.green);
-                }
-
-                octree.Value.TraverseRecursive((AABB) =>
-                {
-                    _drawer.AddPhysicBounds(AABB, Color.blue);
-                });
-            }
+            UnityEngine.Profiling.Profiler.EndSample();
         }
+
 
 
         private void ResolveResolutionX(DynamicEntity dEntity, AABB broadPhase, float dTime)
@@ -597,6 +472,152 @@ namespace PixelMiner.Physics
             //Debug.Log($"{collisionTime} {entity.Velocity}");
         }
 
+        private void HandleAddDynamicEntity(DynamicEntity entity)
+        {
+            //_dynamicEntities.Add(entity);
+            //bool canInsert = _octreePhysics.Insert(entity);       
+            Vector3Int octreeFrame = GetSpatialFrame(entity.Transform.position);
+            if (SpatialOctrees.TryGetValue(octreeFrame, out PhysicEntityOctree octree))
+            {
+                bool canInsert = octree.Insert(entity);
+            }
+            else
+            {
+                AABB octreeBounds = GetOctreeBounds(octreeFrame);
+                PhysicEntityOctree newOctree = PhysicEntityOctreePool.Pool.Get();
+                newOctree.Init(octreeBounds, capacity: OCTREE_CAPACITY, level: 0);
+                SpatialOctrees.Add(octreeFrame, newOctree);
+                bool canInsert = newOctree.Insert(entity);
+            }
+        }
+
+        private void HandleRemoveDynamicEntity(DynamicEntity entity)
+        {
+            Vector3Int octreeFrame = GetSpatialFrame(entity.Transform.position);
+            if (SpatialOctrees.TryGetValue(octreeFrame, out PhysicEntityOctree octree))
+            {
+                bool canRemove = octree.Remove(entity);
+                if (canRemove)
+                {
+                    Destroy(entity.Transform.gameObject);
+                }
+
+            }
+            else
+            {
+                Debug.LogError("Physics ignored this entity.");
+            }
+        }
+
+        public void AddDynamicEntity(DynamicEntity entity)
+        {
+            _addEntityQueue.Enqueue(entity);
+        }
+
+        public void RemoveDynamicEntity(DynamicEntity entity)
+        {
+            _removeEntityQueue.Enqueue(entity);
+        }
+
+
+
+
+        public int OverlapBoxNonAlloc(Vector3 center, Vector3 halfExtents, DynamicEntity[] entities)
+        {
+            _overlapEntitiesFound.Clear();
+            _overlapBoxOctrees.Clear();
+
+            AABB bounds = new AABB(center.x - halfExtents.x, center.y - halfExtents.y, center.z - halfExtents.z,
+                                   halfExtents.x * 2, halfExtents.y * 2, halfExtents.z * 2);
+
+            _corners[0] = new Vector3(bounds.x, bounds.y, bounds.z);
+            _corners[1] = new Vector3(bounds.Max.x, bounds.y, bounds.z);
+            _corners[2] = new Vector3(bounds.x, bounds.Max.y, bounds.z);
+            _corners[3] = new Vector3(bounds.Max.x, bounds.Max.y, bounds.z);
+            _corners[4] = new Vector3(bounds.x, bounds.y, bounds.Max.z);
+            _corners[5] = new Vector3(bounds.Max.x, bounds.y, bounds.Max.z);
+            _corners[6] = new Vector3(bounds.x, bounds.Max.y, bounds.Max.z);
+            _corners[7] = new Vector3(bounds.Max.x, bounds.Max.y, bounds.Max.z);
+
+
+            for (int i = 0; i < _corners.Length; i++)
+            {
+                Vector3Int octreeGridFrame = GetSpatialFrame(_corners[i]);
+                if (SpatialOctrees.TryGetValue(octreeGridFrame, out PhysicEntityOctree octree))
+                {
+                    if (!_overlapBoxOctrees.Contains(octree))
+                    {
+                        _overlapBoxOctrees.Add(octree);
+                    }
+                }
+            }
+
+            for (int i = 0; i < _overlapBoxOctrees.Count; i++)
+            {
+                //_overlapEntitiesFound = _overlapBoxOctrees[i].Query(bounds);
+                _overlapBoxOctrees[i].QueryNonAlloc(bounds, ref _overlapEntitiesFound);
+            }
+
+            int actualSize = Mathf.Min(_overlapEntitiesFound.Count, entities.Length);
+            //entities = _overlapEntitiesFound.GetRange(0, actualSize).ToArray();
+            if (actualSize > 0)
+            {
+                for (int i = 0; i < actualSize; i++)
+                {
+                    entities[i] = _overlapEntitiesFound[i];
+                }
+            }
+            return actualSize;
+        }
+
+        public int OverlapBoxNonAlloc(Vector3 center, Vector3 halfExtents, DynamicEntity[] entities, int mask)
+        {
+            _overlapEntitiesFound.Clear();
+            _overlapBoxOctrees.Clear();
+
+            AABB bounds = new AABB(center.x - halfExtents.x, center.y - halfExtents.y, center.z - halfExtents.z,
+                                   halfExtents.x * 2, halfExtents.y * 2, halfExtents.z * 2);
+
+            _corners[0] = new Vector3(bounds.x, bounds.y, bounds.z);
+            _corners[1] = new Vector3(bounds.Max.x, bounds.y, bounds.z);
+            _corners[2] = new Vector3(bounds.x, bounds.Max.y, bounds.z);
+            _corners[3] = new Vector3(bounds.Max.x, bounds.Max.y, bounds.z);
+            _corners[4] = new Vector3(bounds.x, bounds.y, bounds.Max.z);
+            _corners[5] = new Vector3(bounds.Max.x, bounds.y, bounds.Max.z);
+            _corners[6] = new Vector3(bounds.x, bounds.Max.y, bounds.Max.z);
+            _corners[7] = new Vector3(bounds.Max.x, bounds.Max.y, bounds.Max.z);
+
+
+            for (int i = 0; i < _corners.Length; i++)
+            {
+                Vector3Int octreeGridFrame = GetSpatialFrame(_corners[i]);
+                if (SpatialOctrees.TryGetValue(octreeGridFrame, out PhysicEntityOctree octree))
+                {
+                    if (!_overlapBoxOctrees.Contains(octree))
+                    {
+                        _overlapBoxOctrees.Add(octree);
+                    }
+                }
+            }
+
+            for (int i = 0; i < _overlapBoxOctrees.Count; i++)
+            {
+                //_overlapEntitiesFound = _overlapBoxOctrees[i].Query(bounds);
+                _overlapBoxOctrees[i].QueryNonAlloc(bounds, ref _overlapEntitiesFound, mask);
+            }
+
+            int actualSize = Mathf.Min(_overlapEntitiesFound.Count, entities.Length);
+            //entities = _overlapEntitiesFound.GetRange(0, actualSize).ToArray();
+            if (actualSize > 0)
+            {
+                for (int i = 0; i < actualSize; i++)
+                {
+                    entities[i] = _overlapEntitiesFound[i];
+                }
+            }
+            return actualSize;
+        }
+
         private AABB GetBlockBound(Vector3 globalPosition)
         {
             int x = Mathf.FloorToInt(globalPosition.x);
@@ -619,7 +640,7 @@ namespace PixelMiner.Physics
         private int GetAllEntitiesInOctreeNonAlloc(Vector3Int octreeFrame, ref List<DynamicEntity> entities)
         {
             var octree = SpatialOctrees[octreeFrame];
-            entities = octree.Query(GetOctreeBounds(octreeFrame));
+            octree.QueryNonAlloc(GetOctreeBounds(octreeFrame), ref entities);
             return entities.Count;
         }
 

@@ -14,7 +14,7 @@ namespace PixelMiner
             Slots = new List<ItemSlot>(size);
             for (int i = 0; i < size; i++)
             {
-                Slots.Add(new ItemSlot(null, 0));
+                Slots.Add(new ItemSlot(new UseableItemData(), 0));
             }
         }
 
@@ -25,7 +25,7 @@ namespace PixelMiner
 
             for (int i = 0; i < Slots.Count; i++)
             {
-                if (Slots[i].ItemData == null)
+                if (Slots[i].UseableItemData.ItemData == null)
                 {
                     Slots[i].TryAddItem(itemData);
                     canAddItem = true;
@@ -33,7 +33,7 @@ namespace PixelMiner
                 }
                 else
                 {
-                    if (Slots[i].ItemData == itemData)
+                    if (Slots[i].UseableItemData.ItemData == itemData)
                     {
                         bool canAdd = Slots[i].TryAddItem(itemData);
 
@@ -47,6 +47,22 @@ namespace PixelMiner
             }
 
             return canAddItem;
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="slotIndex"></param>
+        /// <returns> Remain item quantity in this slot. </returns>
+        public int RemoveItem(int slotIndex)
+        {
+            int remainQuantity = Slots[slotIndex].RemoveItem();
+            if(remainQuantity == 0)
+            {
+                Slots[slotIndex].ClearSlot();
+            }
+            return remainQuantity;
         }
     }
 }

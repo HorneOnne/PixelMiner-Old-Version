@@ -269,7 +269,7 @@ namespace PixelMiner.Core
             Vector3Int[] neighbors = new Vector3Int[6];
 
 
-            Debug.Log($"Spread ambient light: {chunk.AmbientLightBfsQueue.Count}");
+            //Debug.Log($"Spread ambient light: {chunk.AmbientLightBfsQueue.Count}");
 
             await Task.Run(() =>
             {

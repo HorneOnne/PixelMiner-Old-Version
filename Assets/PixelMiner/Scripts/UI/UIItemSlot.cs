@@ -44,12 +44,12 @@ namespace PixelMiner.UI
 
         private void UpdateIcon(ItemSlot item)
         {
-            if (item.ItemData == null)
+            if (item.UseableItemData.ItemData == null)
             {
                 ItemIcon.enabled = false;
                 return;
             }
-            ItemIcon.sprite = item.ItemData.Icon;
+            ItemIcon.sprite = item.UseableItemData.ItemData.Icon;
             ItemIcon.enabled = true;
         }
 

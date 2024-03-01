@@ -70,13 +70,12 @@ namespace PixelMiner
                 x = transform.position.x,
                 y = transform.position.y,
                 z = transform.position.z,
-                w = 0.9f,
+                w = 0.8f,
                 h = 1.9f,
-                d = 0.9f,
+                d = 0.8f,
             };
            
-            _entity = new DynamicEntity(this.transform, bound, new Vector3(-0.5f,0f,-0.5f), this.gameObject.layer);
-            Debug.Log($"Player: {LayerMask.LayerToName(this.gameObject.layer)}");
+            _entity = new DynamicEntity(this.transform, bound, new Vector3(-0.4f,0f,-0.4f), this.gameObject.layer);
             _entity.Simulate = Simulate;
             _entity.Mass = _mass;
             GamePhysics.Instance.AddDynamicEntity(_entity);

@@ -16,7 +16,7 @@ namespace PixelMiner.Core
 
         public MeshData()                                                                                                                                                                                                                                                                                                                             
         { 
-            Debug.Log("Create MeshData.cs");
+            //Debug.Log("Create MeshData.cs");
             Vertices = new List<Vector3>(4);
             Triangles = new List<int>(6);
             UVs = new List<Vector3>(4);

@@ -3,19 +3,13 @@ namespace PixelMiner
 {
     [System.Serializable]
     public class ItemSlot 
-    {
-        //private ItemData _itemData;
-
-        //public ItemData ItemData { get => _itemData; }
-
-        //public IItem Item { get; set; }
+    {    
+        [field: SerializeField] public UseableItemData UseableItemData { get; private set; }
         [field: SerializeField] public int Quantity { get; private set; }
 
-        [field: SerializeField] public ItemData ItemData { get; private set; }
-
-        public ItemSlot(ItemData itemData = null, int quantity = 0)
+        public ItemSlot(UseableItemData itemData = null, int quantity = 0)
         {
-            ItemData = itemData;
+            UseableItemData = itemData;
             Quantity = quantity;
         }
 
@@ -23,20 +17,21 @@ namespace PixelMiner
 
         public bool TryAddItem(ItemData itemData)
         {
-            if (ItemData == null)
+            if (UseableItemData.ItemData == null)
             {
-                ItemData = itemData;
+                UseableItemData.ItemData = itemData;
+                UseableItemData.RemainingUse = itemData.MaxUses;
                 Quantity = 1;
                 return true;
             }
             else
             {
-                if(ItemData.ID == itemData.ID)
+                if(UseableItemData.ItemData.ID == itemData.ID)
                 {
                     Quantity++;
-                    if (Quantity > this.ItemData.MaxStack)
+                    if (Quantity > this.UseableItemData.ItemData.MaxStack)
                     {
-                        Quantity = this.ItemData.MaxStack;
+                        Quantity = this.UseableItemData.ItemData.MaxStack;
                         return false;
                     }
                     return true;
@@ -45,5 +40,26 @@ namespace PixelMiner
             }
         }
 
+
+        public int RemoveItem()
+        {
+            if (Quantity > 1)
+            {
+                Quantity--;
+            }
+            else
+            {
+                ClearSlot();
+            }
+
+            return Quantity;
+        }
+
+
+        public void ClearSlot()
+        {
+            UseableItemData.ItemData = null;
+            Quantity = 0;
+        }
     }
 }

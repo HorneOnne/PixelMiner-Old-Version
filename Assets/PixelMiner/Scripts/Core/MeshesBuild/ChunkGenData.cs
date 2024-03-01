@@ -12,7 +12,7 @@
 
         public ChunkGenData()
         {
-            UnityEngine.Debug.Log("Create ChunkGenData");
+            //UnityEngine.Debug.Log("Create ChunkGenData");
             _isInit = false;
         }
 

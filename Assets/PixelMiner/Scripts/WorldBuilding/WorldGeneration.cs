@@ -490,8 +490,8 @@ namespace PixelMiner.WorldBuilding
         {
             await ComputeNoiseRangeAsyncInParallel();
 
-            Debug.Log($"min: {_minWorldNoiseValue}");
-            Debug.Log($"max: {_maxWorldNoiseValue}");
+            //Debug.Log($"min: {_minWorldNoiseValue}");
+            //Debug.Log($"max: {_maxWorldNoiseValue}");
             int totalChunkLoad = 0;
             List<Task<Chunk>> loadChunkTask = new List<Task<Chunk>>();
 

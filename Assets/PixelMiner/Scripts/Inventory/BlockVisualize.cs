@@ -23,7 +23,7 @@ namespace PixelMiner
             _meshFilter = GetComponent<MeshFilter>();
             _blockUVs = new Vector3[24];
             _colorUVs = new Vector3[24];        // (r,g,b)
-            
+
             Vector3[] _vertices = new Vector3[]
             {
                 new Vector3(0.5f, -0.5f, -0.5f),    // RIGHT
@@ -46,15 +46,17 @@ namespace PixelMiner
                 new Vector3(-0.5f, 0.5f, -0.5f),
                 new Vector3(-0.5f, 0.5f, 0.5f),
 
-                new Vector3(-0.5f, -0.5f, -0.5f),   // DOWN
+
+                new Vector3(-0.5f, -0.5f, -0.5f),  // DOWN
+                new Vector3(-0.5f, -0.5f, 0.5f),
+                new Vector3(0.5f, -0.5f, 0.5f),
+                new Vector3(0.5f, -0.5f, -0.5f),
+
+                new Vector3(-0.5f, -0.5f, -0.5f),   // BACK
                 new Vector3(0.5f, -0.5f, -0.5f),
                 new Vector3(0.5f, 0.5f, -0.5f),
                 new Vector3(-0.5f, 0.5f, -0.5f),
 
-                 new Vector3(-0.5f, -0.5f, -0.5f),  // BACK
-                new Vector3(-0.5f, -0.5f, 0.5f),
-                new Vector3(0.5f, -0.5f, 0.5f),
-                new Vector3(0.5f, -0.5f, -0.5f),
             };
 
             int[] _tris = new int[]
@@ -83,8 +85,8 @@ namespace PixelMiner
             mesh.SetVertices(_vertices);
             mesh.SetTriangles(_tris, 0);
 
-
-            GetBlockUvs(ref _blockUVs, ref _colorUVs);
+            BlockType blockType = (BlockType)_data.ID;
+            GetBlockUvs(blockType, ref _blockUVs, ref _colorUVs);
             mesh.SetUVs(0, _blockUVs);
             mesh.SetUVs(1, _colorUVs);
 
@@ -95,51 +97,119 @@ namespace PixelMiner
         }
 
 
-        private void GetBlockUvs(ref Vector3[] uvs, ref Vector3[] uv2s)
+        private void GetBlockUvs(BlockType blockType, ref Vector3[] uvs, ref Vector3[] uv2s)
         {
-            switch (_data.ID)
+            for(int face = 0; face < 6; face++)
             {
-                default: break;
-                case ItemID.DirtGrass:
-                    for (int i = 0; i < 24; i++)
+                uv2s[face * 4] = new Vector3(1, 1, 1);
+                uv2s[face * 4 + 1] = new Vector3(1, 1, 1);
+                uv2s[face * 4 + 2] = new Vector3(1, 1, 1);
+                uv2s[face * 4 + 3] = new Vector3(1, 1, 1);
+            }
+            
+            switch (blockType)
+            {
+                default:
+                    for (int face = 0; face < 6; face++)
                     {
-                        int textureIndex = -1;
-                        if (i % 4 == 0)
+                        GetBlockUVs(blockType, face, ref uvs);
+                    }      
+                    break;
+                case BlockType.DirtGrass:
+                    for (int face = 0; face < 6; face++)
+                    {
+                        GetBlockUVs(blockType, face, ref uvs);
+                        if (face == 1)
                         {
-                            // Default
-                            uv2s[i] = new Vector3(1, 1, 1);
-                            uv2s[i + 1] = new Vector3(1, 1, 1);
-                            uv2s[i + 2] = new Vector3(1, 1, 1);
-                            uv2s[i + 3] = new Vector3(1, 1, 1);
-
-                            int face = i / 4;
-                            if (face == 1)
-                            {
-                                textureIndex = (ushort)Enums.TextureType.GrassTop;
-                                uv2s[i] = new Vector3(0.2745f, 0.898f, 0.129f);
-                                uv2s[i + 1] = new Vector3(0.2745f, 0.898f, 0.129f);
-                                uv2s[i + 2] = new Vector3(0.2745f, 0.898f, 0.129f);
-                                uv2s[i + 3] = new Vector3(0.2745f, 0.898f, 0.129f);
-                            }
-                            else if (face == 5)
-                            {
-                                textureIndex = (ushort)Enums.TextureType.Dirt;
-                            }
-                            else
-                            {
-                                textureIndex = (ushort)Enums.TextureType.GrassSide;
-                            }
-
-
-                            uvs[i] = new Vector3(0, 0, textureIndex);
-                            uvs[i + 1] = new Vector3(1, 0, textureIndex);
-                            uvs[i + 2] = new Vector3(1, 1, textureIndex);
-                            uvs[i + 3] = new Vector3(0, 1, textureIndex);
+                            uv2s[face * 4] = new Vector3(0.2745f, 0.898f, 0.129f);
+                            uv2s[face * 4 + 1] = new Vector3(0.2745f, 0.898f, 0.129f);
+                            uv2s[face * 4 + 2] = new Vector3(0.2745f, 0.898f, 0.129f);
+                            uv2s[face * 4 + 3] = new Vector3(0.2745f, 0.898f, 0.129f);
                         }
                     }
                     break;
             }
         }
 
+
+        private void GetBlockUVs(BlockType blockType, int face, ref Vector3[] uvs)
+        {
+            int blockIndex;
+            switch (blockType)
+            {
+                default:
+                    blockIndex = (ushort)blockType;
+                    break;
+                case BlockType.DirtGrass:
+                    if (face == 1)
+                    {
+                        blockIndex = (ushort)TextureType.GrassTop;
+                    }
+                    else if (face == 4)
+                    {
+                        blockIndex = (ushort)TextureType.Dirt;
+                    }
+                    else
+                    {
+                        blockIndex = (ushort)blockType;
+                    }
+                    break;
+                case BlockType.SnowDritGrass:
+                    if (face == 1)
+                    {
+                        blockIndex = (ushort)TextureType.SnowGrassTop;
+                    }
+                    else if (face == 4)
+                    {
+                        blockIndex = (ushort)TextureType.Dirt;
+                    }
+                    else
+                    {
+                        blockIndex = (ushort)TextureType.SnowGrassSide;
+                    }
+                    break;
+                case BlockType.Leaves:
+                    blockIndex = (ushort)blockType;
+                    break;
+                case BlockType.PineLeaves:
+                    blockIndex = (ushort)blockType;
+                    break;
+                case BlockType.Wood:
+                    if (face == 1 || face == 4)
+                    {
+                        blockIndex = (ushort)TextureType.HeartWood;
+                    }
+                    else
+                    {
+                        blockIndex = (ushort)TextureType.BarkWood;
+                    }
+                    break;
+                case BlockType.PineWood:
+                    if (face == 1 || face == 4)
+                    {
+                        blockIndex = (ushort)TextureType.HeartPineWood;
+                    }
+                    else
+                    {
+                        blockIndex = (ushort)TextureType.BarkPineWood;
+                    }
+                    break;
+                case BlockType.Cactus:
+                    if (face == 1)
+                    {
+                        blockIndex = (ushort)TextureType.Cactus_Upper;
+                    }
+                    else
+                    {
+                        blockIndex = (ushort)TextureType.Cactus_Middle;
+                    }
+                    break;
+            }
+
+            uvs[face * 4] = new Vector3(0, 0, blockIndex);
+            uvs[face * 4 + 1] = new Vector3(1, 0, blockIndex);
+            uvs[face * 4 + 2] = new Vector3(1, 1, blockIndex);
+            uvs[face * 4 + 3] = new Vector3(0, 1, blockIndex);
+        }
     }
 }

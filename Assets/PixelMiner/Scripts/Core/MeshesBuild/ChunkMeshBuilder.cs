@@ -22,7 +22,7 @@ namespace PixelMiner.Core
 
         public ChunkMeshBuilder()
         {
-            Debug.Log("Create ChunkMeshBuilder");
+            //Debug.Log("Create ChunkMeshBuilder");
             _isInit = false;
         }
 

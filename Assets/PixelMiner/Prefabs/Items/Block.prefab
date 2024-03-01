@@ -97,7 +97,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70daad47f456ba542b9083d1cfa1c001, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Offset: {x: 0, y: 0, z: 0}
+  Offset: {x: 0, y: 0, z: 0.105}
   RotAngles: {x: 0, y: 0, z: 0}
   dEntity:
     Transform: {fileID: 0}

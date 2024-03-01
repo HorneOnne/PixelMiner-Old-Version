@@ -46,7 +46,10 @@ namespace PixelMiner.Core
 
         }
 
-
+        private void Update()
+        {
+            Debug.Log(ActiveChunks.Count);
+        }
 
 
 
@@ -64,10 +67,10 @@ namespace PixelMiner.Core
 
         public bool TryGetChunk(Vector3 globalPosition, out Chunk chunk)
         {
-            Vector3Int relativePosition = new Vector3Int(Mathf.FloorToInt(globalPosition.x / ChunkDimension[0]),
-                                                         Mathf.FloorToInt(globalPosition.y / ChunkDimension[1]),
-                                                         Mathf.FloorToInt(globalPosition.z / ChunkDimension[2]));
-
+            //Vector3Int relativePosition = new Vector3Int(Mathf.FloorToInt(globalPosition.x / ChunkDimension[0]),
+            //                                             Mathf.FloorToInt(globalPosition.y / ChunkDimension[1]),
+            //                                             Mathf.FloorToInt(globalPosition.z / ChunkDimension[2]));
+            Vector3Int relativePosition = GlobalToRelativeChunkPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
             if (Chunks.ContainsKey(relativePosition))
             {
                 chunk = Chunks[relativePosition];
@@ -253,6 +256,15 @@ namespace PixelMiner.Core
             if (currBlock != BlockType.Air)
             {
                 targetChunk.SetBlock(blockRelativePosition, BlockType.Air);
+
+                // Tempt use for destroy grass block if below air block
+                BlockType upperOneBlock = GetBlock(new Vector3(globalPosition.x, globalPosition.y + 1, globalPosition.z));
+                BlockType upperTwoBlock = GetBlock(new Vector3(globalPosition.x, globalPosition.y + 2, globalPosition.z));
+
+                if (upperOneBlock.IsGrassType()) SetBlock(new Vector3(globalPosition.x, globalPosition.y + 1, globalPosition.z), BlockType.Air);
+                if (upperTwoBlock.IsGrassType()) SetBlock(new Vector3(globalPosition.x, globalPosition.y + 2, globalPosition.z), BlockType.Air);
+
+
                 AfterRemoveBlock(blockGPosition);
                 return true;
             }

@@ -27,7 +27,7 @@ namespace PixelMiner
 
         public bool OpenHotbarInventory { get; private set; } = false;
 
-        private Item _currentItem;
+        [SerializeField] private Item _currentItem;
         [SerializeField] private Transform _rightHand;
         private int _useItemTimesPersecond = 5;
         private float _useItemResetTime;
@@ -199,7 +199,6 @@ namespace PixelMiner
             {
                 CurrentHotbarUseSlotIndex = CurrentHotbarSlotIndex;
 
-
                 DestroyOldItem();
                 CreateNewItem();
 
@@ -219,6 +218,40 @@ namespace PixelMiner
                     {
                         _canUseItem = false;
                         Invoke(nameof(EnableCanUseItem), _useItemResetTime);
+
+                        //if(useableItem.RemainingUses == 0)
+                        //{
+                        //    if (Inventory.RemoveItem(CurrentHotbarUseSlotIndex) > 0)
+                        //    {
+                        //        Debug.Log("A");
+                        //    }
+                        //    else
+                        //    {
+                        //        Debug.Log("B");
+                        //        Destroy(_currentItem.gameObject);
+                        //        _currentItem = null;
+                        //    }
+                        //}
+
+                        int remainingUse =  Inventory.Slots[CurrentHotbarUseSlotIndex].UseableItemData.RemainingUse--;
+                        if (remainingUse > 1)
+                        {
+
+                        }
+                        else
+                        {
+                            Inventory.RemoveItem(CurrentHotbarUseSlotIndex);
+
+                            if (Inventory.Slots[CurrentHotbarUseSlotIndex].Quantity > 0)
+                            {
+                      
+                            }
+                            else
+                            {
+                                Destroy(_currentItem.gameObject);
+                                _currentItem = null;
+                            }        
+                        }
                     }
                 }
             }
@@ -263,9 +296,12 @@ namespace PixelMiner
         private void CreateNewItem()
         {
             ItemSlot currentSlot = Inventory.Slots[CurrentHotbarUseSlotIndex];
-            if (currentSlot != null && currentSlot.ItemData != null && currentSlot.ItemData.Model != null)
+            if (currentSlot != null && 
+                currentSlot.UseableItemData != null && 
+                currentSlot.UseableItemData.ItemData != null &&
+                currentSlot.UseableItemData.ItemData.Model != null)
             {
-                _currentItem = CreateNewItemObject(currentSlot.ItemData);
+                _currentItem = CreateNewItemObject(currentSlot.UseableItemData.ItemData);
             }
         }
 
