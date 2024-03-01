@@ -60,7 +60,7 @@ Material:
     - _Alpha: 0.5
     - _AlphaCutoff: 0.5
     - _AmbientIntensity: 0.3064791
-    - _AmbientLightValue: 0
+    - _AmbientLightValue: 150
     - _BlockLightValue: 0
     - _QueueControl: 0
     - _QueueOffset: 0

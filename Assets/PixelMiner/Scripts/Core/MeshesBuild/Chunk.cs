@@ -406,7 +406,7 @@ namespace PixelMiner.Core
             MeshDataPool.Release(solidNonVoxelMeshData);
         }
 
-      
+
         #endregion
 
 
@@ -438,6 +438,7 @@ namespace PixelMiner.Core
             {
                 neighborOffset.x = -1;
             }
+
             if (relativePosition.y >= _height)
             {
                 neighborOffset.y = 1;
@@ -454,10 +455,9 @@ namespace PixelMiner.Core
             {
                 neighborOffset.z = -1;
             }
-     
+
 
             neighborChunk = FindNeighbor(neighborOffset);
- 
             if (neighborChunk != null)
             {
                 foundNeighborChunk = true;
@@ -514,7 +514,6 @@ namespace PixelMiner.Core
                 }
             }
 
-           
 
             return foundNeighborChunk;
         }
@@ -716,13 +715,14 @@ namespace PixelMiner.Core
             }
             else
             {
+   
                 if (FindNeighbor(relativePosition, out Chunk neighborChunk, out Vector3Int nbRelativePosition))
                 {
                     neighborChunk.AmbientLightData[IndexOf(nbRelativePosition.x, nbRelativePosition.y, nbRelativePosition.z)] = intensity;
                 }
                 else
                 {
-                    Debug.LogError("Not found this chunk");
+                    Debug.LogError($"Not found this chunk {relativePosition}");
                 }
             }
         }
@@ -762,9 +762,15 @@ namespace PixelMiner.Core
         }
         public Vector3Int GetRelativePosition(Vector3Int globalPosition)
         {
-            Vector3Int relativePosition = new Vector3Int(globalPosition[0] % Dimensions[0],
-                                                         globalPosition[1] % Dimensions[1],
-                                                         globalPosition[2] % Dimensions[2]);
+            Vector3Int relativePosition = new Vector3Int(Mathf.FloorToInt(globalPosition[0] % Dimensions[0]),
+                                                         Mathf.FloorToInt(globalPosition[1] % Dimensions[1]),
+                                                         Mathf.FloorToInt(globalPosition[2] % Dimensions[2]));
+
+            // Ensure relative positions are positive
+            if (relativePosition.x < 0) relativePosition.x += Dimensions[0];
+            if (relativePosition.y < 0) relativePosition.y += Dimensions[1];
+            if (relativePosition.z < 0) relativePosition.z += Dimensions[2];
+
             return relativePosition;
         }
 

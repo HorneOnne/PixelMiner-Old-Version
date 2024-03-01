@@ -46,12 +46,6 @@ namespace PixelMiner.Core
 
         }
 
-        private void Update()
-        {
-            Debug.Log(ActiveChunks.Count);
-        }
-
-
 
         #region Get, Set Chunk
         public bool HasChunk(Vector3Int relativePosition)
