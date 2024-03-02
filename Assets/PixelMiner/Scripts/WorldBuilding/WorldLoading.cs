@@ -98,11 +98,16 @@ namespace PixelMiner.WorldBuilding
 
             if (Input.GetKeyDown(KeyCode.J))
             {
+                System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+                sw.Start();
                 foreach (var chunk in Main.Instance.ActiveChunks)
                 {
                     if(chunk.HasDrawnFirstTime)
                         await _worldGen.ReDrawChunkTask(chunk);
                 }
+
+                sw.Stop();
+                Debug.Log(sw.ElapsedMilliseconds / 1000f);
             }
         }
 
@@ -172,9 +177,9 @@ namespace PixelMiner.WorldBuilding
                                 // ......
                             }
                             //LoadChunk(_main.Chunks[nbFrame]);
-                            _loadChunkList.Add(_main.Chunks[nbFrame]);
-
-                            if (_main.Chunks[nbFrame].HasDrawnFirstTime == false)
+                            Chunk targetChunk = _main.GetChunk(nbFrame);
+                            _loadChunkList.Add(targetChunk);
+                            if (targetChunk.HasDrawnFirstTime == false)
                             {
 
                             }
@@ -317,8 +322,9 @@ namespace PixelMiner.WorldBuilding
         public void LoadChunk(Chunk chunk)
         {
             Vector3Int frame = new Vector3Int(chunk.FrameX, chunk.FrameY, chunk.FrameZ);
-            if (!_main.Chunks.ContainsKey(frame))
-                _main.Chunks.Add(frame, chunk);
+            //if (!_main.Chunks.ContainsKey(frame))
+            //    _main.Chunks.Add(frame, chunk);
+            _main.TryAddChunks(frame, chunk);
             _main.ActiveChunks.Add(chunk);
             chunk.gameObject.SetActive(true);
         }

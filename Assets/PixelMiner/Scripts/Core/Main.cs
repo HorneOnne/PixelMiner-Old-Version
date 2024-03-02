@@ -8,12 +8,13 @@ namespace PixelMiner.Core
     public class Main : MonoBehaviour
     {
         public static Main Instance { get; private set; }
-
-
+        private static double MAX_INDEX_AXIS_X = 0;
+        private static double MAX_INDEX_AXIS_Y = 1.0e7D;
+        private static double MAX_INDEX_AXIS_Z = 1.0e14D;
 
         // Chunk data
         [Header("Data Cached")]
-        public Dictionary<Vector3Int, Chunk> Chunks;
+        public Dictionary<double, Chunk> Chunks;
         public HashSet<Chunk> ActiveChunks;
         public string SeedInput = "7";
 
@@ -38,7 +39,7 @@ namespace PixelMiner.Core
             Instance = this;
 
             // Initialize the chunks data
-            Chunks = new Dictionary<Vector3Int, Chunk>();
+            Chunks = new Dictionary<double, Chunk>();
             ActiveChunks = new HashSet<Chunk>();
         }
         private void Start()
@@ -50,7 +51,8 @@ namespace PixelMiner.Core
         #region Get, Set Chunk
         public bool HasChunk(Vector3Int relativePosition)
         {
-            return Chunks.ContainsKey(relativePosition);
+            double chunkKey = GetWorldKey(relativePosition);
+            return Chunks.ContainsKey(chunkKey);
         }
         public Chunk GetChunk(Vector3 worldPosition)
         {
@@ -59,15 +61,32 @@ namespace PixelMiner.Core
             return GetChunk(frame);
         }
 
+        public bool TryAddChunks(Vector3Int relativePosition, Chunk chunk)
+        {
+            double chunkKey = GetWorldKey(relativePosition);
+            if (!Chunks.ContainsKey(chunkKey))
+            {
+                Chunks.Add(chunkKey, chunk);
+                return true;
+            }
+            return false;
+        }
+
         public bool TryGetChunk(Vector3 globalPosition, out Chunk chunk)
         {
-            //Vector3Int relativePosition = new Vector3Int(Mathf.FloorToInt(globalPosition.x / ChunkDimension[0]),
-            //                                             Mathf.FloorToInt(globalPosition.y / ChunkDimension[1]),
-            //                                             Mathf.FloorToInt(globalPosition.z / ChunkDimension[2]));
-            Vector3Int relativePosition = GlobalToRelativeChunkPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
-            if (Chunks.ContainsKey(relativePosition))
+            //Vector3Int relativePosition = GlobalToRelativeChunkPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
+            //if (Chunks.ContainsKey(relativePosition))
+            //{
+            //    chunk = Chunks[relativePosition];
+            //    return true;
+            //}
+            //chunk = null;
+            //return false;
+
+            double chunkKey = GetWorldKey(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
+            if (Chunks.ContainsKey(chunkKey))
             {
-                chunk = Chunks[relativePosition];
+                chunk = Chunks[chunkKey];
                 return true;
             }
             chunk = null;
@@ -76,11 +95,12 @@ namespace PixelMiner.Core
 
         public Chunk GetChunk(Vector3Int relativePosition)
         {
-            if (Chunks.ContainsKey(relativePosition))
-            {
-                return Chunks[relativePosition];
-            }
-            return null;
+            double chunkKey = GetWorldKey(relativePosition);
+            ;
+            //Chunk chunk = null;
+            Chunks.TryGetValue(chunkKey, out Chunk chunk);
+            return chunk;
+
         }
         #endregion
 
@@ -115,30 +135,7 @@ namespace PixelMiner.Core
             return BlockType.Air;
         }
 
-        public BlockType TryGetBlock(ref Chunk chunk, Vector3 globalPosition)
-        {
-            Vector3Int chunkRelativePosition = GlobalToRelativeChunkPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
-            if (Chunks.ContainsKey(chunkRelativePosition) == false)
-            {
-                return BlockType.Air;
-            }
-            else
-            {
-                if (chunk?.FrameX == chunkRelativePosition.x &&
-                   chunk?.FrameY == chunkRelativePosition.y &&
-                   chunk?.FrameZ == chunkRelativePosition.z)
-                {
-                    Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
-                    return chunk.GetBlock(relativePosition);
-                }
-                else
-                {
-                    TryGetChunk(globalPosition, out chunk);
-                    return GetBlock(globalPosition);
-                }
-            }
 
-        }
 
         public void SetBlock(Vector3 globalPosition, BlockType blockType)
         {
@@ -236,7 +233,7 @@ namespace PixelMiner.Core
         }
 
 
-      
+
         public bool RemoveBlock(Vector3 globalPosition, out BlockType removedBlock)
         {
             Chunk targetChunk = GetChunk(globalPosition);
@@ -268,7 +265,7 @@ namespace PixelMiner.Core
 
         private async void AfterPlaceBlock(Vector3Int blockGPosition, BlockType blockType)
         {
-            _blockLightBfsQueue.Enqueue(new LightNode() { GlobalPosition = blockGPosition, Intensity = LightUtils.BlocksLight[(ushort)blockType]});
+            _blockLightBfsQueue.Enqueue(new LightNode() { GlobalPosition = blockGPosition, Intensity = LightUtils.BlocksLight[(ushort)blockType] });
             await LightCalculator.PropagateBlockLightAsync(_blockLightBfsQueue, chunksNeedUpdate);
             DrawChunksAtOnce(chunksNeedUpdate);
         }
@@ -276,7 +273,7 @@ namespace PixelMiner.Core
 
         private async void AfterRemoveBlock(Vector3Int blockGPosition)
         {
-            _blockLightRemovalBfsQueue.Enqueue(new LightNode() { GlobalPosition = blockGPosition, Intensity = GetBlockLight(blockGPosition)});
+            _blockLightRemovalBfsQueue.Enqueue(new LightNode() { GlobalPosition = blockGPosition, Intensity = GetBlockLight(blockGPosition) });
             await LightCalculator.RemoveBlockLightAsync(_blockLightRemovalBfsQueue, chunksNeedUpdate);
 
 
@@ -356,6 +353,24 @@ namespace PixelMiner.Core
 
             return new Vector3Int(relativeX, relativeY, relativeZ);
         }
+
+        public static double GetWorldKey(Vector3 globalPosition,
+            int chunkWidth, int chunkHeight, int chunkDepth)
+        {
+            Vector3Int relativeChunkPosition = GlobalToRelativeChunkPosition(globalPosition, chunkWidth, chunkHeight, chunkDepth);
+            double x = relativeChunkPosition.x;
+            double y = relativeChunkPosition.y * MAX_INDEX_AXIS_Y;
+            double z = relativeChunkPosition.z * MAX_INDEX_AXIS_Z;
+            return x + y + z;
+        }
+        public static double GetWorldKey(Vector3Int relativeChunkPosition)
+        {
+            double x = relativeChunkPosition.x;
+            double y = relativeChunkPosition.y * MAX_INDEX_AXIS_Y;
+            double z = relativeChunkPosition.z * MAX_INDEX_AXIS_Z;
+            return x + y + z;
+        }
+
 
         public bool InSideChunkBound(Chunk chunk, Vector3 globalPosition)
         {
