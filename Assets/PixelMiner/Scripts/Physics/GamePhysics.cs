@@ -61,7 +61,6 @@ namespace PixelMiner.Physics
             _entitiesQueryList = new List<DynamicEntity>();
 
 
-
             // Test
             //int entityCount = 2000;
             //for (int i = 0; i < entityCount; i++)
@@ -100,7 +99,7 @@ namespace PixelMiner.Physics
 
 
 
-        private async void FixedUpdate()
+        private void FixedUpdate()
         {        
             UnityEngine.Profiling.Profiler.BeginSample("Recreate octree sample");
             _allEntitiesQueryList.Clear();

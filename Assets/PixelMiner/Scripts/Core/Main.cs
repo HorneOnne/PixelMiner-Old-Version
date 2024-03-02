@@ -8,9 +8,9 @@ namespace PixelMiner.Core
     public class Main : MonoBehaviour
     {
         public static Main Instance { get; private set; }
-        private static double MAX_INDEX_AXIS_X = 0;
-        private static double MAX_INDEX_AXIS_Y = 1.0e7D;
-        private static double MAX_INDEX_AXIS_Z = 1.0e14D;
+        private static double START_INDEX_AXIS_X = 0;
+        private static double START_INDEX_AXIS_Y = 1.0e7D;
+        private static double START_INDEX_AXIS_Z = 1.0e14D;
 
         // Chunk data
         [Header("Data Cached")]
@@ -42,10 +42,18 @@ namespace PixelMiner.Core
             Chunks = new Dictionary<double, Chunk>();
             ActiveChunks = new HashSet<Chunk>();
         }
-        private void Start()
-        {
+        //private void Update()
+        //{
+        //    UnityEngine.Profiling.Profiler.BeginSample("TestChunkKey");
+        //    for(int i = 0; i < 100000; i++)
+        //    {
+        //        if(TryGetChunk(new Vector3(1,1,1), out Chunk chunk))
+        //        {
 
-        }
+        //        }
+        //    }
+        //    UnityEngine.Profiling.Profiler.EndSample();
+        //}
 
 
         #region Get, Set Chunk
@@ -84,20 +92,12 @@ namespace PixelMiner.Core
             //return false;
 
             double chunkKey = GetWorldKey(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
-            if (Chunks.ContainsKey(chunkKey))
-            {
-                chunk = Chunks[chunkKey];
-                return true;
-            }
-            chunk = null;
-            return false;
+            return Chunks.TryGetValue(chunkKey, out chunk);
         }
 
         public Chunk GetChunk(Vector3Int relativePosition)
         {
             double chunkKey = GetWorldKey(relativePosition);
-            ;
-            //Chunk chunk = null;
             Chunks.TryGetValue(chunkKey, out Chunk chunk);
             return chunk;
 
@@ -359,15 +359,15 @@ namespace PixelMiner.Core
         {
             Vector3Int relativeChunkPosition = GlobalToRelativeChunkPosition(globalPosition, chunkWidth, chunkHeight, chunkDepth);
             double x = relativeChunkPosition.x;
-            double y = relativeChunkPosition.y * MAX_INDEX_AXIS_Y;
-            double z = relativeChunkPosition.z * MAX_INDEX_AXIS_Z;
+            double y = relativeChunkPosition.y * START_INDEX_AXIS_Y;
+            double z = relativeChunkPosition.z * START_INDEX_AXIS_Z;
             return x + y + z;
         }
         public static double GetWorldKey(Vector3Int relativeChunkPosition)
         {
             double x = relativeChunkPosition.x;
-            double y = relativeChunkPosition.y * MAX_INDEX_AXIS_Y;
-            double z = relativeChunkPosition.z * MAX_INDEX_AXIS_Z;
+            double y = relativeChunkPosition.y * START_INDEX_AXIS_Y;
+            double z = relativeChunkPosition.z * START_INDEX_AXIS_Z;
             return x + y + z;
         }
 

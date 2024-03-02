@@ -15,9 +15,8 @@ namespace PixelMiner.DataStructure
         public Constraint Constraint{get; private set;}
         public Vector3 BoxOffset;
         public LayerMask PhysicLayer;
-
-     
-
+        public uint EntityIndex;
+    
         public DynamicEntity(Transform transform, AABB bound, Vector3 boxOffset, 
                              LayerMask layerMask)
         {
@@ -67,21 +66,6 @@ namespace PixelMiner.DataStructure
             Velocity.z += velZ;
         }
 
-        //public override int GetHashCode()
-        //{
-        //    int hash = 17;
-
-        //    // Combine hash codes of relevant fields
-        //    hash = hash * 23 + Transform.GetHashCode();
-        //    hash = hash * 23 + Position.GetHashCode();
-        //    hash = hash * 23 + AABB.GetHashCode();
-        //    hash = hash * 23 + Velocity.GetHashCode();
-        //    hash = hash * 23 + Mass.GetHashCode();
-        //    hash = hash * 23 + Simulate.GetHashCode();
-        //    hash = hash * 23 + OnGround.GetHashCode();
-
-        //    return hash;
-        //}
 
 
         public void SetConstraint(Constraint constraint, bool enable)
