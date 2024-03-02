@@ -12,7 +12,8 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
-  m_InvalidKeywords: []
+  m_InvalidKeywords:
+  - _DROPPED_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -25,6 +26,10 @@ Material:
     m_TexEnvs:
     - _BlockTex:
         m_Texture: {fileID: 18700000, guid: 542221eae4d961346b813dc2ff6a37df, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Texture0:
+        m_Texture: {fileID: 18700000, guid: cfc5b1e3a000d7040be624b6d28009e7, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _texcoord:
@@ -46,10 +51,22 @@ Material:
     m_Ints: []
     m_Floats:
     - _AlphaCutoff: 0.5
+    - _AmbientLightValue: 120
+    - _AmbientLightValue1: 0
+    - _BlockLightValue: 0
+    - _BlockLightValue1: 0
+    - _Dropped: 1
+    - _MoveNormalScale: 0.2
+    - _MoveSpeed: 2
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 1
+    - _RotDegrees: 3
+    - _Scale: 0
     m_Colors:
+    - _DayColor: {r: 0.8867924, g: 0.8867924, b: 0.8867924, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _MoveAxis: {r: 0, g: 1, b: 0, a: 0}
+    - _NightColor: {r: 0.10188681, g: 0.10188681, b: 0.10188681, a: 1}
     - _Vector0: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []

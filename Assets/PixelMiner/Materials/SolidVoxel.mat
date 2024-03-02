@@ -79,10 +79,11 @@ Material:
     - _AlphaCutoff: 0.5
     - _AmbientOcclusion: 1
     - _AmbientOcclusion1: 1
-    - _LightIntensity: 0.3064791
+    - _LightIntensity: 0.016523015
     - _QueueControl: 1
     - _QueueOffset: 0
     - _ReceiveShadows: 1
+    - _TEstttF: 1
     - _ToggleSwitch0: 0
     m_Colors:
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}

@@ -8,7 +8,7 @@ namespace PixelMiner
         public ItemData Data { get; set; }
         public Vector3 Offset;
         public Vector3 RotAngles;
-        protected MeshRenderer[] meshRenderers;
+        protected Renderer[] renderer;
 
         [SerializeField] protected DynamicEntity dEntity;
         public DynamicEntity DynamicEntity { get=> dEntity;}
@@ -16,12 +16,12 @@ namespace PixelMiner
         [field: SerializeField] public Vector3 BoxSize { get; set; }
         public LayerMask PhysicLayer;
 
-        private void Awake()
+        protected virtual void Awake()
         {
-            meshRenderers = GetComponentsInChildren<MeshRenderer>();
-            for(int i = 0; i < meshRenderers.Length; i++)
+            renderer = GetComponentsInChildren<Renderer>();
+            for(int i = 0; i < renderer.Length; i++)
             {
-                meshRenderers[i].enabled = false;
+                renderer[i].enabled = false;
             }
             
         }
@@ -29,9 +29,9 @@ namespace PixelMiner
         public virtual void Initialize(ItemData data)
         {
             this.Data = data;
-            for (int i = 0; i < meshRenderers.Length; i++)
+            for (int i = 0; i < renderer.Length; i++)
             {
-                meshRenderers[i].enabled = true;
+                renderer[i].enabled = true;
             }
         }
 

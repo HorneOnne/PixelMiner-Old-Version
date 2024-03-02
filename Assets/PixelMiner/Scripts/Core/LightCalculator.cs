@@ -298,13 +298,6 @@ namespace PixelMiner.Core
                                     chunk.AmbientLightBfsQueue.Enqueue(neighborNode);
                                     chunk.SetAmbientLight(relativePos, neighborNode.Intensity);
                                 }
-
-                                //if (main.GetAmbientLight(neighbors[i]) + blockOpacity < currentNode.Intensity && currentNode.Intensity > 0)
-                                //{
-                                //    LightNode neighborNode = new LightNode(neighbors[i], (byte)(currentNode.Intensity - blockOpacity));
-                                //    chunk.AmbientLightBfsQueue.Enqueue(neighborNode);
-                                //    main.SetAmbientLight(neighbors[i], neighborNode.Intensity);
-                                //}
                             }
                             else
                             {

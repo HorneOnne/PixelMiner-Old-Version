@@ -63,13 +63,16 @@ Material:
     m_Ints: []
     m_Floats:
     - _AlphaCutoff: 0.5
-    - _AmbientIntensity: 0.3064791
+    - _AmbientIntensity: 0.94768214
     - _AmbientLightValue: 150
     - _BlockLightValue: 0
+    - _LightIntensity: 0
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 1
     m_Colors:
     - _BaseColor: {r: 0, g: 0, b: 0, a: 0}
+    - _DayColor: {r: 0.6528301, g: 0.6528301, b: 0.6528301, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _NightColor: {r: 0.08679241, g: 0.08679241, b: 0.08679241, a: 1}
   m_BuildTextureStacks: []

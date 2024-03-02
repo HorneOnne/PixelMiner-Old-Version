@@ -3,7 +3,7 @@ guid: 444719f5ecf4dbd41a7e601c542512b9
 ShaderImporter:
   externalObjects: {}
   defaultTextures:
-  - _LightMap: {fileID: 18700000, guid: cfc5b1e3a000d7040be624b6d28009e7, type: 3}
+  - _Texture0: {fileID: 18700000, guid: cfc5b1e3a000d7040be624b6d28009e7, type: 3}
   nonModifiableTextures: []
   userData: 
   assetBundleName: 

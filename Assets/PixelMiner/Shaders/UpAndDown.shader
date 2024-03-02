@@ -9,6 +9,7 @@ Shader "UpAndDown"
 		_MoveAxis("MoveAxis", Vector) = (0,0,0,0)
 		_MoveSpeed("MoveSpeed", Float) = 0
 		_Scale("Scale", Float) = 0
+		_RotDegrees("RotDegrees", Float) = 0
 
 
 		//_TessPhongStrength( "Tess Phong Strength", Range( 0, 1 ) ) = 0.5
@@ -174,6 +175,7 @@ Shader "UpAndDown"
 			#pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
 			#pragma multi_compile_fog
 			#define ASE_FOG 1
+			#define ASE_ABSOLUTE_VERTEX_POS 1
 			#define ASE_SRP_VERSION 140009
 
 
@@ -210,7 +212,8 @@ Shader "UpAndDown"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
             #endif
 
-			
+			#define ASE_NEEDS_VERT_POSITION
+
 
 			struct VertexInput
 			{
@@ -239,8 +242,9 @@ Shader "UpAndDown"
 
 			CBUFFER_START(UnityPerMaterial)
 			float3 _MoveAxis;
-			float _MoveSpeed;
+			float _RotDegrees;
 			float _Scale;
+			float _MoveSpeed;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -253,7 +257,26 @@ Shader "UpAndDown"
 
 			
 
+			float3 RotateAroundAxis( float3 center, float3 original, float3 u, float angle )
+			{
+				original -= center;
+				float C = cos( angle );
+				float S = sin( angle );
+				float t = 1 - C;
+				float m00 = t * u.x * u.x + C;
+				float m01 = t * u.x * u.y - S * u.z;
+				float m02 = t * u.x * u.z + S * u.y;
+				float m10 = t * u.x * u.y + S * u.z;
+				float m11 = t * u.y * u.y + C;
+				float m12 = t * u.y * u.z - S * u.x;
+				float m20 = t * u.x * u.z - S * u.y;
+				float m21 = t * u.y * u.z + S * u.x;
+				float m22 = t * u.z * u.z + C;
+				float3x3 finalMatrix = float3x3( m00, m01, m02, m10, m11, m12, m20, m21, m22 );
+				return mul( finalMatrix, original ) + center;
+			}
 			
+
 			VertexOutput VertexFunction( VertexInput v  )
 			{
 				VertexOutput o = (VertexOutput)0;
@@ -261,7 +284,7 @@ Shader "UpAndDown"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-				float3 objToWorld10 = mul( GetObjectToWorldMatrix(), float4( float3( 0,0,0 ), 1 ) ).xyz;
+				float3 rotatedValue24 = RotateAroundAxis( float3( 0,0,0 ), ( ( _Scale * sin( ( ( _TimeParameters.x * _MoveSpeed ) * _MoveAxis ) ) ) + v.positionOS.xyz ), normalize( float3( 0,1,0 ) ), ( _RotDegrees * _TimeParameters.x ) );
 				
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
@@ -270,7 +293,7 @@ Shader "UpAndDown"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = ( ( sin( ( ( _TimeParameters.x * _MoveSpeed ) * _MoveAxis ) ) + objToWorld10 ) * _Scale );
+				float3 vertexValue = rotatedValue24;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -460,6 +483,7 @@ Shader "UpAndDown"
 			#pragma multi_compile_instancing
 			#pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
 			#define ASE_FOG 1
+			#define ASE_ABSOLUTE_VERTEX_POS 1
 			#define ASE_SRP_VERSION 140009
 
 
@@ -479,7 +503,8 @@ Shader "UpAndDown"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
             #endif
 
-			
+			#define ASE_NEEDS_VERT_POSITION
+
 
 			struct VertexInput
 			{
@@ -505,8 +530,9 @@ Shader "UpAndDown"
 
 			CBUFFER_START(UnityPerMaterial)
 			float3 _MoveAxis;
-			float _MoveSpeed;
+			float _RotDegrees;
 			float _Scale;
+			float _MoveSpeed;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -519,7 +545,26 @@ Shader "UpAndDown"
 
 			
 
+			float3 RotateAroundAxis( float3 center, float3 original, float3 u, float angle )
+			{
+				original -= center;
+				float C = cos( angle );
+				float S = sin( angle );
+				float t = 1 - C;
+				float m00 = t * u.x * u.x + C;
+				float m01 = t * u.x * u.y - S * u.z;
+				float m02 = t * u.x * u.z + S * u.y;
+				float m10 = t * u.x * u.y + S * u.z;
+				float m11 = t * u.y * u.y + C;
+				float m12 = t * u.y * u.z - S * u.x;
+				float m20 = t * u.x * u.z - S * u.y;
+				float m21 = t * u.y * u.z + S * u.x;
+				float m22 = t * u.z * u.z + C;
+				float3x3 finalMatrix = float3x3( m00, m01, m02, m10, m11, m12, m20, m21, m22 );
+				return mul( finalMatrix, original ) + center;
+			}
 			
+
 			float3 _LightDirection;
 			float3 _LightPosition;
 
@@ -530,7 +575,7 @@ Shader "UpAndDown"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO( o );
 
-				float3 objToWorld10 = mul( GetObjectToWorldMatrix(), float4( float3( 0,0,0 ), 1 ) ).xyz;
+				float3 rotatedValue24 = RotateAroundAxis( float3( 0,0,0 ), ( ( _Scale * sin( ( ( _TimeParameters.x * _MoveSpeed ) * _MoveAxis ) ) ) + v.positionOS.xyz ), normalize( float3( 0,1,0 ) ), ( _RotDegrees * _TimeParameters.x ) );
 				
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
@@ -539,7 +584,7 @@ Shader "UpAndDown"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = ( ( sin( ( ( _TimeParameters.x * _MoveSpeed ) * _MoveAxis ) ) + objToWorld10 ) * _Scale );
+				float3 vertexValue = rotatedValue24;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -720,6 +765,7 @@ Shader "UpAndDown"
 			#pragma multi_compile_instancing
 			#pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
 			#define ASE_FOG 1
+			#define ASE_ABSOLUTE_VERTEX_POS 1
 			#define ASE_SRP_VERSION 140009
 
 
@@ -735,7 +781,8 @@ Shader "UpAndDown"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
             #endif
 
-			
+			#define ASE_NEEDS_VERT_POSITION
+
 
 			struct VertexInput
 			{
@@ -761,8 +808,9 @@ Shader "UpAndDown"
 
 			CBUFFER_START(UnityPerMaterial)
 			float3 _MoveAxis;
-			float _MoveSpeed;
+			float _RotDegrees;
 			float _Scale;
+			float _MoveSpeed;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -775,7 +823,26 @@ Shader "UpAndDown"
 
 			
 
+			float3 RotateAroundAxis( float3 center, float3 original, float3 u, float angle )
+			{
+				original -= center;
+				float C = cos( angle );
+				float S = sin( angle );
+				float t = 1 - C;
+				float m00 = t * u.x * u.x + C;
+				float m01 = t * u.x * u.y - S * u.z;
+				float m02 = t * u.x * u.z + S * u.y;
+				float m10 = t * u.x * u.y + S * u.z;
+				float m11 = t * u.y * u.y + C;
+				float m12 = t * u.y * u.z - S * u.x;
+				float m20 = t * u.x * u.z - S * u.y;
+				float m21 = t * u.y * u.z + S * u.x;
+				float m22 = t * u.z * u.z + C;
+				float3x3 finalMatrix = float3x3( m00, m01, m02, m10, m11, m12, m20, m21, m22 );
+				return mul( finalMatrix, original ) + center;
+			}
 			
+
 			VertexOutput VertexFunction( VertexInput v  )
 			{
 				VertexOutput o = (VertexOutput)0;
@@ -783,7 +850,7 @@ Shader "UpAndDown"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-				float3 objToWorld10 = mul( GetObjectToWorldMatrix(), float4( float3( 0,0,0 ), 1 ) ).xyz;
+				float3 rotatedValue24 = RotateAroundAxis( float3( 0,0,0 ), ( ( _Scale * sin( ( ( _TimeParameters.x * _MoveSpeed ) * _MoveAxis ) ) ) + v.positionOS.xyz ), normalize( float3( 0,1,0 ) ), ( _RotDegrees * _TimeParameters.x ) );
 				
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
@@ -792,7 +859,7 @@ Shader "UpAndDown"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = ( ( sin( ( ( _TimeParameters.x * _MoveSpeed ) * _MoveAxis ) ) + objToWorld10 ) * _Scale );
+				float3 vertexValue = rotatedValue24;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -947,6 +1014,7 @@ Shader "UpAndDown"
 			HLSLPROGRAM
 
 			#define ASE_FOG 1
+			#define ASE_ABSOLUTE_VERTEX_POS 1
 			#define ASE_SRP_VERSION 140009
 
 
@@ -965,7 +1033,8 @@ Shader "UpAndDown"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl"
 			#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"
 
-			
+			#define ASE_NEEDS_VERT_POSITION
+
 
 			struct VertexInput
 			{
@@ -985,8 +1054,9 @@ Shader "UpAndDown"
 
 			CBUFFER_START(UnityPerMaterial)
 			float3 _MoveAxis;
-			float _MoveSpeed;
+			float _RotDegrees;
 			float _Scale;
+			float _MoveSpeed;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -999,7 +1069,26 @@ Shader "UpAndDown"
 
 			
 
+			float3 RotateAroundAxis( float3 center, float3 original, float3 u, float angle )
+			{
+				original -= center;
+				float C = cos( angle );
+				float S = sin( angle );
+				float t = 1 - C;
+				float m00 = t * u.x * u.x + C;
+				float m01 = t * u.x * u.y - S * u.z;
+				float m02 = t * u.x * u.z + S * u.y;
+				float m10 = t * u.x * u.y + S * u.z;
+				float m11 = t * u.y * u.y + C;
+				float m12 = t * u.y * u.z - S * u.x;
+				float m20 = t * u.x * u.z - S * u.y;
+				float m21 = t * u.y * u.z + S * u.x;
+				float m22 = t * u.z * u.z + C;
+				float3x3 finalMatrix = float3x3( m00, m01, m02, m10, m11, m12, m20, m21, m22 );
+				return mul( finalMatrix, original ) + center;
+			}
 			
+
 			int _ObjectId;
 			int _PassValue;
 
@@ -1018,7 +1107,7 @@ Shader "UpAndDown"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-				float3 objToWorld10 = mul( GetObjectToWorldMatrix(), float4( float3( 0,0,0 ), 1 ) ).xyz;
+				float3 rotatedValue24 = RotateAroundAxis( float3( 0,0,0 ), ( ( _Scale * sin( ( ( _TimeParameters.x * _MoveSpeed ) * _MoveAxis ) ) ) + v.positionOS.xyz ), normalize( float3( 0,1,0 ) ), ( _RotDegrees * _TimeParameters.x ) );
 				
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
@@ -1027,7 +1116,7 @@ Shader "UpAndDown"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = ( ( sin( ( ( _TimeParameters.x * _MoveSpeed ) * _MoveAxis ) ) + objToWorld10 ) * _Scale );
+				float3 vertexValue = rotatedValue24;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -1158,6 +1247,7 @@ Shader "UpAndDown"
 			HLSLPROGRAM
 
 			#define ASE_FOG 1
+			#define ASE_ABSOLUTE_VERTEX_POS 1
 			#define ASE_SRP_VERSION 140009
 
 
@@ -1181,7 +1271,8 @@ Shader "UpAndDown"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
             #endif
 
-			
+			#define ASE_NEEDS_VERT_POSITION
+
 
 			struct VertexInput
 			{
@@ -1201,8 +1292,9 @@ Shader "UpAndDown"
 
 			CBUFFER_START(UnityPerMaterial)
 			float3 _MoveAxis;
-			float _MoveSpeed;
+			float _RotDegrees;
 			float _Scale;
+			float _MoveSpeed;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -1215,7 +1307,26 @@ Shader "UpAndDown"
 
 			
 
+			float3 RotateAroundAxis( float3 center, float3 original, float3 u, float angle )
+			{
+				original -= center;
+				float C = cos( angle );
+				float S = sin( angle );
+				float t = 1 - C;
+				float m00 = t * u.x * u.x + C;
+				float m01 = t * u.x * u.y - S * u.z;
+				float m02 = t * u.x * u.z + S * u.y;
+				float m10 = t * u.x * u.y + S * u.z;
+				float m11 = t * u.y * u.y + C;
+				float m12 = t * u.y * u.z - S * u.x;
+				float m20 = t * u.x * u.z - S * u.y;
+				float m21 = t * u.y * u.z + S * u.x;
+				float m22 = t * u.z * u.z + C;
+				float3x3 finalMatrix = float3x3( m00, m01, m02, m10, m11, m12, m20, m21, m22 );
+				return mul( finalMatrix, original ) + center;
+			}
 			
+
 			float4 _SelectionID;
 
 			struct SurfaceDescription
@@ -1233,7 +1344,7 @@ Shader "UpAndDown"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-				float3 objToWorld10 = mul( GetObjectToWorldMatrix(), float4( float3( 0,0,0 ), 1 ) ).xyz;
+				float3 rotatedValue24 = RotateAroundAxis( float3( 0,0,0 ), ( ( _Scale * sin( ( ( _TimeParameters.x * _MoveSpeed ) * _MoveAxis ) ) ) + v.positionOS.xyz ), normalize( float3( 0,1,0 ) ), ( _RotDegrees * _TimeParameters.x ) );
 				
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
@@ -1242,7 +1353,7 @@ Shader "UpAndDown"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = ( ( sin( ( ( _TimeParameters.x * _MoveSpeed ) * _MoveAxis ) ) + objToWorld10 ) * _Scale );
+				float3 vertexValue = rotatedValue24;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -1377,6 +1488,7 @@ Shader "UpAndDown"
 			#pragma multi_compile_instancing
 			#pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
 			#define ASE_FOG 1
+			#define ASE_ABSOLUTE_VERTEX_POS 1
 			#define ASE_SRP_VERSION 140009
 
 
@@ -1404,7 +1516,8 @@ Shader "UpAndDown"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
             #endif
 
-			
+			#define ASE_NEEDS_VERT_POSITION
+
 
 			struct VertexInput
 			{
@@ -1425,8 +1538,9 @@ Shader "UpAndDown"
 
 			CBUFFER_START(UnityPerMaterial)
 			float3 _MoveAxis;
-			float _MoveSpeed;
+			float _RotDegrees;
 			float _Scale;
+			float _MoveSpeed;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -1439,7 +1553,26 @@ Shader "UpAndDown"
 
 			
 
+			float3 RotateAroundAxis( float3 center, float3 original, float3 u, float angle )
+			{
+				original -= center;
+				float C = cos( angle );
+				float S = sin( angle );
+				float t = 1 - C;
+				float m00 = t * u.x * u.x + C;
+				float m01 = t * u.x * u.y - S * u.z;
+				float m02 = t * u.x * u.z + S * u.y;
+				float m10 = t * u.x * u.y + S * u.z;
+				float m11 = t * u.y * u.y + C;
+				float m12 = t * u.y * u.z - S * u.x;
+				float m20 = t * u.x * u.z - S * u.y;
+				float m21 = t * u.y * u.z + S * u.x;
+				float m22 = t * u.z * u.z + C;
+				float3x3 finalMatrix = float3x3( m00, m01, m02, m10, m11, m12, m20, m21, m22 );
+				return mul( finalMatrix, original ) + center;
+			}
 			
+
 			struct SurfaceDescription
 			{
 				float Alpha;
@@ -1455,7 +1588,7 @@ Shader "UpAndDown"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-				float3 objToWorld10 = mul( GetObjectToWorldMatrix(), float4( float3( 0,0,0 ), 1 ) ).xyz;
+				float3 rotatedValue24 = RotateAroundAxis( float3( 0,0,0 ), ( ( _Scale * sin( ( ( _TimeParameters.x * _MoveSpeed ) * _MoveAxis ) ) ) + v.positionOS.xyz ), normalize( float3( 0,1,0 ) ), ( _RotDegrees * _TimeParameters.x ) );
 				
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
@@ -1464,7 +1597,7 @@ Shader "UpAndDown"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = ( ( sin( ( ( _TimeParameters.x * _MoveSpeed ) * _MoveAxis ) ) + objToWorld10 ) * _Scale );
+				float3 vertexValue = rotatedValue24;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -1627,22 +1760,31 @@ Node;AmplifyShaderEditor.SimpleTimeNode;12;-314.6005,23.9975;Inherit;False;1;0;F
 Node;AmplifyShaderEditor.RangedFloatNode;17;-313.7568,125.2897;Inherit;False;Property;_MoveSpeed;MoveSpeed;1;0;Create;True;0;0;0;False;0;False;0;0;0;0;0;1;FLOAT;0
 Node;AmplifyShaderEditor.SimpleMultiplyOpNode;18;-113.5069,45.11348;Inherit;False;2;2;0;FLOAT;0;False;1;FLOAT;0;False;1;FLOAT;0
 Node;AmplifyShaderEditor.SimpleMultiplyOpNode;19;119.7538,-0.1465001;Inherit;False;2;2;0;FLOAT;0;False;1;FLOAT3;0,0,0;False;1;FLOAT3;0
-Node;AmplifyShaderEditor.TransformPositionNode;10;122.5246,382.2365;Inherit;False;Object;World;False;Fast;True;1;0;FLOAT3;0,0,0;False;4;FLOAT3;0;FLOAT;1;FLOAT;2;FLOAT;3
 Node;AmplifyShaderEditor.Vector3Node;16;-70.22034,213.0763;Inherit;False;Property;_MoveAxis;MoveAxis;0;0;Create;True;0;0;0;False;0;False;0,0,0;0,0,0;0;4;FLOAT3;0;FLOAT;1;FLOAT;2;FLOAT;3
 Node;AmplifyShaderEditor.SinOpNode;20;284.7881,12.60617;Inherit;False;1;0;FLOAT3;0,0,0;False;1;FLOAT3;0
-Node;AmplifyShaderEditor.SimpleAddOpNode;15;370.0998,119.7443;Inherit;False;2;2;0;FLOAT3;0,0,0;False;1;FLOAT3;0,0,0;False;1;FLOAT3;0
-Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;1;761.6176,94.26564;Float;False;True;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;13;UpAndDown;2992e84f91cbeb14eab234972e07ea9d;True;Forward;0;1;Forward;8;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;5;True;12;all;0;False;True;1;1;False;;0;False;;1;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;1;LightMode=UniversalForwardOnly;False;False;0;;0;0;Standard;22;Surface;0;0;  Blend;0;0;Two Sided;1;0;Forward Only;0;0;Cast Shadows;1;0;  Use Shadow Threshold;0;0;GPU Instancing;1;0;LOD CrossFade;1;0;Built-in Fog;1;0;DOTS Instancing;0;0;Meta Pass;0;0;Extra Pre Pass;0;0;Tessellation;0;0;  Phong;0;0;  Strength;0.5,False,;0;  Type;0;0;  Tess;16,False,;0;  Min;10,False,;0;  Max;25,False,;0;  Edge Length;16,False,;0;  Max Displacement;25,False,;0;Vertex Position,InvertActionOnDeselection;1;0;0;10;False;True;True;True;False;False;True;True;True;False;False;;False;0
-Node;AmplifyShaderEditor.SimpleMultiplyOpNode;22;539.101,131.8121;Inherit;False;2;2;0;FLOAT3;0,0,0;False;1;FLOAT;0;False;1;FLOAT3;0
-Node;AmplifyShaderEditor.RangedFloatNode;23;400.9046,267.1589;Inherit;False;Property;_Scale;Scale;2;0;Create;True;0;0;0;False;0;False;0;0;0;0;0;1;FLOAT;0
+Node;AmplifyShaderEditor.SimpleMultiplyOpNode;25;525.8196,497.7918;Inherit;False;2;2;0;FLOAT;0;False;1;FLOAT;0;False;1;FLOAT;0
+Node;AmplifyShaderEditor.RangedFloatNode;26;345.8094,448.9562;Inherit;False;Property;_RotDegrees;RotDegrees;3;0;Create;True;0;0;0;False;0;False;0;0;0;0;0;1;FLOAT;0
+Node;AmplifyShaderEditor.SimpleTimeNode;27;345.9861,587.4242;Inherit;False;1;0;FLOAT;1;False;1;FLOAT;0
+Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;1;1008.818,272.6656;Float;False;True;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;13;UpAndDown;2992e84f91cbeb14eab234972e07ea9d;True;Forward;0;1;Forward;8;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;5;True;12;all;0;False;True;1;1;False;;0;False;;1;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;1;LightMode=UniversalForwardOnly;False;False;0;;0;0;Standard;22;Surface;0;0;  Blend;0;0;Two Sided;1;0;Forward Only;0;0;Cast Shadows;1;0;  Use Shadow Threshold;0;0;GPU Instancing;1;0;LOD CrossFade;1;0;Built-in Fog;1;0;DOTS Instancing;0;0;Meta Pass;0;0;Extra Pre Pass;0;0;Tessellation;0;0;  Phong;0;0;  Strength;0.5,False,;0;  Type;0;0;  Tess;16,False,;0;  Min;10,False,;0;  Max;25,False,;0;  Edge Length;16,False,;0;  Max Displacement;25,False,;0;Vertex Position,InvertActionOnDeselection;0;638449480702937438;0;10;False;True;True;True;False;False;True;True;True;False;False;;False;0
+Node;AmplifyShaderEditor.RotateAboutAxisNode;24;710.6197,368.9918;Inherit;False;True;4;0;FLOAT3;0,1,0;False;1;FLOAT;30;False;2;FLOAT3;0,0,0;False;3;FLOAT3;0,0,0;False;1;FLOAT3;0
+Node;AmplifyShaderEditor.TransformPositionNode;10;120.7467,319.1202;Inherit;False;Object;World;False;Fast;True;1;0;FLOAT3;0,0,0;False;4;FLOAT3;0;FLOAT;1;FLOAT;2;FLOAT;3
+Node;AmplifyShaderEditor.PosVertexDataNode;28;167.3464,145.5904;Inherit;False;0;0;5;FLOAT3;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
+Node;AmplifyShaderEditor.RangedFloatNode;23;378.6055,-89.88151;Inherit;False;Property;_Scale;Scale;2;0;Create;True;0;0;0;False;0;False;0;0;0;0;0;1;FLOAT;0
+Node;AmplifyShaderEditor.SimpleMultiplyOpNode;32;411.0563,9.837262;Inherit;False;2;2;0;FLOAT;0;False;1;FLOAT3;0,0,0;False;1;FLOAT3;0
+Node;AmplifyShaderEditor.SimpleAddOpNode;15;526.9822,170.5777;Inherit;False;2;2;0;FLOAT3;0,0,0;False;1;FLOAT3;0,0,0;False;1;FLOAT3;0
 WireConnection;18;0;12;0
 WireConnection;18;1;17;0
 WireConnection;19;0;18;0
 WireConnection;19;1;16;0
 WireConnection;20;0;19;0
-WireConnection;15;0;20;0
-WireConnection;15;1;10;0
-WireConnection;1;5;22;0
-WireConnection;22;0;15;0
-WireConnection;22;1;23;0
+WireConnection;25;0;26;0
+WireConnection;25;1;27;0
+WireConnection;1;5;24;0
+WireConnection;24;1;25;0
+WireConnection;24;3;15;0
+WireConnection;32;0;23;0
+WireConnection;32;1;20;0
+WireConnection;15;0;32;0
+WireConnection;15;1;28;0
 ASEEND*/
-//CHKSM=ACC1AAA59A208B3B3EFA19ED63550AFD5B08C5BB
+//CHKSM=1C9CF1BC1B07721F756C59309CBBC14CDBFC309E

@@ -63,6 +63,12 @@ namespace PixelMiner
             Inventory.AddItem(ItemFactory.GetItemData(ItemID.StonePickaxe));
             Inventory.AddItem(ItemFactory.GetItemData(ItemID.StoneSword));
 
+            var lightItemData = ItemFactory.GetItemData(ItemID.Light);
+            for (int i = 0; i < 64; i++)
+            {
+                Inventory.AddItem(lightItemData);
+            }
+
             _useItemResetTime = 1.0f / _useItemTimesPersecond;
 
         }
