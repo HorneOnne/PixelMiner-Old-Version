@@ -2,10 +2,10 @@
 namespace PixelMiner.DataStructure
 {
 
-    public class OctreeRootPool
+    public  static class OctreeRootPool
     {
-        public bool CollectionChecks = true;
-        public int MaxPoolSize = 10;
+        public static bool CollectionChecks = true;
+        public static int MaxPoolSize = 2048;
 
         private static UnityEngine.Pool.ObjectPool<Octree> _pool;
         public static UnityEngine.Pool.ObjectPool<Octree> Pool
@@ -14,7 +14,7 @@ namespace PixelMiner.DataStructure
             {
                 if (_pool == null)
                 {
-                    _pool = new UnityEngine.Pool.ObjectPool<Octree>(CreatePooledItem, OnTakeFromPool, OnReturnedToPool, OnDestroyPoolObject);
+                    _pool = new UnityEngine.Pool.ObjectPool<Octree>(CreatePooledItem, OnTakeFromPool, OnReturnedToPool, OnDestroyPoolObject, maxSize: MaxPoolSize);
                 }
                 return _pool;
             }

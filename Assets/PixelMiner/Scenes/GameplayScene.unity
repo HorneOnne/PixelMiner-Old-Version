@@ -2596,7 +2596,7 @@ MonoBehaviour:
     m_RotationOrder: 4
   TotalEntities: 0
   _showEntityBounds: 0
-  _showOctreeBounds: 0
+  _showOctreeBounds: 1
   Prefab: {fileID: 4322678070485516836, guid: 801b22368aeec0b4f8bac90462bc0612, type: 3}
   ItemLayer:
     serializedVersion: 2
@@ -2604,6 +2604,8 @@ MonoBehaviour:
   AddEachFrame: 0
   RemoveEachFrame: 0
   NumOfOctreeRootPool: 0
+  ActiveTreeRoot: 0
+  InactiveTreeRoot: 0
   NumOfOctreeLeavePool: 0
   ActivetreeLeaves: 0
   InactivetreeLeaves: 0

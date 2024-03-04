@@ -41,7 +41,7 @@ namespace PixelMiner.Physics
         private List<DynamicEntity> _overlapEntitiesFound = new List<DynamicEntity>();
 
 
-        private Queue<Vector3Int> _treeRemoval = new Queue<Vector3Int>();
+        private Queue<Vector3Int> _treeRemovalKey = new Queue<Vector3Int>();
 
         public int TotalEntities;
 
@@ -96,7 +96,10 @@ namespace PixelMiner.Physics
 
         public int AddEachFrame = 0;
         public int RemoveEachFrame = 0;
+        [Space(10)]
         public int NumOfOctreeRootPool;
+        public int ActiveTreeRoot;
+        public int InactiveTreeRoot;
         [Space(10)]
         public int NumOfOctreeLeavePool;
         public int ActivetreeLeaves;
@@ -104,15 +107,18 @@ namespace PixelMiner.Physics
         private void Update()
         {
             NumOfOctreeRootPool = OctreeRootPool.Pool.CountAll;
+            ActiveTreeRoot = OctreeRootPool.Pool.CountActive;
+            InactiveTreeRoot = OctreeRootPool.Pool.CountInactive;
+
             NumOfOctreeLeavePool = OctreeLeavePool.Pool.CountAll;
             ActivetreeLeaves = OctreeLeavePool.Pool.CountActive;
             InactivetreeLeaves = OctreeLeavePool.Pool.CountInactive;
 
             if (Input.GetKeyDown(KeyCode.I))
             {
-                for (int i = 0; i < 2000; i++)
+                for (int i = 0; i < 50; i++)
                 {
-                    Vector3 randomPosition = new Vector3(Random.Range(-300, 300), Random.Range(10, 300), Random.Range(-300, 300));
+                    Vector3 randomPosition = new Vector3(Random.Range(-0, 128), Random.Range(10, 128), Random.Range(-0, 128));
                     var entityObject = Instantiate(Prefab, randomPosition, Quaternion.identity);
                     AABB bound = GetBlockBound(randomPosition);
                     DynamicEntity dEntity = new DynamicEntity(entityObject.transform, bound, Vector2.zero, ItemLayer);
@@ -303,14 +309,16 @@ namespace PixelMiner.Physics
                 bool canClean = octree.Value.Cleanup();
                 if (canClean)
                 {
-                    _treeRemoval.Enqueue(octree.Key);
+                    _treeRemovalKey.Enqueue(octree.Key);
                 }
             }
-            if (_treeRemoval.Count > 0)
+            if (_treeRemovalKey.Count > 0)
             {
-                while (_treeRemoval.Count > 0)
+                while (_treeRemovalKey.Count > 0)
                 {
-                    SpatialOctrees.Remove(_treeRemoval.Dequeue());
+                    var treeKey = _treeRemovalKey.Dequeue();
+                    OctreeRootPool.Pool.Release(SpatialOctrees[treeKey]);
+                    SpatialOctrees.Remove(treeKey);
                 }
             }
 
@@ -568,7 +576,8 @@ namespace PixelMiner.Physics
             else
             {
                 AABB octreeBounds = GetOctreeBounds(octreeFrame);
-                Octree newOctree = new Octree();
+                //Octree newOctree = new Octree();
+                Octree newOctree = OctreeRootPool.Pool.Get();
                 newOctree.Init(octreeBounds, OCTREE_CAPACITY, level: 0);
                 SpatialOctrees.Add(octreeFrame, newOctree);
                 bool canInsert = newOctree.Insert(entity);
