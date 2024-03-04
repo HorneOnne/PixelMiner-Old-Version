@@ -3,26 +3,31 @@ using System.Collections.Generic;
 
 namespace PixelMiner.DataStructure
 {
-    public class  OctreeNode
+    public class  OctreeLeave
     {
         [HideInInspector] public AABB Bound;
         public int Capacity;
-        public OctreeNode[] Neighbors;
+        public OctreeLeave[] Neighbors;
         public List<DynamicEntity> Entities;
         private int _level;
         private bool _divided;
         private Octree _root;
 
 
-        public OctreeNode(AABB bound, int capacity, int level, Octree root)
+        public OctreeLeave() 
         {
-            this.Bound  = bound;
+            Entities = new List<DynamicEntity>();
+        }
+
+        public void Init(AABB bound, int capacity, int level, Octree root)
+        {
+            this.Bound = bound;
             this.Capacity = capacity;
             this._level = level;
             this._root = root;
-            this._divided = false;
-            Entities = new List<DynamicEntity>();
+            this._divided = false;    
         }
+
 
         public bool Insert(DynamicEntity entity)
         {
@@ -34,14 +39,10 @@ namespace PixelMiner.DataStructure
             {
                 if (this.Entities.Count < this.Capacity || _level == Octree.MAX_LEVEL)
                 {                
-                    entity.Node = this;
+                    entity.Leave = this;
                     Entities.Add(entity);
 
-                    if(Entities.Count == 0)
-                    {
-                        Debug.Log("Why 0?");
-                    }
-                    else if(Entities.Count == 1)
+                   if(Entities.Count == 1)
                     {
                         entity.EntityNodeIndex = 0;
                     }
@@ -84,31 +85,13 @@ namespace PixelMiner.DataStructure
                 entityLastIndex = Entities.Count - 1;
                 Entities[entityLastIndex].EntityNodeIndex = entity.EntityNodeIndex;
             }    
-            //else
-            //{
-            //    entityLastIndex = 0;
-            //}
+
             Entities.RemoveAtUnordered(entity.EntityNodeIndex);
-
-           // if (entity.EntityNodeIndex == Entities.Count)
-           // {
-           //     Debug.LogWarning($"Break remove node: {entity.EntityNodeIndex}   max: {Entities.Count}");
-           //     Debug.Break();  
-           // }
-
-           // try
-           // {
-           //     Entities.RemoveAtUnordered(entity.EntityNodeIndex);
-           // }
-           //catch
-           // {
-           //     Debug.LogWarning($"Error remove node: {entity.EntityNodeIndex}   max: {Entities.Count}");
-           // }
         }
 
         public void Subdivide()
         {
-            Neighbors = new OctreeNode[8];
+            Neighbors = new OctreeLeave[8];
             float halfWidth = this.Bound.w / 2.0f;
             float halfHeight = this.Bound.h / 2.0f;
             float halfDepth = this.Bound.d / 2.0f;
@@ -124,16 +107,40 @@ namespace PixelMiner.DataStructure
             AABB une = new AABB(Bound.x + halfWidth, Bound.y + halfHeight, Bound.z + halfDepth, halfWidth, halfHeight, halfDepth);
 
             int nextLevel = _level + 1;
-            //Debug.Log($"Subdivide node: {nextLevel}");
-            Neighbors[0] = new OctreeNode(dsw, this.Capacity, nextLevel, _root); 
-            Neighbors[1] = new OctreeNode(dse, this.Capacity, nextLevel, _root); 
-            Neighbors[2] = new OctreeNode(dnw, this.Capacity, nextLevel, _root); 
-            Neighbors[3] = new OctreeNode(dne, this.Capacity, nextLevel, _root); 
 
-            Neighbors[4] = new OctreeNode(usw, this.Capacity, nextLevel, _root); 
-            Neighbors[5] = new OctreeNode(use, this.Capacity, nextLevel, _root); 
-            Neighbors[6] = new OctreeNode(unw, this.Capacity, nextLevel, _root); 
-            Neighbors[7] = new OctreeNode(une, this.Capacity, nextLevel, _root); 
+            //Neighbors[0] = new OctreeNode(dsw, this.Capacity, nextLevel, _root); 
+            //Neighbors[1] = new OctreeNode(dse, this.Capacity, nextLevel, _root); 
+            //Neighbors[2] = new OctreeNode(dnw, this.Capacity, nextLevel, _root); 
+            //Neighbors[3] = new OctreeNode(dne, this.Capacity, nextLevel, _root); 
+
+            //Neighbors[4] = new OctreeNode(usw, this.Capacity, nextLevel, _root); 
+            //Neighbors[5] = new OctreeNode(use, this.Capacity, nextLevel, _root); 
+            //Neighbors[6] = new OctreeNode(unw, this.Capacity, nextLevel, _root); 
+            //Neighbors[7] = new OctreeNode(une, this.Capacity, nextLevel, _root); 
+
+            Neighbors[0] = OctreeLeavePool.Pool.Get();
+            Neighbors[0].Init(dsw, this.Capacity, nextLevel, _root);
+
+            Neighbors[1] = OctreeLeavePool.Pool.Get();
+            Neighbors[1].Init(dse, this.Capacity, nextLevel, _root);
+
+            Neighbors[2] = OctreeLeavePool.Pool.Get();
+            Neighbors[2].Init(dnw, this.Capacity, nextLevel, _root);
+
+            Neighbors[3] = OctreeLeavePool.Pool.Get();
+            Neighbors[3].Init(dne, this.Capacity, nextLevel, _root);
+
+            Neighbors[4] = OctreeLeavePool.Pool.Get();
+            Neighbors[4].Init(usw, this.Capacity, nextLevel, _root);
+
+            Neighbors[5] = OctreeLeavePool.Pool.Get();
+            Neighbors[5].Init(use, this.Capacity, nextLevel, _root);
+
+            Neighbors[6] = OctreeLeavePool.Pool.Get();
+            Neighbors[6].Init(unw, this.Capacity, nextLevel, _root);
+
+            Neighbors[7] = OctreeLeavePool.Pool.Get();
+            Neighbors[7].Init(une, this.Capacity, nextLevel, _root);
         }
 
 
@@ -169,24 +176,28 @@ namespace PixelMiner.DataStructure
                 for (int i = 0; i < Neighbors.Length; i++)
                 {
                     Neighbors[i].TraverseRecursive(callback);
+
                 }
             }
            
             callback?.Invoke(Bound);
         }
 
-        //public void TraverseRecursive(System.Action callback)
-        //{
-        //    if (_divided)
-        //    {
-        //        for (int i = 0; i < Neighbors.Length; i++)
-        //        {
-        //            Neighbors[i].TraverseRecursive(callback);
-        //        }
-        //    }
+        public void TraverseRecursive(System.Action callback)
+        {
+            if (_divided)
+            {
+                for (int i = 0; i < Neighbors.Length; i++)
+                {
+                    Neighbors[i].TraverseRecursive(callback);
 
-        //    callback?.Invoke();
-        //}
+                }
+            }
+            callback?.Invoke();
+        }
+
+
+
 
 
         public bool Cleanup()
@@ -204,12 +215,28 @@ namespace PixelMiner.DataStructure
 
             if (Entities.Count == 0)
             {
-                _divided = false;
-                Neighbors = null;
+                if(_divided)
+                {
+                    for (int i = 0; i < Neighbors.Length; i++)
+                    {
+                        OctreeLeavePool.Pool.Release(Neighbors[i]);
+                    }
+                    Neighbors = null;
+                    _divided = false;  
+                }
+            
                 return true;
             }
 
             return false;
+        }
+
+
+
+        public void Clear()
+        {
+            Entities.Clear();
+            _divided = false;
         }
     }
 

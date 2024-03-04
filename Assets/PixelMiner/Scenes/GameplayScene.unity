@@ -2483,6 +2483,7 @@ GameObject:
   - component: {fileID: 587489646}
   - component: {fileID: 587489645}
   - component: {fileID: 587489647}
+  - component: {fileID: 587489649}
   - component: {fileID: 587489648}
   m_Layer: 0
   m_Name: Main
@@ -2602,6 +2603,22 @@ MonoBehaviour:
     m_Bits: 8388608
   AddEachFrame: 0
   RemoveEachFrame: 0
+  NumOfOctreeRootPool: 0
+  NumOfOctreeLeavePool: 0
+  ActivetreeLeaves: 0
+  InactivetreeLeaves: 0
+--- !u!114 &587489649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 587489644}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e455af83a51242b44adbb8bc5c25b29b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &618810623
 GameObject:
   m_ObjectHideFlags: 0

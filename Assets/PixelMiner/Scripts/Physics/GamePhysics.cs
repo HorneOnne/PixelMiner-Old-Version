@@ -16,7 +16,7 @@ namespace PixelMiner.Physics
         public Dictionary<Vector3Int, Octree> SpatialOctrees;
         private Main _main;
         private Vector3Int OctreeDimensions = new Vector3Int(256, 256, 256);
-        private const int OCTREE_CAPACITY = 3;
+        private const int OCTREE_CAPACITY = 10;
 
         [SerializeField] private Vector3 _gravity = Vector3.down;
         private List<float> _collisionTimes = new List<float>();
@@ -96,13 +96,23 @@ namespace PixelMiner.Physics
 
         public int AddEachFrame = 0;
         public int RemoveEachFrame = 0;
+        public int NumOfOctreeRootPool;
+        [Space(10)]
+        public int NumOfOctreeLeavePool;
+        public int ActivetreeLeaves;
+        public int InactivetreeLeaves;
         private void Update()
         {
+            NumOfOctreeRootPool = OctreeRootPool.Pool.CountAll;
+            NumOfOctreeLeavePool = OctreeLeavePool.Pool.CountAll;
+            ActivetreeLeaves = OctreeLeavePool.Pool.CountActive;
+            InactivetreeLeaves = OctreeLeavePool.Pool.CountInactive;
+
             if (Input.GetKeyDown(KeyCode.I))
             {
-                for(int i = 0; i < 500; i++)
+                for (int i = 0; i < 2000; i++)
                 {
-                    Vector3 randomPosition = new Vector3(Random.Range(-0, 64), Random.Range(10, 64), Random.Range(-0, 64));
+                    Vector3 randomPosition = new Vector3(Random.Range(-300, 300), Random.Range(10, 300), Random.Range(-300, 300));
                     var entityObject = Instantiate(Prefab, randomPosition, Quaternion.identity);
                     AABB bound = GetBlockBound(randomPosition);
                     DynamicEntity dEntity = new DynamicEntity(entityObject.transform, bound, Vector2.zero, ItemLayer);
@@ -112,14 +122,14 @@ namespace PixelMiner.Physics
                     dEntity.SetConstraint(Constraint.Z, true);
 
                     AddDynamicEntity(dEntity);
-                }       
+                }
             }
 
 
 
             foreach (var octree in SpatialOctrees)
             {
-                if(_showEntityBounds)
+                if (_showEntityBounds)
                 {
                     _octreeEntitiesQueryList.Clear();
                     int entitiesFound = GetAllEntitiesInOctreeNonAlloc(octree.Key, ref _octreeEntitiesQueryList);
@@ -128,16 +138,16 @@ namespace PixelMiner.Physics
                         _drawer.AddPhysicBounds(_octreeEntitiesQueryList[i].AABB, Color.green);
                     }
                 }
-            
 
-                if(_showOctreeBounds)
+
+                if (_showOctreeBounds)
                 {
                     octree.Value.TraverseRecursive((AABB) =>
                     {
                         _drawer.AddPhysicBounds(AABB, Color.blue);
                     });
                 }
-             
+
             }
         }
 
@@ -152,7 +162,7 @@ namespace PixelMiner.Physics
                 int entitiesFound = GetAllEntitiesInOctreeNonAlloc(octree.Key, ref _octreeEntitiesQueryList);
                 TotalEntities += entitiesFound;
                 for (int entity = 0; entity < entitiesFound; entity++)
-                {             
+                {
                     DynamicEntity dEntity = _octreeEntitiesQueryList[entity];
                     if (!dEntity.Simulate) continue;
 
@@ -163,7 +173,7 @@ namespace PixelMiner.Physics
                     Vector3 currPos = dEntity.Position;
                     dEntity.Position = dEntity.Transform.position;
 
-                   
+
                     if (currPos != dEntity.Position)
                     {
                         //Debug.Log("Not update physics this entity due editor.");
@@ -176,7 +186,7 @@ namespace PixelMiner.Physics
                         dEntity.AddVelocity(_gravity * dEntity.Mass * Time.fixedDeltaTime);
                     }
 
-                
+
 
 
                     // Y
@@ -211,13 +221,13 @@ namespace PixelMiner.Physics
                     }
 
                     //Debug.Log($"{dEntity.Position}    {dEntity.Transform.position}");
-                 
+
                     if (dEntity.Position != dEntity.Transform.position || entityUpdateByEditor)
                     {
                         //Debug.Log($"Entity move");
-                        if (dEntity.Node != null)
+                        if (dEntity.Leave != null)
                         {
-                            if (dEntity.Node.Bound.Contains(dEntity.Position) == false)
+                            if (dEntity.Leave.Bound.Contains(dEntity.Position) == false)
                             {
                                 _removeEntityQueue.Enqueue(dEntity);
                                 _addEntityQueue.Enqueue(dEntity);
@@ -242,18 +252,18 @@ namespace PixelMiner.Physics
                     }
 
 
-     
+
                     // Update physics position
-                    if(!entityUpdateByEditor)
+                    if (!entityUpdateByEditor)
                     {
-                        dEntity.Transform.position = dEntity.Position;               
+                        dEntity.Transform.position = dEntity.Position;
                     }
                     else
                     {
                         dEntity.Position = dEntity.Transform.position;
                     }
 
-                    if(entityIdle == false || entityUpdateByEditor)
+                    if (entityIdle == false || entityUpdateByEditor)
                     {
                         dEntity.AABB = new AABB()
                         {
@@ -267,14 +277,35 @@ namespace PixelMiner.Physics
                     }
                 }
 
+               
+            }
+
+
+         
+            AddEachFrame = _addEntityQueue.Count;
+            RemoveEachFrame = _removeEntityQueue.Count;
+
+
+            if (_removeEntityQueue.Count > 0)
+            {
+                while (_removeEntityQueue.Count > 0)
+                {
+
+                    HandleRemoveDynamicEntity(_removeEntityQueue.Dequeue());
+                }
+            }
+
+
+          
+            // Return pools
+            foreach (var octree in SpatialOctrees)
+            {
                 bool canClean = octree.Value.Cleanup();
                 if (canClean)
                 {
                     _treeRemoval.Enqueue(octree.Key);
                 }
             }
-
-
             if (_treeRemoval.Count > 0)
             {
                 while (_treeRemoval.Count > 0)
@@ -282,15 +313,8 @@ namespace PixelMiner.Physics
                     SpatialOctrees.Remove(_treeRemoval.Dequeue());
                 }
             }
-            AddEachFrame = _addEntityQueue.Count;
-            RemoveEachFrame = _removeEntityQueue.Count;
-            if (_removeEntityQueue.Count > 0)
-            {
-                while (_removeEntityQueue.Count > 0)
-                {
-                    HandleRemoveDynamicEntity(_removeEntityQueue.Dequeue());
-                }
-            }
+
+
             if (_addEntityQueue.Count > 0)
             {
                 while (_addEntityQueue.Count > 0)
@@ -298,7 +322,6 @@ namespace PixelMiner.Physics
                     HandleAddDynamicEntity(_addEntityQueue.Dequeue());
                 }
             }
-
 
 
             UnityEngine.Profiling.Profiler.EndSample();
@@ -545,7 +568,8 @@ namespace PixelMiner.Physics
             else
             {
                 AABB octreeBounds = GetOctreeBounds(octreeFrame);
-                Octree newOctree = new Octree(octreeBounds, OCTREE_CAPACITY, level: 0);
+                Octree newOctree = new Octree();
+                newOctree.Init(octreeBounds, OCTREE_CAPACITY, level: 0);
                 SpatialOctrees.Add(octreeFrame, newOctree);
                 bool canInsert = newOctree.Insert(entity);
             }
@@ -553,15 +577,6 @@ namespace PixelMiner.Physics
 
         private void HandleRemoveDynamicEntity(DynamicEntity entity)
         {
-            //Vector3Int octreeFrame = GetSpatialFrame(entity.Transform.position);
-            //if (SpatialOctrees.TryGetValue(octreeFrame, out Octree octree))
-            //{
-            //    octree.Remove(entity);
-            //}
-            //else
-            //{
-            //    Debug.LogError("Physics ignored this entity.");
-            //}
 
             var root = entity.Root;
             if (root != null)

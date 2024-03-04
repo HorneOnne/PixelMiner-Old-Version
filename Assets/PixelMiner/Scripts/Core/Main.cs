@@ -118,23 +118,29 @@ namespace PixelMiner.Core
                 }
                 else
                 {
+                    if(chunk.FrameY == 0)
+                    {
+                        return BlockType.Stone;
+                    }
+                    else
+                    {
+                        return BlockType.Air;
+                    }
+                  
+                }
+            }
+            else
+            {
+                if (relativePosition.y == 0)
+                {
+                    return BlockType.Stone;
+                }
+                else
+                {
                     return BlockType.Air;
                 }
-
             }
-            return BlockType.Air;
         }
-        public BlockType GetBlockPerformance(Chunk chunk, Vector3 globalPosition)
-        {
-            Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
-            Chunk chunkFound = GetChunkPerformance(chunk, globalPosition);
-            if (chunkFound != null && chunkFound.HasDrawnFirstTime)
-            {
-                return chunkFound.GetBlock(relativePosition);
-            }
-            return BlockType.Air;
-        }
-
 
 
         public void SetBlock(Vector3 globalPosition, BlockType blockType)
@@ -166,18 +172,6 @@ namespace PixelMiner.Core
                 chunk.SetBlockLight(relativePosition, intensity);
             }
         }
-        public void SetBlockLightPerformance(Chunk chunk, Vector3 globalPosition, byte intensity)
-        {
-            Chunk targetChunk = GetChunkPerformance(chunk, globalPosition);
-            Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
-            targetChunk.SetBlockLight(relativePosition, intensity);
-        }
-        public byte GetBlockLightPerformance(Chunk chunk, Vector3 globalPosition)
-        {
-            Chunk targetChunk = GetChunkPerformance(chunk, globalPosition);
-            Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
-            return targetChunk.GetBlockLight(relativePosition);
-        }
 
         public float GetAmbientLightIntensity()
         {
@@ -194,11 +188,7 @@ namespace PixelMiner.Core
             }
             return byte.MinValue;
         }
-        public byte GetAmbientLightPerformance(Chunk chunk, Vector3 globalPosition)
-        {
-            Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
-            return GetChunkPerformance(chunk, globalPosition).GetAmbientLight(relativePosition);
-        }
+
         public void SetAmbientLight(Vector3 globalPosition, byte insensity)
         {
             Vector3Int relativePosition = GlobalToRelativeBlockPosition(globalPosition, ChunkDimension[0], ChunkDimension[1], ChunkDimension[2]);
@@ -235,31 +225,34 @@ namespace PixelMiner.Core
 
 
         public bool RemoveBlock(Vector3 globalPosition, out BlockType removedBlock)
-        {
-            Chunk targetChunk = GetChunk(globalPosition);
-            Vector3Int blockRelativePosition = GlobalToRelativeBlockPosition(globalPosition, targetChunk._width, targetChunk._height, targetChunk._depth);
-            BlockType currBlock = targetChunk.GetBlock(blockRelativePosition);
-            removedBlock = currBlock;
-
-            if (targetChunk.HasDrawnFirstTime == false)
-                return false;
-            Vector3Int blockGPosition = GetBlockGPos(globalPosition);
-            if (currBlock != BlockType.Air)
+        {   
+            if (TryGetChunk(globalPosition, out Chunk targetChunk))
             {
-                targetChunk.SetBlock(blockRelativePosition, BlockType.Air);
+                Vector3Int blockRelativePosition = GlobalToRelativeBlockPosition(globalPosition, targetChunk._width, targetChunk._height, targetChunk._depth);
+                BlockType currBlock = targetChunk.GetBlock(blockRelativePosition);
+                removedBlock = currBlock;
 
-                // Tempt use for destroy grass block if below air block
-                BlockType upperOneBlock = GetBlock(new Vector3(globalPosition.x, globalPosition.y + 1, globalPosition.z));
-                BlockType upperTwoBlock = GetBlock(new Vector3(globalPosition.x, globalPosition.y + 2, globalPosition.z));
+                if (targetChunk.HasDrawnFirstTime == false)
+                    return false;
+                Vector3Int blockGPosition = GetBlockGPos(globalPosition);
+                if (currBlock != BlockType.Air)
+                {
+                    targetChunk.SetBlock(blockRelativePosition, BlockType.Air);
 
-                if (upperOneBlock.IsGrassType()) SetBlock(new Vector3(globalPosition.x, globalPosition.y + 1, globalPosition.z), BlockType.Air);
-                if (upperTwoBlock.IsGrassType()) SetBlock(new Vector3(globalPosition.x, globalPosition.y + 2, globalPosition.z), BlockType.Air);
+                    // Tempt use for destroy grass block if below air block
+                    BlockType upperOneBlock = GetBlock(new Vector3(globalPosition.x, globalPosition.y + 1, globalPosition.z));
+                    BlockType upperTwoBlock = GetBlock(new Vector3(globalPosition.x, globalPosition.y + 2, globalPosition.z));
+
+                    if (upperOneBlock.IsGrassType()) SetBlock(new Vector3(globalPosition.x, globalPosition.y + 1, globalPosition.z), BlockType.Air);
+                    if (upperTwoBlock.IsGrassType()) SetBlock(new Vector3(globalPosition.x, globalPosition.y + 2, globalPosition.z), BlockType.Air);
 
 
-                AfterRemoveBlock(blockGPosition);
-                return true;
+                    AfterRemoveBlock(blockGPosition);
+                    return true;
+                }
             }
 
+            removedBlock = BlockType.Air;
             return false;
         }
 

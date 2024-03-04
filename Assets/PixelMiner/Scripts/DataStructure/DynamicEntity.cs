@@ -19,7 +19,7 @@ namespace PixelMiner.DataStructure
         public int EntityRootIndex;
         public int EntityNodeIndex;
         public Octree Root;
-        public OctreeNode Node;
+        public OctreeLeave Leave;
     
 
         public DynamicEntity(Transform transform, AABB bound, Vector3 boxOffset, 
