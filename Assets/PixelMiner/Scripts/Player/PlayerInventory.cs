@@ -80,27 +80,26 @@ namespace PixelMiner
 
         private void FixedUpdate()
         {
-            int itemHit = GamePhysics.Instance.OverlapBoxNonAlloc(transform.position + _center, _halfSize, _itemEntites, _itemLayer);
-            EntitiesHit = itemHit;
-            if (itemHit > 0)
-            {
-                for (int i = 0; i < itemHit; i++)
-                {
-                    if (_itemEntites[i].Transform.TryGetComponent<Item>(out Item item))
-                    {
-                        Debug.Log("hit item");
-                        GamePhysics.Instance.RemoveDynamicEntity(_itemEntites[i]);
-                        //Destroy(item.gameObject);
-                        Inventory.AddItem(item.Data);                   
-                    }
-                    else
-                    {
-                        Debug.Log("not player");
-                    }
-                    //System.Array.Clear(_itemEntites, 0, _itemEntites.Length);
-                }
-            }
-
+            //int itemHit = GamePhysics.Instance.OverlapBoxNonAlloc(transform.position + _center, _halfSize, _itemEntites, _itemLayer);
+            //EntitiesHit = itemHit;
+            //if (itemHit > 0)
+            //{
+            //    for (int i = 0; i < itemHit; i++)
+            //    {
+            //        if (_itemEntites[i].Transform.TryGetComponent<Item>(out Item item))
+            //        {
+            //            Debug.Log("hit item");
+            //            GamePhysics.Instance.RemoveDynamicEntity(_itemEntites[i]);
+            //            //Destroy(item.gameObject);
+            //            Inventory.AddItem(item.Data);
+            //        }
+            //        else
+            //        {
+            //            Debug.Log("not player");
+            //        }
+            //        //System.Array.Clear(_itemEntites, 0, _itemEntites.Length);
+            //    }
+            //}
         }
 
         private void Update()

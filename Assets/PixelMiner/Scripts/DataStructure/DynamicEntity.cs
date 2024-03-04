@@ -15,21 +15,29 @@ namespace PixelMiner.DataStructure
         public Constraint Constraint{get; private set;}
         public Vector3 BoxOffset;
         public LayerMask PhysicLayer;
-        public uint EntityIndex;
+
+        public int EntityRootIndex;
+        public int EntityNodeIndex;
+        public Octree Root;
+        public OctreeNode Node;
     
+
         public DynamicEntity(Transform transform, AABB bound, Vector3 boxOffset, 
                              LayerMask layerMask)
         {
             this.Transform = transform;
+            this.Position = Transform.position;
             this.AABB = bound;
             this.BoxOffset = boxOffset;
-            Position = default;
             Velocity = default;
             Mass = 1;
             Simulate = true;
             //this.Layers = layers;
             //this.CollideLayers = collideLayers;
             this.PhysicLayer = layerMask;
+
+            EntityRootIndex = -1;
+            EntityNodeIndex = -1;
         }
 
         public void SetVelocity(Vector3 vel)
