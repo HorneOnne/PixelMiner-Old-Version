@@ -1651,8 +1651,8 @@ Node;AmplifyShaderEditor.IntNode;14;-895.2866,267.2873;Inherit;False;Property;_B
 Node;AmplifyShaderEditor.IntNode;15;-914.3351,401.2396;Inherit;False;Property;_AmbientLightValue;AmbientLightValue;7;0;Create;True;0;0;0;False;0;False;0;140;False;0;1;INT;0
 Node;AmplifyShaderEditor.SamplerNode;17;-613.7544,45.19019;Inherit;True;Property;_Lightmap1;Lightmap;1;0;Create;True;0;0;0;False;0;False;-1;cfc5b1e3a000d7040be624b6d28009e7;cfc5b1e3a000d7040be624b6d28009e7;True;0;False;white;Auto;False;Object;-1;Auto;Texture2DArray;8;0;SAMPLER2DARRAY;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;0;False;7;SAMPLERSTATE;;False;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
 Node;AmplifyShaderEditor.SamplerNode;18;-617.4357,240.5727;Inherit;True;Property;_Lightmap2;Lightmap;1;0;Create;True;0;0;0;False;0;False;-1;cfc5b1e3a000d7040be624b6d28009e7;cfc5b1e3a000d7040be624b6d28009e7;True;0;False;white;Auto;False;Object;-1;Auto;Texture2DArray;8;0;SAMPLER2DARRAY;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;0;False;7;SAMPLERSTATE;;False;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.RangedFloatNode;10;-472.7609,470.5123;Inherit;False;Global;_AmbientLightIntensity;_AmbientLightIntensity;6;0;Create;True;0;0;0;False;0;False;0;0.9207667;0;0;0;1;FLOAT;0
 Node;AmplifyShaderEditor.FunctionNode;35;-115.0551,-453.7297;Inherit;False;WorldLight;1;;6;ad44841092608c94b9b6a4544942057b;0;0;1;COLOR;0
+Node;AmplifyShaderEditor.RangedFloatNode;10;-472.7609,470.5123;Inherit;False;Global;_AmbientLightIntensity;_AmbientLightIntensity;6;0;Create;True;0;0;0;False;0;False;0;0.3064791;0;0;0;1;FLOAT;0
 WireConnection;21;0;23;0
 WireConnection;21;1;35;0
 WireConnection;1;2;21;0
@@ -1665,4 +1665,4 @@ WireConnection;17;6;14;0
 WireConnection;18;0;16;0
 WireConnection;18;6;15;0
 ASEEND*/
-//CHKSM=A786CD0532C4560963B990AED328F6DF257F16E3
+//CHKSM=0593A0DB42456D9959B5914719345A792629973D

@@ -16,6 +16,7 @@ namespace PixelMiner.DataStructure
         public Vector3 BoxOffset;
         public LayerMask PhysicLayer;
 
+        public int EntitiesIndex;
         public int EntityRootIndex;
         public int EntityNodeIndex;
         public Octree Root;
@@ -36,6 +37,7 @@ namespace PixelMiner.DataStructure
             //this.CollideLayers = collideLayers;
             this.PhysicLayer = layerMask;
 
+            EntitiesIndex = -1;
             EntityRootIndex = -1;
             EntityNodeIndex = -1;
         }

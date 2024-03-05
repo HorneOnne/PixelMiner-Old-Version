@@ -78,32 +78,53 @@ namespace PixelMiner
 
         }
 
+        private List<DynamicEntity> entitiesHit = new List<DynamicEntity>();    
+        public List<Transform> entitiesHitTrans = new List<Transform>();    
         private void FixedUpdate()
         {
+            int itemHit = GamePhysics.Instance.OverlapBoxNonAlloc(transform.position + _center, _halfSize, _itemEntites, _itemLayer);
+            EntitiesHit = itemHit;
+            if (itemHit > 0)
+            {
+                for (int i = 0; i < itemHit; i++)
+                {
+                    if (_itemEntites[i].Transform.TryGetComponent<Item>(out Item item))
+                    {
+                        Debug.Log("hit item");
+                        GamePhysics.Instance.RemoveDynamicEntity(_itemEntites[i]);
+                        Inventory.AddItem(item.Data);
+                    }
+                    else
+                    {
+                        Debug.Log("not player");
+                    }
+                    //System.Array.Clear(_itemEntites, 0, _itemEntites.Length);
+                }
+            }
+
+            //entitiesHit.Clear();
+            //entitiesHitTrans.Clear();
             //int itemHit = GamePhysics.Instance.OverlapBoxNonAlloc(transform.position + _center, _halfSize, _itemEntites, _itemLayer);
-            //EntitiesHit = itemHit;
             //if (itemHit > 0)
             //{
+            //    Debug.Log(itemHit);
             //    for (int i = 0; i < itemHit; i++)
             //    {
-            //        if (_itemEntites[i].Transform.TryGetComponent<Item>(out Item item))
+            //        entitiesHitTrans.Add(entitiesHit[i].Transform);
+            //        if (entitiesHit[i].Transform.gameObject.TryGetComponent<MeshRenderer>(out MeshRenderer meshRenderer))
             //        {
-            //            Debug.Log("hit item");
-            //            GamePhysics.Instance.RemoveDynamicEntity(_itemEntites[i]);
-            //            //Destroy(item.gameObject);
-            //            Inventory.AddItem(item.Data);
+            //            meshRenderer.material.color = Color.blue;
             //        }
-            //        else
-            //        {
-            //            Debug.Log("not player");
-            //        }
-            //        //System.Array.Clear(_itemEntites, 0, _itemEntites.Length);
             //    }
             //}
+
         }
 
         private void Update()
         {
+           
+
+
             if (_showBounds)
             {
                 Bounds b = new Bounds(transform.position + _center, _halfSize * 2);

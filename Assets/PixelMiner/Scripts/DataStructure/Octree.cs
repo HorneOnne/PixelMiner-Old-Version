@@ -5,21 +5,23 @@ namespace PixelMiner.DataStructure
 {
     public class Octree
     {
-        public const int MAX_LEVEL = 5;
+        public const int MAX_LEVEL = 2;
 
         public AABB Bound;
         public int Capacity;
         public OctreeLeave[] Neighbors;
         private bool _divided;
         private int _level;
-        public List<DynamicEntity> Entities;
+        public List<DynamicEntity> AllEntities;
+        private List<DynamicEntity> EntityInRoot;
 
-
+        private Color _boundsColor = Color.blue;
 
         public bool Divided { get => _divided; }
         public Octree()
         {
-            Entities = new List<DynamicEntity>();
+            AllEntities = new List<DynamicEntity>();
+            EntityInRoot = new List<DynamicEntity>();
         }
 
         public void Init(AABB bound, int capacity, int level)
@@ -35,17 +37,21 @@ namespace PixelMiner.DataStructure
         {
             if (!this.Bound.Contains(entity.Transform.position))
             {
-                Debug.Log("Not contain");
+                //Debug.Log("Not contain");
                 return false;
             }
 
             entity.Root = this;
-            if (this.Entities.Count < this.Capacity || _level == MAX_LEVEL)
+            if (this.AllEntities.Count < this.Capacity || _level == MAX_LEVEL)
             {
-                Entities.Add(entity);
-                entity.EntityRootIndex = Entities.Count - 1;
+                AllEntities.Add(entity);             
+                entity.EntitiesIndex = AllEntities.Count - 1;
                 entity.EntityNodeIndex = -1;
                 entity.Leave = null;
+
+
+                EntityInRoot.Add(entity);
+                entity.EntityRootIndex = EntityInRoot.Count - 1;
                 return true;
             }
             else
@@ -60,8 +66,9 @@ namespace PixelMiner.DataStructure
                 {
                     if (Neighbors[i].Insert(entity))
                     {
-                        Entities.Add(entity);
-                        entity.EntityRootIndex = Entities.Count - 1;
+                        AllEntities.Add(entity);
+                        entity.EntitiesIndex = AllEntities.Count - 1;
+                        entity.EntityRootIndex = -1;
                         return true;
                     }
                 }
@@ -72,8 +79,8 @@ namespace PixelMiner.DataStructure
 
         public void Remove(DynamicEntity entity)
         {
-            int entityLastIndex = Entities.Count - 1;
-            Entities[entityLastIndex].EntityRootIndex = entity.EntityRootIndex;
+            int entityLastIndex = AllEntities.Count - 1;
+            AllEntities[entityLastIndex].EntitiesIndex = entity.EntitiesIndex;
 
             if (_divided)
             {
@@ -82,40 +89,43 @@ namespace PixelMiner.DataStructure
                     entity.Leave.Remove(entity);
                 }
             }
+            AllEntities.RemoveAtUnordered(entity.EntitiesIndex);
 
-            //Entities.Remove(entity);
-            Entities.RemoveAtUnordered(entity.EntityRootIndex);
+
+            if (entity.EntityRootIndex != -1)
+            {
+                int lastRootIndex = EntityInRoot.Count - 1;
+                EntityInRoot[lastRootIndex].EntityRootIndex = entity.EntityRootIndex;
+                EntityInRoot.RemoveAtUnordered(entity.EntityRootIndex);
+            }
         }
 
-        public void Query(AABB queryBound, ref List<DynamicEntity> entities)
+        public void Query(AABB queryBound, ref List<DynamicEntity> entities, int maxSize = int.MaxValue)
         {
             if (this.Bound.Intersect(queryBound))
             {
-                foreach (var e in this.Entities)
+                for (int i = 0; i < EntityInRoot.Count; i++)
                 {
-                    if (queryBound.Contains(e.Transform.position))
+                    if (queryBound.Contains(EntityInRoot[i].Transform.position))
                     {
-                        entities.Add(e);
-                    }
+                        if(entities.Count < maxSize)
+                        {
+                            entities.Add(EntityInRoot[i]);
+                        }     
+                        else
+                        {
+                            return;
+                        }
+                    }     
                 }
 
-                //if (!_divided)
-                //{
-                //    foreach (var e in this.Entities)
-                //    {
-                //        if (queryBound.Contains(e.Transform.position))
-                //        {
-                //            entities.Add(e);
-                //        }
-                //    }
-                //}
-                //else
-                //{
-                //    for (int i = 0; i < Neighbors.Length; i++)
-                //    {
-                //        Neighbors[i].Query(queryBound, ref entities);
-                //    }
-                //}
+                if (_divided)
+                {
+                    for (int i = 0; i < Neighbors.Length; i++)
+                    {
+                        Neighbors[i].Query(queryBound, ref entities, maxSize);
+                    }
+                }
             }
         }
 
@@ -138,18 +148,6 @@ namespace PixelMiner.DataStructure
             AABB une = new AABB(Bound.x + halfWidth, Bound.y + halfHeight, Bound.z + halfDepth, halfWidth, halfHeight, halfDepth);
 
             int nextLevel = _level + 1;
-            Debug.Log($"Subdivide Root: {nextLevel}");
-
-            //Neighbors[0] = new OctreeNode(dsw, this.Capacity, nextLevel, this);
-            //Neighbors[1] = new OctreeNode(dse, this.Capacity, nextLevel, this);
-            //Neighbors[2] = new OctreeNode(dnw, this.Capacity, nextLevel, this);
-            //Neighbors[3] = new OctreeNode(dne, this.Capacity, nextLevel, this);
-
-            //Neighbors[4] = new OctreeNode(usw, this.Capacity, nextLevel, this);
-            //Neighbors[5] = new OctreeNode(use, this.Capacity, nextLevel, this);
-            //Neighbors[6] = new OctreeNode(unw, this.Capacity, nextLevel, this);
-            //Neighbors[7] = new OctreeNode(une, this.Capacity, nextLevel, this);
-
 
             Neighbors[0] = OctreeLeavePool.Pool.Get();
             Neighbors[0].Init(dsw, this.Capacity, nextLevel, this);
@@ -176,7 +174,7 @@ namespace PixelMiner.DataStructure
             Neighbors[7].Init(une, this.Capacity, nextLevel, this);
         }
 
-        public void TraverseRecursive(System.Action<AABB> callback)
+        public void TraverseRecursive(System.Action<AABB, Color> callback)
         {
             if (_divided)
             {
@@ -188,8 +186,10 @@ namespace PixelMiner.DataStructure
                     }
                 }
             }
-
-            callback?.Invoke(Bound);
+            else
+            {
+                callback?.Invoke(Bound, _boundsColor);
+            }               
         }
         public void TraverseRecursive(System.Action callback)
         {
@@ -235,7 +235,7 @@ namespace PixelMiner.DataStructure
                 Neighbors = null;
             }
 
-            if (Entities.Count == 0)
+            if (AllEntities.Count == 0)
             {
                 _divided = false;
                 if(Neighbors != null)
@@ -260,9 +260,9 @@ namespace PixelMiner.DataStructure
 
         public void Clear()
         {
-            Entities.Clear();
+            AllEntities.Clear();
+            EntityInRoot.Clear();
             _divided = false;
-            //System.Array.Clear(Neighbors, 0, Neighbors.Length);
         }
     }
 }

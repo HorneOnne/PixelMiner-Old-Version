@@ -13,6 +13,7 @@ namespace PixelMiner.DataStructure
         private bool _divided;
         private Octree _root;
 
+        private Color _boundsColor = Color.blue;
 
         public OctreeLeave() 
         {
@@ -75,10 +76,6 @@ namespace PixelMiner.DataStructure
 
         public void Remove(DynamicEntity entity)
         {
-            //Debug.Log($"Remove node index: {entity.EntityNodeIndex}");
-            //Entities.Remove(entity);
-            //return;
-
             int entityLastIndex;
             if (Entities.Count > 0)
             {
@@ -108,16 +105,6 @@ namespace PixelMiner.DataStructure
 
             int nextLevel = _level + 1;
 
-            //Neighbors[0] = new OctreeNode(dsw, this.Capacity, nextLevel, _root); 
-            //Neighbors[1] = new OctreeNode(dse, this.Capacity, nextLevel, _root); 
-            //Neighbors[2] = new OctreeNode(dnw, this.Capacity, nextLevel, _root); 
-            //Neighbors[3] = new OctreeNode(dne, this.Capacity, nextLevel, _root); 
-
-            //Neighbors[4] = new OctreeNode(usw, this.Capacity, nextLevel, _root); 
-            //Neighbors[5] = new OctreeNode(use, this.Capacity, nextLevel, _root); 
-            //Neighbors[6] = new OctreeNode(unw, this.Capacity, nextLevel, _root); 
-            //Neighbors[7] = new OctreeNode(une, this.Capacity, nextLevel, _root); 
-
             Neighbors[0] = OctreeLeavePool.Pool.Get();
             Neighbors[0].Init(dsw, this.Capacity, nextLevel, _root);
 
@@ -145,31 +132,38 @@ namespace PixelMiner.DataStructure
 
 
 
-        //public void Query(AABB queryBound, ref List<DynamicEntity> entities)
-        //{
-        //    if (this.Bound.Intersect(queryBound))
-        //    {
-        //        if (!_divided)
-        //        {
-        //            for(int i = 0; i < this.EntityIndices.Count; i++)
-        //            {
-        //                if (queryBound.Contains(_root.Entities[EntityIndices[i]].Transform.position))
-        //                {
-        //                    entities.Add(_root.Entities[EntityIndices[i]]);
-        //                }
-        //            }
-        //        }
-        //        else
-        //        {
-        //            for (int i = 0; i < Neighbors.Length; i++)
-        //            {
-        //                Neighbors[i].Query(queryBound, ref entities);
-        //            }
-        //        }
-        //    }
-        //}
+        public void Query(AABB queryBound, ref List<DynamicEntity> entities, int maxSize = int.MaxValue)
+        {
+            if (this.Bound.Intersect(queryBound))
+            {
+                for (int i = 0; i < this.Entities.Count; i++)
+                {
+                    if (queryBound.Contains(Entities[i].Transform.position))
+                    {
+                        if(entities.Count < maxSize)
+                        {
+                            entities.Add(Entities[i]);
+                        }
+                        else
+                        {
+                            return;
+                        }
+                    }
+                }
 
-        public void TraverseRecursive(System.Action<AABB> callback)
+                if (_divided)
+                {
+                    for (int i = 0; i < Neighbors.Length; i++)
+                    {
+                        Neighbors[i].Query(queryBound, ref entities, maxSize);
+                    }
+                }
+            }
+        }
+
+
+
+        public void TraverseRecursive(System.Action<AABB, Color> callback)
         {
             if(_divided)
             {
@@ -179,8 +173,11 @@ namespace PixelMiner.DataStructure
 
                 }
             }
-           
-            callback?.Invoke(Bound);
+            else
+            {
+                callback?.Invoke(Bound, _boundsColor);
+            }
+        
         }
 
         public void TraverseRecursive(System.Action callback)
